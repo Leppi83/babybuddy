@@ -10,14 +10,19 @@
     {% endif %}
     <div class="mb-3">
         <strong>{% trans "Next Nap" %}</strong>
-        {% if recommendations.nap.status == 'no_data' %}
+        {% if recommendations.nap.status == 'no_data' or recommendations.nap.status == 'nighttime' %}
             <div class="small text-muted">{% trans "Not enough sleep data yet." %}</div>
         {% else %}
-            <div>{% trans "Ideal" %}: {{ recommendations.nap.ideal|date:'SHORT_DATETIME_FORMAT' }}</div>
+            <div>{% trans "Ideal" %}: {{ recommendations.nap.ideal|date:'d.m. H:i' }}</div>
             <div class="small text-muted">
-                {% trans "Window" %}: {{ recommendations.nap.earliest|date:'SHORT_DATETIME_FORMAT' }} - {{ recommendations.nap.latest|date:'SHORT_DATETIME_FORMAT' }}
+                {% trans "Window" %}: {{ recommendations.nap.earliest|date:'d.m. H:i' }}
+                -
+                {% if recommendations.nap.earliest|date:'d.m.Y' == recommendations.nap.latest|date:'d.m.Y' %}
+                    {{ recommendations.nap.latest|date:'H:i' }}
+                {% else %}
+                    {{ recommendations.nap.latest|date:'d.m. H:i' }}
+                {% endif %}
             </div>
-            <div class="small text-muted">{% trans "Status" %}: {{ recommendations.nap.status }}</div>
         {% endif %}
     </div>
 
@@ -26,15 +31,20 @@
         {% if recommendations.bedtime.status == 'no_data' %}
             <div class="small text-muted">{% trans "Not enough sleep data yet." %}</div>
         {% else %}
-            <div>{% trans "Ideal" %}: {{ recommendations.bedtime.ideal|date:'SHORT_DATETIME_FORMAT' }}</div>
-            <div>{% trans "Target" %}: {{ recommendations.bedtime.target_bedtime|date:'SHORT_DATETIME_FORMAT' }}</div>
+            <div>{% trans "Ideal" %}: {{ recommendations.bedtime.ideal|date:'d.m. H:i' }}</div>
+            <div>{% trans "Target" %}: {{ recommendations.bedtime.target_bedtime|date:'d.m. H:i' }}</div>
             <div class="small text-muted">
-                {% trans "Window" %}: {{ recommendations.bedtime.earliest|date:'SHORT_DATETIME_FORMAT' }} - {{ recommendations.bedtime.latest|date:'SHORT_DATETIME_FORMAT' }}
+                {% trans "Window" %}: {{ recommendations.bedtime.earliest|date:'d.m. H:i' }}
+                -
+                {% if recommendations.bedtime.earliest|date:'d.m.Y' == recommendations.bedtime.latest|date:'d.m.Y' %}
+                    {{ recommendations.bedtime.latest|date:'H:i' }}
+                {% else %}
+                    {{ recommendations.bedtime.latest|date:'d.m. H:i' }}
+                {% endif %}
             </div>
             {% if recommendations.bedtime.reason %}
                 <div class="small text-muted">{{ recommendations.bedtime.reason }}</div>
             {% endif %}
-            <div class="small text-muted">{% trans "Status" %}: {{ recommendations.bedtime.status }}</div>
         {% endif %}
     </div>
 {% endblock %}

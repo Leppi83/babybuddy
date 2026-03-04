@@ -20,6 +20,8 @@ PERSONAL_HISTORY_MIN_POINTS = 3
 SHORT_NAP_THRESHOLD_MIN = 40
 SHORT_NAP_REDUCTION = 0.90
 BEDTIME_DEFAULT_TARGET = datetime.time(hour=20, minute=0)
+NAP_BLOCK_START = datetime.time(hour=17, minute=0)
+NAP_BLOCK_END = datetime.time(hour=7, minute=0)
 
 
 def _now(now=None):
@@ -105,6 +107,26 @@ def _as_overdue(now, source, reason, last_reference, window_min, window_max):
     }
 
 
+def _is_night_nap_block(now):
+    current = timezone.localtime(now).time()
+    return current >= NAP_BLOCK_START or current < NAP_BLOCK_END
+
+
+def _round_to_quarter_hour(dt):
+    if not dt:
+        return None
+    local = timezone.localtime(dt)
+    down = datetime.timedelta(
+        minutes=local.minute % 15,
+        seconds=local.second,
+        microseconds=local.microsecond,
+    )
+    rounded = local - down
+    if down >= datetime.timedelta(minutes=8):
+        rounded += datetime.timedelta(minutes=15)
+    return rounded
+
+
 def recommend_nap(child, now=None):
     now = _now(now)
     age_days = _age_days(child, now)
@@ -117,6 +139,19 @@ def recommend_nap(child, now=None):
             "source": "fallback",
             "reason": "no_sleep_data",
             "last_reference_end": None,
+            "wake_window_min_minutes": wake_min,
+            "wake_window_max_minutes": wake_max,
+            "earliest": None,
+            "ideal": None,
+            "latest": None,
+        }
+
+    if _is_night_nap_block(now):
+        return {
+            "status": "nighttime",
+            "source": "night_window",
+            "reason": "night_sleep_time",
+            "last_reference_end": last_sleep.end,
             "wake_window_min_minutes": wake_min,
             "wake_window_max_minutes": wake_max,
             "earliest": None,
@@ -161,9 +196,9 @@ def recommend_nap(child, now=None):
         "last_reference_end": last_sleep.end,
         "wake_window_min_minutes": wake_min,
         "wake_window_max_minutes": wake_max,
-        "earliest": earliest,
-        "ideal": ideal,
-        "latest": latest,
+        "earliest": _round_to_quarter_hour(earliest),
+        "ideal": _round_to_quarter_hour(ideal),
+        "latest": _round_to_quarter_hour(latest),
     }
 
 
@@ -237,10 +272,10 @@ def recommend_bedtime(child, now=None):
         "last_reference_end": reference_sleep.end,
         "wake_window_min_minutes": night_wake_min,
         "wake_window_max_minutes": night_wake_max,
-        "earliest": earliest,
-        "ideal": ideal,
-        "latest": latest,
-        "target_bedtime": target_bedtime,
+        "earliest": _round_to_quarter_hour(earliest),
+        "ideal": _round_to_quarter_hour(ideal),
+        "latest": _round_to_quarter_hour(latest),
+        "target_bedtime": _round_to_quarter_hour(target_bedtime),
     }
 
 
