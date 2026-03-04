@@ -10,6 +10,12 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=babybuddy.settings.base
       - TZ=${TZ:-Europe/Berlin}
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-babybuddy}
+      - DB_USER=${POSTGRES_USER:-babybuddy}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
     entrypoint: ["/bin/bash", "/app/docker/entrypoint.prod.sh"]
     depends_on:
       postgres:
