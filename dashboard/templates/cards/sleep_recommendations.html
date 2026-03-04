@@ -10,7 +10,9 @@
     {% endif %}
     <div class="mb-3">
         <strong>{% trans "Next Nap" %}</strong>
-        {% if recommendations.nap.status == 'no_data' or recommendations.nap.status == 'nighttime' %}
+        {% if recommendations.nap.status == 'nighttime' %}
+            <div class="small text-muted">{% trans "Nighttime: no nap recommendation." %}</div>
+        {% elif recommendations.nap.status == 'no_data' %}
             <div class="small text-muted">{% trans "Not enough sleep data yet." %}</div>
         {% else %}
             <div>{% trans "Ideal" %}: {{ recommendations.nap.ideal|date:'d.m. H:i' }}</div>

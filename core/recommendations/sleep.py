@@ -85,11 +85,13 @@ def _clock_minutes(dt):
     return local.hour * 60 + local.minute
 
 
-def _target_today(now, target_time):
-    target = datetime.datetime.combine(now.date(), target_time)
+def _time_to_minutes(value):
+    return value.hour * 60 + value.minute
+
+
+def _target_on_date(base_date, target_time):
+    target = datetime.datetime.combine(base_date, target_time)
     target = timezone.make_aware(target, timezone.get_current_timezone())
-    if target < now - datetime.timedelta(hours=1):
-        target += datetime.timedelta(days=1)
     return target
 
 
@@ -125,6 +127,35 @@ def _round_to_quarter_hour(dt):
     if down >= datetime.timedelta(minutes=8):
         rounded += datetime.timedelta(minutes=15)
     return rounded
+
+
+def _history_bedtime_target_minutes(child, now):
+    bedtime_starts = list(
+        Sleep.objects.filter(child=child, nap=False, start__lte=now)
+        .order_by("-start")
+        .values_list("start", flat=True)[:PERSONAL_HISTORY_LIMIT]
+    )
+    bedtime_minutes = [_clock_minutes(start) for start in bedtime_starts]
+    if len(bedtime_minutes) >= PERSONAL_HISTORY_MIN_POINTS:
+        return _median_minutes(bedtime_minutes), "history_median"
+    return None, "default_20_00"
+
+
+def _resolve_target_bedtime_time(child, now):
+    history_minutes, history_source = _history_bedtime_target_minutes(child, now)
+    if child.usual_bedtime:
+        preferred_minutes = _time_to_minutes(child.usual_bedtime)
+        if history_minutes is None:
+            return child.usual_bedtime, "child_setting"
+        blended_minutes = int(round((preferred_minutes * 0.70) + (history_minutes * 0.30)))
+        blended_minutes %= 24 * 60
+        blended = (datetime.datetime.min + _minutes_to_delta(blended_minutes)).time()
+        return blended, "child_setting_blend"
+
+    if history_minutes is None:
+        return BEDTIME_DEFAULT_TARGET, history_source
+    history_time = (datetime.datetime.min + _minutes_to_delta(history_minutes)).time()
+    return history_time, history_source
 
 
 def recommend_nap(child, now=None):
@@ -189,6 +220,42 @@ def recommend_nap(child, now=None):
         ideal_minutes = int(round((wake_min + wake_max) / 2))
     ideal = last_sleep.end + _minutes_to_delta(ideal_minutes)
 
+    bedtime_target_time, bedtime_source = _resolve_target_bedtime_time(child, now)
+    night_wake_min = max(1, int(round(wake_min * 1.10)))
+    bedtime_anchor = _target_on_date(now.date(), bedtime_target_time)
+    if bedtime_anchor <= now:
+        bedtime_anchor += datetime.timedelta(days=1)
+    latest_cap = bedtime_anchor - _minutes_to_delta(night_wake_min)
+
+    if latest > latest_cap:
+        latest = latest_cap
+        ideal = min(ideal, latest)
+        source = source if source != "midpoint" else "bedtime_aligned"
+        if latest <= now:
+            return {
+                "status": "nighttime",
+                "source": bedtime_source,
+                "reason": "bedtime_target_near",
+                "last_reference_end": last_sleep.end,
+                "wake_window_min_minutes": wake_min,
+                "wake_window_max_minutes": wake_max,
+                "earliest": None,
+                "ideal": None,
+                "latest": None,
+            }
+    if latest < earliest:
+        return {
+            "status": "nighttime",
+            "source": bedtime_source,
+            "reason": "bedtime_target_near",
+            "last_reference_end": last_sleep.end,
+            "wake_window_min_minutes": wake_min,
+            "wake_window_max_minutes": wake_max,
+            "earliest": None,
+            "ideal": None,
+            "latest": None,
+        }
+
     return {
         "status": "ok",
         "source": source,
@@ -241,22 +308,10 @@ def recommend_bedtime(child, now=None):
         overdue["target_bedtime"] = now
         return overdue
 
-    bedtime_starts = list(
-        Sleep.objects.filter(child=child, nap=False, start__lte=now)
-        .order_by("-start")
-        .values_list("start", flat=True)[:PERSONAL_HISTORY_LIMIT]
-    )
-    bedtime_minutes = [_clock_minutes(start) for start in bedtime_starts]
-    if len(bedtime_minutes) >= PERSONAL_HISTORY_MIN_POINTS:
-        source = "history_median"
-        bedtime_target_time = (
-            datetime.datetime.min + _minutes_to_delta(_median_minutes(bedtime_minutes))
-        ).time()
-    else:
-        source = "default_20_00"
-        bedtime_target_time = BEDTIME_DEFAULT_TARGET
-
-    target_bedtime = _target_today(now, bedtime_target_time)
+    bedtime_target_time, source = _resolve_target_bedtime_time(child, now)
+    # Use the recommendation window day for target display to avoid misleading
+    # next-day targets during the same evening.
+    target_bedtime = _target_on_date(earliest.date(), bedtime_target_time)
     ideal = _clamp(target_bedtime, earliest, latest)
 
     reason = None
