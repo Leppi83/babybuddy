@@ -8,6 +8,8 @@ from django.utils.translation import gettext as _
 import collections
 
 from core import models
+from core.recommendations.ollama import explain_sleep_recommendations
+from core.recommendations import recommend_sleep_bundle
 
 register = template.Library()
 
@@ -311,6 +313,18 @@ def card_sleep_last(context, child):
         "type": "sleep",
         "sleep": instance,
         "empty": empty,
+        "hide_empty": _hide_empty(context),
+    }
+
+
+@register.inclusion_tag("cards/sleep_recommendations.html", takes_context=True)
+def card_sleep_recommendations(context, child):
+    recommendations = recommend_sleep_bundle(child)
+    return {
+        "type": "sleep",
+        "recommendations": recommendations,
+        "explanation": explain_sleep_recommendations(recommendations),
+        "empty": False,
         "hide_empty": _hide_empty(context),
     }
 

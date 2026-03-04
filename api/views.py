@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.schemas.openapi import AutoSchema
 
 from core import models
+from core.recommendations import recommend_sleep_bundle
 from babybuddy import models as babybuddy_models
 
 from . import serializers, filters
@@ -43,6 +44,11 @@ class ChildViewSet(viewsets.ModelViewSet):
     )
     ordering_fields = ("birth_date", "birth_time", "first_name", "last_name", "slug")
     ordering = ["-birth_date", "-birth_time"]
+
+    @action(detail=True, methods=["get"], url_path="sleep-recommendations")
+    def sleep_recommendations(self, request, slug=None):
+        child = self.get_object()
+        return Response(recommend_sleep_bundle(child))
 
 
 class DiaperChangeViewSet(viewsets.ModelViewSet):
