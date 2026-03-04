@@ -11,8 +11,7 @@ services:
     restart: unless-stopped
     environment:
       - TZ=Europe/Berlin
-      # Achtung: das hier NICHT für Prod setzen:
-      # - DJANGO_SETTINGS_MODULE=babybuddy.settings.test
+      - DJANGO_SETTINGS_MODULE=babybuddy.settings.test
       # Optional:
       # - OLLAMA_ENABLED=1
       # - OLLAMA_URL=http://192.168.2.198:11434
