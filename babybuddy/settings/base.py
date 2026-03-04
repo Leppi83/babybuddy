@@ -291,9 +291,22 @@ if os.environ.get("EMAIL_HOST"):
 
 # Security
 
-# https://docs.djangoproject.com/en/5.0/ref/settings/#secure-proxy-ssl-header
-if os.environ.get("SECURE_PROXY_SSL_HEADER"):
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Reverse proxy / TLS termination
+# Example: SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO:https
+_secure_proxy = os.environ.get("SECURE_PROXY_SSL_HEADER", "").strip()
+
+if _secure_proxy:
+    try:
+        header, value = [p.strip() for p in _secure_proxy.split(":", 1)]
+        SECURE_PROXY_SSL_HEADER = (header, value)
+    except ValueError:
+        raise ValueError(
+            "SECURE_PROXY_SSL_HEADER must be in the form 'HEADER:VALUE', "
+            "e.g. 'HTTP_X_FORWARDED_PROTO:https'"
+        )
+
+# Often desirable behind Traefik/Nginx when Host is forwarded
+USE_X_FORWARDED_HOST = os.environ.get("USE_X_FORWARDED_HOST", "").lower() in ("1", "true", "yes", "on")
 
 # https://docs.djangoproject.com/en/5.0/topics/http/sessions/#settings
 SESSION_COOKIE_HTTPONLY = True
