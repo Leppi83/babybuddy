@@ -33,6 +33,20 @@ class ViewsTestCase(TestCase):
 
         cls.c.login(**cls.credentials)
 
+    def setUp(self):
+        # Ensure every test starts with an existing authenticated user.
+        user_model = get_user_model()
+        self.user, _ = user_model.objects.get_or_create(
+            username=self.credentials["username"],
+            defaults={
+                "is_superuser": True,
+                "email": "admin@admin.admin",
+            },
+        )
+        self.user.set_password(self.credentials["password"])
+        self.user.save()
+        self.c.force_login(self.user)
+
     def test_root_router(self):
         page = self.c.get("/")
         self.assertEqual(page.url, "/dashboard/")
@@ -107,12 +121,13 @@ class ViewsTestCase(TestCase):
         Testing this class primarily ensures Baby Buddy's custom templates are correctly
         configured for Django's password reset flow.
         """
-        self.c.logout()
+        # Use a dedicated client so this test does not affect class-level auth state.
+        client = HttpClient()
 
-        page = self.c.get("/reset/")
+        page = client.get("/reset/")
         self.assertEqual(page.status_code, 200)
 
-        page = self.c.post("/reset/", data={"email": self.user.email}, follow=True)
+        page = client.post("/reset/", data={"email": self.user.email}, follow=True)
         self.assertEqual(page.status_code, 200)
 
         self.assertEqual(len(mail.outbox), 1)
@@ -120,7 +135,7 @@ class ViewsTestCase(TestCase):
         path = re.search(
             "http://testserver(?P<path>[^\\s]+)", mail.outbox[0].body
         ).group("path")
-        page = self.c.get(path, follow=True)
+        page = client.get(path, follow=True)
         self.assertEqual(page.status_code, 200)
 
         new_password = "xZZVN6z4TvhFg6S"
@@ -128,5 +143,5 @@ class ViewsTestCase(TestCase):
             "new_password1": new_password,
             "new_password2": new_password,
         }
-        page = self.c.post(page.request["PATH_INFO"], data=data, follow=True)
+        page = client.post(page.request["PATH_INFO"], data=data, follow=True)
         self.assertEqual(page.status_code, 200)

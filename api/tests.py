@@ -175,6 +175,16 @@ class ChildAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
         entry["slug"] = "new-name"
         self.assertEqual(response.data, entry)
 
+    def test_sleep_recommendations(self):
+        endpoint = reverse(
+            "api:child-sleep-recommendations", kwargs={"slug": "fake-child"}
+        )
+        response = self.client.get(endpoint)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["child"]["slug"], "fake-child")
+        self.assertIn("nap", response.data)
+        self.assertIn("bedtime", response.data)
+
 
 class PumpingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
     endpoint = reverse("api:pumping-list")
