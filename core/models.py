@@ -192,6 +192,12 @@ class Child(models.Model):
     )
     birth_date = models.DateField(blank=False, null=False, verbose_name=_("Birth date"))
     birth_time = models.TimeField(blank=True, null=True, verbose_name=_("Birth time"))
+    usual_bedtime = models.TimeField(
+        blank=True,
+        null=True,
+        verbose_name=_("Usual bedtime"),
+        help_text=_("Typical bedtime used for sleep recommendations."),
+    )
     slug = models.SlugField(
         allow_unicode=True,
         blank=False,
