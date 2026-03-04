@@ -235,6 +235,12 @@ STORAGES = {
     },
 }
 
+# Optional fallback for deployments where manifest entries are incomplete.
+if not bool(strtobool(os.environ.get("STATICFILES_USE_MANIFEST") or "True")):
+    STORAGES["staticfiles"][
+        "BACKEND"
+    ] = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
