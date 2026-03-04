@@ -15,7 +15,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "${BABYBUDDY_PORT:-8000}:8000"
+      - "${BABYBUDDY_PORT:-8015}:8000"
     volumes:
       - babybuddy-media:/app/media
       - babybuddy-static:/app/static
