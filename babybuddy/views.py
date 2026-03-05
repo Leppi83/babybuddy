@@ -298,3 +298,11 @@ class Welcome(LoginRequiredMixin, TemplateView):
     """
 
     template_name = "babybuddy/welcome.html"
+
+
+class ShadcnPreview(LoginRequiredMixin, TemplateView):
+    """
+    Isolated preview route for the React/shadcn migration.
+    """
+
+    template_name = "babybuddy/shadcn_preview.html"
