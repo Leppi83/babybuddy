@@ -30,7 +30,7 @@
         <form style="display:none" aria-hidden="true">{% csrf_token %}</form>
         <header class="ui-preview-header">
             <div>
-                <p class="ui-preview-kicker">Shadcn Migration Preview</p>
+                <p class="ui-preview-kicker">{% if preview_mode %}UI Preview{% else %}Dashboard{% endif %}</p>
                 <h1>Dashboard Shell</h1>
             </div>
             <div class="ui-preview-badges">

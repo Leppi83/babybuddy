@@ -7,17 +7,23 @@
     <li class="breadcrumb-item active" aria-current="page">{% trans "Notes" %}</li>
 {% endblock %}
 {% block content %}
-    <h1>
-        {% trans "Notes" %}
-        {% if perms.core.add_note %}
-            <a href="{% url 'core:note-add' %}" class="btn btn-sm btn-success">
-                <i class="icon-note" aria-hidden="true"></i> {% trans "Add Note" %}
-            </a>
-        {% endif %}
-    </h1>
-    {% include 'babybuddy/filter.html' %}
-    <div class="table-responsive">
-        <table class="table table-instances table-borderless table-striped table-hover align-middle">
+    <section class="shadcn-list-shell">
+        <header class="shadcn-list-header">
+            <div>
+                <p class="shadcn-list-kicker">{% trans "Activity" %}</p>
+                <h1>{% trans "Notes" %}</h1>
+            </div>
+            {% if perms.core.add_note %}
+                <div class="shadcn-list-actions">
+                    <a href="{% url 'core:note-add' %}" class="btn btn-sm btn-success">
+                        <i class="icon-note" aria-hidden="true"></i> {% trans "Add Note" %}
+                    </a>
+                </div>
+            {% endif %}
+        </header>
+        {% include 'babybuddy/filter.html' %}
+        <div class="table-responsive shadcn-list-table-wrap">
+            <table class="table table-instances table-borderless table-striped table-hover align-middle shadcn-list-table">
             <thead>
                 <tr>
                     <th>{% trans "Actions" %}</th>
@@ -31,8 +37,8 @@
                 </tr>
             </thead>
             <tbody>
-                {% for note in object_list %}
-                    <tr>
+                    {% for note in object_list %}
+                        <tr>
                         <td>
                             <div class="btn-group btn-group-sm"
                                  role="group"
@@ -56,11 +62,12 @@
                             </td>
                         {% endif %}
                         <td>
-                            {% if note.image %}
-                                {% thumbnail '40x40' note.image as thumb %}
-                                    <a href="{{ note.image.url }}" target="_blank">
-                                        <img src="{{ thumb.url }}" class="img-fluid" />
-                                    </a>
+                                {% if note.image %}
+                                    {% thumbnail '40x40' note.image as thumb %}
+                                        <a href="{{ note.image.url }}" target="_blank">
+                                            <img src="{{ thumb.url }}" class="img-fluid" />
+                                        </a>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                             <td>{{ note.note }}</td>
@@ -75,4 +82,5 @@
             </table>
         </div>
         {% include 'babybuddy/paginator.html' %}
-    {% endblock %}
+    </section>
+{% endblock %}
