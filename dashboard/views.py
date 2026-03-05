@@ -36,9 +36,42 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     permission_required = ("core.view_child",)
     template_name = "dashboard/child.html"
 
+    SECTION_CARD_MAP = {
+        "diaper": [
+            "card.diaper.last",
+            "card.diaper.types",
+        ],
+        "feedings": [
+            "card.feedings.last",
+            "card.feedings.method",
+            "card.feedings.recent",
+            "card.feedings.breastfeeding",
+        ],
+        "pumpings": [
+            "card.pumpings.last",
+        ],
+        "sleep": [
+            "card.sleep.timers",
+            "card.sleep.last",
+            "card.sleep.recommendations",
+            "card.sleep.recent",
+            "card.sleep.naps_day",
+            "card.sleep.statistics",
+            "card.sleep.timeline_day",
+        ],
+        "tummytime": [
+            "card.tummytime.day",
+        ],
+    }
+
     def get_context_data(self, **kwargs):
         context = super(ChildDashboard, self).get_context_data(**kwargs)
-        context["visible_dashboard_items"] = set(
-            self.request.user.settings.dashboard_selected_items()
-        )
+        visible_items = set(self.request.user.settings.dashboard_selected_items())
+        visible_sections = {
+            section
+            for section, cards in self.SECTION_CARD_MAP.items()
+            if any(card in visible_items for card in cards)
+        }
+        context["visible_dashboard_items"] = visible_items
+        context["visible_dashboard_sections"] = visible_sections
         return context

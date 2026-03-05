@@ -93,3 +93,10 @@
 .dual-list-controls .btn {
     min-width: 3rem;
 }
+
+@include media-breakpoint-up(lg) {
+    .dual-list-controls {
+        min-height: 20rem;
+        justify-content: center;
+    }
+}
