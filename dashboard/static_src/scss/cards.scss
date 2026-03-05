@@ -112,6 +112,12 @@
         gap: .6rem;
     }
 
+    .timeline-day-label-wrap {
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+    }
+
     .timeline-day-label {
         font-size: .95rem;
         font-weight: 700;
@@ -136,27 +142,28 @@
         .timeline-grid {
             display: grid;
             grid-template-columns: repeat(24, minmax(0, 1fr));
-            gap: .22rem;
+            gap: .35rem;
             align-items: end;
-            min-height: 9rem;
+            min-height: 10.5rem;
             margin-bottom: .55rem;
         }
 
         .hour-slot {
             display: grid;
             justify-items: center;
-            gap: .25rem;
+            gap: .15rem;
         }
 
         .bars {
-            display: flex;
-            align-items: flex-end;
-            gap: 2px;
-            height: 6.25rem;
+            display: block;
+            height: 7rem;
+            width: 100%;
+            text-align: center;
         }
 
         .bar {
-            width: .22rem;
+            display: inline-block;
+            width: .5rem;
             border-radius: 999px;
             min-height: 2px;
         }
@@ -169,10 +176,37 @@
             background: rgba(255, 194, 122, .95);
         }
 
+        .bar.none {
+            background: transparent;
+            min-height: 0;
+        }
+
+        .slot-value {
+            min-height: 1rem;
+            font-size: .62rem;
+            color: rgba(244, 247, 251, .85);
+            font-weight: 700;
+            line-height: 1;
+        }
+
         .hour-label {
             font-size: .58rem;
             color: rgba(244, 247, 251, .75);
         }
+    }
+
+    .timeline-date-form {
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .timeline-date-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
     }
 
     .timeline-legend {

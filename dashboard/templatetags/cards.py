@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django import template
 from django.db.models import Avg, Count, Q, Sum
 from django.db.models.functions import TruncDate
@@ -428,14 +430,30 @@ def card_sleep_naps_day(context, child, date=None):
 @register.inclusion_tag("cards/sleep_timeline_day.html", takes_context=True)
 def card_sleep_timeline_day(context, child):
     now = timezone.localtime()
-    try:
-        day_offset = int(context["request"].GET.get("sleep_chart_day", "0"))
-    except (TypeError, ValueError):
-        day_offset = 0
+    today = now.date()
+    min_date = today - timezone.timedelta(days=30)
 
-    # No future days; keep range bounded for usability.
-    day_offset = min(0, max(-30, day_offset))
-    target_date = now.date() + timezone.timedelta(days=day_offset)
+    target_date = None
+    day_param = context["request"].GET.get("sleep_chart_date")
+    if day_param:
+        try:
+            target_date = datetime.date.fromisoformat(day_param)
+        except (TypeError, ValueError):
+            target_date = None
+
+    if target_date is None:
+        try:
+            day_offset = int(context["request"].GET.get("sleep_chart_day", "0"))
+        except (TypeError, ValueError):
+            day_offset = 0
+        day_offset = min(0, max(-30, day_offset))
+        target_date = today + timezone.timedelta(days=day_offset)
+    else:
+        if target_date > today:
+            target_date = today
+        if target_date < min_date:
+            target_date = min_date
+
     day_start = timezone.make_aware(
         timezone.datetime.combine(target_date, timezone.datetime.min.time())
     )
@@ -467,25 +485,49 @@ def card_sleep_timeline_day(context, child):
                     sleep_minutes[hour_index] += minutes
             cursor = overlap_end
 
-    hour_slots = [
-        {
-            "hour": f"{hour:02d}",
-            "nap_pct": min(100, nap_minutes[hour] * 100 / 60),
-            "sleep_pct": min(100, sleep_minutes[hour] * 100 / 60),
-        }
-        for hour in range(24)
-    ]
+    def _label_for_minutes(minutes):
+        if minutes <= 0:
+            return ""
+        if minutes < 90:
+            return f"{minutes}m"
+        hours = minutes / 60
+        if hours.is_integer():
+            return f"{int(hours)}h"
+        return f"{hours:.1f}h"
+
+    hour_slots = []
+    for hour in range(24):
+        nap = nap_minutes[hour]
+        sleep = sleep_minutes[hour]
+        if sleep >= nap and sleep > 0:
+            minutes = sleep
+            kind = "sleep"
+        elif nap > 0:
+            minutes = nap
+            kind = "nap"
+        else:
+            minutes = 0
+            kind = "none"
+        hour_slots.append(
+            {
+                "hour": f"{hour:02d}",
+                "kind": kind,
+                "pct": min(100, minutes * 100 / 60),
+                "value_label": _label_for_minutes(minutes),
+            }
+        )
 
     return {
         "type": "sleep",
         "empty": empty,
         "hide_empty": _hide_empty(context),
-        "day_offset": day_offset,
         "target_date": target_date,
+        "today": today,
+        "min_date": min_date,
         "hour_slots": hour_slots,
-        "has_next_day": day_offset < 0,
-        "next_day_offset": min(0, day_offset + 1),
-        "prev_day_offset": day_offset - 1,
+        "has_next_day": target_date < today,
+        "next_date": min(today, target_date + timezone.timedelta(days=1)),
+        "prev_date": target_date - timezone.timedelta(days=1),
     }
 
 
