@@ -47,9 +47,6 @@ app_patterns = [
     path("settings/", include("dbsettings.urls")),
 ]
 
-if settings.BABY_BUDDY.get("SHADCN_UI_PREVIEW_ENABLED", False):
-    app_patterns.append(path("ui-preview/", views.ShadcnPreview.as_view(), name="ui-preview"))
-
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("api.urls", namespace="api")),
