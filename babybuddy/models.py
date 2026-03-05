@@ -16,24 +16,20 @@ from rest_framework.authtoken.models import Token
 
 class Settings(models.Model):
     DASHBOARD_ITEM_CHOICES = [
-        ("section.diaper", _("diaper changes - Section")),
         ("card.diaper.last", _("diaper changes - Last nappy change")),
         ("card.diaper.types", _("diaper changes - Nappy changes")),
-        ("section.feedings", _("feedings - Section")),
         ("card.feedings.last", _("feedings - Last feeding")),
         ("card.feedings.method", _("feedings - Last Feeding Method")),
         ("card.feedings.recent", _("feedings - Recent Feedings")),
         ("card.feedings.breastfeeding", _("feedings - Breastfeeding")),
-        ("section.pumpings", _("pumpings - Section")),
         ("card.pumpings.last", _("pumpings - Last Pumping")),
-        ("section.sleep", _("sleep - Section")),
         ("card.sleep.timers", _("sleep - Timers")),
         ("card.sleep.last", _("sleep - Last Sleep")),
         ("card.sleep.recommendations", _("sleep - Sleep Recommendations")),
         ("card.sleep.recent", _("sleep - Recent Sleep")),
         ("card.sleep.naps_day", _("sleep - Today's Naps")),
         ("card.sleep.statistics", _("sleep - Statistics")),
-        ("section.tummytime", _("tummy time - Section")),
+        ("card.sleep.timeline_day", _("sleep - Sleep Timeline (24h)")),
         ("card.tummytime.day", _("tummy time - Today's Tummy Time")),
     ]
 

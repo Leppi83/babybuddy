@@ -425,6 +425,70 @@ def card_sleep_naps_day(context, child, date=None):
     }
 
 
+@register.inclusion_tag("cards/sleep_timeline_day.html", takes_context=True)
+def card_sleep_timeline_day(context, child):
+    now = timezone.localtime()
+    try:
+        day_offset = int(context["request"].GET.get("sleep_chart_day", "0"))
+    except (TypeError, ValueError):
+        day_offset = 0
+
+    # No future days; keep range bounded for usability.
+    day_offset = min(0, max(-30, day_offset))
+    target_date = now.date() + timezone.timedelta(days=day_offset)
+    day_start = timezone.make_aware(
+        timezone.datetime.combine(target_date, timezone.datetime.min.time())
+    )
+    day_end = day_start + timezone.timedelta(days=1)
+
+    instances = models.Sleep.objects.filter(child=child, start__lt=day_end, end__gt=day_start)
+    empty = not instances.exists()
+
+    nap_minutes = [0 for _ in range(24)]
+    sleep_minutes = [0 for _ in range(24)]
+
+    for instance in instances:
+        segment_start = max(timezone.localtime(instance.start), day_start)
+        segment_end = min(timezone.localtime(instance.end), day_end)
+        if segment_end <= segment_start:
+            continue
+
+        cursor = segment_start
+        while cursor < segment_end:
+            hour_start = cursor.replace(minute=0, second=0, microsecond=0)
+            hour_end = hour_start + timezone.timedelta(hours=1)
+            overlap_end = min(hour_end, segment_end)
+            minutes = int((overlap_end - cursor).total_seconds() // 60)
+            hour_index = hour_start.hour
+            if 0 <= hour_index < 24:
+                if instance.nap:
+                    nap_minutes[hour_index] += minutes
+                else:
+                    sleep_minutes[hour_index] += minutes
+            cursor = overlap_end
+
+    hour_slots = [
+        {
+            "hour": f"{hour:02d}",
+            "nap_pct": min(100, nap_minutes[hour] * 100 / 60),
+            "sleep_pct": min(100, sleep_minutes[hour] * 100 / 60),
+        }
+        for hour in range(24)
+    ]
+
+    return {
+        "type": "sleep",
+        "empty": empty,
+        "hide_empty": _hide_empty(context),
+        "day_offset": day_offset,
+        "target_date": target_date,
+        "hour_slots": hour_slots,
+        "has_next_day": day_offset < 0,
+        "next_day_offset": min(0, day_offset + 1),
+        "prev_day_offset": day_offset - 1,
+    }
+
+
 @register.inclusion_tag("cards/statistics.html", takes_context=True)
 def card_statistics(context, child):
     """

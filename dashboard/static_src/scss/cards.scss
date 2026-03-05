@@ -105,6 +105,99 @@
         }
     }
 
+    .timeline-day-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .6rem;
+    }
+
+    .timeline-day-label {
+        font-size: .95rem;
+        font-weight: 700;
+    }
+
+    .timeline-day-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.8rem;
+        height: 1.8rem;
+        border-radius: .45rem;
+        border: 1px solid rgba(255, 255, 255, .15);
+        color: #f4f7fb;
+
+        &.disabled {
+            opacity: .4;
+        }
+    }
+
+    .sleep-timeline-chart {
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(24, minmax(0, 1fr));
+            gap: .22rem;
+            align-items: end;
+            min-height: 9rem;
+            margin-bottom: .55rem;
+        }
+
+        .hour-slot {
+            display: grid;
+            justify-items: center;
+            gap: .25rem;
+        }
+
+        .bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 6.25rem;
+        }
+
+        .bar {
+            width: .22rem;
+            border-radius: 999px;
+            min-height: 2px;
+        }
+
+        .bar.nap {
+            background: rgba(255, 194, 122, .62);
+        }
+
+        .bar.sleep {
+            background: rgba(255, 194, 122, .95);
+        }
+
+        .hour-label {
+            font-size: .58rem;
+            color: rgba(244, 247, 251, .75);
+        }
+    }
+
+    .timeline-legend {
+        display: flex;
+        gap: .9rem;
+        font-size: .75rem;
+        color: rgba(244, 247, 251, .9);
+    }
+
+    .legend-dot {
+        width: .58rem;
+        height: .58rem;
+        border-radius: 999px;
+        display: inline-block;
+        margin-right: .2rem;
+    }
+
+    .legend-dot.nap {
+        background: rgba(255, 194, 122, .62);
+    }
+
+    .legend-dot.sleep {
+        background: rgba(255, 194, 122, .95);
+    }
+
     .card-sleep {
         --dashboard-card-accent: #{map.get($theme-colors, 'secondary')};
     }

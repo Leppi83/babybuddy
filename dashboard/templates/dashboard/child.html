@@ -15,7 +15,7 @@
         <div id="dashboard-child"
              class="dashboard-sections"
              data-order-key="dashboard-child-sections-{{ object.slug }}">
-            {% if 'section.diaper' in visible_dashboard_items %}
+            {% if 'diaper' in visible_dashboard_sections %}
                 <section class="dashboard-section section-diaper" data-section-id="diaper">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
@@ -30,7 +30,7 @@
                 </section>
             {% endif %}
 
-            {% if 'section.feedings' in visible_dashboard_items %}
+            {% if 'feedings' in visible_dashboard_sections %}
                 <section class="dashboard-section section-feeding" data-section-id="feeding">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
@@ -47,7 +47,7 @@
                 </section>
             {% endif %}
 
-            {% if 'section.pumpings' in visible_dashboard_items %}
+            {% if 'pumpings' in visible_dashboard_sections %}
                 <section class="dashboard-section section-pumping" data-section-id="pumping">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
@@ -61,7 +61,7 @@
                 </section>
             {% endif %}
 
-            {% if 'section.sleep' in visible_dashboard_items %}
+            {% if 'sleep' in visible_dashboard_sections %}
                 <section class="dashboard-section section-sleep" data-section-id="sleep">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
@@ -76,11 +76,12 @@
                         {% if 'card.sleep.recent' in visible_dashboard_items %}{% card_sleep_recent object %}{% endif %}
                         {% if 'card.sleep.naps_day' in visible_dashboard_items %}{% card_sleep_naps_day object %}{% endif %}
                         {% if 'card.sleep.statistics' in visible_dashboard_items %}{% card_statistics object %}{% endif %}
+                        {% if 'card.sleep.timeline_day' in visible_dashboard_items %}{% card_sleep_timeline_day object %}{% endif %}
                     </div>
                 </section>
             {% endif %}
 
-            {% if 'section.tummytime' in visible_dashboard_items %}
+            {% if 'tummytime' in visible_dashboard_sections %}
                 <section class="dashboard-section section-tummytime" data-section-id="tummytime">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">

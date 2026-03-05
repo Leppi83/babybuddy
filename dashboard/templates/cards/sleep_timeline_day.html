@@ -1,0 +1,39 @@
+{% extends 'cards/base.html' %}
+{% load i18n %}
+
+{% block header %}{% trans "Sleep Timeline (24h)" %}{% endblock %}
+{% block title %}
+    <div class="timeline-day-nav">
+        <a href="?sleep_chart_day={{ prev_day_offset }}" class="timeline-day-link" aria-label="{% trans 'Previous day' %}">
+            <i class="icon-angle-left" aria-hidden="true"></i>
+        </a>
+        <div class="timeline-day-label">{{ target_date|date:'d.m.Y' }}</div>
+        {% if has_next_day %}
+            <a href="?sleep_chart_day={{ next_day_offset }}" class="timeline-day-link" aria-label="{% trans 'Next day' %}">
+                <i class="icon-angle-right" aria-hidden="true"></i>
+            </a>
+        {% else %}
+            <span class="timeline-day-link disabled"><i class="icon-angle-right" aria-hidden="true"></i></span>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="sleep-timeline-chart">
+        <div class="timeline-grid">
+            {% for slot in hour_slots %}
+                <div class="hour-slot">
+                    <div class="bars">
+                        <span class="bar nap" style="height: {{ slot.nap_pct }}%"></span>
+                        <span class="bar sleep" style="height: {{ slot.sleep_pct }}%"></span>
+                    </div>
+                    <span class="hour-label">{{ slot.hour }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="timeline-legend">
+            <span><i class="legend-dot nap"></i> {% trans "Nap" %}</span>
+            <span><i class="legend-dot sleep"></i> {% trans "Sleep" %}</span>
+        </div>
+    </div>
+{% endblock %}
