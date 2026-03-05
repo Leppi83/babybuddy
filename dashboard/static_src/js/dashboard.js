@@ -215,6 +215,18 @@ BabyBuddy.Dashboard = (function ($) {
   }
 
   function formatSleepDuration(seconds) {
+    if (seconds < 60) {
+      var hh = 0;
+      var mm = 0;
+      var ss = Math.max(0, Math.floor(seconds));
+      return (
+        String(hh).padStart(2, "0") +
+        ":" +
+        String(mm).padStart(2, "0") +
+        ":" +
+        String(ss).padStart(2, "0")
+      );
+    }
     var totalMinutes = Math.floor(seconds / 60);
     var hours = Math.floor(totalMinutes / 60);
     var minutes = totalMinutes % 60;
