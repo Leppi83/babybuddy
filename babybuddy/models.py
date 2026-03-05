@@ -24,6 +24,7 @@ class Settings(models.Model):
         ("card.feedings.breastfeeding", _("feedings - Breastfeeding")),
         ("card.pumpings.last", _("pumpings - Last Pumping")),
         ("card.sleep.timers", _("sleep - Timers")),
+        ("card.sleep.quick_timer", _("sleep - Sleep Timer")),
         ("card.sleep.last", _("sleep - Last Sleep")),
         ("card.sleep.recommendations", _("sleep - Sleep Recommendations")),
         ("card.sleep.recent", _("sleep - Recent Sleep")),

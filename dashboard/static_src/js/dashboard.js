@@ -179,6 +179,87 @@ BabyBuddy.Dashboard = (function ($) {
         }
       },
     );
+
+    dashboardElement.on(
+      "mouseenter mousemove",
+      ".sleep-timeline-card-root .bar[data-tooltip]",
+      function (event) {
+        if (!this.dataset.tooltip || this.classList.contains("none")) {
+          return;
+        }
+        var tooltip = this
+          .closest(".sleep-timeline-card-root")
+          .querySelector("[data-sleep-timeline-tooltip]");
+        if (!tooltip) {
+          return;
+        }
+        tooltip.textContent = this.dataset.tooltip;
+        tooltip.style.left = event.clientX + "px";
+        tooltip.style.top = event.clientY + "px";
+        tooltip.classList.add("visible");
+      },
+    );
+
+    dashboardElement.on(
+      "mouseleave",
+      ".sleep-timeline-card-root .bar[data-tooltip]",
+      function () {
+        var tooltip = this
+          .closest(".sleep-timeline-card-root")
+          .querySelector("[data-sleep-timeline-tooltip]");
+        if (tooltip) {
+          tooltip.classList.remove("visible");
+        }
+      },
+    );
+  }
+
+  function formatSleepDuration(seconds) {
+    var minutes = Math.floor(seconds / 60);
+    if (minutes < 90) {
+      return minutes + "m";
+    }
+    var hours = minutes / 60;
+    if (Number.isInteger(hours)) {
+      return hours + "h";
+    }
+    return hours.toFixed(1) + "h";
+  }
+
+  function bindSleepQuickTimer() {
+    if (!dashboardElement || dashboardElement.length == 0) {
+      return;
+    }
+
+    function refreshTimerCards() {
+      dashboardElement.find("[data-sleep-timer]").each(function () {
+        var running = this.dataset.running === "true";
+        var elapsed = parseInt(this.dataset.elapsedSeconds || "0", 10);
+        if (Number.isNaN(elapsed) || elapsed < 0) {
+          elapsed = 0;
+        }
+        if (running) {
+          elapsed += 1;
+          this.dataset.elapsedSeconds = String(elapsed);
+        }
+        var label = this
+          .closest(".sleep-quick-timer-card")
+          .querySelector("[data-sleep-timer-label]");
+        if (label) {
+          label.textContent = formatSleepDuration(elapsed);
+        }
+
+        var harvey = this.querySelector("[data-sleep-harvey]");
+        if (harvey) {
+          var minutes = Math.floor(elapsed / 60);
+          var angle = ((minutes % 60) / 60) * 360;
+          harvey.style.setProperty("--fill-angle", angle + "deg");
+        }
+      });
+    }
+
+    refreshTimerCards();
+    setInterval(refreshTimerCards, 1000);
   }
 
   var Dashboard = {
@@ -221,6 +302,7 @@ BabyBuddy.Dashboard = (function ($) {
 
       bindSectionSorting();
       bindSleepTimelineDynamic();
+      bindSleepQuickTimer();
     },
 
     handleVisibilityChange: function () {

@@ -139,6 +139,8 @@
     }
 
     .sleep-timeline-chart {
+        position: relative;
+
         .timeline-grid {
             display: grid;
             grid-template-columns: repeat(24, minmax(0, 1fr));
@@ -146,6 +148,7 @@
             min-height: 10.5rem;
             margin-bottom: .55rem;
             align-items: stretch;
+            position: relative;
         }
 
         .hour-slot {
@@ -170,6 +173,7 @@
             width: .62rem;
             border-radius: 999px;
             min-height: 2px;
+            cursor: pointer;
         }
 
         .bar.nap {
@@ -189,6 +193,39 @@
             font-size: .58rem;
             color: rgba(244, 247, 251, .75);
             text-align: center;
+        }
+
+        .current-time-line {
+            position: absolute;
+            top: 0;
+            bottom: 1rem;
+            width: 0;
+            border-left: 2px dotted rgba(255, 92, 92, .9);
+            pointer-events: none;
+            z-index: 3;
+        }
+    }
+
+    .sleep-timeline-tooltip {
+        position: fixed;
+        z-index: 1100;
+        max-width: 20rem;
+        padding: .4rem .55rem;
+        border-radius: .6rem;
+        border: 1px solid rgba(255, 255, 255, .18);
+        background: rgba(24, 30, 40, .55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: #fff;
+        font-size: .92rem;
+        line-height: 1.3;
+        opacity: 0;
+        transform: translate(-50%, -120%);
+        pointer-events: none;
+        transition: opacity .08s linear;
+
+        &.visible {
+            opacity: 1;
         }
     }
 
@@ -227,6 +264,39 @@
 
     .legend-dot.sleep {
         background: rgba(255, 194, 122, .95);
+    }
+
+    .sleep-quick-timer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    .sleep-quick-timer-button {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+    }
+
+    .sleep-timer-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        font-size: 1.25rem;
+        color: rgba(255, 194, 122, .95);
+    }
+
+    .sleep-harvey {
+        --fill-angle: 0deg;
+        width: 1.35rem;
+        height: 1.35rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, .5);
+        background: conic-gradient(
+            rgba(255, 194, 122, .95) var(--fill-angle),
+            rgba(255, 255, 255, .12) 0deg
+        );
     }
 
     .card-sleep {

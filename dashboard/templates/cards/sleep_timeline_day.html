@@ -47,17 +47,21 @@
 {% block content %}
     <div class="sleep-timeline-chart">
         <div class="timeline-grid">
+            {% if is_today and current_time_pct is not None %}
+                <span class="current-time-line" style="left: {{ current_time_pct }}%"></span>
+            {% endif %}
             {% for slot in hour_slots %}
                 <div class="hour-slot">
                     <div class="bars">
                         <span class="bar {{ slot.kind }}"
                               style="height: {{ slot.pct }}%"
-                              title="{{ slot.tooltip }}"></span>
+                              data-tooltip="{{ slot.tooltip }}"></span>
                     </div>
                     <span class="hour-label">{{ slot.hour }}</span>
                 </div>
             {% endfor %}
         </div>
+        <div class="sleep-timeline-tooltip" data-sleep-timeline-tooltip></div>
         <div class="timeline-legend">
             <span><i class="legend-dot nap"></i> {% trans "Nap" %}</span>
             <span><i class="legend-dot sleep"></i> {% trans "Sleep" %}</span>
