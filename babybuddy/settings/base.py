@@ -263,7 +263,7 @@ WHITENOISE_ROOT = os.path.join(BASE_DIR, "static", "babybuddy", "root")
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME") or None
 
