@@ -587,7 +587,9 @@ def card_sleep_timeline_day(context, child):
         "prev_date": target_date - timezone.timedelta(days=1),
         "is_today": target_date == today,
         "current_time_pct": (
-            (now.hour * 60 + now.minute) / 1440 * 100 if target_date == today else None
+            min(100, (now.hour * 60 + now.minute + 30) / 1440 * 100)
+            if target_date == today
+            else None
         ),
     }
 
