@@ -306,3 +306,33 @@ class ShadcnPreview(LoginRequiredMixin, TemplateView):
     """
 
     template_name = "babybuddy/shadcn_preview.html"
+
+    SECTION_CARD_KEYS = {
+        "diaper": ["card.diaper.last", "card.diaper.types"],
+        "feedings": [
+            "card.feedings.last",
+            "card.feedings.method",
+            "card.feedings.recent",
+            "card.feedings.breastfeeding",
+        ],
+        "pumpings": ["card.pumpings.last"],
+        "sleep": [
+            "card.sleep.timeline_day",
+            "card.sleep.recommendations",
+            "card.sleep.last",
+            "card.sleep.quick_timer",
+        ],
+        "tummytime": ["card.tummytime.day"],
+    }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        selected = set(self.request.user.settings.dashboard_selected_items())
+        visible_sections = {
+            section
+            for section, keys in self.SECTION_CARD_KEYS.items()
+            if any(key in selected for key in keys)
+        }
+        context["preview_visible_items"] = selected
+        context["preview_visible_sections"] = visible_sections
+        return context

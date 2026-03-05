@@ -67,6 +67,56 @@
             margin-bottom: 0.9rem;
         }
 
+        .ui-preview-layout {
+            display: grid;
+            gap: 0.8rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 1100px) {
+            .ui-preview-layout {
+                grid-template-columns: 230px minmax(0, 1fr);
+                align-items: start;
+            }
+        }
+
+        .ui-preview-nav {
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.45);
+            padding: 0.65rem;
+            display: grid;
+            gap: 0.4rem;
+            position: sticky;
+            top: 72px;
+        }
+
+        .ui-preview-nav-title {
+            margin: 0 0 0.3rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+        }
+
+        .ui-preview-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(100, 116, 139, 0.65);
+            border-radius: 10px;
+            padding: 0.38rem 0.55rem;
+            color: #e2e8f0;
+            text-decoration: none;
+            font-size: 0.84rem;
+            background: rgba(15, 23, 42, 0.35);
+        }
+
+        .ui-preview-nav-link:hover {
+            background: rgba(30, 41, 59, 0.65);
+            color: #f8fafc;
+        }
+
         .ui-preview-controls label {
             font-size: 0.82rem;
             color: #94a3b8;
@@ -392,31 +442,6 @@
             min-width: 120px;
         }
 
-        .ui-sleep-harvey-wrap {
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            border: 1px solid rgba(100, 116, 139, 0.65);
-            border-radius: 10px;
-            padding: 0 0.6rem;
-            background: rgba(15, 23, 42, 0.35);
-            min-height: 38px;
-        }
-
-        .ui-sleep-bed {
-            font-size: 1.35rem;
-            line-height: 1;
-            color: #f4b76b;
-        }
-
-        .ui-harvey-ball {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 1px solid rgba(148, 163, 184, 0.75);
-            background: conic-gradient(#f4b76b 0deg, rgba(100, 116, 139, 0.35) 0deg);
-        }
-
         .ui-sleep-timer-caption {
             font-size: 0.82rem;
             color: #cbd5e1;
@@ -518,55 +543,89 @@
         </header>
 
         <p class="ui-preview-subtitle">Signed in as {% firstof request.user.get_full_name request.user.username %}. This preview is isolated for the step-by-step UI migration.</p>
-        <div class="ui-preview-controls">
-            <label for="ui-preview-child-select">Child</label>
-            <select id="ui-preview-child-select" aria-label="Child selector">
-                <option value="">Loading children...</option>
-            </select>
-            <button id="ui-preview-refresh" class="btn btn-sm btn-secondary" type="button">Refresh data</button>
-        </div>
+        <div class="ui-preview-layout">
+            <aside class="ui-preview-nav">
+                <h2 class="ui-preview-nav-title">Navigation (Shadcn style)</h2>
+                <a class="ui-preview-nav-link" href="{% url 'dashboard:dashboard' %}">Dashboard</a>
+                <a class="ui-preview-nav-link" href="{% url 'core:timeline' %}">Timeline</a>
+                <a class="ui-preview-nav-link" href="{% url 'core:child-list' %}">Children</a>
+                <a class="ui-preview-nav-link" href="{% url 'core:feeding-list' %}">Feedings</a>
+                <a class="ui-preview-nav-link" href="{% url 'core:sleep-list' %}">Sleep</a>
+                <a class="ui-preview-nav-link" href="{% url 'babybuddy:user-settings' %}">Settings</a>
+            </aside>
 
-        <div class="ui-preview-sections">
+            <div>
+                <div class="ui-preview-controls">
+                    <label for="ui-preview-child-select">Child</label>
+                    <select id="ui-preview-child-select" aria-label="Child selector">
+                        <option value="">Loading children...</option>
+                    </select>
+                    <button id="ui-preview-refresh" class="btn btn-sm btn-secondary" type="button">Refresh data</button>
+                </div>
+
+                <div class="ui-preview-sections">
+            {% if 'diaper' in preview_visible_sections %}
             <section class="ui-preview-section" data-tone="diaper" data-collapsed="0">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Diaper changes</h2>
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
+                    {% if 'card.diaper.last' in preview_visible_items %}
                     <article class="ui-preview-card" data-card="last-nappy-change"><h3>Last Nappy Change</h3><p>Loading...</p></article>
+                    {% endif %}
+                    {% if 'card.diaper.types' in preview_visible_items %}
                     <article class="ui-preview-card" data-card="nappy-changes"><h3>Nappy Changes</h3><p>Loading...</p></article>
+                    {% endif %}
                 </div>
             </section>
+            {% endif %}
 
+            {% if 'feedings' in preview_visible_sections %}
             <section class="ui-preview-section" data-tone="feedings" data-collapsed="0">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Feedings</h2>
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
+                    {% if 'card.feedings.last' in preview_visible_items %}
                     <article class="ui-preview-card" data-card="last-feeding"><h3>Last Feeding</h3><p>Loading...</p></article>
+                    {% endif %}
+                    {% if 'card.feedings.method' in preview_visible_items %}
                     <article class="ui-preview-card" data-card="last-feeding-method"><h3>Last Feeding Method</h3><p>Loading...</p></article>
+                    {% endif %}
+                    {% if 'card.feedings.recent' in preview_visible_items %}
                     <article class="ui-preview-card" data-card="recent-feedings"><h3>Recent Feedings</h3><p>Loading...</p></article>
+                    {% endif %}
+                    {% if 'card.feedings.breastfeeding' in preview_visible_items %}
                     <article class="ui-preview-card" data-card="breastfeeding"><h3>Breastfeeding</h3><p>Loading...</p></article>
+                    {% endif %}
                 </div>
             </section>
+            {% endif %}
 
+            {% if 'pumpings' in preview_visible_sections %}
             <section class="ui-preview-section" data-tone="pumpings" data-collapsed="0">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Pumpings</h2>
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
+                    {% if 'card.pumpings.last' in preview_visible_items %}
                     <article class="ui-preview-card" data-card="last-pumping"><h3>Last Pumping</h3><p>Loading...</p></article>
+                    {% endif %}
                 </div>
             </section>
+            {% endif %}
 
+            {% if 'sleep' in preview_visible_sections %}
             <section class="ui-preview-section" data-tone="sleep" data-collapsed="0">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Sleep</h2>
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
+                    {% if 'card.sleep.timeline_day' in preview_visible_items %}
                     <article class="ui-preview-card">
                         <h3>Sleep Timeline (24h)</h3>
                         <div class="ui-sleep-timeline-toolbar">
@@ -587,6 +646,8 @@
                             <span><span class="ui-sleep-dot"></span>Sleep</span>
                         </div>
                     </article>
+                    {% endif %}
+                    {% if 'card.sleep.recommendations' in preview_visible_items %}
                     <article class="ui-preview-card">
                         <h3>Sleep Recommendations</h3>
                         <div id="ui-reco-content" class="ui-reco">
@@ -600,7 +661,11 @@
                             </div>
                         </div>
                     </article>
+                    {% endif %}
+                    {% if 'card.sleep.last' in preview_visible_items %}
                     <article class="ui-preview-card" data-card="last-sleep"><h3>Last Sleep</h3><p>Loading...</p></article>
+                    {% endif %}
+                    {% if 'card.sleep.quick_timer' in preview_visible_items %}
                     <article class="ui-preview-card">
                         <h3>Sleep Timer</h3>
                         <p class="ui-sleep-timer-caption" id="ui-sleep-timer-caption">Sleep duration: 00:00:00</p>
@@ -610,25 +675,29 @@
                         </div>
                         <div class="ui-sleep-timer-row">
                             <button id="ui-sleep-timer-action" class="btn btn-primary ui-sleep-timer-action" type="button">Start</button>
-                            <div class="ui-sleep-harvey-wrap">
-                                <span class="ui-sleep-bed">&#x1F6CF;</span>
-                                <span class="ui-harvey-ball" id="ui-sleep-harvey"></span>
-                            </div>
                         </div>
                         <p class="ui-sleep-timer-note" id="ui-sleep-timer-note">Timer idle. Start to create a new sleep entry.</p>
                     </article>
+                    {% endif %}
                 </div>
             </section>
+            {% endif %}
 
+            {% if 'tummytime' in preview_visible_sections %}
             <section class="ui-preview-section" data-tone="tummy" data-collapsed="0">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Tummy Time</h2>
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
+                    {% if 'card.tummytime.day' in preview_visible_items %}
                     <article class="ui-preview-card" data-card="tummy-time"><h3>Today's Tummy Time</h3><p>Loading...</p></article>
+                    {% endif %}
                 </div>
             </section>
+            {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 
@@ -669,7 +738,6 @@
             const sleepTimerCaption = root.querySelector("#ui-sleep-timer-caption");
             const sleepTimerDots = root.querySelector("#ui-sleep-timer-dots");
             const sleepTimerNote = root.querySelector("#ui-sleep-timer-note");
-            const sleepHarvey = root.querySelector("#ui-sleep-harvey");
             const recommendationsRoot = root.querySelector("#ui-reco-content");
 
             const selectionKey = "ui-preview-selected-child";
@@ -720,6 +788,9 @@
             }
 
             function refreshTimelineHeader() {
+                if (!timelineDateInput || !timelineDateLabel) {
+                    return;
+                }
                 timelineDateInput.value = state.timelineDate;
                 timelineDateLabel.textContent = formatDisplayDate(state.timelineDate);
             }
@@ -1009,6 +1080,9 @@
             }
 
             function renderSleepTimeline(entries, dateString) {
+                if (!timelineChart || !timelineAxis) {
+                    return;
+                }
                 timelineChart.innerHTML = "";
                 timelineAxis.innerHTML = "";
 
@@ -1063,17 +1137,23 @@
 
                 const today = localDateString(new Date());
                 if (dateString === today) {
+                    if (!nowLine) {
+                        return;
+                    }
                     const now = new Date();
                     const minutes = (now.getHours() * 60) + now.getMinutes() + (now.getSeconds() / 60);
                     const percent = (minutes / 1440) * 100;
                     nowLine.hidden = false;
                     nowLine.style.left = `calc(${percent}% + 0.5rem)`;
-                } else {
+                } else if (nowLine) {
                     nowLine.hidden = true;
                 }
             }
 
             async function loadSleepTimeline(childId) {
+                if (!timelineChart || !timelineAxis) {
+                    return;
+                }
                 const dayStart = startOfDay(state.timelineDate);
                 const dayEnd = endOfDay(state.timelineDate);
                 const query = [
@@ -1138,6 +1218,9 @@
             }
 
             function updateSleepTimerUI() {
+                if (!sleepTimerTime || !sleepTimerCaption || !sleepTimerAction || !sleepTimerDots) {
+                    return;
+                }
                 const elapsed = state.timer.running ? Date.now() - state.timer.startMs : 0;
                 sleepTimerTime.textContent = formatElapsed(elapsed);
                 sleepTimerCaption.textContent = formatSleepCaption(elapsed);
@@ -1154,10 +1237,6 @@
                     sleepTimerDots.classList.remove("running");
                 }
 
-                const minutes = Math.max(0, Math.floor(elapsed / 60000));
-                const ratio = Math.min(1, minutes / 720);
-                const degrees = Math.floor(ratio * 360);
-                sleepHarvey.style.background = `conic-gradient(#f4b76b ${degrees}deg, rgba(100, 116, 139, 0.35) ${degrees}deg)`;
             }
 
             function startTimerTicking() {
@@ -1191,7 +1270,9 @@
                 state.timer.startMs = new Date(payload.start).getTime();
                 state.timer.apiTimerId = payload.id;
                 state.timer.childId = state.selectedChildId;
-                sleepTimerNote.textContent = "Timer running... Stop to create sleep entry.";
+                if (sleepTimerNote) {
+                    sleepTimerNote.textContent = "Timer running... Stop to create sleep entry.";
+                }
                 persistTimerState();
                 startTimerTicking();
             }
@@ -1229,7 +1310,9 @@
                 };
                 clearTimerState();
                 stopTimerTicking();
-                sleepTimerNote.textContent = `Saved ${nap ? "nap" : "sleep"} entry (${durationMin} min).`;
+                if (sleepTimerNote) {
+                    sleepTimerNote.textContent = `Saved ${nap ? "nap" : "sleep"} entry (${durationMin} min).`;
+                }
 
                 await loadCards(state.selectedChildId);
             }
@@ -1399,7 +1482,9 @@
                 ));
 
                 if (runningTimer && !state.timer.running) {
-                    sleepTimerNote.textContent = `Existing running timer: ${runningTimer.name || "Timer"}`;
+                    if (sleepTimerNote) {
+                        sleepTimerNote.textContent = `Existing running timer: ${runningTimer.name || "Timer"}`;
+                    }
                 }
 
                 await loadSleepTimeline(childId);
@@ -1431,51 +1516,57 @@
                 });
             });
 
-            timelinePrev.addEventListener("click", () => {
-                const dt = parseDateInput(state.timelineDate);
-                dt.setDate(dt.getDate() - 1);
-                state.timelineDate = localDateString(dt);
-                refreshTimelineHeader();
-                if (state.selectedChildId) {
-                    loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
-                }
-            });
-
-            timelineNext.addEventListener("click", () => {
-                const dt = parseDateInput(state.timelineDate);
-                dt.setDate(dt.getDate() + 1);
-                state.timelineDate = localDateString(dt);
-                refreshTimelineHeader();
-                if (state.selectedChildId) {
-                    loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
-                }
-            });
-
-            timelineDateInput.addEventListener("change", () => {
-                if (!timelineDateInput.value) {
-                    return;
-                }
-                state.timelineDate = timelineDateInput.value;
-                refreshTimelineHeader();
-                if (state.selectedChildId) {
-                    loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
-                }
-            });
-
-            sleepTimerAction.addEventListener("click", async () => {
-                try {
-                    sleepTimerAction.disabled = true;
-                    if (state.timer.running) {
-                        await stopSleepTimer();
-                    } else {
-                        await startSleepTimer();
+            if (timelinePrev && timelineNext && timelineDateInput) {
+                timelinePrev.addEventListener("click", () => {
+                    const dt = parseDateInput(state.timelineDate);
+                    dt.setDate(dt.getDate() - 1);
+                    state.timelineDate = localDateString(dt);
+                    refreshTimelineHeader();
+                    if (state.selectedChildId) {
+                        loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
                     }
-                } catch (error) {
-                    sleepTimerNote.textContent = `Timer error: ${error.message}`;
-                } finally {
-                    sleepTimerAction.disabled = false;
-                }
-            });
+                });
+
+                timelineNext.addEventListener("click", () => {
+                    const dt = parseDateInput(state.timelineDate);
+                    dt.setDate(dt.getDate() + 1);
+                    state.timelineDate = localDateString(dt);
+                    refreshTimelineHeader();
+                    if (state.selectedChildId) {
+                        loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
+                    }
+                });
+
+                timelineDateInput.addEventListener("change", () => {
+                    if (!timelineDateInput.value) {
+                        return;
+                    }
+                    state.timelineDate = timelineDateInput.value;
+                    refreshTimelineHeader();
+                    if (state.selectedChildId) {
+                        loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
+                    }
+                });
+            }
+
+            if (sleepTimerAction) {
+                sleepTimerAction.addEventListener("click", async () => {
+                    try {
+                        sleepTimerAction.disabled = true;
+                        if (state.timer.running) {
+                            await stopSleepTimer();
+                        } else {
+                            await startSleepTimer();
+                        }
+                    } catch (error) {
+                        if (sleepTimerNote) {
+                            sleepTimerNote.textContent = `Timer error: ${error.message}`;
+                        }
+                    } finally {
+                        sleepTimerAction.disabled = false;
+                    }
+                });
+            }
 
             restoreTimerState();
             refreshCounts();
@@ -1508,7 +1599,9 @@
                 });
 
             document.addEventListener("scroll", hideTooltip, { passive: true });
-            timelineWrap.addEventListener("mouseleave", hideTooltip);
+            if (timelineWrap) {
+                timelineWrap.addEventListener("mouseleave", hideTooltip);
+            }
         })();
     </script>
 {% endblock %}
