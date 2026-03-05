@@ -415,9 +415,6 @@ BABY_BUDDY = {
     "DASHBOARD_SHADCN_CHILD_ENABLED": bool(
         strtobool(os.environ.get("DASHBOARD_SHADCN_CHILD_ENABLED") or "False")
     ),
-    "SHADCN_UI_PREVIEW_ENABLED": bool(
-        strtobool(os.environ.get("SHADCN_UI_PREVIEW_ENABLED") or "False")
-    ),
 }
 
 # Home assistant specific configuration
