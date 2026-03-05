@@ -1,3 +1,69 @@
+.dashboard-md3 {
+    --md3-primary: #9fd5ff;
+    --md3-secondary: #ffcb6b;
+    --md3-surface: rgba(31, 39, 52, 0.68);
+    --md3-surface-strong: rgba(24, 30, 40, 0.88);
+    --md3-outline: rgba(159, 213, 255, 0.28);
+    --md3-text: #f4f7fb;
+
+    color: var(--md3-text);
+    border-radius: 1.5rem;
+    padding: .5rem;
+    background:
+        radial-gradient(180% 120% at 0% 0%, rgba(159, 213, 255, .14) 0%, transparent 55%),
+        radial-gradient(180% 120% at 100% 100%, rgba(255, 203, 107, .12) 0%, transparent 45%),
+        linear-gradient(135deg, rgba(16, 22, 31, .9), rgba(22, 29, 40, .9));
+}
+
+.dashboard-overview {
+    .card {
+        border: 1px solid var(--md3-outline);
+        background: var(--md3-surface);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border-radius: 1.25rem;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, .24);
+        overflow: hidden;
+    }
+
+    .card-title,
+    .card-text {
+        color: var(--md3-text);
+    }
+
+    .child-photo {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+    }
+
+    .text-secondary,
+    .text-body-secondary {
+        color: rgba(244, 247, 251, .76) !important;
+    }
+}
+
 .child-actions {
     flex-wrap: wrap;
+    border-color: rgba(159, 213, 255, .22) !important;
+    background: rgba(244, 247, 251, .08) !important;
+    border-radius: .9rem !important;
+
+    .btn {
+        color: var(--md3-text);
+        border-radius: .7rem;
+        transition: background-color .2s ease, transform .2s ease;
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(159, 213, 255, .18);
+            transform: translateY(-1px);
+        }
+    }
+}
+
+.dashboard-child-view {
+    #dashboard-child {
+        margin-top: .2rem;
+    }
 }
