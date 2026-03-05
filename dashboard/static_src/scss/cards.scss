@@ -113,4 +113,26 @@
     .card-tummytime {
         --dashboard-card-accent: #{map.get($theme-colors, 'success')};
     }
+
+    .section-diaper .card-dashboard {
+        --dashboard-card-accent: #ff5f73;
+    }
+
+    .section-feeding .card-dashboard {
+        --dashboard-card-accent: #55c7ff;
+    }
+
+    .section-pumping .card-dashboard {
+        --dashboard-card-accent: #c197ff;
+    }
+
+    .section-sleep .card-dashboard,
+    .section-sleep .card-timer,
+    .section-sleep .card-statistics {
+        --dashboard-card-accent: #ffb24b;
+    }
+
+    .section-tummytime .card-dashboard {
+        --dashboard-card-accent: #45c888;
+    }
 }

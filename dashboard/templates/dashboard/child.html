@@ -13,22 +13,46 @@
 {% block content %}
     <div class="dashboard-md3 dashboard-child-view">
         <div id="dashboard-child"
-             class="row"
-             data-masonry='{"percentPosition": true }'>
-            <div class="col-sm-6 col-lg-4">{% card_timer_list object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_feeding_last object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_diaperchange_last object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_pumping_last object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_sleep_last object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_sleep_recommendations object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_feeding_last_method object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_feeding_recent object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_statistics object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_sleep_recent object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_sleep_naps_day object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_tummytime_day object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_diaperchange_types object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_breastfeeding object %}</div>
+             class="dashboard-sections">
+            <section class="dashboard-section section-diaper">
+                <h2 class="section-title">{% trans "Diaper changes" %}</h2>
+                <div class="section-body">
+                    {% card_diaperchange_last object %}
+                    {% card_diaperchange_types object %}
+                </div>
+            </section>
+
+            <section class="dashboard-section section-feeding">
+                <h2 class="section-title">{% trans "Feedings" %}</h2>
+                <div class="section-body">
+                    {% card_feeding_last object %}
+                    {% card_feeding_last_method object %}
+                    {% card_feeding_recent object %}
+                    {% card_breastfeeding object %}
+                </div>
+            </section>
+
+            <section class="dashboard-section section-pumping">
+                <h2 class="section-title">{% trans "Pumpings" %}</h2>
+                <div class="section-body">{% card_pumping_last object %}</div>
+            </section>
+
+            <section class="dashboard-section section-sleep">
+                <h2 class="section-title">{% trans "Sleep" %}</h2>
+                <div class="section-body">
+                    {% card_timer_list object %}
+                    {% card_sleep_last object %}
+                    {% card_sleep_recommendations object %}
+                    {% card_sleep_recent object %}
+                    {% card_sleep_naps_day object %}
+                    {% card_statistics object %}
+                </div>
+            </section>
+
+            <section class="dashboard-section section-tummytime">
+                <h2 class="section-title">{% trans "Tummy time" %}</h2>
+                <div class="section-body">{% card_tummytime_day object %}</div>
+            </section>
         </div>
     </div>
 {% endblock %}
