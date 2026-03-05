@@ -46,6 +46,10 @@
     body {
         --app-sidebar-width: 17.5rem;
         overflow-x: hidden;
+        background:
+            radial-gradient(circle at 20% 20%, rgba(30, 64, 175, .10), transparent 45%),
+            radial-gradient(circle at 85% 12%, rgba(2, 132, 199, .10), transparent 42%),
+            linear-gradient(160deg, #111827 0%, #0b1220 55%, #0f172a 100%);
     }
 
     body > nav[aria-label='breadcrumb'],
@@ -62,8 +66,10 @@
         z-index: 1030;
         width: var(--app-sidebar-width);
         height: 100vh;
-        padding: .75rem;
-        border-right: 1px solid rgba(255, 255, 255, .08);
+        padding: .8rem .75rem;
+        border-right: 1px solid rgba(148, 163, 184, .24);
+        background: linear-gradient(180deg, rgba(17, 24, 39, .95), rgba(2, 6, 23, .96));
+        backdrop-filter: blur(4px);
         align-items: flex-start;
         overflow-y: auto;
     }
@@ -77,7 +83,11 @@
 
     .app-shell-nav .navbar-brand {
         margin-right: 0;
-        margin-bottom: .35rem;
+        margin-bottom: .45rem;
+        border: 1px solid rgba(148, 163, 184, .24);
+        border-radius: .8rem;
+        padding: .5rem .58rem;
+        background: rgba(15, 23, 42, .45);
     }
 
     .app-shell-nav .navbar-brand .d-none.d-lg-inline-block {
@@ -98,26 +108,67 @@
     }
 
     .app-shell-nav .navbar-nav .nav-link {
-        border-radius: .6rem;
-        padding: .55rem .7rem;
+        border-radius: .65rem;
+        padding: .52rem .7rem;
+        border: 1px solid rgba(71, 85, 105, .48);
+        background: rgba(15, 23, 42, .34);
+        color: #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        transition: background-color .14s ease, border-color .14s ease, color .14s ease;
+    }
+
+    .app-shell-nav .navbar-nav .nav-link:hover {
+        background: rgba(30, 41, 59, .72);
+        border-color: rgba(125, 211, 252, .52);
+        color: #fff;
     }
 
     .app-shell-nav .navbar-nav .nav-item.active > .nav-link {
-        background: rgba(55, 171, 233, .22);
+        background: linear-gradient(100deg, rgba(30, 64, 175, .44), rgba(2, 132, 199, .36));
+        border-color: rgba(125, 211, 252, .75);
         color: #fff;
+        box-shadow: inset 0 0 0 1px rgba(125, 211, 252, .28);
     }
 
     .app-shell-nav .navbar-nav .dropdown-menu {
         position: static;
         width: 100%;
-        margin-top: .2rem;
-        margin-bottom: .2rem;
+        margin-top: .3rem;
+        margin-bottom: .3rem;
+        border-radius: .65rem;
+        border: 1px solid rgba(100, 116, 139, .45);
+        background: rgba(15, 23, 42, .72);
+        padding: .3rem;
+    }
+
+    .app-shell-nav .navbar-nav .dropdown-menu .dropdown-item {
+        border-radius: .55rem;
+        color: #cbd5e1;
+        padding-top: .4rem;
+        padding-bottom: .4rem;
+    }
+
+    .app-shell-nav .navbar-nav .dropdown-menu .dropdown-item:hover,
+    .app-shell-nav .navbar-nav .dropdown-menu .dropdown-item:focus {
+        color: #fff;
+        background: rgba(30, 41, 59, .75);
+    }
+
+    .app-shell-nav .navbar-nav .dropdown-menu .dropdown-item.active {
+        color: #fff;
+        background: rgba(14, 116, 144, .55);
     }
 
     .app-shell-nav .navbar-nav.ms-auto {
         margin-left: 0 !important;
         margin-top: auto;
-        padding-top: .5rem;
-        border-top: 1px solid rgba(255, 255, 255, .12);
+        padding-top: .6rem;
+        border-top: 1px solid rgba(148, 163, 184, .22);
+    }
+
+    .app-shell-nav .navbar-toggler {
+        display: none;
     }
 }
