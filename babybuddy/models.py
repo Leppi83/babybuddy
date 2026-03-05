@@ -15,6 +15,28 @@ from rest_framework.authtoken.models import Token
 
 
 class Settings(models.Model):
+    DASHBOARD_ITEM_CHOICES = [
+        ("section.diaper", _("diaper changes - Section")),
+        ("card.diaper.last", _("diaper changes - Last nappy change")),
+        ("card.diaper.types", _("diaper changes - Nappy changes")),
+        ("section.feedings", _("feedings - Section")),
+        ("card.feedings.last", _("feedings - Last feeding")),
+        ("card.feedings.method", _("feedings - Last Feeding Method")),
+        ("card.feedings.recent", _("feedings - Recent Feedings")),
+        ("card.feedings.breastfeeding", _("feedings - Breastfeeding")),
+        ("section.pumpings", _("pumpings - Section")),
+        ("card.pumpings.last", _("pumpings - Last Pumping")),
+        ("section.sleep", _("sleep - Section")),
+        ("card.sleep.timers", _("sleep - Timers")),
+        ("card.sleep.last", _("sleep - Last Sleep")),
+        ("card.sleep.recommendations", _("sleep - Sleep Recommendations")),
+        ("card.sleep.recent", _("sleep - Recent Sleep")),
+        ("card.sleep.naps_day", _("sleep - Today's Naps")),
+        ("card.sleep.statistics", _("sleep - Statistics")),
+        ("section.tummytime", _("tummy time - Section")),
+        ("card.tummytime.day", _("tummy time - Today's Tummy Time")),
+    ]
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     dashboard_refresh_rate = models.DurationField(
         verbose_name=_("Refresh rate"),
@@ -103,20 +125,8 @@ class Settings(models.Model):
             ),
         ],
     )
-    dashboard_show_diaper_section = models.BooleanField(
-        verbose_name=_("Show diaper changes section"), default=True, editable=True
-    )
-    dashboard_show_feeding_section = models.BooleanField(
-        verbose_name=_("Show feedings section"), default=True, editable=True
-    )
-    dashboard_show_pumping_section = models.BooleanField(
-        verbose_name=_("Show pumpings section"), default=True, editable=True
-    )
-    dashboard_show_sleep_section = models.BooleanField(
-        verbose_name=_("Show sleep section"), default=True, editable=True
-    )
-    dashboard_show_tummytime_section = models.BooleanField(
-        verbose_name=_("Show tummy time section"), default=True, editable=True
+    dashboard_visible_items = models.JSONField(
+        verbose_name=_("Dashboard visible items"), default=list, blank=True
     )
     language = models.CharField(
         choices=settings.LANGUAGES,
@@ -168,6 +178,15 @@ class Settings(models.Model):
         if self.dashboard_refresh_rate:
             return self.dashboard_refresh_rate.seconds * 1000
         return None
+
+    @classmethod
+    def dashboard_default_visible_items(cls):
+        return [item[0] for item in cls.DASHBOARD_ITEM_CHOICES]
+
+    def dashboard_selected_items(self):
+        if self.dashboard_visible_items:
+            return self.dashboard_visible_items
+        return self.dashboard_default_visible_items()
 
 
 @receiver(post_save, sender=get_user_model())
