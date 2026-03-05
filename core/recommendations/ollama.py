@@ -51,7 +51,7 @@ def explain_sleep_recommendations(bundle):
     if not _env_enabled():
         return None
 
-    base_url = os.environ.get("OLLAMA_URL", "http://192.168.2.198:11434").rstrip("/")
+    base_url = os.environ.get("OLLAMA_URL", "http://ollama:11434").rstrip("/")
     model = os.environ.get("OLLAMA_MODEL", "llama3.1:8b-instruct")
     timeout_s = float(os.environ.get("OLLAMA_TIMEOUT_S", "2.5"))
 

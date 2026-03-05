@@ -4,6 +4,9 @@
 
 # Environment configuration file.
 .env
+.env.prod
+.env.local
+.env.*.local
 
 # Virtual environment files (pipenv may use this convention).
 .venv

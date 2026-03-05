@@ -75,7 +75,7 @@ recommend_sleep_bundle(child):
 ## Ollama optional (nur Erklärungstext)
 - ENV:
   - OLLAMA_ENABLED=1
-  - OLLAMA_URL=http://192.168.2.198:11434
+  - OLLAMA_URL=http://ollama:11434
   - OLLAMA_MODEL=llama3.1:8b-instruct (oder Quant)
   - OLLAMA_TIMEOUT_S=2.5 (default)
 - LLM darf keine Zeiten verändern.

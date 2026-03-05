@@ -1,0 +1,189 @@
+# Home Assistant package for Baby Buddy sleep tracking view.
+# Put this file into your HA config under: packages/baby_sleep_package.yaml
+# and adapt the values in the "CONFIG" section.
+
+homeassistant:
+  customize: {}
+
+# ----------------------------
+# CONFIG
+# ----------------------------
+# 1) Set your child name.
+# 2) Set your Baby Buddy child ID (integer from Baby Buddy URL/admin/API).
+# 3) Set API base URL and token in all marked places below.
+# 4) Set your Baby Buddy timer switch entity.
+
+input_text:
+  bb_sleep_child_name:
+    name: Child Name
+    initial: "Baby"
+
+input_datetime:
+  bb_sleep_manual_start:
+    name: Manueller Schlaf Start
+    has_date: true
+    has_time: true
+  bb_sleep_manual_end:
+    name: Manueller Schlaf Ende
+    has_date: true
+    has_time: true
+
+input_number:
+  bb_sleep_child_id:
+    name: Baby Buddy Child ID
+    min: 1
+    max: 100000
+    step: 1
+    mode: box
+  bb_sleep_delete_id:
+    name: Sleep ID loeschen
+    min: 1
+    max: 100000
+    step: 1
+    mode: box
+
+rest_command:
+  # CONFIG: set your Baby Buddy base URL and API token.
+  bb_sleep_add_entry:
+    url: "https://baby.example.com/api/sleep/"
+    method: POST
+    headers:
+      Authorization: "Token REPLACE_WITH_YOUR_API_TOKEN"
+      Content-Type: application/json
+    payload: >-
+      {
+        "child": {{ child_id }},
+        "start": "{{ start_iso }}",
+        "end": "{{ end_iso }}",
+        "nap": true
+      }
+
+  # CONFIG: set your Baby Buddy base URL and API token.
+  bb_sleep_delete_entry:
+    url: "https://baby.example.com/api/sleep/{{ sleep_id }}/"
+    method: DELETE
+    headers:
+      Authorization: "Token REPLACE_WITH_YOUR_API_TOKEN"
+      Content-Type: application/json
+
+sensor:
+  # Pull recent sleep events from Baby Buddy API.
+  # CONFIG: set your Baby Buddy base URL and API token.
+  - platform: rest
+    name: bb_sleep_today_raw
+    resource: "https://baby.example.com/api/sleep/?limit=100"
+    method: GET
+    headers:
+      Authorization: "Token REPLACE_WITH_YOUR_API_TOKEN"
+      Content-Type: application/json
+    value_template: "{{ value_json.count | default(0) }}"
+    json_attributes:
+      - results
+    scan_interval: 60
+
+template:
+  - sensor:
+      - name: bb_sleep_timer_label
+        unique_id: bb_sleep_timer_label
+        icon: mdi:sleep
+        state: >-
+          {% set timer = 'switch.baby_sleep_timer' %}
+          {% if is_state(timer, 'on') %}
+            {% set started = as_datetime(states[timer].last_changed) %}
+            {% if started %}
+              {% set seconds = (now() - started).total_seconds() | int(0) %}
+              {{ '%02d:%02d:%02d' | format((seconds // 3600), ((seconds % 3600) // 60), (seconds % 60)) }}
+            {% else %}
+              00:00:00
+            {% endif %}
+          {% else %}
+            Start
+          {% endif %}
+
+      - name: bb_sleep_today_table_markdown
+        unique_id: bb_sleep_today_table_markdown
+        state: "ok"
+        attributes:
+          table: >-
+            {% set rows = state_attr('sensor.bb_sleep_today_raw', 'results') or [] %}
+            {% set ns = namespace(out=[]) %}
+            {% set today = now().date() %}
+            {% for row in rows %}
+              {% set start = as_datetime(row.start) %}
+              {% set end = as_datetime(row.end) %}
+              {% if start and end and start.date() == today %}
+                {% set duration = ((as_timestamp(end) - as_timestamp(start)) / 60) | round(0) | int %}
+                {% set line = '| ' ~ start.strftime('%d.%m.') ~ ' | ' ~ start.strftime('%H:%M') ~ ' | ' ~ end.strftime('%H:%M') ~ ' | ' ~ duration ~ ' Min | ' ~ row.id ~ ' |' %}
+                {% set ns.out = ns.out + [line] %}
+              {% endif %}
+            {% endfor %}
+            {% if ns.out | length == 0 %}
+              | - | - | - | - | - |
+            {% else %}
+              {{ ns.out | join('\n') }}
+            {% endif %}
+
+script:
+  bb_sleep_toggle_timer:
+    alias: Baby Sleep - Timer Start/Stop
+    mode: single
+    sequence:
+      - variables:
+          timer_entity: switch.baby_sleep_timer
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: switch.baby_sleep_timer
+                state: "off"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: "{{ timer_entity }}"
+        default:
+          - service: switch.turn_off
+            target:
+              entity_id: "{{ timer_entity }}"
+      - delay: "00:00:01"
+      - service: homeassistant.update_entity
+        target:
+          entity_id: sensor.bb_sleep_today_raw
+
+  bb_sleep_add_manual:
+    alias: Baby Sleep - Add Manual Entry
+    mode: single
+    sequence:
+      - variables:
+          child_id: "{{ states('input_number.bb_sleep_child_id') | int(0) }}"
+          start_iso: "{{ as_datetime(states('input_datetime.bb_sleep_manual_start')).isoformat() }}"
+          end_iso: "{{ as_datetime(states('input_datetime.bb_sleep_manual_end')).isoformat() }}"
+      - if:
+          - condition: template
+            value_template: "{{ child_id > 0 }}"
+        then:
+          - service: rest_command.bb_sleep_add_entry
+            data:
+              child_id: "{{ child_id }}"
+              start_iso: "{{ start_iso }}"
+              end_iso: "{{ end_iso }}"
+          - delay: "00:00:01"
+          - service: homeassistant.update_entity
+            target:
+              entity_id: sensor.bb_sleep_today_raw
+
+  bb_sleep_delete_by_id:
+    alias: Baby Sleep - Delete by ID
+    mode: single
+    sequence:
+      - variables:
+          sleep_id: "{{ states('input_number.bb_sleep_delete_id') | int(0) }}"
+      - if:
+          - condition: template
+            value_template: "{{ sleep_id > 0 }}"
+        then:
+          - service: rest_command.bb_sleep_delete_entry
+            data:
+              sleep_id: "{{ sleep_id }}"
+          - delay: "00:00:01"
+          - service: homeassistant.update_entity
+            target:
+              entity_id: sensor.bb_sleep_today_raw
