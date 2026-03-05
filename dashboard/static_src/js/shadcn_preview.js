@@ -927,6 +927,13 @@
                     return loadCards(childSelect.value);
                 })
                 .catch((error) => {
+                    if (fixedChildId && childSelect.options.length > 0) {
+                        childSelect.value = fixedChildId;
+                        loadCards(fixedChildId).catch((cardError) => {
+                            Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${cardError.message}`));
+                        });
+                        return;
+                    }
                     childSelect.innerHTML = '<option value="">Error loading children</option>';
                     Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${error.message}`));
                 });
