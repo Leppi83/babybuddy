@@ -218,6 +218,19 @@ class UserSettings(LoginRequiredMixin, View):
     form_settings_class = forms.UserSettingsForm
     template_name = "babybuddy/user_settings_form.html"
 
+    def _save_forms(self, request):
+        form_user = self.form_user_class(instance=request.user, data=request.POST)
+        form_settings = self.form_settings_class(
+            instance=request.user.settings, data=request.POST
+        )
+        if form_user.is_valid() and form_settings.is_valid():
+            user = form_user.save(commit=False)
+            user_settings = form_settings.save(commit=False)
+            user.settings = user_settings
+            user.save()
+            return True, form_user, form_settings
+        return False, form_user, form_settings
+
     def get(self, request):
         settings = request.user.settings
 
@@ -233,6 +246,26 @@ class UserSettings(LoginRequiredMixin, View):
     def post(self, request):
         if handle_api_regenerate_request(request):
             return redirect("babybuddy:user-settings")
+        if request.POST.get("action") == "autosave_all_settings":
+            ok, form_user, form_settings = self._save_forms(request)
+            if ok:
+                language = request.user.settings.language
+                response = JsonResponse({"saved": True})
+                response.set_cookie(
+                    settings.LANGUAGE_COOKIE_NAME,
+                    language,
+                    max_age=settings.LANGUAGE_COOKIE_AGE,
+                    path=settings.LANGUAGE_COOKIE_PATH,
+                    domain=settings.LANGUAGE_COOKIE_DOMAIN,
+                    secure=settings.LANGUAGE_COOKIE_SECURE or None,
+                    httponly=settings.LANGUAGE_COOKIE_HTTPONLY or None,
+                    samesite=settings.LANGUAGE_COOKIE_SAMESITE,
+                )
+                return response
+            errors = {}
+            errors.update(form_user.errors.get_json_data())
+            errors.update(form_settings.errors.get_json_data())
+            return JsonResponse({"saved": False, "errors": errors}, status=400)
         if request.POST.get("action") == "autosave_dashboard_visible_items":
             allowed = {
                 key for key, _label in self.form_settings_class().dashboard_item_choices
@@ -248,16 +281,9 @@ class UserSettings(LoginRequiredMixin, View):
             user_settings.save(update_fields=["dashboard_visible_items"])
             return JsonResponse({"saved": True, "count": len(selected_items)})
 
-        form_user = self.form_user_class(instance=request.user, data=request.POST)
-        form_settings = self.form_settings_class(
-            instance=request.user.settings, data=request.POST
-        )
-        if form_user.is_valid() and form_settings.is_valid():
-            user = form_user.save(commit=False)
-            user_settings = form_settings.save(commit=False)
-            user.settings = user_settings
-            user.save()
-            translation.activate(user.settings.language)
+        ok, form_user, form_settings = self._save_forms(request)
+        if ok:
+            translation.activate(request.user.settings.language)
             messages.success(request, _("Settings saved!"))
             translation.deactivate()
             return set_language(request)

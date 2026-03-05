@@ -136,14 +136,16 @@
 {% block javascript %}
     <script type="application/javascript">
         (function () {
+            const form = document.querySelector('form[role="form"]');
             const root = document.querySelector('[data-dual-list-root="dashboard-visible-items"]');
-            if (!root) return;
+            if (!form || !root) return;
             const available = root.querySelector('#dashboard-available-items');
             const selected = root.querySelector('#dashboard-selected-items');
             const hiddenField = document.querySelector('input[name="dashboard_visible_items"]');
             const status = document.getElementById('dashboard-settings-autosave-state');
             const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
             let autosaveTimer = null;
+            let autosaveSuppressed = false;
 
             function moveOptions(from, to, onlySelected) {
                 const options = Array.from(from.options);
@@ -180,15 +182,19 @@
                 }
             }
 
-            function autosaveDashboardItems() {
-                if (!hiddenField) {
+            function updateStatus(text) {
+                if (status) {
+                    status.textContent = text;
+                }
+            }
+
+            function autosaveAllSettings() {
+                if (!hiddenField || autosaveSuppressed) {
                     return;
                 }
-                if (status) {
-                    status.textContent = '{% trans "Saving..." %}';
-                }
-                const payload = new URLSearchParams();
-                payload.set('action', 'autosave_dashboard_visible_items');
+                updateStatus('{% trans "Saving..." %}');
+                const payload = new URLSearchParams(new FormData(form));
+                payload.set('action', 'autosave_all_settings');
                 payload.set('dashboard_visible_items', hiddenField.value);
 
                 fetch(window.location.pathname, {
@@ -206,13 +212,9 @@
                     }
                     return response.json();
                 }).then(() => {
-                    if (status) {
-                        status.textContent = '{% trans "Saved" %}';
-                    }
+                    updateStatus('{% trans "Saved" %}');
                 }).catch(() => {
-                    if (status) {
-                        status.textContent = '{% trans "Save failed" %}';
-                    }
+                    updateStatus('{% trans "Save failed" %}');
                 });
             }
 
@@ -220,7 +222,7 @@
                 if (autosaveTimer) {
                     clearTimeout(autosaveTimer);
                 }
-                autosaveTimer = setTimeout(autosaveDashboardItems, 180);
+                autosaveTimer = setTimeout(autosaveAllSettings, 220);
             }
 
             root.querySelector('[data-dual-list-action="add-one"]').addEventListener('click', () => {
@@ -254,7 +256,48 @@
                 scheduleAutosave();
             });
 
-            selected.closest('form').addEventListener('submit', syncHiddenField);
+            form.addEventListener('change', (event) => {
+                const target = event.target;
+                if (!target) {
+                    return;
+                }
+                if (
+                    target.closest('[data-dual-list-root="dashboard-visible-items"]') ||
+                    target.name === 'api_key_regenerate' ||
+                    target.name === 'save_settings'
+                ) {
+                    return;
+                }
+                syncHiddenField();
+                scheduleAutosave();
+            });
+
+            form.addEventListener('input', (event) => {
+                const target = event.target;
+                if (!target || target.tagName !== 'INPUT') {
+                    return;
+                }
+                if (target.type !== 'text' && target.type !== 'email') {
+                    return;
+                }
+                if (target.name === 'api_key_regenerate' || target.name === 'save_settings') {
+                    return;
+                }
+                syncHiddenField();
+                scheduleAutosave();
+            });
+
+            form.addEventListener('submit', (event) => {
+                const submitter = event.submitter;
+                if (submitter && submitter.name === 'save_settings') {
+                    autosaveSuppressed = true;
+                }
+                if (submitter && submitter.name === 'api_key_regenerate') {
+                    autosaveSuppressed = true;
+                }
+                syncHiddenField();
+            });
+
             syncHiddenField();
         })();
     </script>
