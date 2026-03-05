@@ -39,6 +39,7 @@ from django_filters.views import FilterView
 
 from babybuddy import forms
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin, StaffOnlyMixin
+from core.models import Child
 
 
 def csrf_failure(request, reason=""):
@@ -337,4 +338,7 @@ class ShadcnPreview(LoginRequiredMixin, TemplateView):
         context["preview_visible_sections"] = visible_sections
         context["preview_mode"] = True
         context["preview_fixed_child"] = None
+        context["preview_children"] = Child.objects.all().order_by(
+            "last_name", "first_name", "id"
+        )
         return context

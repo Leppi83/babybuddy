@@ -122,4 +122,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         context["preview_visible_sections"] = visible_sections
         context["preview_mode"] = False
         context["preview_fixed_child"] = self.object
+        context["preview_children"] = Child.objects.all().order_by(
+            "last_name", "first_name", "id"
+        )
         return context

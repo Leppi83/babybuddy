@@ -50,7 +50,13 @@
         <div class="ui-preview-controls">
             <label for="ui-preview-child-select">Child</label>
             <select id="ui-preview-child-select" aria-label="Child selector">
-                <option value="">Loading children...</option>
+                {% for child_item in preview_children %}
+                    <option value="{{ child_item.id }}"{% if preview_fixed_child and child_item.id == preview_fixed_child.id %} selected{% endif %}>
+                        {{ child_item }}
+                    </option>
+                {% empty %}
+                    <option value="">{% trans "No children found" %}</option>
+                {% endfor %}
             </select>
             <button id="ui-preview-refresh" class="btn btn-sm btn-secondary" type="button">Refresh data</button>
         </div>
