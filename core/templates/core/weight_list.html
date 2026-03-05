@@ -7,17 +7,23 @@
     <li class="breadcrumb-item active" aria-current="page">{% trans "Weight" %}</li>
 {% endblock %}
 {% block content %}
-    <h1>
-        {% trans "Weight" %}
-        {% if perms.core.add_weight %}
-            <a href="{% url 'core:weight-add' %}" class="btn btn-sm btn-success">
-                <i class="icon-weight" aria-hidden="true"></i> {% trans "Add Weight" %}
-            </a>
-        {% endif %}
-    </h1>
-    {% include 'babybuddy/filter.html' %}
-    <div class="table-responsive">
-        <table class="table table-instances table-borderless table-striped table-hover align-middle">
+    <section class="shadcn-list-shell">
+        <header class="shadcn-list-header">
+            <div>
+                <p class="shadcn-list-kicker">{% trans "Measurements" %}</p>
+                <h1>{% trans "Weight" %}</h1>
+            </div>
+            {% if perms.core.add_weight %}
+                <div class="shadcn-list-actions">
+                    <a href="{% url 'core:weight-add' %}" class="btn btn-sm btn-success">
+                        <i class="icon-weight" aria-hidden="true"></i> {% trans "Add Weight" %}
+                    </a>
+                </div>
+            {% endif %}
+        </header>
+        {% include 'babybuddy/filter.html' %}
+        <div class="table-responsive shadcn-list-table-wrap">
+            <table class="table table-instances table-borderless table-striped table-hover align-middle shadcn-list-table">
             <thead>
                 <tr>
                     <th>{% trans "Actions" %}</th>
@@ -73,6 +79,7 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
-    {% include 'babybuddy/paginator.html' %}
+        </div>
+        {% include 'babybuddy/paginator.html' %}
+    </section>
 {% endblock %}

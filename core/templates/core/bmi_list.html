@@ -7,17 +7,23 @@
     <li class="breadcrumb-item active" aria-current="page">{% trans "BMI" %}</li>
 {% endblock %}
 {% block content %}
-    <h1>
-        {% trans "BMI" %}
-        {% if perms.core.add_bmi %}
-            <a href="{% url 'core:bmi-add' %}" class="btn btn-sm btn-success">
-                <i class="icon-bmi" aria-hidden="true"></i> {% trans "Add BMI" %}
-            </a>
-        {% endif %}
-    </h1>
-    {% include 'babybuddy/filter.html' %}
-    <div class="table-responsive">
-        <table class="table table-instances table-borderless table-striped table-hover align-middle">
+    <section class="shadcn-list-shell">
+        <header class="shadcn-list-header">
+            <div>
+                <p class="shadcn-list-kicker">{% trans "Measurements" %}</p>
+                <h1>{% trans "BMI" %}</h1>
+            </div>
+            {% if perms.core.add_bmi %}
+                <div class="shadcn-list-actions">
+                    <a href="{% url 'core:bmi-add' %}" class="btn btn-sm btn-success">
+                        <i class="icon-bmi" aria-hidden="true"></i> {% trans "Add BMI" %}
+                    </a>
+                </div>
+            {% endif %}
+        </header>
+        {% include 'babybuddy/filter.html' %}
+        <div class="table-responsive shadcn-list-table-wrap">
+            <table class="table table-instances table-borderless table-striped table-hover align-middle shadcn-list-table">
             <thead>
                 <tr>
                     <th>{% trans "Actions" %}</th>
@@ -71,6 +77,7 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
-    {% include 'babybuddy/paginator.html' %}
+        </div>
+        {% include 'babybuddy/paginator.html' %}
+    </section>
 {% endblock %}

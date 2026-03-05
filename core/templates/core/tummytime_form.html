@@ -18,12 +18,15 @@
     {% endif %}
 {% endblock %}
 {% block content %}
-    {% if object %}
-        <h1>
-            {% trans Update %} <span class="text-info">{{ object }}</span>
-        </h1>
-    {% else %}
-        <h1>{% trans "Add a Tummy Time Entry" %}</h1>
-    {% endif %}
+    <header class="core-form-header">
+        <p class="core-form-kicker">{% trans "Entry Form" %}</p>
+        {% if object %}
+            <h1 class="core-form-title">
+                {% trans "Update" %} <span class="text-info">{{ object }}</span>
+            </h1>
+        {% else %}
+            <h1 class="core-form-title">{% trans "Add a Tummy Time Entry" %}</h1>
+        {% endif %}
+    </header>
     {% include 'babybuddy/form.html' %}
 {% endblock %}

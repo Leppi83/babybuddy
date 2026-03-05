@@ -9,7 +9,7 @@
     <li class="breadcrumb-item fw-bold">{{ object }}</li>
 {% endblock %}
 {% block content %}
-    <div class="p-5 mb-4 bg rounded-3 text-center">
+    <section class="timer-detail-shell text-center">
         <div class="container-fluid py-1">
             <h1 id="timer-status" class="display-1">
                 <span class="timer-hours">{{ object.duration|hours }}</span>h
@@ -23,7 +23,7 @@
                     {{ timer }} created by {{ user }}
                 {% endblocktrans %}
             </p>
-            <div class="d-grid gap-4 mb-4">
+            <div class="d-grid gap-3 mb-4 timer-quick-actions">
                 {% if perms.core.add_feeding %}
                 <a class="btn btn-success btn-lg"
                    href="{% instance_add_url 'core:feeding-add' %}"
@@ -53,7 +53,7 @@
 </a>
 {% endif %}
 </div>
-<div class="center-block"
+<div class="center-block timer-actions-row"
      role="group"
      aria-label="{% trans "Timer actions" %}">
     {% if perms.core.delete_timer %}
@@ -78,7 +78,7 @@
     {% endif %}
 </div>
 </div>
-</div>
+</section>
 {% endblock %}
 {% block javascript %}
     <script type="application/javascript">BabyBuddy.Timer.run({{ timer.id }}, 'timer-status');</script>
