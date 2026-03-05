@@ -103,6 +103,21 @@ class Settings(models.Model):
             ),
         ],
     )
+    dashboard_show_diaper_section = models.BooleanField(
+        verbose_name=_("Show diaper changes section"), default=True, editable=True
+    )
+    dashboard_show_feeding_section = models.BooleanField(
+        verbose_name=_("Show feedings section"), default=True, editable=True
+    )
+    dashboard_show_pumping_section = models.BooleanField(
+        verbose_name=_("Show pumpings section"), default=True, editable=True
+    )
+    dashboard_show_sleep_section = models.BooleanField(
+        verbose_name=_("Show sleep section"), default=True, editable=True
+    )
+    dashboard_show_tummytime_section = models.BooleanField(
+        verbose_name=_("Show tummy time section"), default=True, editable=True
+    )
     language = models.CharField(
         choices=settings.LANGUAGES,
         default=settings.LANGUAGE_CODE,
