@@ -4,12 +4,29 @@
 {% block header %}{% trans "Sleep Timeline (24h)" %}{% endblock %}
 {% block title %}
     <div class="timeline-day-nav">
-        <a href="?sleep_chart_day={{ prev_day_offset }}" class="timeline-day-link" aria-label="{% trans 'Previous day' %}">
+        <a href="?sleep_chart_date={{ prev_date|date:'Y-m-d' }}" class="timeline-day-link" aria-label="{% trans 'Previous day' %}">
             <i class="icon-angle-left" aria-hidden="true"></i>
         </a>
-        <div class="timeline-day-label">{{ target_date|date:'d.m.Y' }}</div>
+        <div class="timeline-day-label-wrap">
+            <div class="timeline-day-label">{{ target_date|date:'d.m.Y' }}</div>
+            <form method="get" class="timeline-date-form">
+                <input type="date"
+                       class="timeline-date-input"
+                       name="sleep_chart_date"
+                       value="{{ target_date|date:'Y-m-d' }}"
+                       min="{{ min_date|date:'Y-m-d' }}"
+                       max="{{ today|date:'Y-m-d' }}"
+                       onchange="this.form.submit()" />
+                <button type="button"
+                        class="timeline-day-link timeline-calendar-btn"
+                        aria-label="{% trans 'Choose date' %}"
+                        onclick="const input = this.previousElementSibling; if (input.showPicker) { input.showPicker(); } else { input.focus(); }">
+                    <i class="icon-calendar" aria-hidden="true"></i>
+                </button>
+            </form>
+        </div>
         {% if has_next_day %}
-            <a href="?sleep_chart_day={{ next_day_offset }}" class="timeline-day-link" aria-label="{% trans 'Next day' %}">
+            <a href="?sleep_chart_date={{ next_date|date:'Y-m-d' }}" class="timeline-day-link" aria-label="{% trans 'Next day' %}">
                 <i class="icon-angle-right" aria-hidden="true"></i>
             </a>
         {% else %}
@@ -23,9 +40,9 @@
         <div class="timeline-grid">
             {% for slot in hour_slots %}
                 <div class="hour-slot">
+                    <span class="slot-value">{% if slot.value_label %}{{ slot.value_label }}{% endif %}</span>
                     <div class="bars">
-                        <span class="bar nap" style="height: {{ slot.nap_pct }}%"></span>
-                        <span class="bar sleep" style="height: {{ slot.sleep_pct }}%"></span>
+                        <span class="bar {{ slot.kind }}" style="height: {{ slot.pct }}%"></span>
                     </div>
                     <span class="hour-label">{{ slot.hour }}</span>
                 </div>
