@@ -72,9 +72,10 @@
 
 .dashboard-sections {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
     gap: 1rem;
     width: 100%;
+    align-items: start;
 }
 
 .dashboard-section {
@@ -84,23 +85,56 @@
     border-radius: 1rem;
     background: color-mix(in srgb, var(--md3-surface-strong) 84%, transparent);
     overflow: hidden;
+    height: fit-content;
+    min-height: 0;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+
+    &.dragging {
+        opacity: .6;
+    }
+
+    &.drag-over {
+        border-color: var(--section-accent);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--section-accent) 40%, transparent);
+    }
 }
 
 .section-title {
     margin: 0;
-    padding: .7rem .95rem;
-    font-size: 1.2rem;
+    padding: .55rem .8rem;
+    font-size: 1.05rem;
     font-weight: 700;
     line-height: 1.2;
     color: var(--md3-text);
     background: color-mix(in srgb, var(--section-accent) 26%, transparent);
     border-bottom: 1px solid color-mix(in srgb, var(--section-accent) 30%, transparent);
+    display: flex;
+    align-items: center;
+    gap: .55rem;
 }
 
 .section-body {
-    padding: .9rem;
+    padding: .75rem;
     display: grid;
-    gap: .9rem;
+    gap: .75rem;
+}
+
+.section-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: .45rem;
+    border: 1px solid color-mix(in srgb, var(--section-accent) 40%, transparent);
+    background: color-mix(in srgb, var(--section-accent) 16%, transparent);
+    color: var(--md3-text);
+    cursor: grab;
+    padding: 0;
+
+    &:active {
+        cursor: grabbing;
+    }
 }
 
 .section-diaper {
@@ -123,14 +157,8 @@
     --section-accent: #45c888;
 }
 
-@include media-breakpoint-up(lg) {
+@include media-breakpoint-down(md) {
     .dashboard-sections {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@include media-breakpoint-up(xxl) {
-    .dashboard-sections {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: 1fr;
     }
 }

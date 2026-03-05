@@ -13,17 +13,28 @@
 {% block content %}
     <div class="dashboard-md3 dashboard-child-view">
         <div id="dashboard-child"
-             class="dashboard-sections">
-            <section class="dashboard-section section-diaper">
-                <h2 class="section-title">{% trans "Diaper changes" %}</h2>
+             class="dashboard-sections"
+             data-order-key="dashboard-child-sections-{{ object.slug }}">
+            <section class="dashboard-section section-diaper" data-section-id="diaper">
+                <h2 class="section-title">
+                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                        <i class="icon-list" aria-hidden="true"></i>
+                    </button>
+                    {% trans "Diaper changes" %}
+                </h2>
                 <div class="section-body">
                     {% card_diaperchange_last object %}
                     {% card_diaperchange_types object %}
                 </div>
             </section>
 
-            <section class="dashboard-section section-feeding">
-                <h2 class="section-title">{% trans "Feedings" %}</h2>
+            <section class="dashboard-section section-feeding" data-section-id="feeding">
+                <h2 class="section-title">
+                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                        <i class="icon-list" aria-hidden="true"></i>
+                    </button>
+                    {% trans "Feedings" %}
+                </h2>
                 <div class="section-body">
                     {% card_feeding_last object %}
                     {% card_feeding_last_method object %}
@@ -32,13 +43,23 @@
                 </div>
             </section>
 
-            <section class="dashboard-section section-pumping">
-                <h2 class="section-title">{% trans "Pumpings" %}</h2>
+            <section class="dashboard-section section-pumping" data-section-id="pumping">
+                <h2 class="section-title">
+                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                        <i class="icon-list" aria-hidden="true"></i>
+                    </button>
+                    {% trans "Pumpings" %}
+                </h2>
                 <div class="section-body">{% card_pumping_last object %}</div>
             </section>
 
-            <section class="dashboard-section section-sleep">
-                <h2 class="section-title">{% trans "Sleep" %}</h2>
+            <section class="dashboard-section section-sleep" data-section-id="sleep">
+                <h2 class="section-title">
+                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                        <i class="icon-list" aria-hidden="true"></i>
+                    </button>
+                    {% trans "Sleep" %}
+                </h2>
                 <div class="section-body">
                     {% card_timer_list object %}
                     {% card_sleep_last object %}
@@ -49,8 +70,13 @@
                 </div>
             </section>
 
-            <section class="dashboard-section section-tummytime">
-                <h2 class="section-title">{% trans "Tummy time" %}</h2>
+            <section class="dashboard-section section-tummytime" data-section-id="tummytime">
+                <h2 class="section-title">
+                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                        <i class="icon-list" aria-hidden="true"></i>
+                    </button>
+                    {% trans "Tummy time" %}
+                </h2>
                 <div class="section-body">{% card_tummytime_day object %}</div>
             </section>
         </div>
