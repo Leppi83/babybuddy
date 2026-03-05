@@ -533,6 +533,7 @@
                     intervalId: null
                 }
             };
+            const childrenById = new Map();
 
             function localDateString(date) {
                 const dt = new Date(date);
@@ -606,6 +607,17 @@
                 }
                 try {
                     return new Date(value).toLocaleString();
+                } catch (error) {
+                    return value;
+                }
+            }
+
+            function formatTime(value) {
+                if (!value) {
+                    return "n/a";
+                }
+                try {
+                    return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
                 } catch (error) {
                     return value;
                 }
@@ -689,6 +701,43 @@
                     return "n/a";
                 }
                 return value.toString().replace(/[_-]+/g, " ");
+            }
+
+            function formatRecommendationEntry(title, entry, includeTarget) {
+                if (!entry) {
+                    return `${title}: n/a`;
+                }
+                if (entry.status === "no_data") {
+                    return `${title}: not enough data yet`;
+                }
+                if (entry.status === "nighttime") {
+                    return `${title}: nighttime window`;
+                }
+                if (entry.status === "overtired_risk") {
+                    return `${title}: overdue (start now)`;
+                }
+
+                const bits = [];
+                if (entry.ideal) {
+                    bits.push(`ideal ${formatTime(entry.ideal)}`);
+                }
+                if (entry.earliest && entry.latest) {
+                    bits.push(`window ${formatTime(entry.earliest)}-${formatTime(entry.latest)}`);
+                }
+                if (includeTarget && entry.target_bedtime) {
+                    bits.push(`target ${formatTime(entry.target_bedtime)}`);
+                }
+                return `${title}: ${bits.join(" | ") || "n/a"}`;
+            }
+
+            async function loadSleepRecommendations(child) {
+                if (!child || !child.slug) {
+                    return "No child selected";
+                }
+                const payload = await fetchJSON(`/api/children/${encodeURIComponent(child.slug)}/sleep-recommendations/`);
+                const napLine = formatRecommendationEntry("Nap", payload.nap, false);
+                const bedtimeLine = formatRecommendationEntry("Bedtime", payload.bedtime, true);
+                return `${napLine} · ${bedtimeLine}`;
             }
 
             function showTooltip(text, x, y) {
@@ -942,6 +991,7 @@
                 }
 
                 children.forEach((child) => {
+                    childrenById.set(String(child.id), child);
                     const option = document.createElement("option");
                     option.value = String(child.id);
                     option.textContent = [child.first_name, child.last_name].filter(Boolean).join(" ").trim() || `Child ${child.id}`;
@@ -1024,11 +1074,13 @@
                         ? `${formatDateTime(lastSleep.start)} - ${formatDateTime(lastSleep.end)} | ${lastSleep.nap ? "Nap" : "Sleep"}`
                         : "No sleep entries yet"
                 );
-
-                setCard(
-                    "sleep-recommendations",
-                    "Recommendation view placeholder. Next step: reuse existing recommendation endpoint and card content."
-                );
+                const childMeta = childrenById.get(String(childId));
+                try {
+                    const recommendationsText = await loadSleepRecommendations(childMeta);
+                    setCard("sleep-recommendations", recommendationsText);
+                } catch (error) {
+                    setCard("sleep-recommendations", `Recommendation error: ${error.message}`);
+                }
 
                 const tummyTodayMinutes = tummyItems
                     .filter((item) => isToday(item.start))
