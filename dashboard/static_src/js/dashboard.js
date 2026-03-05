@@ -8,6 +8,7 @@ BabyBuddy.Dashboard = (function ($) {
   var dashboardElement = null;
   var hidden = null;
   var draggedSection = null;
+  var dragSourceSection = null;
 
   function saveSectionOrder() {
     if (!dashboardElement || dashboardElement.length == 0) {
@@ -65,10 +66,16 @@ BabyBuddy.Dashboard = (function ($) {
 
     dashboardElement.find(".dashboard-section").attr("draggable", true);
 
+    dashboardElement.on(
+      "mousedown touchstart",
+      ".section-drag-handle",
+      function () {
+        dragSourceSection = $(this).closest(".dashboard-section").get(0);
+      },
+    );
+
     dashboardElement.on("dragstart", ".dashboard-section", function (event) {
-      if (
-        $(event.originalEvent.target).closest(".section-drag-handle").length === 0
-      ) {
+      if (dragSourceSection !== this) {
         event.preventDefault();
         return false;
       }
@@ -85,6 +92,7 @@ BabyBuddy.Dashboard = (function ($) {
       this.classList.remove("dragging");
       dashboardElement.find(".dashboard-section").removeClass("drag-over");
       draggedSection = null;
+      dragSourceSection = null;
       saveSectionOrder();
     });
 

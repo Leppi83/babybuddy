@@ -71,11 +71,10 @@
 }
 
 .dashboard-sections {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
     width: 100%;
-    align-items: start;
 }
 
 .dashboard-section {
@@ -85,8 +84,8 @@
     border-radius: 1rem;
     background: color-mix(in srgb, var(--md3-surface-strong) 84%, transparent);
     overflow: hidden;
-    height: fit-content;
-    min-height: 0;
+    height: auto;
+    min-height: auto;
     transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
 
     &.dragging {
@@ -116,7 +115,7 @@
 .section-body {
     padding: .75rem;
     display: grid;
-    gap: .75rem;
+    gap: .65rem;
 }
 
 .section-drag-handle {
@@ -155,10 +154,4 @@
 
 .section-tummytime {
     --section-accent: #45c888;
-}
-
-@include media-breakpoint-down(md) {
-    .dashboard-sections {
-        grid-template-columns: 1fr;
-    }
 }
