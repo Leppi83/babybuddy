@@ -7,6 +7,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # System deps (für Pillow + Build)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    nodejs \
+    npm \
     libjpeg62-turbo-dev \
     zlib1g-dev \
     libpng-dev \
@@ -29,6 +31,9 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # App Code
 COPY . /app
+
+# Frontend assets (SCSS/JS -> static/babybuddy/*)
+RUN npm ci && npx gulp build
 
 # Entrypoint
 COPY docker/entrypoint.sh /entrypoint.sh

@@ -6,118 +6,111 @@
     line-height: $headings-line-height;
 }
 
-.card-dashboard {
-    margin-bottom: $spacer;
+.dashboard-md3 {
+    .card-dashboard {
+        --dashboard-card-accent: #{map.get($theme-colors, 'primary')};
 
-    .card-header {
-        @extend %card-header-text;
-        margin-bottom: 0;
-    }
+        margin-bottom: $spacer;
+        border: 1px solid rgba(255, 255, 255, .12);
+        border-left: .3rem solid var(--dashboard-card-accent);
+        border-radius: 1.1rem;
+        overflow: hidden;
+        background: rgba(31, 39, 52, .68);
+        box-shadow: 0 12px 26px rgba(0, 0, 0, .24);
 
-    .card-body {
-        .card-title {
+        .card-header {
             @extend %card-header-text;
+            margin-bottom: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            background: color-mix(in srgb, var(--dashboard-card-accent) 26%, transparent);
+            color: #f4f7fb;
+
+            a {
+                color: inherit;
+            }
         }
 
-        .card-text {
-            color: $text-muted;
+        .card-body {
+            .card-title {
+                @extend %card-header-text;
+                color: #f4f7fb;
+            }
+
+            .card-text {
+                color: rgba(244, 247, 251, .88);
+            }
+
+            .alert-secondary {
+                color: #f4f7fb;
+                background: rgba(255, 255, 255, .08);
+                border-color: rgba(159, 213, 255, .2);
+            }
+
+            // Offset horizontal padding in dashboard cards with a carousel.
+            .carousel {
+                margin-left: -$card-spacer-x;
+                margin-right: -$card-spacer-x;
+                padding-left: $card-spacer-x;
+                padding-right: $card-spacer-x;
+            }
         }
 
-        // Offset horizontal padding in dashboard cards with a carousel.
-        .carousel {
-            margin-left: -$card-spacer-x;
-            margin-right: -$card-spacer-x;
-            padding-left: $card-spacer-x;
-            padding-right: $card-spacer-x;
-        }
-    }
+        .list-group {
+            border-top: 1px solid rgba(255, 255, 255, .08);
 
-    .list-group {
-        .list-group-item {
-            color: $white;
-        }
-    }
-}
+            .list-group-item {
+                color: #f4f7fb;
+                background: rgba(255, 255, 255, .05);
+                border-color: rgba(255, 255, 255, .08);
 
-.card-diaperchange {
-    border-color: map.get($theme-colors, 'danger');
-
-    .card-header, .card-header a {
-        background-color: map.get($theme-colors, 'danger');
-        color: map.get($theme-colors, 'light');
-    }
-
-    .card-body {
-        color: map.get($theme-colors, 'danger');
-    }
-
-    .progress {
-        height: $progress-height * 2;
-    }
-}
-
-.card-feeding,
-.card-pumping {
-    border-color: map.get($theme-colors, 'primary');
-
-    .card-header, .card-header a {
-        background-color: map.get($theme-colors, 'primary');
-        color: map.get($theme-colors, 'light');
-    }
-
-    .card-body {
-        color: map.get($theme-colors, 'primary');
-
-        // Last feeding method header in card.
-        .last-feeding-method {
-            font-size: 2em;
+                &:hover,
+                &:focus {
+                    background: rgba(159, 213, 255, .16);
+                }
+            }
         }
     }
 
-    .progress {
-        height: $progress-height * 2;
-    }
-}
+    .card-diaperchange {
+        --dashboard-card-accent: #{map.get($theme-colors, 'danger')};
 
-.card-sleep {
-    border-color: map.get($theme-colors, 'secondary');
-
-    .card-header, .card-header a {
-        background-color: map.get($theme-colors, 'secondary');
-        color: map.get($theme-colors, 'light');
-    }
-}
-
-.card-statistics, .card-timer {
-    border-color: map.get($theme-colors, 'light');
-
-    .card-header {
-        background-color: map.get($theme-colors, 'light');
-        color: map.get($theme-colors, 'dark');
-
-        a {
-            color: map.get($theme-colors, 'dark');
+        .progress {
+            height: $progress-height * 2;
         }
     }
 
-    .card-body {
-        color: map.get($theme-colors, 'light');
+    .card-feeding,
+    .card-pumping {
+        --dashboard-card-accent: #{map.get($theme-colors, 'primary')};
 
-        .container {
-            padding: 0;
+        .card-body {
+            // Last feeding method header in card.
+            .last-feeding-method {
+                font-size: 2em;
+            }
+        }
+
+        .progress {
+            height: $progress-height * 2;
         }
     }
-}
 
-.card-tummytime {
-    border-color: map.get($theme-colors, 'success');
-
-    .card-header, .card-header a {
-        background-color: map.get($theme-colors, 'success');
-        color: map.get($theme-colors, 'light');
+    .card-sleep {
+        --dashboard-card-accent: #{map.get($theme-colors, 'secondary')};
     }
 
-    .card-body {
-        color: map.get($theme-colors, 'success');
+    .card-statistics,
+    .card-timer {
+        --dashboard-card-accent: #{map.get($theme-colors, 'light')};
+
+        .card-body {
+            .container {
+                padding: 0;
+            }
+        }
+    }
+
+    .card-tummytime {
+        --dashboard-card-accent: #{map.get($theme-colors, 'success')};
     }
 }
