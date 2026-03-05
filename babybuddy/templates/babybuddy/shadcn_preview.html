@@ -24,27 +24,15 @@
         </header>
 
         <p class="ui-preview-subtitle">Signed in as {% firstof request.user.get_full_name request.user.username %}. This preview is isolated for the step-by-step UI migration.</p>
-        <div class="ui-preview-layout">
-            <aside class="ui-preview-nav">
-                <h2 class="ui-preview-nav-title">Navigation (Shadcn style)</h2>
-                <a class="ui-preview-nav-link" href="{% url 'dashboard:dashboard' %}">Dashboard</a>
-                <a class="ui-preview-nav-link" href="{% url 'core:timeline' %}">Timeline</a>
-                <a class="ui-preview-nav-link" href="{% url 'core:child-list' %}">Children</a>
-                <a class="ui-preview-nav-link" href="{% url 'core:feeding-list' %}">Feedings</a>
-                <a class="ui-preview-nav-link" href="{% url 'core:sleep-list' %}">Sleep</a>
-                <a class="ui-preview-nav-link" href="{% url 'babybuddy:user-settings' %}">Settings</a>
-            </aside>
+        <div class="ui-preview-controls">
+            <label for="ui-preview-child-select">Child</label>
+            <select id="ui-preview-child-select" aria-label="Child selector">
+                <option value="">Loading children...</option>
+            </select>
+            <button id="ui-preview-refresh" class="btn btn-sm btn-secondary" type="button">Refresh data</button>
+        </div>
 
-            <div>
-                <div class="ui-preview-controls">
-                    <label for="ui-preview-child-select">Child</label>
-                    <select id="ui-preview-child-select" aria-label="Child selector">
-                        <option value="">Loading children...</option>
-                    </select>
-                    <button id="ui-preview-refresh" class="btn btn-sm btn-secondary" type="button">Refresh data</button>
-                </div>
-
-                <div class="ui-preview-sections">
+        <div class="ui-preview-sections">
             {% if 'diaper' in preview_visible_sections %}
             <section class="ui-preview-section" data-tone="diaper" data-collapsed="0">
                 <div class="ui-preview-section-header">
@@ -177,11 +165,8 @@
                 </div>
             </section>
             {% endif %}
-                </div>
-            </div>
         </div>
     </div>
 
     <div id="ui-preview-tooltip" class="ui-tooltip" role="status" aria-live="polite"></div>
 {% endblock %}
-
