@@ -95,6 +95,8 @@
                         <button type="button" class="btn btn-outline-light btn-sm" data-dual-list-action="add-all">&gt;&gt;</button>
                         <button type="button" class="btn btn-outline-light btn-sm" data-dual-list-action="remove-all">&lt;&lt;</button>
                         <button type="button" class="btn btn-outline-light btn-sm" data-dual-list-action="remove-one">&lt;</button>
+                        <button type="button" class="btn btn-outline-light btn-sm" data-dual-list-action="move-up">{% trans "Up" %}</button>
+                        <button type="button" class="btn btn-outline-light btn-sm" data-dual-list-action="move-down">{% trans "Down" %}</button>
                     </div>
                     <div class="col-lg-5">
                         <label class="form-label" for="dashboard-selected-items">{% trans "Selected" %}</label>
@@ -108,6 +110,7 @@
                         </select>
                     </div>
                 </div>
+                <p class="form-text text-muted mt-2 mb-0" id="dashboard-settings-autosave-state">{% trans "Saved" %}</p>
             </fieldset>
             <fieldset>
                 <legend>{% trans "API" %}</legend>
@@ -138,6 +141,9 @@
             const available = root.querySelector('#dashboard-available-items');
             const selected = root.querySelector('#dashboard-selected-items');
             const hiddenField = document.querySelector('input[name="dashboard_visible_items"]');
+            const status = document.getElementById('dashboard-settings-autosave-state');
+            const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+            let autosaveTimer = null;
 
             function moveOptions(from, to, onlySelected) {
                 const options = Array.from(from.options);
@@ -152,21 +158,100 @@
                 hiddenField.value = Array.from(selected.options).map((option) => option.value).join(',');
             }
 
+            function moveSelected(direction) {
+                const selectedOptions = Array.from(selected.options).filter((option) => option.selected);
+                if (!selectedOptions.length) {
+                    return;
+                }
+                if (direction === 'up') {
+                    selectedOptions.forEach((option) => {
+                        const previous = option.previousElementSibling;
+                        if (previous) {
+                            selected.insertBefore(option, previous);
+                        }
+                    });
+                } else {
+                    selectedOptions.reverse().forEach((option) => {
+                        const next = option.nextElementSibling;
+                        if (next) {
+                            selected.insertBefore(next, option);
+                        }
+                    });
+                }
+            }
+
+            function autosaveDashboardItems() {
+                if (!hiddenField) {
+                    return;
+                }
+                if (status) {
+                    status.textContent = '{% trans "Saving..." %}';
+                }
+                const payload = new URLSearchParams();
+                payload.set('action', 'autosave_dashboard_visible_items');
+                payload.set('dashboard_visible_items', hiddenField.value);
+
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                        'X-CSRFToken': csrfInput ? csrfInput.value : '',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: payload.toString()
+                }).then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Save failed');
+                    }
+                    return response.json();
+                }).then(() => {
+                    if (status) {
+                        status.textContent = '{% trans "Saved" %}';
+                    }
+                }).catch(() => {
+                    if (status) {
+                        status.textContent = '{% trans "Save failed" %}';
+                    }
+                });
+            }
+
+            function scheduleAutosave() {
+                if (autosaveTimer) {
+                    clearTimeout(autosaveTimer);
+                }
+                autosaveTimer = setTimeout(autosaveDashboardItems, 180);
+            }
+
             root.querySelector('[data-dual-list-action="add-one"]').addEventListener('click', () => {
                 moveOptions(available, selected, true);
                 syncHiddenField();
+                scheduleAutosave();
             });
             root.querySelector('[data-dual-list-action="add-all"]').addEventListener('click', () => {
                 moveOptions(available, selected, false);
                 syncHiddenField();
+                scheduleAutosave();
             });
             root.querySelector('[data-dual-list-action="remove-one"]').addEventListener('click', () => {
                 moveOptions(selected, available, true);
                 syncHiddenField();
+                scheduleAutosave();
             });
             root.querySelector('[data-dual-list-action="remove-all"]').addEventListener('click', () => {
                 moveOptions(selected, available, false);
                 syncHiddenField();
+                scheduleAutosave();
+            });
+            root.querySelector('[data-dual-list-action="move-up"]').addEventListener('click', () => {
+                moveSelected('up');
+                syncHiddenField();
+                scheduleAutosave();
+            });
+            root.querySelector('[data-dual-list-action="move-down"]').addEventListener('click', () => {
+                moveSelected('down');
+                syncHiddenField();
+                scheduleAutosave();
             });
 
             selected.closest('form').addEventListener('submit', syncHiddenField);

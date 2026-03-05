@@ -68,6 +68,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "card.tummytime.day",
         ],
     }
+    SECTION_ORDER = ["diaper", "feedings", "pumpings", "sleep", "tummytime"]
 
     @staticmethod
     def _timer_session_key(child_id):
@@ -110,16 +111,32 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ChildDashboard, self).get_context_data(**kwargs)
-        visible_items = set(self.request.user.settings.dashboard_selected_items())
-        visible_sections = {
-            section
-            for section, cards in self.SECTION_CARD_MAP.items()
-            if any(card in visible_items for card in cards)
+        selected_items = self.request.user.settings.dashboard_selected_items()
+        allowed_items = {
+            card
+            for section_cards in self.SECTION_CARD_MAP.values()
+            for card in section_cards
         }
+        ordered_visible_items = [
+            item for item in selected_items if item in allowed_items
+        ]
+        visible_items = set(ordered_visible_items)
+
+        preview_cards_by_section = {
+            section: [item for item in ordered_visible_items if item in cards]
+            for section, cards in self.SECTION_CARD_MAP.items()
+        }
+        visible_sections = [
+            section
+            for section in self.SECTION_ORDER
+            if preview_cards_by_section.get(section)
+        ]
+
         context["visible_dashboard_items"] = visible_items
-        context["visible_dashboard_sections"] = visible_sections
+        context["visible_dashboard_sections"] = set(visible_sections)
         context["preview_visible_items"] = visible_items
         context["preview_visible_sections"] = visible_sections
+        context["preview_cards_by_section"] = preview_cards_by_section
         context["preview_mode"] = False
         context["preview_fixed_child"] = self.object
         context["preview_children"] = Child.objects.all().order_by(
