@@ -9,93 +9,205 @@
 
 {% block content %}
     <style>
-        .shadcn-preview-page {
-            min-height: calc(100vh - 10rem);
-            padding: 0.5rem 0 1.5rem;
-        }
-
-        .shadcn-preview-header {
-            align-items: center;
-            background: linear-gradient(120deg, rgba(17, 24, 39, 0.95), rgba(30, 41, 59, 0.85));
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            border-radius: 16px;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            padding: 1rem 1.25rem;
-        }
-
-        .shadcn-preview-kicker {
-            color: #94a3b8;
-            font-size: 0.75rem;
-            letter-spacing: 0.08em;
-            margin: 0;
-            text-transform: uppercase;
-        }
-
-        .shadcn-preview-title {
-            font-size: 1.5rem;
-            margin: 0.1rem 0 0;
-        }
-
-        .shadcn-card-grid {
-            display: grid;
-            gap: 0.9rem;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        }
-
-        .shadcn-card {
-            background: radial-gradient(circle at top, rgba(30, 58, 138, 0.25), rgba(15, 23, 42, 0.95));
-            border: 1px solid rgba(96, 165, 250, 0.35);
-            border-radius: 14px;
-            min-height: 160px;
+        .ui-preview-shell {
+            border: 1px solid rgba(71, 85, 105, 0.55);
+            border-radius: 18px;
             padding: 1rem;
+            background: linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.96));
         }
 
-        .shadcn-card-label {
-            color: #93c5fd;
-            font-size: 0.78rem;
-            letter-spacing: 0.06em;
-            margin: 0 0 0.35rem;
-            text-transform: uppercase;
+        .ui-preview-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.9rem;
         }
 
-        .shadcn-card h2 {
-            font-size: 1.2rem;
-            margin: 0 0 0.5rem;
+        .ui-preview-header h1 {
+            margin: 0.15rem 0 0;
+            font-size: 1.45rem;
         }
 
-        .shadcn-card p {
-            color: #cbd5e1;
+        .ui-preview-kicker {
             margin: 0;
+            font-size: 0.74rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #94a3b8;
+        }
+
+        .ui-preview-badges {
+            display: flex;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+        }
+
+        .ui-preview-badge {
+            border: 1px solid rgba(71, 85, 105, 0.65);
+            border-radius: 999px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .ui-preview-subtitle {
+            color: #cbd5e1;
+            margin-bottom: 0.9rem;
+            font-size: 0.9rem;
+        }
+
+        .ui-preview-sections {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .ui-preview-section {
+            border: 1px solid rgba(71, 85, 105, 0.55);
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .ui-preview-section[data-tone="diaper"] { border-color: rgba(244, 63, 94, 0.4); }
+        .ui-preview-section[data-tone="feedings"] { border-color: rgba(56, 189, 248, 0.4); }
+        .ui-preview-section[data-tone="pumpings"] { border-color: rgba(168, 85, 247, 0.4); }
+        .ui-preview-section[data-tone="sleep"] { border-color: rgba(245, 158, 11, 0.4); }
+        .ui-preview-section[data-tone="tummy"] { border-color: rgba(16, 185, 129, 0.4); }
+
+        .ui-preview-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.65rem;
+            padding: 0.65rem 0.8rem;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.35);
+            background: rgba(15, 23, 42, 0.65);
+        }
+
+        .ui-preview-section-title {
+            margin: 0;
+            font-size: 1.02rem;
+        }
+
+        .ui-preview-toggle {
+            border: 1px solid rgba(100, 116, 139, 0.7);
+            color: #e2e8f0;
+            background: rgba(15, 23, 42, 0.35);
+            border-radius: 10px;
+            padding: 0.18rem 0.55rem;
+            font-size: 0.82rem;
+        }
+
+        .ui-preview-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.6rem;
+            padding: 0.7rem;
+        }
+
+        @media (min-width: 880px) {
+            .ui-preview-cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .ui-preview-card {
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.45);
+            padding: 0.62rem 0.7rem;
+        }
+
+        .ui-preview-card h3 {
+            margin: 0 0 0.35rem;
+            font-size: 0.95rem;
+        }
+
+        .ui-preview-card p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 0.82rem;
+        }
+
+        .ui-preview-section[data-collapsed="1"] .ui-preview-cards {
+            display: none;
         }
     </style>
-    <div class="shadcn-preview-page">
-        <header class="shadcn-preview-header">
+
+    <div class="ui-preview-shell" id="ui-preview-shell">
+        <header class="ui-preview-header">
             <div>
-                <p class="shadcn-preview-kicker">Shadcn Migration</p>
-                <h1 class="shadcn-preview-title">Dashboard UI Preview</h1>
+                <p class="ui-preview-kicker">Shadcn Migration Preview</p>
+                <h1>Dashboard Shell</h1>
             </div>
-            <a class="btn btn-primary" href="{% url 'dashboard:dashboard' %}">Back to Dashboard</a>
+            <div class="ui-preview-badges">
+                <span class="ui-preview-badge" id="ui-preview-visible-count">0 visible</span>
+                <span class="ui-preview-badge" id="ui-preview-hidden-count">0 hidden</span>
+                <a class="btn btn-sm btn-secondary" href="{% url 'dashboard:dashboard' %}">Back to Dashboard</a>
+            </div>
         </header>
 
-        <div id="shadcn-root" data-view="dashboard-preview">
-            <section class="shadcn-card-grid">
-                <article class="shadcn-card">
-                    <p class="shadcn-card-label">Sleep</p>
-                    <h2>Sleep Timeline (24h)</h2>
-                    <p>React shell will render here in step 3.</p>
-                </article>
-                <article class="shadcn-card">
-                    <p class="shadcn-card-label">Feedings</p>
-                    <h2>Recent Feedings</h2>
-                    <p>Card composition and section rules stay compatible.</p>
-                </article>
-                <article class="shadcn-card">
-                    <p class="shadcn-card-label">Timer</p>
-                    <h2>Sleep Quick Start</h2>
-                    <p>This will become the shadcn button variant set.</p>
-                </article>
+        <p class="ui-preview-subtitle">Signed in as {% firstof request.user.get_full_name request.user.username %}. This preview is isolated for the step-by-step UI migration.</p>
+
+        <div class="ui-preview-sections">
+            <section class="ui-preview-section" data-tone="diaper" data-collapsed="0">
+                <div class="ui-preview-section-header">
+                    <h2 class="ui-preview-section-title">Diaper changes</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                </div>
+                <div class="ui-preview-cards">
+                    <article class="ui-preview-card"><h3>Last Nappy Change</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card"><h3>Nappy Changes</h3><p>Card placeholder</p></article>
+                </div>
+            </section>
+
+            <section class="ui-preview-section" data-tone="feedings" data-collapsed="0">
+                <div class="ui-preview-section-header">
+                    <h2 class="ui-preview-section-title">Feedings</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                </div>
+                <div class="ui-preview-cards">
+                    <article class="ui-preview-card"><h3>Last Feeding</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card"><h3>Last Feeding Method</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card"><h3>Recent Feedings</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card"><h3>Breastfeeding</h3><p>Card placeholder</p></article>
+                </div>
+            </section>
+
+            <section class="ui-preview-section" data-tone="pumpings" data-collapsed="0">
+                <div class="ui-preview-section-header">
+                    <h2 class="ui-preview-section-title">Pumpings</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                </div>
+                <div class="ui-preview-cards">
+                    <article class="ui-preview-card"><h3>Last Pumping</h3><p>Card placeholder</p></article>
+                </div>
+            </section>
+
+            <section class="ui-preview-section" data-tone="sleep" data-collapsed="0">
+                <div class="ui-preview-section-header">
+                    <h2 class="ui-preview-section-title">Sleep</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                </div>
+                <div class="ui-preview-cards">
+                    <article class="ui-preview-card"><h3>Sleep Timeline</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card"><h3>Sleep Recommendations</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card"><h3>Last Sleep</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card"><h3>Sleep Timer</h3><p>Card placeholder</p></article>
+                </div>
+            </section>
+
+            <section class="ui-preview-section" data-tone="tummy" data-collapsed="0">
+                <div class="ui-preview-section-header">
+                    <h2 class="ui-preview-section-title">Tummy Time</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                </div>
+                <div class="ui-preview-cards">
+                    <article class="ui-preview-card"><h3>Today's Tummy Time</h3><p>Card placeholder</p></article>
+                </div>
             </section>
         </div>
     </div>
@@ -105,11 +217,35 @@
     {{ block.super }}
     <script>
         (function () {
-            const root = document.getElementById("shadcn-root");
+            const root = document.getElementById("ui-preview-shell");
             if (!root) {
                 return;
             }
-            root.dataset.ready = "1";
+
+            const sections = Array.from(root.querySelectorAll(".ui-preview-section"));
+            const visible = root.querySelector("#ui-preview-visible-count");
+            const hidden = root.querySelector("#ui-preview-hidden-count");
+
+            function refreshCounts() {
+                const hiddenCount = sections.filter((section) => section.dataset.collapsed === "1").length;
+                visible.textContent = `${sections.length - hiddenCount} visible`;
+                hidden.textContent = `${hiddenCount} hidden`;
+            }
+
+            root.querySelectorAll("[data-section-toggle]").forEach((button) => {
+                button.addEventListener("click", () => {
+                    const section = button.closest(".ui-preview-section");
+                    if (!section) {
+                        return;
+                    }
+                    const collapsed = section.dataset.collapsed === "1";
+                    section.dataset.collapsed = collapsed ? "0" : "1";
+                    button.textContent = collapsed ? "Hide" : "Show";
+                    refreshCounts();
+                });
+            });
+
+            refreshCounts();
         })();
     </script>
 {% endblock %}

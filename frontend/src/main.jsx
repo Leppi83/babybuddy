@@ -3,8 +3,15 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import "./index.css";
 
-createRoot(document.getElementById("root")).render(
+const mountNode =
+  document.getElementById("shadcn-root") || document.getElementById("root");
+
+if (!mountNode) {
+  throw new Error("No mount node found for shadcn preview.");
+}
+
+createRoot(mountNode).render(
   <React.StrictMode>
-    <App />
+    <App bootstrap={mountNode.dataset} />
   </React.StrictMode>
 );
