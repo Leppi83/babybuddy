@@ -72,7 +72,7 @@
 }
 
 .dashboard-sections {
-    column-count: 2;
+    column-count: 1;
     column-gap: .75rem;
     gap: .65rem;
     width: 100%;
@@ -125,7 +125,7 @@
     padding: .75rem;
     display: grid;
     gap: .65rem;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15.5rem), 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
 }
 
@@ -133,7 +133,7 @@
     margin-bottom: 0;
 }
 
-@container (max-width: 24rem) {
+@container (max-width: 36rem) {
     .section-body {
         grid-template-columns: 1fr;
     }
@@ -176,10 +176,4 @@
 
 .section-tummytime {
     --section-accent: #45c888;
-}
-
-@container (max-width: 70rem) {
-    .dashboard-sections {
-        column-count: 1;
-    }
 }
