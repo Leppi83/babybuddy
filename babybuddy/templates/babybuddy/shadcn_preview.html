@@ -1,0 +1,115 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "UI Preview" %}{% endblock %}
+
+{% block breadcrumbs %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "UI Preview" %}</li>
+{% endblock %}
+
+{% block content %}
+    <style>
+        .shadcn-preview-page {
+            min-height: calc(100vh - 10rem);
+            padding: 0.5rem 0 1.5rem;
+        }
+
+        .shadcn-preview-header {
+            align-items: center;
+            background: linear-gradient(120deg, rgba(17, 24, 39, 0.95), rgba(30, 41, 59, 0.85));
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 1rem 1.25rem;
+        }
+
+        .shadcn-preview-kicker {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .shadcn-preview-title {
+            font-size: 1.5rem;
+            margin: 0.1rem 0 0;
+        }
+
+        .shadcn-card-grid {
+            display: grid;
+            gap: 0.9rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .shadcn-card {
+            background: radial-gradient(circle at top, rgba(30, 58, 138, 0.25), rgba(15, 23, 42, 0.95));
+            border: 1px solid rgba(96, 165, 250, 0.35);
+            border-radius: 14px;
+            min-height: 160px;
+            padding: 1rem;
+        }
+
+        .shadcn-card-label {
+            color: #93c5fd;
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
+            margin: 0 0 0.35rem;
+            text-transform: uppercase;
+        }
+
+        .shadcn-card h2 {
+            font-size: 1.2rem;
+            margin: 0 0 0.5rem;
+        }
+
+        .shadcn-card p {
+            color: #cbd5e1;
+            margin: 0;
+        }
+    </style>
+    <div class="shadcn-preview-page">
+        <header class="shadcn-preview-header">
+            <div>
+                <p class="shadcn-preview-kicker">Shadcn Migration</p>
+                <h1 class="shadcn-preview-title">Dashboard UI Preview</h1>
+            </div>
+            <a class="btn btn-primary" href="{% url 'dashboard:dashboard' %}">Back to Dashboard</a>
+        </header>
+
+        <div id="shadcn-root" data-view="dashboard-preview">
+            <section class="shadcn-card-grid">
+                <article class="shadcn-card">
+                    <p class="shadcn-card-label">Sleep</p>
+                    <h2>Sleep Timeline (24h)</h2>
+                    <p>React shell will render here in step 3.</p>
+                </article>
+                <article class="shadcn-card">
+                    <p class="shadcn-card-label">Feedings</p>
+                    <h2>Recent Feedings</h2>
+                    <p>Card composition and section rules stay compatible.</p>
+                </article>
+                <article class="shadcn-card">
+                    <p class="shadcn-card-label">Timer</p>
+                    <h2>Sleep Quick Start</h2>
+                    <p>This will become the shadcn button variant set.</p>
+                </article>
+            </section>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script>
+        (function () {
+            const root = document.getElementById("shadcn-root");
+            if (!root) {
+                return;
+            }
+            root.dataset.ready = "1";
+        })();
+    </script>
+{% endblock %}
