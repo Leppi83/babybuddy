@@ -132,7 +132,7 @@
             padding: 0.7rem;
         }
 
-        @media (min-width: 880px) {
+        @media (min-width: 980px) {
             .ui-preview-cards {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -143,6 +143,7 @@
             border-radius: 12px;
             background: rgba(15, 23, 42, 0.45);
             padding: 0.62rem 0.7rem;
+            min-width: 0;
         }
 
         .ui-preview-card h3 {
@@ -158,6 +159,208 @@
 
         .ui-preview-section[data-collapsed="1"] .ui-preview-cards {
             display: none;
+        }
+
+        .ui-sleep-timeline-toolbar {
+            display: grid;
+            grid-template-columns: 40px 1fr 40px;
+            gap: 0.45rem;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .ui-sleep-timeline-date {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #e2e8f0;
+        }
+
+        .ui-sleep-timeline-date input[type="date"] {
+            border: 1px solid rgba(100, 116, 139, 0.7);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.45);
+            color: #cbd5e1;
+            padding: 0.1rem 0.3rem;
+            font-size: 0.78rem;
+        }
+
+        .ui-sleep-timeline-chart-wrap {
+            position: relative;
+            border: 1px solid rgba(100, 116, 139, 0.5);
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.45);
+            padding: 0.5rem;
+        }
+
+        .ui-sleep-timeline-chart {
+            display: grid;
+            grid-template-columns: repeat(24, minmax(0, 1fr));
+            gap: 4px;
+            align-items: end;
+            height: 170px;
+        }
+
+        .ui-sleep-slot {
+            height: 100%;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+        }
+
+        .ui-sleep-bar {
+            width: min(100%, 18px);
+            border-radius: 9px 9px 2px 2px;
+            min-height: 4px;
+            cursor: pointer;
+            background: #f4b76b;
+            opacity: 0.95;
+        }
+
+        .ui-sleep-bar[data-kind="nap"] {
+            background: #b18958;
+        }
+
+        .ui-sleep-axis {
+            margin-top: 0.45rem;
+            display: grid;
+            grid-template-columns: repeat(24, minmax(0, 1fr));
+            gap: 4px;
+            font-size: 0.68rem;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .ui-sleep-now-line {
+            position: absolute;
+            top: 0.6rem;
+            bottom: 1.6rem;
+            width: 2px;
+            border-left: 2px dotted #ff5f6d;
+            pointer-events: none;
+        }
+
+        .ui-sleep-legend {
+            margin-top: 0.55rem;
+            display: flex;
+            gap: 1rem;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+        }
+
+        .ui-sleep-dot {
+            display: inline-block;
+            width: 0.72rem;
+            height: 0.72rem;
+            border-radius: 50%;
+            margin-right: 0.35rem;
+            vertical-align: -0.08rem;
+            background: #f4b76b;
+        }
+
+        .ui-sleep-dot.nap {
+            background: #b18958;
+        }
+
+        .ui-tooltip {
+            position: fixed;
+            z-index: 3000;
+            max-width: 320px;
+            pointer-events: none;
+            background: rgba(15, 23, 42, 0.62);
+            backdrop-filter: blur(7px);
+            border: 1px solid rgba(148, 163, 184, 0.55);
+            color: #f1f5f9;
+            border-radius: 12px;
+            padding: 0.5rem 0.62rem;
+            font-size: 0.98rem;
+            opacity: 0;
+            transform: translate3d(0, 0, 0);
+            transition: opacity 0.05s linear;
+        }
+
+        .ui-sleep-timer-head {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .ui-sleep-timer-head .time {
+            margin: 0;
+            color: #e2e8f0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .ui-sleep-timer-head .dots {
+            color: #94a3b8;
+            opacity: 0;
+            font-size: 1.15rem;
+        }
+
+        .ui-sleep-timer-head .dots.running {
+            opacity: 1;
+            animation: uiBlink 1.45s infinite;
+        }
+
+        @keyframes uiBlink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.22; }
+        }
+
+        .ui-sleep-timer-row {
+            display: flex;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 0.55rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .ui-sleep-timer-action {
+            min-width: 120px;
+        }
+
+        .ui-sleep-harvey-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            border: 1px solid rgba(100, 116, 139, 0.65);
+            border-radius: 10px;
+            padding: 0 0.6rem;
+            background: rgba(15, 23, 42, 0.35);
+            min-height: 38px;
+        }
+
+        .ui-sleep-bed {
+            font-size: 1.35rem;
+            line-height: 1;
+            color: #f4b76b;
+        }
+
+        .ui-harvey-ball {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid rgba(148, 163, 184, 0.75);
+            background: conic-gradient(#f4b76b 0deg, rgba(100, 116, 139, 0.35) 0deg);
+        }
+
+        .ui-sleep-timer-caption {
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            margin: 0 0 0.2rem;
+        }
+
+        .ui-sleep-timer-note {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            margin: 0;
         }
     </style>
 
@@ -224,10 +427,44 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    <article class="ui-preview-card" data-card="sleep-timeline"><h3>Sleep Timeline</h3><p>Loading...</p></article>
+                    <article class="ui-preview-card">
+                        <h3>Sleep Timeline (24h)</h3>
+                        <div class="ui-sleep-timeline-toolbar">
+                            <button id="ui-sleep-date-prev" class="btn btn-sm btn-secondary" type="button" aria-label="Previous day">&lsaquo;</button>
+                            <div class="ui-sleep-timeline-date">
+                                <span id="ui-sleep-date-label">--.--.----</span>
+                                <input id="ui-sleep-date-input" type="date" aria-label="Select day">
+                            </div>
+                            <button id="ui-sleep-date-next" class="btn btn-sm btn-secondary" type="button" aria-label="Next day">&rsaquo;</button>
+                        </div>
+                        <div class="ui-sleep-timeline-chart-wrap" id="ui-sleep-timeline-wrap">
+                            <div class="ui-sleep-timeline-chart" id="ui-sleep-timeline-chart"></div>
+                            <div class="ui-sleep-now-line" id="ui-sleep-now-line" hidden></div>
+                            <div class="ui-sleep-axis" id="ui-sleep-axis"></div>
+                        </div>
+                        <div class="ui-sleep-legend">
+                            <span><span class="ui-sleep-dot nap"></span>Nap</span>
+                            <span><span class="ui-sleep-dot"></span>Sleep</span>
+                        </div>
+                    </article>
                     <article class="ui-preview-card" data-card="sleep-recommendations"><h3>Sleep Recommendations</h3><p>Dynamic recommendation hookup next step</p></article>
                     <article class="ui-preview-card" data-card="last-sleep"><h3>Last Sleep</h3><p>Loading...</p></article>
-                    <article class="ui-preview-card" data-card="sleep-timer"><h3>Sleep Timer</h3><p>Loading...</p></article>
+                    <article class="ui-preview-card">
+                        <h3>Sleep Timer</h3>
+                        <p class="ui-sleep-timer-caption" id="ui-sleep-timer-caption">Sleep duration: 00:00:00</p>
+                        <div class="ui-sleep-timer-head">
+                            <p class="time" id="ui-sleep-timer-time">00:00:00</p>
+                            <span class="dots" id="ui-sleep-timer-dots">...</span>
+                        </div>
+                        <div class="ui-sleep-timer-row">
+                            <button id="ui-sleep-timer-action" class="btn btn-primary ui-sleep-timer-action" type="button">Start</button>
+                            <div class="ui-sleep-harvey-wrap">
+                                <span class="ui-sleep-bed">&#x1F6CF;</span>
+                                <span class="ui-harvey-ball" id="ui-sleep-harvey"></span>
+                            </div>
+                        </div>
+                        <p class="ui-sleep-timer-note" id="ui-sleep-timer-note">Timer idle. Start to create a new sleep entry.</p>
+                    </article>
                 </div>
             </section>
 
@@ -242,6 +479,8 @@
             </section>
         </div>
     </div>
+
+    <div id="ui-preview-tooltip" class="ui-tooltip" role="status" aria-live="polite"></div>
 {% endblock %}
 
 {% block javascript %}
@@ -259,9 +498,77 @@
             const childSelect = root.querySelector("#ui-preview-child-select");
             const refreshButton = root.querySelector("#ui-preview-refresh");
             const cards = Object.fromEntries(
-                Array.from(root.querySelectorAll("[data-card]")).map((cardNode) => [cardNode.dataset.card, cardNode.querySelector("p")])
+                Array.from(root.querySelectorAll("[data-card]"))
+                    .map((cardNode) => [cardNode.dataset.card, cardNode.querySelector("p")])
             );
+            const tooltip = document.getElementById("ui-preview-tooltip");
+
+            const timelineChart = root.querySelector("#ui-sleep-timeline-chart");
+            const timelineAxis = root.querySelector("#ui-sleep-axis");
+            const timelineDateLabel = root.querySelector("#ui-sleep-date-label");
+            const timelineDateInput = root.querySelector("#ui-sleep-date-input");
+            const timelinePrev = root.querySelector("#ui-sleep-date-prev");
+            const timelineNext = root.querySelector("#ui-sleep-date-next");
+            const nowLine = root.querySelector("#ui-sleep-now-line");
+            const timelineWrap = root.querySelector("#ui-sleep-timeline-wrap");
+
+            const sleepTimerAction = root.querySelector("#ui-sleep-timer-action");
+            const sleepTimerTime = root.querySelector("#ui-sleep-timer-time");
+            const sleepTimerCaption = root.querySelector("#ui-sleep-timer-caption");
+            const sleepTimerDots = root.querySelector("#ui-sleep-timer-dots");
+            const sleepTimerNote = root.querySelector("#ui-sleep-timer-note");
+            const sleepHarvey = root.querySelector("#ui-sleep-harvey");
+
             const selectionKey = "ui-preview-selected-child";
+            const timerKey = "ui-preview-sleep-timer";
+
+            const state = {
+                selectedChildId: null,
+                timelineDate: localDateString(new Date()),
+                timer: {
+                    running: false,
+                    startMs: null,
+                    apiTimerId: null,
+                    childId: null,
+                    intervalId: null
+                }
+            };
+
+            function localDateString(date) {
+                const dt = new Date(date);
+                const year = dt.getFullYear();
+                const month = String(dt.getMonth() + 1).padStart(2, "0");
+                const day = String(dt.getDate()).padStart(2, "0");
+                return `${year}-${month}-${day}`;
+            }
+
+            function parseDateInput(value) {
+                const [year, month, day] = (value || "").split("-").map((v) => parseInt(v, 10));
+                if (!year || !month || !day) {
+                    return null;
+                }
+                return new Date(year, month - 1, day);
+            }
+
+            function startOfDay(dateString) {
+                const dt = parseDateInput(dateString);
+                return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), 0, 0, 0, 0);
+            }
+
+            function endOfDay(dateString) {
+                const dt = parseDateInput(dateString);
+                return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), 23, 59, 59, 999);
+            }
+
+            function formatDisplayDate(value) {
+                const dt = parseDateInput(value);
+                return dt ? dt.toLocaleDateString() : value;
+            }
+
+            function refreshTimelineHeader() {
+                timelineDateInput.value = state.timelineDate;
+                timelineDateLabel.textContent = formatDisplayDate(state.timelineDate);
+            }
 
             function refreshCounts() {
                 const hiddenCount = sections.filter((section) => section.dataset.collapsed === "1").length;
@@ -321,6 +628,15 @@
                 }
             }
 
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) {
+                    return parts.pop().split(";").shift();
+                }
+                return "";
+            }
+
             async function fetchJSON(url) {
                 const response = await fetch(url, {
                     credentials: "same-origin",
@@ -332,11 +648,288 @@
                 return response.json();
             }
 
+            async function fetchMutation(url, method, payload) {
+                const headers = {
+                    Accept: "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                };
+                const options = {
+                    method,
+                    credentials: "same-origin",
+                    headers
+                };
+                if (payload !== undefined) {
+                    headers["Content-Type"] = "application/json";
+                    options.body = JSON.stringify(payload);
+                }
+
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    let detail = `Request failed (${response.status})`;
+                    try {
+                        const json = await response.json();
+                        detail = json.detail || JSON.stringify(json);
+                    } catch (error) {
+                        // ignore JSON parsing errors
+                    }
+                    throw new Error(detail);
+                }
+                if (response.status === 204) {
+                    return null;
+                }
+                try {
+                    return await response.json();
+                } catch (error) {
+                    return null;
+                }
+            }
+
             function formatMethod(value) {
                 if (!value) {
                     return "n/a";
                 }
                 return value.toString().replace(/[_-]+/g, " ");
+            }
+
+            function showTooltip(text, x, y) {
+                tooltip.textContent = text;
+                tooltip.style.opacity = "1";
+                tooltip.style.left = `${x + 14}px`;
+                tooltip.style.top = `${y + 12}px`;
+            }
+
+            function hideTooltip() {
+                tooltip.style.opacity = "0";
+            }
+
+            function minutesBetween(startDate, endDate) {
+                return Math.max(0, Math.round((endDate.getTime() - startDate.getTime()) / 60000));
+            }
+
+            function renderSleepTimeline(entries, dateString) {
+                timelineChart.innerHTML = "";
+                timelineAxis.innerHTML = "";
+
+                for (let hour = 0; hour < 24; hour += 1) {
+                    const slot = document.createElement("div");
+                    slot.className = "ui-sleep-slot";
+
+                    const slotStart = startOfDay(dateString);
+                    slotStart.setHours(hour, 0, 0, 0);
+                    const slotEnd = new Date(slotStart.getTime());
+                    slotEnd.setHours(hour + 1, 0, 0, 0);
+
+                    let best = null;
+                    let bestMinutes = 0;
+
+                    entries.forEach((entry) => {
+                        const entryStart = new Date(entry.start);
+                        const entryEnd = new Date(entry.end);
+                        const overlapStart = entryStart > slotStart ? entryStart : slotStart;
+                        const overlapEnd = entryEnd < slotEnd ? entryEnd : slotEnd;
+                        const overlap = minutesBetween(overlapStart, overlapEnd);
+                        if (overlap > bestMinutes) {
+                            bestMinutes = overlap;
+                            best = entry;
+                        }
+                    });
+
+                    if (best && bestMinutes > 0) {
+                        const bar = document.createElement("div");
+                        bar.className = "ui-sleep-bar";
+                        bar.dataset.kind = best.nap ? "nap" : "sleep";
+                        bar.style.height = `${Math.max(8, (bestMinutes / 60) * 100)}%`;
+
+                        const fullStart = new Date(best.start);
+                        const fullEnd = new Date(best.end);
+                        const fullMinutes = durationMinutes(best.duration);
+                        const tooltipText = `${best.nap ? "Nap" : "Sleep"} | ${fullStart.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${fullEnd.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} | ${fullMinutes} min`;
+
+                        bar.addEventListener("mouseenter", (event) => showTooltip(tooltipText, event.clientX, event.clientY));
+                        bar.addEventListener("mousemove", (event) => showTooltip(tooltipText, event.clientX, event.clientY));
+                        bar.addEventListener("mouseleave", hideTooltip);
+
+                        slot.appendChild(bar);
+                    }
+
+                    timelineChart.appendChild(slot);
+
+                    const label = document.createElement("span");
+                    label.textContent = String(hour).padStart(2, "0");
+                    timelineAxis.appendChild(label);
+                }
+
+                const today = localDateString(new Date());
+                if (dateString === today) {
+                    const now = new Date();
+                    const minutes = (now.getHours() * 60) + now.getMinutes() + (now.getSeconds() / 60);
+                    const percent = (minutes / 1440) * 100;
+                    nowLine.hidden = false;
+                    nowLine.style.left = `calc(${percent}% + 0.5rem)`;
+                } else {
+                    nowLine.hidden = true;
+                }
+            }
+
+            async function loadSleepTimeline(childId) {
+                const dayStart = startOfDay(state.timelineDate);
+                const dayEnd = endOfDay(state.timelineDate);
+                const query = [
+                    `child=${encodeURIComponent(childId)}`,
+                    `start_max=${encodeURIComponent(dayEnd.toISOString())}`,
+                    `end_min=${encodeURIComponent(dayStart.toISOString())}`,
+                    "limit=250"
+                ].join("&");
+
+                const payload = await fetchJSON(`/api/sleep/?${query}`);
+                const entries = asItems(payload)
+                    .filter((entry) => entry.start && entry.end)
+                    .sort((a, b) => new Date(a.start) - new Date(b.start));
+
+                renderSleepTimeline(entries, state.timelineDate);
+            }
+
+            function formatElapsed(ms) {
+                const total = Math.max(0, Math.floor(ms / 1000));
+                const hours = Math.floor(total / 3600);
+                const minutes = Math.floor((total % 3600) / 60);
+                const seconds = total % 60;
+                if (total < 60) {
+                    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+                }
+                return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+            }
+
+            function formatSleepCaption(ms) {
+                const minutes = Math.floor(ms / 60000);
+                if (minutes < 90) {
+                    return `Sleeping: ${minutes} min`;
+                }
+                const hours = (minutes / 60).toFixed(1);
+                return `Sleeping: ${hours} h`;
+            }
+
+            function persistTimerState() {
+                localStorage.setItem(timerKey, JSON.stringify(state.timer));
+            }
+
+            function restoreTimerState() {
+                try {
+                    const saved = JSON.parse(localStorage.getItem(timerKey) || "null");
+                    if (!saved || !saved.running || !saved.startMs) {
+                        return;
+                    }
+                    state.timer = {
+                        running: true,
+                        startMs: saved.startMs,
+                        apiTimerId: saved.apiTimerId || null,
+                        childId: saved.childId || null,
+                        intervalId: null
+                    };
+                } catch (error) {
+                    // ignore broken localStorage values
+                }
+            }
+
+            function clearTimerState() {
+                localStorage.removeItem(timerKey);
+            }
+
+            function updateSleepTimerUI() {
+                const elapsed = state.timer.running ? Date.now() - state.timer.startMs : 0;
+                sleepTimerTime.textContent = formatElapsed(elapsed);
+                sleepTimerCaption.textContent = formatSleepCaption(elapsed);
+
+                if (state.timer.running) {
+                    sleepTimerAction.textContent = "Stop";
+                    sleepTimerAction.classList.remove("btn-primary");
+                    sleepTimerAction.classList.add("btn-danger");
+                    sleepTimerDots.classList.add("running");
+                } else {
+                    sleepTimerAction.textContent = "Start";
+                    sleepTimerAction.classList.add("btn-primary");
+                    sleepTimerAction.classList.remove("btn-danger");
+                    sleepTimerDots.classList.remove("running");
+                }
+
+                const minutes = Math.max(0, Math.floor(elapsed / 60000));
+                const ratio = Math.min(1, minutes / 720);
+                const degrees = Math.floor(ratio * 360);
+                sleepHarvey.style.background = `conic-gradient(#f4b76b ${degrees}deg, rgba(100, 116, 139, 0.35) ${degrees}deg)`;
+            }
+
+            function startTimerTicking() {
+                if (state.timer.intervalId) {
+                    clearInterval(state.timer.intervalId);
+                }
+                state.timer.intervalId = setInterval(updateSleepTimerUI, 1000);
+                updateSleepTimerUI();
+            }
+
+            function stopTimerTicking() {
+                if (state.timer.intervalId) {
+                    clearInterval(state.timer.intervalId);
+                }
+                state.timer.intervalId = null;
+                updateSleepTimerUI();
+            }
+
+            async function startSleepTimer() {
+                if (!state.selectedChildId) {
+                    sleepTimerNote.textContent = "Select a child first.";
+                    return;
+                }
+
+                const payload = await fetchMutation("/api/timers/", "POST", {
+                    child: Number(state.selectedChildId),
+                    name: "Sleep preview timer"
+                });
+
+                state.timer.running = true;
+                state.timer.startMs = new Date(payload.start).getTime();
+                state.timer.apiTimerId = payload.id;
+                state.timer.childId = state.selectedChildId;
+                sleepTimerNote.textContent = "Timer running... Stop to create sleep entry.";
+                persistTimerState();
+                startTimerTicking();
+            }
+
+            async function stopSleepTimer() {
+                if (!state.timer.running || !state.timer.startMs || !state.selectedChildId) {
+                    return;
+                }
+
+                const endMs = Date.now();
+                const durationMin = Math.max(0, Math.round((endMs - state.timer.startMs) / 60000));
+                const nap = durationMin < 120;
+
+                await fetchMutation("/api/sleep/", "POST", {
+                    child: Number(state.selectedChildId),
+                    start: new Date(state.timer.startMs).toISOString(),
+                    end: new Date(endMs).toISOString(),
+                    nap
+                });
+
+                if (state.timer.apiTimerId) {
+                    try {
+                        await fetchMutation(`/api/timers/${state.timer.apiTimerId}/`, "DELETE");
+                    } catch (error) {
+                        // timer cleanup failure should not block entry creation
+                    }
+                }
+
+                state.timer = {
+                    running: false,
+                    startMs: null,
+                    apiTimerId: null,
+                    childId: null,
+                    intervalId: null
+                };
+                clearTimerState();
+                stopTimerTicking();
+                sleepTimerNote.textContent = `Saved ${nap ? "nap" : "sleep"} entry (${durationMin} min).`;
+
+                await loadCards(state.selectedChildId);
             }
 
             async function loadChildren() {
@@ -367,6 +960,8 @@
                 if (!childId) {
                     return;
                 }
+                state.selectedChildId = String(childId);
+
                 Object.keys(cards).forEach((key) => setCard(key, "Loading..."));
 
                 const query = `child=${encodeURIComponent(childId)}`;
@@ -423,26 +1018,28 @@
                         : "No pumping entries yet"
                 );
 
-                const sleepToday = sleepItems.filter((item) => isToday(item.start));
-                const sleepTodayMinutes = sleepToday.reduce((acc, item) => acc + durationMinutes(item.duration), 0);
-                setCard("sleep-timeline", `${sleepToday.length} sleep entries today | total ${sleepTodayMinutes} min`);
                 setCard(
                     "last-sleep",
                     lastSleep
                         ? `${formatDateTime(lastSleep.start)} - ${formatDateTime(lastSleep.end)} | ${lastSleep.nap ? "Nap" : "Sleep"}`
                         : "No sleep entries yet"
                 );
+
                 setCard(
-                    "sleep-timer",
-                    runningTimer
-                        ? `Running timer: ${runningTimer.name || "Timer"} | started ${formatDateTime(runningTimer.start)}`
-                        : "No running sleep timer"
+                    "sleep-recommendations",
+                    "Recommendation view placeholder. Next step: reuse existing recommendation endpoint and card content."
                 );
 
                 const tummyTodayMinutes = tummyItems
                     .filter((item) => isToday(item.start))
                     .reduce((acc, item) => acc + durationMinutes(item.duration), 0);
                 setCard("tummy-time", `${tummyTodayMinutes} min tummy time today`);
+
+                if (runningTimer && !state.timer.running) {
+                    sleepTimerNote.textContent = `Existing running timer: ${runningTimer.name || "Timer"}`;
+                }
+
+                await loadSleepTimeline(childId);
             }
 
             root.querySelectorAll("[data-section-toggle]").forEach((button) => {
@@ -458,8 +1055,6 @@
                 });
             });
 
-            refreshCounts();
-
             childSelect.addEventListener("change", () => {
                 localStorage.setItem(selectionKey, childSelect.value);
                 loadCards(childSelect.value).catch((error) => {
@@ -473,17 +1068,84 @@
                 });
             });
 
+            timelinePrev.addEventListener("click", () => {
+                const dt = parseDateInput(state.timelineDate);
+                dt.setDate(dt.getDate() - 1);
+                state.timelineDate = localDateString(dt);
+                refreshTimelineHeader();
+                if (state.selectedChildId) {
+                    loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
+                }
+            });
+
+            timelineNext.addEventListener("click", () => {
+                const dt = parseDateInput(state.timelineDate);
+                dt.setDate(dt.getDate() + 1);
+                state.timelineDate = localDateString(dt);
+                refreshTimelineHeader();
+                if (state.selectedChildId) {
+                    loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
+                }
+            });
+
+            timelineDateInput.addEventListener("change", () => {
+                if (!timelineDateInput.value) {
+                    return;
+                }
+                state.timelineDate = timelineDateInput.value;
+                refreshTimelineHeader();
+                if (state.selectedChildId) {
+                    loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
+                }
+            });
+
+            sleepTimerAction.addEventListener("click", async () => {
+                try {
+                    sleepTimerAction.disabled = true;
+                    if (state.timer.running) {
+                        await stopSleepTimer();
+                    } else {
+                        await startSleepTimer();
+                    }
+                } catch (error) {
+                    sleepTimerNote.textContent = `Timer error: ${error.message}`;
+                } finally {
+                    sleepTimerAction.disabled = false;
+                }
+            });
+
+            restoreTimerState();
+            refreshCounts();
+            refreshTimelineHeader();
+            updateSleepTimerUI();
+            if (state.timer.running) {
+                startTimerTicking();
+            }
+
             loadChildren()
                 .then((children) => {
                     if (!children.length) {
                         return;
                     }
-                    loadCards(childSelect.value || String(children[0].id));
+
+                    if (!childSelect.value) {
+                        childSelect.value = String(children[0].id);
+                    }
+
+                    if (state.timer.running && state.timer.childId) {
+                        childSelect.value = String(state.timer.childId);
+                    }
+
+                    localStorage.setItem(selectionKey, childSelect.value);
+                    return loadCards(childSelect.value);
                 })
                 .catch((error) => {
                     childSelect.innerHTML = '<option value="">Error loading children</option>';
                     Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${error.message}`));
                 });
+
+            document.addEventListener("scroll", hideTooltip, { passive: true });
+            timelineWrap.addEventListener("mouseleave", hideTooltip);
         })();
     </script>
 {% endblock %}
