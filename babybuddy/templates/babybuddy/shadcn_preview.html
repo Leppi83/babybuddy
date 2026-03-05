@@ -157,6 +157,72 @@
             font-size: 0.82rem;
         }
 
+        .ui-card-rich {
+            display: grid;
+            gap: 0.32rem;
+        }
+
+        .ui-card-main {
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .ui-card-meta {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            line-height: 1.25;
+        }
+
+        .ui-card-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.34rem;
+        }
+
+        .ui-card-chip {
+            border-radius: 999px;
+            padding: 0.08rem 0.42rem;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            color: #cbd5e1;
+            font-size: 0.7rem;
+            line-height: 1.25;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            background: rgba(15, 23, 42, 0.35);
+        }
+
+        .ui-card-chip.sky {
+            border-color: rgba(56, 189, 248, 0.75);
+            background: rgba(56, 189, 248, 0.16);
+            color: #bae6fd;
+        }
+
+        .ui-card-chip.rose {
+            border-color: rgba(244, 63, 94, 0.75);
+            background: rgba(244, 63, 94, 0.16);
+            color: #fecdd3;
+        }
+
+        .ui-card-chip.violet {
+            border-color: rgba(167, 139, 250, 0.75);
+            background: rgba(167, 139, 250, 0.16);
+            color: #ddd6fe;
+        }
+
+        .ui-card-chip.emerald {
+            border-color: rgba(16, 185, 129, 0.75);
+            background: rgba(16, 185, 129, 0.16);
+            color: #a7f3d0;
+        }
+
+        .ui-card-chip.amber {
+            border-color: rgba(245, 158, 11, 0.75);
+            background: rgba(245, 158, 11, 0.16);
+            color: #fde68a;
+        }
+
         .ui-preview-section[data-collapsed="1"] .ui-preview-cards {
             display: none;
         }
@@ -585,7 +651,7 @@
             const refreshButton = root.querySelector("#ui-preview-refresh");
             const cards = Object.fromEntries(
                 Array.from(root.querySelectorAll("[data-card]"))
-                    .map((cardNode) => [cardNode.dataset.card, cardNode.querySelector("p")])
+                    .map((cardNode) => [cardNode.dataset.card, { cardNode, body: cardNode.querySelector("p") }])
             );
             const tooltip = document.getElementById("ui-preview-tooltip");
 
@@ -722,8 +788,25 @@
             }
 
             function setCard(cardId, text) {
-                if (cards[cardId]) {
-                    cards[cardId].textContent = text;
+                const target = cards[cardId];
+                if (target && target.body) {
+                    target.body.textContent = text;
+                }
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/\"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            function setCardHtml(cardId, html) {
+                const target = cards[cardId];
+                if (target && target.body) {
+                    target.body.innerHTML = html;
                 }
             }
 
@@ -803,6 +886,33 @@
                     return "n/a";
                 }
                 return value.toString().replace(/[_-]+/g, " ");
+            }
+
+            function formatAgeSince(value) {
+                if (!value) {
+                    return "n/a";
+                }
+                const diffMs = Date.now() - new Date(value).getTime();
+                const minutes = Math.max(0, Math.floor(diffMs / 60000));
+                if (minutes < 60) {
+                    return `${minutes}m ago`;
+                }
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                return `${hours}h ${mins}m ago`;
+            }
+
+            function richCard(main, meta, chips) {
+                const chipHtml = (chips || [])
+                    .map((chip) => `<span class="ui-card-chip ${escapeHtml(chip.tone || "")}">${escapeHtml(chip.label)}</span>`)
+                    .join("");
+                return `
+                    <div class="ui-card-rich">
+                        <div class="ui-card-main">${escapeHtml(main)}</div>
+                        <div class="ui-card-meta">${escapeHtml(meta)}</div>
+                        ${chipHtml ? `<div class="ui-card-chips">${chipHtml}</div>` : ""}
+                    </div>
+                `;
             }
 
             function recommendationStatusLabel(status) {
@@ -1180,43 +1290,91 @@
                 const lastSleep = sleepItems[0];
                 const runningTimer = timerItems[0];
 
-                setCard(
-                    "last-nappy-change",
-                    lastChange
-                        ? `${formatDateTime(lastChange.time)} | wet: ${lastChange.wet ? "yes" : "no"} | solid: ${lastChange.solid ? "yes" : "no"}`
-                        : "No diaper changes yet"
-                );
-                setCard("nappy-changes", `${changeItems.filter((item) => isToday(item.time)).length} changes today`);
+                if (lastChange) {
+                    setCardHtml("last-nappy-change", richCard(
+                        `${formatAgeSince(lastChange.time)}`,
+                        `${formatDateTime(lastChange.time)}`,
+                        [
+                            { label: `wet: ${lastChange.wet ? "yes" : "no"}`, tone: "rose" },
+                            { label: `solid: ${lastChange.solid ? "yes" : "no"}`, tone: "rose" }
+                        ]
+                    ));
+                } else {
+                    setCard("last-nappy-change", "No diaper changes yet");
+                }
+                const diaperTodayCount = changeItems.filter((item) => isToday(item.time)).length;
+                setCardHtml("nappy-changes", richCard(
+                    `${diaperTodayCount} changes today`,
+                    `${changeItems.length} in recent history`,
+                    [{ label: "diaper", tone: "rose" }]
+                ));
 
-                setCard(
-                    "last-feeding",
-                    lastFeeding
-                        ? `${formatDateTime(lastFeeding.start)} | ${durationMinutes(lastFeeding.duration)} min | amount: ${lastFeeding.amount || "n/a"}`
-                        : "No feedings yet"
-                );
-                setCard(
-                    "last-feeding-method",
-                    lastFeeding ? formatMethod(lastFeeding.method) : "No feeding method available"
-                );
-                setCard("recent-feedings", `${feedingItems.filter((item) => isToday(item.start)).length} feedings today`);
-                setCard(
-                    "breastfeeding",
-                    `${feedingItems.filter((item) => String(item.method || "").toLowerCase().includes("breast")).length} breastfeeding entries in recent data`
-                );
+                if (lastFeeding) {
+                    setCardHtml("last-feeding", richCard(
+                        `${durationMinutes(lastFeeding.duration)} min`,
+                        `${formatDateTime(lastFeeding.start)} | amount: ${lastFeeding.amount || "n/a"}`,
+                        [
+                            { label: formatMethod(lastFeeding.method), tone: "sky" },
+                            { label: formatMethod(lastFeeding.type), tone: "sky" }
+                        ]
+                    ));
+                } else {
+                    setCard("last-feeding", "No feedings yet");
+                }
 
-                setCard(
-                    "last-pumping",
-                    lastPumping
-                        ? `${formatDateTime(lastPumping.start)} | ${durationMinutes(lastPumping.duration)} min | amount: ${lastPumping.amount || "n/a"}`
-                        : "No pumping entries yet"
-                );
+                const methodCounts = feedingItems.reduce((acc, item) => {
+                    const key = formatMethod(item.method || "unknown");
+                    acc[key] = (acc[key] || 0) + 1;
+                    return acc;
+                }, {});
+                const topMethod = Object.entries(methodCounts).sort((a, b) => b[1] - a[1])[0];
+                if (topMethod) {
+                    setCardHtml("last-feeding-method", richCard(
+                        topMethod[0],
+                        `${topMethod[1]}x in recent entries`,
+                        [{ label: "dominant method", tone: "sky" }]
+                    ));
+                } else {
+                    setCard("last-feeding-method", "No feeding method available");
+                }
 
-                setCard(
-                    "last-sleep",
-                    lastSleep
-                        ? `${formatDateTime(lastSleep.start)} - ${formatDateTime(lastSleep.end)} | ${lastSleep.nap ? "Nap" : "Sleep"}`
-                        : "No sleep entries yet"
-                );
+                const feedingsToday = feedingItems.filter((item) => isToday(item.start));
+                const avgDuration = feedingsToday.length
+                    ? Math.round(feedingsToday.reduce((sum, item) => sum + durationMinutes(item.duration), 0) / feedingsToday.length)
+                    : 0;
+                setCardHtml("recent-feedings", richCard(
+                    `${feedingsToday.length} feedings today`,
+                    feedingsToday.length ? `avg duration ${avgDuration} min` : "no entries today",
+                    [{ label: "today", tone: "sky" }]
+                ));
+
+                const breastfeedingToday = feedingsToday.filter((item) => String(item.method || "").toLowerCase().includes("breast")).length;
+                const breastfeedingRecent = feedingItems.filter((item) => String(item.method || "").toLowerCase().includes("breast")).length;
+                setCardHtml("breastfeeding", richCard(
+                    `${breastfeedingToday} today`,
+                    `${breastfeedingRecent} in recent entries`,
+                    [{ label: "breastfeeding", tone: "sky" }]
+                ));
+
+                if (lastPumping) {
+                    setCardHtml("last-pumping", richCard(
+                        `${durationMinutes(lastPumping.duration)} min`,
+                        `${formatDateTime(lastPumping.start)} | amount: ${lastPumping.amount || "n/a"}`,
+                        [{ label: "pumping", tone: "violet" }]
+                    ));
+                } else {
+                    setCard("last-pumping", "No pumping entries yet");
+                }
+
+                if (lastSleep) {
+                    setCardHtml("last-sleep", richCard(
+                        `${lastSleep.nap ? "Nap" : "Sleep"} | ${durationMinutes(lastSleep.duration)} min`,
+                        `${formatDateTime(lastSleep.start)} - ${formatDateTime(lastSleep.end)}`,
+                        [{ label: lastSleep.nap ? "nap" : "sleep", tone: "amber" }]
+                    ));
+                } else {
+                    setCard("last-sleep", "No sleep entries yet");
+                }
                 const childMeta = childrenById.get(String(childId));
                 try {
                     await loadSleepRecommendations(childMeta);
@@ -1234,7 +1392,11 @@
                 const tummyTodayMinutes = tummyItems
                     .filter((item) => isToday(item.start))
                     .reduce((acc, item) => acc + durationMinutes(item.duration), 0);
-                setCard("tummy-time", `${tummyTodayMinutes} min tummy time today`);
+                setCardHtml("tummy-time", richCard(
+                    `${tummyTodayMinutes} min today`,
+                    `${tummyItems.length} recent tummy time entries`,
+                    [{ label: "tummy time", tone: "emerald" }]
+                ));
 
                 if (runningTimer && !state.timer.running) {
                     sleepTimerNote.textContent = `Existing running timer: ${runningTimer.name || "Timer"}`;
