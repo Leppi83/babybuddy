@@ -1,10 +1,15 @@
 {% extends 'cards/base.html' %}
 {% load i18n %}
 
+{% block card_classes %}sleep-timeline-card-root{% endblock %}
 {% block header %}{% trans "Sleep Timeline (24h)" %}{% endblock %}
 {% block title %}
     <div class="timeline-day-nav">
-        <a href="?sleep_chart_date={{ prev_date|date:'Y-m-d' }}" class="timeline-day-link" aria-label="{% trans 'Previous day' %}">
+        <a href="?sleep_chart_date={{ prev_date|date:'Y-m-d' }}"
+           class="timeline-day-link"
+           data-timeline-nav="prev"
+           data-date="{{ prev_date|date:'Y-m-d' }}"
+           aria-label="{% trans 'Previous day' %}">
             <i class="icon-angle-left" aria-hidden="true"></i>
         </a>
         <div class="timeline-day-label-wrap">
@@ -16,7 +21,7 @@
                        value="{{ target_date|date:'Y-m-d' }}"
                        min="{{ min_date|date:'Y-m-d' }}"
                        max="{{ today|date:'Y-m-d' }}"
-                       onchange="this.form.submit()" />
+                       data-sleep-timeline-date />
                 <button type="button"
                         class="timeline-day-link timeline-calendar-btn"
                         aria-label="{% trans 'Choose date' %}"
@@ -26,7 +31,11 @@
             </form>
         </div>
         {% if has_next_day %}
-            <a href="?sleep_chart_date={{ next_date|date:'Y-m-d' }}" class="timeline-day-link" aria-label="{% trans 'Next day' %}">
+            <a href="?sleep_chart_date={{ next_date|date:'Y-m-d' }}"
+               class="timeline-day-link"
+               data-timeline-nav="next"
+               data-date="{{ next_date|date:'Y-m-d' }}"
+               aria-label="{% trans 'Next day' %}">
                 <i class="icon-angle-right" aria-hidden="true"></i>
             </a>
         {% else %}
@@ -40,9 +49,10 @@
         <div class="timeline-grid">
             {% for slot in hour_slots %}
                 <div class="hour-slot">
-                    <span class="slot-value">{% if slot.value_label %}{{ slot.value_label }}{% endif %}</span>
                     <div class="bars">
-                        <span class="bar {{ slot.kind }}" style="height: {{ slot.pct }}%"></span>
+                        <span class="bar {{ slot.kind }}"
+                              style="height: {{ slot.pct }}%"
+                              title="{{ slot.tooltip }}"></span>
                     </div>
                     <span class="hour-label">{{ slot.hour }}</span>
                 </div>

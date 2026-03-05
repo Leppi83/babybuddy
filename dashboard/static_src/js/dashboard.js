@@ -124,6 +124,63 @@ BabyBuddy.Dashboard = (function ($) {
     });
   }
 
+  function bindSleepTimelineDynamic() {
+    if (!dashboardElement || dashboardElement.length == 0) {
+      return;
+    }
+
+    function updateTimeline(dateValue) {
+      var url = new URL(window.location.href);
+      url.searchParams.set("sleep_chart_date", dateValue);
+
+      return fetch(url.toString(), {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+        .then(function (response) {
+          return response.text();
+        })
+        .then(function (html) {
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, "text/html");
+          var nextCard = doc.querySelector(".sleep-timeline-card-root");
+          var currentCard = document.querySelector(".sleep-timeline-card-root");
+          if (nextCard && currentCard) {
+            currentCard.replaceWith(nextCard);
+            window.history.replaceState(
+              {},
+              "",
+              url.pathname + url.search + url.hash,
+            );
+          }
+        })
+        .catch(function () {
+          window.location.assign(url.toString());
+        });
+    }
+
+    dashboardElement.on(
+      "click",
+      ".sleep-timeline-card-root .timeline-day-link[data-timeline-nav]",
+      function (event) {
+        event.preventDefault();
+        var dateValue = this.getAttribute("data-date");
+        if (dateValue) {
+          updateTimeline(dateValue);
+        }
+      },
+    );
+
+    dashboardElement.on(
+      "change",
+      ".sleep-timeline-card-root .timeline-date-input",
+      function () {
+        if (this.value) {
+          updateTimeline(this.value);
+        }
+      },
+    );
+  }
+
   var Dashboard = {
     watch: function (element_id, refresh_rate) {
       dashboardElement = $("#" + element_id);
@@ -163,6 +220,7 @@ BabyBuddy.Dashboard = (function ($) {
       }
 
       bindSectionSorting();
+      bindSleepTimelineDynamic();
     },
 
     handleVisibilityChange: function () {
