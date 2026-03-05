@@ -64,6 +64,7 @@
 
 .dashboard-child-view {
     min-height: calc(100vh - 7.5rem);
+    container-type: inline-size;
 
     #dashboard-child {
         margin-top: .2rem;
@@ -71,8 +72,8 @@
 }
 
 .dashboard-sections {
-    display: flex;
-    flex-direction: column;
+    column-count: 2;
+    column-gap: .75rem;
     gap: .65rem;
     width: 100%;
 }
@@ -87,6 +88,10 @@
     height: auto;
     min-height: auto;
     transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    break-inside: avoid;
+    display: inline-block;
+    width: 100%;
+    margin: 0 0 .75rem;
 
     &.dragging {
         opacity: .6;
@@ -110,6 +115,10 @@
     display: flex;
     align-items: center;
     gap: .55rem;
+
+    > span {
+        flex: 1 1 auto;
+    }
 }
 
 .section-body {
@@ -130,10 +139,49 @@
     color: var(--md3-text);
     cursor: grab;
     padding: 0;
+    flex: 0 0 auto;
 
     &:active {
         cursor: grabbing;
     }
+}
+
+.section-hide-form {
+    margin: 0;
+}
+
+.section-visibility-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: .45rem;
+    border: 1px solid color-mix(in srgb, var(--section-accent) 40%, transparent);
+    background: color-mix(in srgb, var(--section-accent) 16%, transparent);
+    color: var(--md3-text);
+    padding: 0;
+}
+
+.eye-icon {
+    position: relative;
+    width: .95rem;
+    height: .62rem;
+    border: 2px solid currentColor;
+    border-radius: 999px / 60%;
+    display: inline-block;
+}
+
+.eye-open::after {
+    content: '';
+    position: absolute;
+    width: .26rem;
+    height: .26rem;
+    border-radius: 999px;
+    background: currentColor;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .section-diaper {
@@ -154,4 +202,10 @@
 
 .section-tummytime {
     --section-accent: #45c888;
+}
+
+@container (max-width: 70rem) {
+    .dashboard-sections {
+        column-count: 1;
+    }
 }

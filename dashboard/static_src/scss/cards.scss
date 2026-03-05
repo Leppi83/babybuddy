@@ -97,6 +97,14 @@
         }
     }
 
+    .card-feeding {
+        #feeding-days-carousel .last-feeding-method {
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+    }
+
     .card-sleep {
         --dashboard-card-accent: #{map.get($theme-colors, 'secondary')};
     }

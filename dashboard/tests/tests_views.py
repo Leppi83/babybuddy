@@ -50,3 +50,15 @@ class ViewsTestCase(TestCase):
         )
         page = self.c.get("/dashboard/")
         self.assertEqual(page.status_code, 200)
+
+    def test_dashboard_section_hide(self):
+        call_command("fake", verbosity=0, children=1, days=1)
+        child = Child.objects.first()
+        page = self.c.post(
+            "/children/{}/dashboard/".format(child.slug),
+            {"hide_section": "sleep"},
+            follow=True,
+        )
+        self.assertEqual(page.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.settings.dashboard_show_sleep_section)

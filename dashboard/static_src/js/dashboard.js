@@ -64,7 +64,7 @@ BabyBuddy.Dashboard = (function ($) {
     }
     loadSectionOrder();
 
-    dashboardElement.find(".dashboard-section").attr("draggable", true);
+    dashboardElement.find(".section-drag-handle").attr("draggable", true);
 
     dashboardElement.on(
       "mousedown touchstart",
@@ -74,22 +74,25 @@ BabyBuddy.Dashboard = (function ($) {
       },
     );
 
-    dashboardElement.on("dragstart", ".dashboard-section", function (event) {
-      if (dragSourceSection !== this) {
+    dashboardElement.on("dragstart", ".section-drag-handle", function (event) {
+      var section = $(this).closest(".dashboard-section").get(0);
+      if (dragSourceSection !== section) {
         event.preventDefault();
         return false;
       }
-      draggedSection = this;
-      this.classList.add("dragging");
+      draggedSection = section;
+      section.classList.add("dragging");
       event.originalEvent.dataTransfer.effectAllowed = "move";
       event.originalEvent.dataTransfer.setData(
         "text/plain",
-        this.dataset.sectionId || "",
+        section.dataset.sectionId || "",
       );
     });
 
-    dashboardElement.on("dragend", ".dashboard-section", function () {
-      this.classList.remove("dragging");
+    dashboardElement.on("dragend", ".section-drag-handle", function () {
+      if (draggedSection) {
+        draggedSection.classList.remove("dragging");
+      }
       dashboardElement.find(".dashboard-section").removeClass("drag-over");
       draggedSection = null;
       dragSourceSection = null;

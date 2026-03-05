@@ -15,70 +15,135 @@
         <div id="dashboard-child"
              class="dashboard-sections"
              data-order-key="dashboard-child-sections-{{ object.slug }}">
-            <section class="dashboard-section section-diaper" data-section-id="diaper">
-                <h2 class="section-title">
-                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
-                        <i class="icon-list" aria-hidden="true"></i>
-                    </button>
-                    {% trans "Diaper changes" %}
-                </h2>
-                <div class="section-body">
-                    {% card_diaperchange_last object %}
-                    {% card_diaperchange_types object %}
-                </div>
-            </section>
+            {% if user.settings.dashboard_show_diaper_section %}
+                <section class="dashboard-section section-diaper" data-section-id="diaper">
+                    <h2 class="section-title">
+                        <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                            <i class="icon-list" aria-hidden="true"></i>
+                        </button>
+                        <span>{% trans "Diaper changes" %}</span>
+                        <form method="post" class="section-hide-form">
+                            {% csrf_token %}
+                            <button class="section-visibility-toggle"
+                                    type="submit"
+                                    name="hide_section"
+                                    value="diaper"
+                                    aria-label="{% trans "Hide section" %}"
+                                    title="{% trans "Hide section" %}">
+                                <span class="eye-icon eye-open" aria-hidden="true"></span>
+                            </button>
+                        </form>
+                    </h2>
+                    <div class="section-body">
+                        {% card_diaperchange_last object %}
+                        {% card_diaperchange_types object %}
+                    </div>
+                </section>
+            {% endif %}
 
-            <section class="dashboard-section section-feeding" data-section-id="feeding">
-                <h2 class="section-title">
-                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
-                        <i class="icon-list" aria-hidden="true"></i>
-                    </button>
-                    {% trans "Feedings" %}
-                </h2>
-                <div class="section-body">
-                    {% card_feeding_last object %}
-                    {% card_feeding_last_method object %}
-                    {% card_feeding_recent object %}
-                    {% card_breastfeeding object %}
-                </div>
-            </section>
+            {% if user.settings.dashboard_show_feeding_section %}
+                <section class="dashboard-section section-feeding" data-section-id="feeding">
+                    <h2 class="section-title">
+                        <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                            <i class="icon-list" aria-hidden="true"></i>
+                        </button>
+                        <span>{% trans "Feedings" %}</span>
+                        <form method="post" class="section-hide-form">
+                            {% csrf_token %}
+                            <button class="section-visibility-toggle"
+                                    type="submit"
+                                    name="hide_section"
+                                    value="feeding"
+                                    aria-label="{% trans "Hide section" %}"
+                                    title="{% trans "Hide section" %}">
+                                <span class="eye-icon eye-open" aria-hidden="true"></span>
+                            </button>
+                        </form>
+                    </h2>
+                    <div class="section-body">
+                        {% card_feeding_last object %}
+                        {% card_feeding_last_method object %}
+                        {% card_feeding_recent object %}
+                        {% card_breastfeeding object %}
+                    </div>
+                </section>
+            {% endif %}
 
-            <section class="dashboard-section section-pumping" data-section-id="pumping">
-                <h2 class="section-title">
-                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
-                        <i class="icon-list" aria-hidden="true"></i>
-                    </button>
-                    {% trans "Pumpings" %}
-                </h2>
-                <div class="section-body">{% card_pumping_last object %}</div>
-            </section>
+            {% if user.settings.dashboard_show_pumping_section %}
+                <section class="dashboard-section section-pumping" data-section-id="pumping">
+                    <h2 class="section-title">
+                        <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                            <i class="icon-list" aria-hidden="true"></i>
+                        </button>
+                        <span>{% trans "Pumpings" %}</span>
+                        <form method="post" class="section-hide-form">
+                            {% csrf_token %}
+                            <button class="section-visibility-toggle"
+                                    type="submit"
+                                    name="hide_section"
+                                    value="pumping"
+                                    aria-label="{% trans "Hide section" %}"
+                                    title="{% trans "Hide section" %}">
+                                <span class="eye-icon eye-open" aria-hidden="true"></span>
+                            </button>
+                        </form>
+                    </h2>
+                    <div class="section-body">{% card_pumping_last object %}</div>
+                </section>
+            {% endif %}
 
-            <section class="dashboard-section section-sleep" data-section-id="sleep">
-                <h2 class="section-title">
-                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
-                        <i class="icon-list" aria-hidden="true"></i>
-                    </button>
-                    {% trans "Sleep" %}
-                </h2>
-                <div class="section-body">
-                    {% card_timer_list object %}
-                    {% card_sleep_last object %}
-                    {% card_sleep_recommendations object %}
-                    {% card_sleep_recent object %}
-                    {% card_sleep_naps_day object %}
-                    {% card_statistics object %}
-                </div>
-            </section>
+            {% if user.settings.dashboard_show_sleep_section %}
+                <section class="dashboard-section section-sleep" data-section-id="sleep">
+                    <h2 class="section-title">
+                        <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                            <i class="icon-list" aria-hidden="true"></i>
+                        </button>
+                        <span>{% trans "Sleep" %}</span>
+                        <form method="post" class="section-hide-form">
+                            {% csrf_token %}
+                            <button class="section-visibility-toggle"
+                                    type="submit"
+                                    name="hide_section"
+                                    value="sleep"
+                                    aria-label="{% trans "Hide section" %}"
+                                    title="{% trans "Hide section" %}">
+                                <span class="eye-icon eye-open" aria-hidden="true"></span>
+                            </button>
+                        </form>
+                    </h2>
+                    <div class="section-body">
+                        {% card_timer_list object %}
+                        {% card_sleep_last object %}
+                        {% card_sleep_recommendations object %}
+                        {% card_sleep_recent object %}
+                        {% card_sleep_naps_day object %}
+                        {% card_statistics object %}
+                    </div>
+                </section>
+            {% endif %}
 
-            <section class="dashboard-section section-tummytime" data-section-id="tummytime">
-                <h2 class="section-title">
-                    <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
-                        <i class="icon-list" aria-hidden="true"></i>
-                    </button>
-                    {% trans "Tummy time" %}
-                </h2>
-                <div class="section-body">{% card_tummytime_day object %}</div>
-            </section>
+            {% if user.settings.dashboard_show_tummytime_section %}
+                <section class="dashboard-section section-tummytime" data-section-id="tummytime">
+                    <h2 class="section-title">
+                        <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
+                            <i class="icon-list" aria-hidden="true"></i>
+                        </button>
+                        <span>{% trans "Tummy time" %}</span>
+                        <form method="post" class="section-hide-form">
+                            {% csrf_token %}
+                            <button class="section-visibility-toggle"
+                                    type="submit"
+                                    name="hide_section"
+                                    value="tummytime"
+                                    aria-label="{% trans "Hide section" %}"
+                                    title="{% trans "Hide section" %}">
+                                <span class="eye-icon eye-open" aria-hidden="true"></span>
+                            </button>
+                        </form>
+                    </h2>
+                    <div class="section-body">{% card_tummytime_day object %}</div>
+                </section>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
