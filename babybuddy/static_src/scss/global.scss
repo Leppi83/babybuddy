@@ -43,16 +43,24 @@
 }
 
 @media (min-width: 768px) {
+    body {
+        --app-sidebar-width: 17.5rem;
+        overflow-x: hidden;
+    }
+
     body > nav[aria-label='breadcrumb'],
     body > div[id^='view-'] {
-        margin-left: 17.5rem;
+        margin-left: var(--app-sidebar-width);
+        width: calc(100% - var(--app-sidebar-width));
+        max-width: calc(100% - var(--app-sidebar-width));
+        box-sizing: border-box;
     }
 
     .app-shell-nav {
         position: fixed;
         inset: 0 auto 0 0;
         z-index: 1030;
-        width: 17.5rem;
+        width: var(--app-sidebar-width);
         height: 100vh;
         padding: .75rem;
         border-right: 1px solid rgba(255, 255, 255, .08);
