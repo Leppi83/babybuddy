@@ -44,9 +44,11 @@ app_patterns = [
     path("user/password/", views.UserPassword.as_view(), name="user-password"),
     path("user/settings/", views.UserSettings.as_view(), name="user-settings"),
     path("user/add-device/", views.UserAddDevice.as_view(), name="user-add-device"),
-    path("ui-preview/", views.ShadcnPreview.as_view(), name="ui-preview"),
     path("settings/", include("dbsettings.urls")),
 ]
+
+if settings.BABY_BUDDY.get("SHADCN_UI_PREVIEW_ENABLED", False):
+    app_patterns.append(path("ui-preview/", views.ShadcnPreview.as_view(), name="ui-preview"))
 
 urlpatterns = [
     path("admin/", admin.site.urls),
