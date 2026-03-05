@@ -362,6 +362,79 @@
             font-size: 0.78rem;
             margin: 0;
         }
+
+        .ui-reco {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .ui-reco-row {
+            display: grid;
+            grid-template-columns: 88px 1fr;
+            gap: 0.45rem;
+            align-items: start;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+        }
+
+        .ui-reco-title {
+            color: #94a3b8;
+            font-weight: 600;
+            margin-top: 0.1rem;
+        }
+
+        .ui-reco-main {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.18rem;
+        }
+
+        .ui-reco-badge {
+            border-radius: 999px;
+            padding: 0.06rem 0.42rem;
+            border: 1px solid rgba(148, 163, 184, 0.7);
+            font-size: 0.72rem;
+            line-height: 1.25;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #cbd5e1;
+        }
+
+        .ui-reco-badge.ok {
+            color: #bbf7d0;
+            border-color: rgba(34, 197, 94, 0.7);
+            background: rgba(34, 197, 94, 0.16);
+        }
+
+        .ui-reco-badge.overtired_risk {
+            color: #fecaca;
+            border-color: rgba(248, 113, 113, 0.75);
+            background: rgba(248, 113, 113, 0.16);
+        }
+
+        .ui-reco-badge.nighttime {
+            color: #fef3c7;
+            border-color: rgba(245, 158, 11, 0.75);
+            background: rgba(245, 158, 11, 0.16);
+        }
+
+        .ui-reco-badge.no_data {
+            color: #cbd5e1;
+            border-color: rgba(148, 163, 184, 0.75);
+            background: rgba(148, 163, 184, 0.12);
+        }
+
+        .ui-reco-meta {
+            color: #93c5fd;
+            font-size: 0.78rem;
+        }
+
+        .ui-reco-reason {
+            color: #94a3b8;
+            font-size: 0.75rem;
+        }
     </style>
 
     <div class="ui-preview-shell" id="ui-preview-shell">
@@ -448,7 +521,19 @@
                             <span><span class="ui-sleep-dot"></span>Sleep</span>
                         </div>
                     </article>
-                    <article class="ui-preview-card" data-card="sleep-recommendations"><h3>Sleep Recommendations</h3><p>Dynamic recommendation hookup next step</p></article>
+                    <article class="ui-preview-card">
+                        <h3>Sleep Recommendations</h3>
+                        <div id="ui-reco-content" class="ui-reco">
+                            <div class="ui-reco-row">
+                                <div class="ui-reco-title">Nap</div>
+                                <div>Loading...</div>
+                            </div>
+                            <div class="ui-reco-row">
+                                <div class="ui-reco-title">Bedtime</div>
+                                <div>Loading...</div>
+                            </div>
+                        </div>
+                    </article>
                     <article class="ui-preview-card" data-card="last-sleep"><h3>Last Sleep</h3><p>Loading...</p></article>
                     <article class="ui-preview-card">
                         <h3>Sleep Timer</h3>
@@ -519,6 +604,7 @@
             const sleepTimerDots = root.querySelector("#ui-sleep-timer-dots");
             const sleepTimerNote = root.querySelector("#ui-sleep-timer-note");
             const sleepHarvey = root.querySelector("#ui-sleep-harvey");
+            const recommendationsRoot = root.querySelector("#ui-reco-content");
 
             const selectionKey = "ui-preview-selected-child";
             const timerKey = "ui-preview-sleep-timer";
@@ -719,20 +805,27 @@
                 return value.toString().replace(/[_-]+/g, " ");
             }
 
-            function formatRecommendationEntry(title, entry, includeTarget) {
+            function recommendationStatusLabel(status) {
+                const map = {
+                    ok: "OK",
+                    no_data: "No Data",
+                    nighttime: "Nighttime",
+                    overtired_risk: "Overdue"
+                };
+                return map[status] || "Info";
+            }
+
+            function renderRecommendationLine(title, entry, includeTarget) {
                 if (!entry) {
-                    return `${title}: n/a`;
-                }
-                if (entry.status === "no_data") {
-                    return `${title}: not enough data yet`;
-                }
-                if (entry.status === "nighttime") {
-                    return `${title}: nighttime window`;
-                }
-                if (entry.status === "overtired_risk") {
-                    return `${title}: overdue (start now)`;
+                    return `
+                        <div class="ui-reco-row">
+                            <div class="ui-reco-title">${title}</div>
+                            <div class="ui-reco-main">n/a</div>
+                        </div>
+                    `;
                 }
 
+                const status = entry.status || "no_data";
                 const bits = [];
                 if (entry.ideal) {
                     bits.push(`ideal ${formatTime(entry.ideal)}`);
@@ -743,17 +836,51 @@
                 if (includeTarget && entry.target_bedtime) {
                     bits.push(`target ${formatTime(entry.target_bedtime)}`);
                 }
-                return `${title}: ${bits.join(" | ") || "n/a"}`;
+
+                let reason = "";
+                if (entry.reason) {
+                    reason = `<div class="ui-reco-reason">${entry.reason.replace(/_/g, " ")}</div>`;
+                }
+
+                return `
+                    <div class="ui-reco-row">
+                        <div class="ui-reco-title">${title}</div>
+                        <div>
+                            <div class="ui-reco-main">
+                                <span class="ui-reco-badge ${status}">${recommendationStatusLabel(status)}</span>
+                                <span class="ui-reco-meta">${bits.join(" | ") || "no schedule available"}</span>
+                            </div>
+                            ${reason}
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderRecommendations(payload) {
+                if (!recommendationsRoot) {
+                    return;
+                }
+                if (!payload) {
+                    recommendationsRoot.innerHTML = `
+                        <div class="ui-reco-row"><div class="ui-reco-title">Nap</div><div>n/a</div></div>
+                        <div class="ui-reco-row"><div class="ui-reco-title">Bedtime</div><div>n/a</div></div>
+                    `;
+                    return;
+                }
+
+                recommendationsRoot.innerHTML = `
+                    ${renderRecommendationLine("Nap", payload.nap, false)}
+                    ${renderRecommendationLine("Bedtime", payload.bedtime, true)}
+                `;
             }
 
             async function loadSleepRecommendations(child) {
                 if (!child || !child.slug) {
-                    return "No child selected";
+                    renderRecommendations(null);
+                    return;
                 }
                 const payload = await fetchJSON(`/api/children/${encodeURIComponent(child.slug)}/sleep-recommendations/`);
-                const napLine = formatRecommendationEntry("Nap", payload.nap, false);
-                const bedtimeLine = formatRecommendationEntry("Bedtime", payload.bedtime, true);
-                return `${napLine} · ${bedtimeLine}`;
+                renderRecommendations(payload);
             }
 
             function showTooltip(text, x, y) {
@@ -1092,10 +1219,16 @@
                 );
                 const childMeta = childrenById.get(String(childId));
                 try {
-                    const recommendationsText = await loadSleepRecommendations(childMeta);
-                    setCard("sleep-recommendations", recommendationsText);
+                    await loadSleepRecommendations(childMeta);
                 } catch (error) {
-                    setCard("sleep-recommendations", `Recommendation error: ${error.message}`);
+                    if (recommendationsRoot) {
+                        recommendationsRoot.innerHTML = `
+                            <div class="ui-reco-row">
+                                <div class="ui-reco-title">Error</div>
+                                <div>${error.message}</div>
+                            </div>
+                        `;
+                    }
                 }
 
                 const tummyTodayMinutes = tummyItems
