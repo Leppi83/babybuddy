@@ -59,6 +59,30 @@
             font-size: 0.9rem;
         }
 
+        .ui-preview-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            align-items: center;
+            margin-bottom: 0.9rem;
+        }
+
+        .ui-preview-controls label {
+            font-size: 0.82rem;
+            color: #94a3b8;
+            margin-bottom: 0;
+        }
+
+        .ui-preview-controls select {
+            min-width: 220px;
+            border: 1px solid rgba(71, 85, 105, 0.7);
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.6);
+            color: #e2e8f0;
+            padding: 0.3rem 0.55rem;
+            font-size: 0.85rem;
+        }
+
         .ui-preview-sections {
             display: grid;
             gap: 0.75rem;
@@ -151,6 +175,13 @@
         </header>
 
         <p class="ui-preview-subtitle">Signed in as {% firstof request.user.get_full_name request.user.username %}. This preview is isolated for the step-by-step UI migration.</p>
+        <div class="ui-preview-controls">
+            <label for="ui-preview-child-select">Child</label>
+            <select id="ui-preview-child-select" aria-label="Child selector">
+                <option value="">Loading children...</option>
+            </select>
+            <button id="ui-preview-refresh" class="btn btn-sm btn-secondary" type="button">Refresh data</button>
+        </div>
 
         <div class="ui-preview-sections">
             <section class="ui-preview-section" data-tone="diaper" data-collapsed="0">
@@ -159,8 +190,8 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    <article class="ui-preview-card"><h3>Last Nappy Change</h3><p>Card placeholder</p></article>
-                    <article class="ui-preview-card"><h3>Nappy Changes</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card" data-card="last-nappy-change"><h3>Last Nappy Change</h3><p>Loading...</p></article>
+                    <article class="ui-preview-card" data-card="nappy-changes"><h3>Nappy Changes</h3><p>Loading...</p></article>
                 </div>
             </section>
 
@@ -170,10 +201,10 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    <article class="ui-preview-card"><h3>Last Feeding</h3><p>Card placeholder</p></article>
-                    <article class="ui-preview-card"><h3>Last Feeding Method</h3><p>Card placeholder</p></article>
-                    <article class="ui-preview-card"><h3>Recent Feedings</h3><p>Card placeholder</p></article>
-                    <article class="ui-preview-card"><h3>Breastfeeding</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card" data-card="last-feeding"><h3>Last Feeding</h3><p>Loading...</p></article>
+                    <article class="ui-preview-card" data-card="last-feeding-method"><h3>Last Feeding Method</h3><p>Loading...</p></article>
+                    <article class="ui-preview-card" data-card="recent-feedings"><h3>Recent Feedings</h3><p>Loading...</p></article>
+                    <article class="ui-preview-card" data-card="breastfeeding"><h3>Breastfeeding</h3><p>Loading...</p></article>
                 </div>
             </section>
 
@@ -183,7 +214,7 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    <article class="ui-preview-card"><h3>Last Pumping</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card" data-card="last-pumping"><h3>Last Pumping</h3><p>Loading...</p></article>
                 </div>
             </section>
 
@@ -193,10 +224,10 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    <article class="ui-preview-card"><h3>Sleep Timeline</h3><p>Card placeholder</p></article>
-                    <article class="ui-preview-card"><h3>Sleep Recommendations</h3><p>Card placeholder</p></article>
-                    <article class="ui-preview-card"><h3>Last Sleep</h3><p>Card placeholder</p></article>
-                    <article class="ui-preview-card"><h3>Sleep Timer</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card" data-card="sleep-timeline"><h3>Sleep Timeline</h3><p>Loading...</p></article>
+                    <article class="ui-preview-card" data-card="sleep-recommendations"><h3>Sleep Recommendations</h3><p>Dynamic recommendation hookup next step</p></article>
+                    <article class="ui-preview-card" data-card="last-sleep"><h3>Last Sleep</h3><p>Loading...</p></article>
+                    <article class="ui-preview-card" data-card="sleep-timer"><h3>Sleep Timer</h3><p>Loading...</p></article>
                 </div>
             </section>
 
@@ -206,7 +237,7 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    <article class="ui-preview-card"><h3>Today's Tummy Time</h3><p>Card placeholder</p></article>
+                    <article class="ui-preview-card" data-card="tummy-time"><h3>Today's Tummy Time</h3><p>Loading...</p></article>
                 </div>
             </section>
         </div>
@@ -225,11 +256,193 @@
             const sections = Array.from(root.querySelectorAll(".ui-preview-section"));
             const visible = root.querySelector("#ui-preview-visible-count");
             const hidden = root.querySelector("#ui-preview-hidden-count");
+            const childSelect = root.querySelector("#ui-preview-child-select");
+            const refreshButton = root.querySelector("#ui-preview-refresh");
+            const cards = Object.fromEntries(
+                Array.from(root.querySelectorAll("[data-card]")).map((cardNode) => [cardNode.dataset.card, cardNode.querySelector("p")])
+            );
+            const selectionKey = "ui-preview-selected-child";
 
             function refreshCounts() {
                 const hiddenCount = sections.filter((section) => section.dataset.collapsed === "1").length;
                 visible.textContent = `${sections.length - hiddenCount} visible`;
                 hidden.textContent = `${hiddenCount} hidden`;
+            }
+
+            function asItems(payload) {
+                if (!payload) {
+                    return [];
+                }
+                if (Array.isArray(payload)) {
+                    return payload;
+                }
+                if (Array.isArray(payload.results)) {
+                    return payload.results;
+                }
+                return [];
+            }
+
+            function durationMinutes(durationValue) {
+                if (!durationValue) {
+                    return 0;
+                }
+                const parts = durationValue.split(":").map((value) => parseInt(value, 10));
+                if (parts.length !== 3 || parts.some(Number.isNaN)) {
+                    return 0;
+                }
+                return (parts[0] * 60) + parts[1] + Math.round(parts[2] / 60);
+            }
+
+            function formatDateTime(value) {
+                if (!value) {
+                    return "n/a";
+                }
+                try {
+                    return new Date(value).toLocaleString();
+                } catch (error) {
+                    return value;
+                }
+            }
+
+            function isToday(value) {
+                if (!value) {
+                    return false;
+                }
+                const when = new Date(value);
+                const now = new Date();
+                return when.getFullYear() === now.getFullYear()
+                    && when.getMonth() === now.getMonth()
+                    && when.getDate() === now.getDate();
+            }
+
+            function setCard(cardId, text) {
+                if (cards[cardId]) {
+                    cards[cardId].textContent = text;
+                }
+            }
+
+            async function fetchJSON(url) {
+                const response = await fetch(url, {
+                    credentials: "same-origin",
+                    headers: { Accept: "application/json" }
+                });
+                if (!response.ok) {
+                    throw new Error(`Request failed (${response.status})`);
+                }
+                return response.json();
+            }
+
+            function formatMethod(value) {
+                if (!value) {
+                    return "n/a";
+                }
+                return value.toString().replace(/[_-]+/g, " ");
+            }
+
+            async function loadChildren() {
+                const payload = await fetchJSON("/api/children/?limit=100");
+                const children = asItems(payload);
+                childSelect.innerHTML = "";
+                if (!children.length) {
+                    childSelect.innerHTML = '<option value="">No children found</option>';
+                    return [];
+                }
+
+                children.forEach((child) => {
+                    const option = document.createElement("option");
+                    option.value = String(child.id);
+                    option.textContent = [child.first_name, child.last_name].filter(Boolean).join(" ").trim() || `Child ${child.id}`;
+                    childSelect.appendChild(option);
+                });
+
+                const saved = localStorage.getItem(selectionKey);
+                if (saved && children.some((child) => String(child.id) === saved)) {
+                    childSelect.value = saved;
+                }
+
+                return children;
+            }
+
+            async function loadCards(childId) {
+                if (!childId) {
+                    return;
+                }
+                Object.keys(cards).forEach((key) => setCard(key, "Loading..."));
+
+                const query = `child=${encodeURIComponent(childId)}`;
+                const [changes, feedings, pumpings, sleeps, tummyTimes, timers] = await Promise.all([
+                    fetchJSON(`/api/changes/?${query}&limit=20`),
+                    fetchJSON(`/api/feedings/?${query}&limit=20`),
+                    fetchJSON(`/api/pumping/?${query}&limit=20`),
+                    fetchJSON(`/api/sleep/?${query}&limit=30`),
+                    fetchJSON(`/api/tummy-times/?${query}&limit=20`),
+                    fetchJSON(`/api/timers/?${query}&limit=5`)
+                ]);
+
+                const changeItems = asItems(changes);
+                const feedingItems = asItems(feedings);
+                const pumpingItems = asItems(pumpings);
+                const sleepItems = asItems(sleeps);
+                const tummyItems = asItems(tummyTimes);
+                const timerItems = asItems(timers);
+
+                const lastChange = changeItems[0];
+                const lastFeeding = feedingItems[0];
+                const lastPumping = pumpingItems[0];
+                const lastSleep = sleepItems[0];
+                const runningTimer = timerItems[0];
+
+                setCard(
+                    "last-nappy-change",
+                    lastChange
+                        ? `${formatDateTime(lastChange.time)} | wet: ${lastChange.wet ? "yes" : "no"} | solid: ${lastChange.solid ? "yes" : "no"}`
+                        : "No diaper changes yet"
+                );
+                setCard("nappy-changes", `${changeItems.filter((item) => isToday(item.time)).length} changes today`);
+
+                setCard(
+                    "last-feeding",
+                    lastFeeding
+                        ? `${formatDateTime(lastFeeding.start)} | ${durationMinutes(lastFeeding.duration)} min | amount: ${lastFeeding.amount || "n/a"}`
+                        : "No feedings yet"
+                );
+                setCard(
+                    "last-feeding-method",
+                    lastFeeding ? formatMethod(lastFeeding.method) : "No feeding method available"
+                );
+                setCard("recent-feedings", `${feedingItems.filter((item) => isToday(item.start)).length} feedings today`);
+                setCard(
+                    "breastfeeding",
+                    `${feedingItems.filter((item) => String(item.method || "").toLowerCase().includes("breast")).length} breastfeeding entries in recent data`
+                );
+
+                setCard(
+                    "last-pumping",
+                    lastPumping
+                        ? `${formatDateTime(lastPumping.start)} | ${durationMinutes(lastPumping.duration)} min | amount: ${lastPumping.amount || "n/a"}`
+                        : "No pumping entries yet"
+                );
+
+                const sleepToday = sleepItems.filter((item) => isToday(item.start));
+                const sleepTodayMinutes = sleepToday.reduce((acc, item) => acc + durationMinutes(item.duration), 0);
+                setCard("sleep-timeline", `${sleepToday.length} sleep entries today | total ${sleepTodayMinutes} min`);
+                setCard(
+                    "last-sleep",
+                    lastSleep
+                        ? `${formatDateTime(lastSleep.start)} - ${formatDateTime(lastSleep.end)} | ${lastSleep.nap ? "Nap" : "Sleep"}`
+                        : "No sleep entries yet"
+                );
+                setCard(
+                    "sleep-timer",
+                    runningTimer
+                        ? `Running timer: ${runningTimer.name || "Timer"} | started ${formatDateTime(runningTimer.start)}`
+                        : "No running sleep timer"
+                );
+
+                const tummyTodayMinutes = tummyItems
+                    .filter((item) => isToday(item.start))
+                    .reduce((acc, item) => acc + durationMinutes(item.duration), 0);
+                setCard("tummy-time", `${tummyTodayMinutes} min tummy time today`);
             }
 
             root.querySelectorAll("[data-section-toggle]").forEach((button) => {
@@ -246,6 +459,31 @@
             });
 
             refreshCounts();
+
+            childSelect.addEventListener("change", () => {
+                localStorage.setItem(selectionKey, childSelect.value);
+                loadCards(childSelect.value).catch((error) => {
+                    Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${error.message}`));
+                });
+            });
+
+            refreshButton.addEventListener("click", () => {
+                loadCards(childSelect.value).catch((error) => {
+                    Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${error.message}`));
+                });
+            });
+
+            loadChildren()
+                .then((children) => {
+                    if (!children.length) {
+                        return;
+                    }
+                    loadCards(childSelect.value || String(children[0].id));
+                })
+                .catch((error) => {
+                    childSelect.innerHTML = '<option value="">Error loading children</option>';
+                    Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${error.message}`));
+                });
         })();
     </script>
 {% endblock %}
