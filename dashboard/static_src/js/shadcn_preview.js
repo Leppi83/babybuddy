@@ -30,6 +30,7 @@
             const sleepTimerDots = root.querySelector("#ui-sleep-timer-dots");
             const sleepTimerNote = root.querySelector("#ui-sleep-timer-note");
             const recommendationsRoot = root.querySelector("#ui-reco-content");
+            const fixedChildId = root.dataset.fixedChildId || "";
 
             const selectionKey = "ui-preview-selected-child";
             const timerKey = "ui-preview-sleep-timer";
@@ -625,6 +626,15 @@
                     childSelect.appendChild(option);
                 });
 
+                if (fixedChildId) {
+                    if (children.some((child) => String(child.id) === fixedChildId)) {
+                        childSelect.value = fixedChildId;
+                    } else {
+                        childSelect.innerHTML = '<option value="">Configured child not found</option>';
+                    }
+                    return children;
+                }
+
                 const saved = localStorage.getItem(selectionKey);
                 if (saved && children.some((child) => String(child.id) === saved)) {
                     childSelect.value = saved;
@@ -795,7 +805,9 @@
             });
 
             childSelect.addEventListener("change", () => {
-                localStorage.setItem(selectionKey, childSelect.value);
+                if (!fixedChildId) {
+                    localStorage.setItem(selectionKey, childSelect.value);
+                }
                 loadCards(childSelect.value).catch((error) => {
                     Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${error.message}`));
                 });
@@ -877,11 +889,17 @@
                         childSelect.value = String(children[0].id);
                     }
 
-                    if (state.timer.running && state.timer.childId) {
+                    if (fixedChildId) {
+                        childSelect.value = fixedChildId;
+                    }
+
+                    if (!fixedChildId && state.timer.running && state.timer.childId) {
                         childSelect.value = String(state.timer.childId);
                     }
 
-                    localStorage.setItem(selectionKey, childSelect.value);
+                    if (!fixedChildId) {
+                        localStorage.setItem(selectionKey, childSelect.value);
+                    }
                     return loadCards(childSelect.value);
                 })
                 .catch((error) => {

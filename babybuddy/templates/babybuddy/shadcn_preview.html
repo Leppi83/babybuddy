@@ -1,15 +1,31 @@
 {% extends 'babybuddy/page.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "UI Preview" %}{% endblock %}
+{% block title %}
+    {% if preview_mode %}
+        {% trans "UI Preview" %}
+    {% else %}
+        {% trans "Dashboard" %} - {{ object }}
+    {% endif %}
+{% endblock %}
 
 {% block breadcrumbs %}
-    <li class="breadcrumb-item active" aria-current="page">{% trans "UI Preview" %}</li>
+    {% if preview_mode %}
+        <li class="breadcrumb-item active" aria-current="page">{% trans "UI Preview" %}</li>
+    {% else %}
+        <li class="breadcrumb-item">
+            <a href="{% url 'core:child-list' %}">{% trans "Children" %}</a>
+        </li>
+        <li class="breadcrumb-item fw-bold">{{ object }}</li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans "Dashboard" %}</li>
+    {% endif %}
 {% endblock %}
 
 {% block content %}
 
-    <div class="ui-preview-shell" id="ui-preview-shell">
+    <div class="ui-preview-shell"
+         id="ui-preview-shell"
+         {% if preview_fixed_child %}data-fixed-child-id="{{ preview_fixed_child.id }}"{% endif %}>
         <form style="display:none" aria-hidden="true">{% csrf_token %}</form>
         <header class="ui-preview-header">
             <div>
@@ -19,12 +35,18 @@
             <div class="ui-preview-badges">
                 <span class="ui-preview-badge" id="ui-preview-visible-count">0 visible</span>
                 <span class="ui-preview-badge" id="ui-preview-hidden-count">0 hidden</span>
-                <a class="btn btn-sm btn-secondary" href="{% url 'dashboard:dashboard' %}">Back to Dashboard</a>
+                {% if preview_mode %}<a class="btn btn-sm btn-secondary" href="{% url 'dashboard:dashboard' %}">Back to Dashboard</a>{% endif %}
             </div>
         </header>
 
-        <p class="ui-preview-subtitle">Signed in as {% firstof request.user.get_full_name request.user.username %}. This preview is isolated for the step-by-step UI migration.</p>
-        <div class="ui-preview-controls">
+        <p class="ui-preview-subtitle">
+            {% if preview_mode %}
+                Signed in as {% firstof request.user.get_full_name request.user.username %}. This preview is isolated for the step-by-step UI migration.
+            {% else %}
+                Signed in as {% firstof request.user.get_full_name request.user.username %}. This dashboard uses the new shadcn runtime.
+            {% endif %}
+        </p>
+        <div class="ui-preview-controls"{% if preview_fixed_child %} style="display:none"{% endif %}>
             <label for="ui-preview-child-select">Child</label>
             <select id="ui-preview-child-select" aria-label="Child selector">
                 <option value="">Loading children...</option>
