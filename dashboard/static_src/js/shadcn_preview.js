@@ -31,6 +31,7 @@
             const sleepTimerNote = root.querySelector("#ui-sleep-timer-note");
             const recommendationsRoot = root.querySelector("#ui-reco-content");
             const fixedChildId = root.dataset.fixedChildId || "";
+            const childDashboardUrlTemplate = root.dataset.childDashboardUrlTemplate || "";
 
             const selectionKey = "ui-preview-selected-child";
             const timerKey = "ui-preview-sleep-timer";
@@ -644,6 +645,25 @@
                 return children;
             }
 
+            function navigateToChildDashboard(childId) {
+                if (!fixedChildId || !childDashboardUrlTemplate) {
+                    return false;
+                }
+                const childMeta = childrenById.get(String(childId));
+                if (!childMeta || !childMeta.slug) {
+                    return false;
+                }
+                const targetUrl = childDashboardUrlTemplate.replace(
+                    "__CHILD_SLUG__",
+                    encodeURIComponent(childMeta.slug),
+                );
+                if (targetUrl && window.location.pathname !== targetUrl) {
+                    window.location.assign(targetUrl);
+                    return true;
+                }
+                return false;
+            }
+
             async function loadCards(childId) {
                 if (!childId) {
                     return;
@@ -806,6 +826,9 @@
             });
 
             childSelect.addEventListener("change", () => {
+                if (navigateToChildDashboard(childSelect.value)) {
+                    return;
+                }
                 if (!fixedChildId) {
                     localStorage.setItem(selectionKey, childSelect.value);
                 }
