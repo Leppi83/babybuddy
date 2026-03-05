@@ -31,20 +31,19 @@
         <header class="ui-preview-header">
             <div>
                 <p class="ui-preview-kicker">{% if preview_mode %}UI Preview{% else %}Dashboard{% endif %}</p>
-                <h1>Dashboard Shell</h1>
+                <h1>{% if preview_fixed_child %}{{ preview_fixed_child }}{% else %}{% trans "Dashboard" %}{% endif %}</h1>
             </div>
             <div class="ui-preview-badges">
                 <span class="ui-preview-badge" id="ui-preview-visible-count">0 visible</span>
                 <span class="ui-preview-badge" id="ui-preview-hidden-count">0 hidden</span>
-                {% if preview_mode %}<a class="btn btn-sm btn-secondary" href="{% url 'dashboard:dashboard' %}">Back to Dashboard</a>{% endif %}
             </div>
         </header>
 
         <p class="ui-preview-subtitle">
             {% if preview_mode %}
-                Signed in as {% firstof request.user.get_full_name request.user.username %}. This preview is isolated for the step-by-step UI migration.
+                Signed in as {% firstof request.user.get_full_name request.user.username %}. This is the standalone dashboard preview.
             {% else %}
-                Signed in as {% firstof request.user.get_full_name request.user.username %}. This dashboard uses the new shadcn runtime.
+                Signed in as {% firstof request.user.get_full_name request.user.username %}.
             {% endif %}
         </p>
         <div class="ui-preview-controls">
