@@ -125,6 +125,18 @@
     padding: .75rem;
     display: grid;
     gap: .65rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    align-items: start;
+}
+
+.section-body > .card {
+    margin-bottom: 0;
+}
+
+@container (max-width: 32rem) {
+    .section-body {
+        grid-template-columns: 1fr;
+    }
 }
 
 .section-drag-handle {
