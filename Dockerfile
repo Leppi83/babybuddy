@@ -32,8 +32,12 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 # App Code
 COPY . /app
 
-# Frontend assets (SCSS/JS -> static/babybuddy/*)
-RUN npm ci && npx gulp build
+# Frontend assets (SCSS/JS)
+# Gulp builds into babybuddy/static/babybuddy/*.
+# Sync into /app/static/babybuddy/* because FileSystemFinder prefers /app/static.
+RUN npm ci && npx gulp build \
+    && mkdir -p /app/static/babybuddy \
+    && cp -a /app/babybuddy/static/babybuddy/. /app/static/babybuddy/
 
 # Entrypoint
 COPY docker/entrypoint.sh /entrypoint.sh
