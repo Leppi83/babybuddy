@@ -76,3 +76,50 @@
 .shadcn-list-shell .pagination {
     margin: 0 1rem 1rem;
 }
+
+.child-detail-shell {
+    display: grid;
+    gap: .8rem;
+}
+
+.child-profile-card,
+.child-timeline-card,
+.timer-detail-shell,
+.tag-detail-shell {
+    border: 1px solid rgba(71, 85, 105, .55);
+    border-radius: 1rem;
+    background:
+        radial-gradient(circle at 16% 22%, rgba(30, 64, 175, .12), transparent 40%),
+        linear-gradient(160deg, rgba(15, 23, 42, .9), rgba(2, 6, 23, .93));
+}
+
+.child-profile-card {
+    padding: 1rem;
+}
+
+.child-timeline-card {
+    padding: .35rem .65rem .9rem;
+}
+
+.timer-detail-shell {
+    padding: 1rem;
+}
+
+.timer-detail-shell .timer-quick-actions {
+    max-width: 28rem;
+    margin: 0 auto 1rem;
+}
+
+.timer-detail-shell .timer-actions-row {
+    display: inline-flex;
+    gap: .5rem;
+}
+
+.tag-detail-shell {
+    padding: 1rem;
+}
+
+.tag-detail-header {
+    margin-bottom: 1rem;
+    gap: .7rem;
+}
