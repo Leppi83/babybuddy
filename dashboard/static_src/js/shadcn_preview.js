@@ -158,7 +158,7 @@
             }
 
             function escapeHtml(value) {
-                return String(value ?? "")
+                return String(value == null ? "" : value)
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")
@@ -187,7 +187,8 @@
                 if (cookieToken && cookieToken.length >= 32) {
                     return cookieToken;
                 }
-                const inputToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+                const inputTokenElement = document.querySelector('input[name="csrfmiddlewaretoken"]');
+                const inputToken = inputTokenElement ? inputTokenElement.value : "";
                 if (inputToken && inputToken !== "NOTPROVIDED") {
                     return inputToken;
                 }
