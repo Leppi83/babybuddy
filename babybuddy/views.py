@@ -335,4 +335,6 @@ class ShadcnPreview(LoginRequiredMixin, TemplateView):
         }
         context["preview_visible_items"] = selected
         context["preview_visible_sections"] = visible_sections
+        context["preview_mode"] = True
+        context["preview_fixed_child"] = None
         return context

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
@@ -72,6 +73,11 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     def _timer_session_key(child_id):
         return f"sleep_timer_start_{child_id}"
 
+    def get_template_names(self):
+        if settings.BABY_BUDDY.get("DASHBOARD_SHADCN_CHILD_ENABLED", False):
+            return ["babybuddy/shadcn_preview.html"]
+        return [self.template_name]
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         action = request.POST.get("sleep_timer_action")
@@ -112,4 +118,8 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         }
         context["visible_dashboard_items"] = visible_items
         context["visible_dashboard_sections"] = visible_sections
+        context["preview_visible_items"] = visible_items
+        context["preview_visible_sections"] = visible_sections
+        context["preview_mode"] = False
+        context["preview_fixed_child"] = self.object
         return context
