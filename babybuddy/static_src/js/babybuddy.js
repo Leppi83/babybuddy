@@ -59,3 +59,32 @@ BabyBuddy.RememberAdvancedToggle = function (ptr) {
     });
   });
 })();
+
+(function appShellSidebarCollapse() {
+  var collapseStorageKey = "appShellSidebarCollapsed";
+
+  function applyCollapsedState(collapsed) {
+    document.body.classList.toggle("app-sidebar-collapsed", collapsed);
+  }
+
+  window.addEventListener("load", function () {
+    var toggleButton = document.getElementById("app-shell-collapse-toggle");
+    if (!toggleButton || window.innerWidth < 768) {
+      return;
+    }
+
+    document.querySelectorAll(".app-shell-nav .nav-link").forEach(function (link) {
+      if (!link.getAttribute("title")) {
+        link.setAttribute("title", link.textContent.trim());
+      }
+    });
+
+    applyCollapsedState(localStorage.getItem(collapseStorageKey) === "1");
+
+    toggleButton.addEventListener("click", function () {
+      var collapsed = !document.body.classList.contains("app-sidebar-collapsed");
+      applyCollapsedState(collapsed);
+      localStorage.setItem(collapseStorageKey, collapsed ? "1" : "0");
+    });
+  });
+})();
