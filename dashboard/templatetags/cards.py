@@ -462,8 +462,16 @@ def card_sleep_timeline_day(context, child):
     instances = models.Sleep.objects.filter(child=child, start__lt=day_end, end__gt=day_start)
     empty = not instances.exists()
 
-    nap_minutes = [0 for _ in range(24)]
-    sleep_minutes = [0 for _ in range(24)]
+    hour_data = [
+        {
+            "nap_minutes": 0,
+            "sleep_minutes": 0,
+            "primary_minutes": 0,
+            "primary_kind": "none",
+            "primary_label": "",
+        }
+        for _ in range(24)
+    ]
 
     for instance in instances:
         segment_start = max(timezone.localtime(instance.start), day_start)
@@ -479,41 +487,61 @@ def card_sleep_timeline_day(context, child):
             minutes = int((overlap_end - cursor).total_seconds() // 60)
             hour_index = hour_start.hour
             if 0 <= hour_index < 24:
+                data = hour_data[hour_index]
+                kind = "nap" if instance.nap else "sleep"
                 if instance.nap:
-                    nap_minutes[hour_index] += minutes
+                    data["nap_minutes"] += minutes
                 else:
-                    sleep_minutes[hour_index] += minutes
-            cursor = overlap_end
+                    data["sleep_minutes"] += minutes
 
-    def _label_for_minutes(minutes):
-        if minutes <= 0:
-            return ""
-        if minutes < 90:
-            return f"{minutes}m"
-        hours = minutes / 60
-        if hours.is_integer():
-            return f"{int(hours)}h"
-        return f"{hours:.1f}h"
+                total_minutes = int((instance.end - instance.start).total_seconds() // 60)
+                if total_minutes < 90:
+                    total_label = f"{total_minutes}m"
+                else:
+                    hours_value = total_minutes / 60
+                    if hours_value.is_integer():
+                        total_label = f"{int(hours_value)}h"
+                    else:
+                        total_label = f"{hours_value:.1f}h"
+                session_label = _(
+                    "%(kind)s %(start)s-%(end)s (%(duration)s)"
+                ) % {
+                    "kind": _("Nap") if instance.nap else _("Sleep"),
+                    "start": timezone.localtime(instance.start).strftime("%H:%M"),
+                    "end": timezone.localtime(instance.end).strftime("%H:%M"),
+                    "duration": total_label,
+                }
+
+                if minutes >= data["primary_minutes"]:
+                    data["primary_minutes"] = minutes
+                    data["primary_kind"] = kind
+                    data["primary_label"] = session_label
+            cursor = overlap_end
 
     hour_slots = []
     for hour in range(24):
-        nap = nap_minutes[hour]
-        sleep = sleep_minutes[hour]
-        if sleep >= nap and sleep > 0:
-            minutes = sleep
-            kind = "sleep"
-        elif nap > 0:
-            minutes = nap
-            kind = "nap"
+        data = hour_data[hour]
+        nap = data["nap_minutes"]
+        sleep = data["sleep_minutes"]
+        if sleep > 0 or nap > 0:
+            if sleep >= nap:
+                kind = "sleep"
+                minutes = sleep
+            else:
+                kind = "nap"
+                minutes = nap
+            tooltip = data["primary_label"] or ""
         else:
-            minutes = 0
             kind = "none"
+            minutes = 0
+            tooltip = _("No sleep data in this hour")
+
         hour_slots.append(
             {
                 "hour": f"{hour:02d}",
                 "kind": kind,
                 "pct": min(100, minutes * 100 / 60),
-                "value_label": _label_for_minutes(minutes),
+                "tooltip": tooltip,
             }
         )
 

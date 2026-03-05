@@ -143,27 +143,31 @@
             display: grid;
             grid-template-columns: repeat(24, minmax(0, 1fr));
             gap: .35rem;
-            align-items: end;
             min-height: 10.5rem;
             margin-bottom: .55rem;
+            align-items: stretch;
         }
 
         .hour-slot {
-            display: grid;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
             justify-items: center;
-            gap: .15rem;
+            gap: .25rem;
+            min-height: 10rem;
         }
 
         .bars {
-            display: block;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
             height: 7rem;
             width: 100%;
-            text-align: center;
         }
 
         .bar {
-            display: inline-block;
-            width: .5rem;
+            display: block;
+            width: .62rem;
             border-radius: 999px;
             min-height: 2px;
         }
@@ -181,17 +185,10 @@
             min-height: 0;
         }
 
-        .slot-value {
-            min-height: 1rem;
-            font-size: .62rem;
-            color: rgba(244, 247, 251, .85);
-            font-weight: 700;
-            line-height: 1;
-        }
-
         .hour-label {
             font-size: .58rem;
             color: rgba(244, 247, 251, .75);
+            text-align: center;
         }
     }
 
