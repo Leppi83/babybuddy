@@ -269,14 +269,40 @@
     .sleep-quick-timer {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: .75rem;
+        justify-content: flex-start;
+        gap: .55rem;
     }
 
     .sleep-quick-timer-button {
         display: inline-flex;
         align-items: center;
         gap: .45rem;
+        min-height: 2.8rem;
+    }
+
+    .sleep-running-dots {
+        letter-spacing: 1px;
+        animation: timerPulse 1.3s ease-in-out infinite;
+    }
+
+    @keyframes timerPulse {
+        0% {
+            opacity: .3;
+        }
+        50% {
+            opacity: 1;
+        }
+        100% {
+            opacity: .3;
+        }
+    }
+
+    .sleep-timer-status-block {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: .25rem;
+        min-height: 2.8rem;
     }
 
     .sleep-timer-status {
@@ -287,10 +313,16 @@
         color: rgba(255, 194, 122, .95);
     }
 
+    .sleep-timer-duration {
+        font-size: .95rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
     .sleep-harvey {
         --fill-angle: 0deg;
-        width: 1.35rem;
-        height: 1.35rem;
+        width: 1.1rem;
+        height: 1.1rem;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, .5);
         background: conic-gradient(

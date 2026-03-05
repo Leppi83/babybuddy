@@ -215,15 +215,10 @@ BabyBuddy.Dashboard = (function ($) {
   }
 
   function formatSleepDuration(seconds) {
-    var minutes = Math.floor(seconds / 60);
-    if (minutes < 90) {
-      return minutes + "m";
-    }
-    var hours = minutes / 60;
-    if (Number.isInteger(hours)) {
-      return hours + "h";
-    }
-    return hours.toFixed(1) + "h";
+    var totalMinutes = Math.floor(seconds / 60);
+    var hours = Math.floor(totalMinutes / 60);
+    var minutes = totalMinutes % 60;
+    return String(hours).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
   }
 
   function bindSleepQuickTimer() {
