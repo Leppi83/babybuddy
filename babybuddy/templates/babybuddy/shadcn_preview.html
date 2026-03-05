@@ -68,12 +68,13 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    {% if 'card.diaper.last' in preview_visible_items %}
-                    <article class="ui-preview-card" data-card="last-nappy-change"><h3>Last Nappy Change</h3><p>Loading...</p></article>
-                    {% endif %}
-                    {% if 'card.diaper.types' in preview_visible_items %}
-                    <article class="ui-preview-card" data-card="nappy-changes"><h3>Nappy Changes</h3><p>Loading...</p></article>
-                    {% endif %}
+                    {% for card_key in preview_cards_by_section.diaper %}
+                        {% if card_key == 'card.diaper.last' %}
+                            <article class="ui-preview-card" data-card="last-nappy-change"><h3>Last Nappy Change</h3><p>Loading...</p></article>
+                        {% elif card_key == 'card.diaper.types' %}
+                            <article class="ui-preview-card" data-card="nappy-changes"><h3>Nappy Changes</h3><p>Loading...</p></article>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </section>
             {% endif %}
@@ -85,18 +86,17 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    {% if 'card.feedings.last' in preview_visible_items %}
-                    <article class="ui-preview-card" data-card="last-feeding"><h3>Last Feeding</h3><p>Loading...</p></article>
-                    {% endif %}
-                    {% if 'card.feedings.method' in preview_visible_items %}
-                    <article class="ui-preview-card" data-card="last-feeding-method"><h3>Last Feeding Method</h3><p>Loading...</p></article>
-                    {% endif %}
-                    {% if 'card.feedings.recent' in preview_visible_items %}
-                    <article class="ui-preview-card" data-card="recent-feedings"><h3>Recent Feedings</h3><p>Loading...</p></article>
-                    {% endif %}
-                    {% if 'card.feedings.breastfeeding' in preview_visible_items %}
-                    <article class="ui-preview-card" data-card="breastfeeding"><h3>Breastfeeding</h3><p>Loading...</p></article>
-                    {% endif %}
+                    {% for card_key in preview_cards_by_section.feedings %}
+                        {% if card_key == 'card.feedings.last' %}
+                            <article class="ui-preview-card" data-card="last-feeding"><h3>Last Feeding</h3><p>Loading...</p></article>
+                        {% elif card_key == 'card.feedings.method' %}
+                            <article class="ui-preview-card" data-card="last-feeding-method"><h3>Last Feeding Method</h3><p>Loading...</p></article>
+                        {% elif card_key == 'card.feedings.recent' %}
+                            <article class="ui-preview-card" data-card="recent-feedings"><h3>Recent Feedings</h3><p>Loading...</p></article>
+                        {% elif card_key == 'card.feedings.breastfeeding' %}
+                            <article class="ui-preview-card" data-card="breastfeeding"><h3>Breastfeeding</h3><p>Loading...</p></article>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </section>
             {% endif %}
@@ -108,9 +108,11 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    {% if 'card.pumpings.last' in preview_visible_items %}
-                    <article class="ui-preview-card" data-card="last-pumping"><h3>Last Pumping</h3><p>Loading...</p></article>
-                    {% endif %}
+                    {% for card_key in preview_cards_by_section.pumpings %}
+                        {% if card_key == 'card.pumpings.last' %}
+                            <article class="ui-preview-card" data-card="last-pumping"><h3>Last Pumping</h3><p>Loading...</p></article>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </section>
             {% endif %}
@@ -122,60 +124,67 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    {% if 'card.sleep.timeline_day' in preview_visible_items %}
-                    <article class="ui-preview-card">
-                        <h3>Sleep Timeline (24h)</h3>
-                        <div class="ui-sleep-timeline-toolbar">
-                            <button id="ui-sleep-date-prev" class="btn btn-sm btn-secondary" type="button" aria-label="Previous day">&lsaquo;</button>
-                            <div class="ui-sleep-timeline-date">
-                                <span id="ui-sleep-date-label">--.--.----</span>
-                                <input id="ui-sleep-date-input" type="date" aria-label="Select day">
-                            </div>
-                            <button id="ui-sleep-date-next" class="btn btn-sm btn-secondary" type="button" aria-label="Next day">&rsaquo;</button>
-                        </div>
-                        <div class="ui-sleep-timeline-chart-wrap" id="ui-sleep-timeline-wrap">
-                            <div class="ui-sleep-timeline-chart" id="ui-sleep-timeline-chart"></div>
-                            <div class="ui-sleep-now-line" id="ui-sleep-now-line" hidden></div>
-                            <div class="ui-sleep-axis" id="ui-sleep-axis"></div>
-                        </div>
-                        <div class="ui-sleep-legend">
-                            <span><span class="ui-sleep-dot nap"></span>Nap</span>
-                            <span><span class="ui-sleep-dot"></span>Sleep</span>
-                        </div>
-                    </article>
-                    {% endif %}
-                    {% if 'card.sleep.recommendations' in preview_visible_items %}
-                    <article class="ui-preview-card">
-                        <h3>Sleep Recommendations</h3>
-                        <div id="ui-reco-content" class="ui-reco">
-                            <div class="ui-reco-row">
-                                <div class="ui-reco-title">Nap</div>
-                                <div>Loading...</div>
-                            </div>
-                            <div class="ui-reco-row">
-                                <div class="ui-reco-title">Bedtime</div>
-                                <div>Loading...</div>
-                            </div>
-                        </div>
-                    </article>
-                    {% endif %}
-                    {% if 'card.sleep.last' in preview_visible_items %}
-                    <article class="ui-preview-card" data-card="last-sleep"><h3>Last Sleep</h3><p>Loading...</p></article>
-                    {% endif %}
-                    {% if 'card.sleep.quick_timer' in preview_visible_items %}
-                    <article class="ui-preview-card">
-                        <h3>Sleep Timer</h3>
-                        <p class="ui-sleep-timer-caption" id="ui-sleep-timer-caption">Sleep duration: 00:00:00</p>
-                        <div class="ui-sleep-timer-head">
-                            <p class="time" id="ui-sleep-timer-time">00:00:00</p>
-                            <span class="dots" id="ui-sleep-timer-dots">...</span>
-                        </div>
-                        <div class="ui-sleep-timer-row">
-                            <button id="ui-sleep-timer-action" class="btn btn-primary ui-sleep-timer-action" type="button">Start</button>
-                        </div>
-                        <p class="ui-sleep-timer-note" id="ui-sleep-timer-note">Timer idle. Start to create a new sleep entry.</p>
-                    </article>
-                    {% endif %}
+                    {% for card_key in preview_cards_by_section.sleep %}
+                        {% if card_key == 'card.sleep.timers' %}
+                            <article class="ui-preview-card" data-card="sleep-timers"><h3>Timers</h3><p>Loading...</p></article>
+                        {% elif card_key == 'card.sleep.quick_timer' %}
+                            <article class="ui-preview-card">
+                                <h3>Sleep Timer</h3>
+                                <p class="ui-sleep-timer-caption" id="ui-sleep-timer-caption">Sleep duration: 00:00:00</p>
+                                <div class="ui-sleep-timer-head">
+                                    <p class="time" id="ui-sleep-timer-time">00:00:00</p>
+                                    <span class="dots" id="ui-sleep-timer-dots">...</span>
+                                </div>
+                                <div class="ui-sleep-timer-row">
+                                    <button id="ui-sleep-timer-action" class="btn btn-primary ui-sleep-timer-action" type="button">Start</button>
+                                </div>
+                                <p class="ui-sleep-timer-note" id="ui-sleep-timer-note">Timer idle. Start to create a new sleep entry.</p>
+                            </article>
+                        {% elif card_key == 'card.sleep.last' %}
+                            <article class="ui-preview-card" data-card="last-sleep"><h3>Last Sleep</h3><p>Loading...</p></article>
+                        {% elif card_key == 'card.sleep.recommendations' %}
+                            <article class="ui-preview-card">
+                                <h3>Sleep Recommendations</h3>
+                                <div id="ui-reco-content" class="ui-reco">
+                                    <div class="ui-reco-row">
+                                        <div class="ui-reco-title">Nap</div>
+                                        <div>Loading...</div>
+                                    </div>
+                                    <div class="ui-reco-row">
+                                        <div class="ui-reco-title">Bedtime</div>
+                                        <div>Loading...</div>
+                                    </div>
+                                </div>
+                            </article>
+                        {% elif card_key == 'card.sleep.recent' %}
+                            <article class="ui-preview-card" data-card="recent-sleep"><h3>Recent Sleep</h3><p>Loading...</p></article>
+                        {% elif card_key == 'card.sleep.naps_day' %}
+                            <article class="ui-preview-card" data-card="todays-naps"><h3>Today's Naps</h3><p>Loading...</p></article>
+                        {% elif card_key == 'card.sleep.statistics' %}
+                            <article class="ui-preview-card" data-card="sleep-statistics"><h3>Statistics</h3><p>Loading...</p></article>
+                        {% elif card_key == 'card.sleep.timeline_day' %}
+                            <article class="ui-preview-card">
+                                <h3>Sleep Timeline (24h)</h3>
+                                <div class="ui-sleep-timeline-toolbar">
+                                    <button id="ui-sleep-date-prev" class="btn btn-sm btn-secondary" type="button" aria-label="Previous day">&lsaquo;</button>
+                                    <div class="ui-sleep-timeline-date">
+                                        <span id="ui-sleep-date-label">--.--.----</span>
+                                        <input id="ui-sleep-date-input" type="date" aria-label="Select day">
+                                    </div>
+                                    <button id="ui-sleep-date-next" class="btn btn-sm btn-secondary" type="button" aria-label="Next day">&rsaquo;</button>
+                                </div>
+                                <div class="ui-sleep-timeline-chart-wrap" id="ui-sleep-timeline-wrap">
+                                    <div class="ui-sleep-timeline-chart" id="ui-sleep-timeline-chart"></div>
+                                    <div class="ui-sleep-now-line" id="ui-sleep-now-line" hidden></div>
+                                    <div class="ui-sleep-axis" id="ui-sleep-axis"></div>
+                                </div>
+                                <div class="ui-sleep-legend">
+                                    <span><span class="ui-sleep-dot nap"></span>Nap</span>
+                                    <span><span class="ui-sleep-dot"></span>Sleep</span>
+                                </div>
+                            </article>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </section>
             {% endif %}
@@ -187,9 +196,11 @@
                     <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
                 </div>
                 <div class="ui-preview-cards">
-                    {% if 'card.tummytime.day' in preview_visible_items %}
-                    <article class="ui-preview-card" data-card="tummy-time"><h3>Today's Tummy Time</h3><p>Loading...</p></article>
-                    {% endif %}
+                    {% for card_key in preview_cards_by_section.tummytime %}
+                        {% if card_key == 'card.tummytime.day' %}
+                            <article class="ui-preview-card" data-card="tummy-time"><h3>Today's Tummy Time</h3><p>Loading...</p></article>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </section>
             {% endif %}

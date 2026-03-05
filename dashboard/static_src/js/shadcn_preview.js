@@ -780,6 +780,45 @@
                 } else {
                     setCard("last-sleep", "No sleep entries yet");
                 }
+
+                const sleepToday = sleepItems.filter((item) => isToday(item.start));
+                const napsToday = sleepToday.filter((item) => item.nap);
+                const napMinutesToday = napsToday.reduce(
+                    (acc, item) => acc + durationMinutes(item.duration),
+                    0
+                );
+                const avgNapMinutes = napsToday.length
+                    ? Math.round(napMinutesToday / napsToday.length)
+                    : 0;
+                const avgSleepMinutes = sleepItems.length
+                    ? Math.round(
+                        sleepItems.reduce(
+                            (acc, item) => acc + durationMinutes(item.duration),
+                            0
+                        ) / sleepItems.length
+                    )
+                    : 0;
+
+                setCardHtml("sleep-timers", richCard(
+                    `${timerItems.length} timers`,
+                    timerItems[0] ? `latest: ${timerItems[0].name || "Timer"} (${formatTime(timerItems[0].start)})` : "no active timer",
+                    [{ label: timerItems[0] ? "running" : "idle", tone: "amber" }]
+                ));
+                setCardHtml("recent-sleep", richCard(
+                    `${sleepToday.length} sleep entries today`,
+                    `${sleepItems.length} in recent history`,
+                    [{ label: "sleep log", tone: "amber" }]
+                ));
+                setCardHtml("todays-naps", richCard(
+                    `${napMinutesToday} min`,
+                    `${napsToday.length} naps today`,
+                    [{ label: "nap", tone: "amber" }]
+                ));
+                setCardHtml("sleep-statistics", richCard(
+                    `${avgNapMinutes} min avg nap`,
+                    `${avgSleepMinutes} min avg sleep`,
+                    [{ label: "statistics", tone: "amber" }]
+                ));
                 const childMeta = childrenById.get(String(childId));
                 try {
                     await loadSleepRecommendations(childMeta);

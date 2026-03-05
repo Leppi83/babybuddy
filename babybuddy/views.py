@@ -13,6 +13,7 @@ from django.http import HttpResponseForbidden
 from django.middleware.csrf import REASON_BAD_ORIGIN
 from django.shortcuts import redirect, render
 from django.template import loader
+from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.utils import translation
 from django.utils.decorators import method_decorator
@@ -232,6 +233,20 @@ class UserSettings(LoginRequiredMixin, View):
     def post(self, request):
         if handle_api_regenerate_request(request):
             return redirect("babybuddy:user-settings")
+        if request.POST.get("action") == "autosave_dashboard_visible_items":
+            allowed = {
+                key for key, _label in self.form_settings_class().dashboard_item_choices
+            }
+            raw_items = request.POST.get("dashboard_visible_items", "")
+            selected_items = [
+                item.strip()
+                for item in raw_items.split(",")
+                if item.strip() in allowed
+            ]
+            user_settings = request.user.settings
+            user_settings.dashboard_visible_items = selected_items
+            user_settings.save(update_fields=["dashboard_visible_items"])
+            return JsonResponse({"saved": True, "count": len(selected_items)})
 
         form_user = self.form_user_class(instance=request.user, data=request.POST)
         form_settings = self.form_settings_class(
@@ -249,7 +264,7 @@ class UserSettings(LoginRequiredMixin, View):
         return render(
             request,
             self.template_name,
-            {"user_form": form_user, "settings_form": form_settings},
+            {"form_user": form_user, "form_settings": form_settings},
         )
 
 
@@ -318,24 +333,41 @@ class ShadcnPreview(LoginRequiredMixin, TemplateView):
         ],
         "pumpings": ["card.pumpings.last"],
         "sleep": [
+            "card.sleep.timers",
+            "card.sleep.quick_timer",
+            "card.sleep.last",
+            "card.sleep.recent",
+            "card.sleep.naps_day",
+            "card.sleep.statistics",
             "card.sleep.timeline_day",
             "card.sleep.recommendations",
-            "card.sleep.last",
-            "card.sleep.quick_timer",
         ],
         "tummytime": ["card.tummytime.day"],
     }
+    SECTION_ORDER = ["diaper", "feedings", "pumpings", "sleep", "tummytime"]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        selected = set(self.request.user.settings.dashboard_selected_items())
-        visible_sections = {
-            section
-            for section, keys in self.SECTION_CARD_KEYS.items()
-            if any(key in selected for key in keys)
+        selected_items = self.request.user.settings.dashboard_selected_items()
+        allowed_items = {
+            key for keys in self.SECTION_CARD_KEYS.values() for key in keys
         }
+        ordered_visible_items = [
+            item for item in selected_items if item in allowed_items
+        ]
+        selected = set(ordered_visible_items)
+        preview_cards_by_section = {
+            section: [item for item in ordered_visible_items if item in keys]
+            for section, keys in self.SECTION_CARD_KEYS.items()
+        }
+        visible_sections = [
+            section
+            for section in self.SECTION_ORDER
+            if preview_cards_by_section.get(section)
+        ]
         context["preview_visible_items"] = selected
         context["preview_visible_sections"] = visible_sections
+        context["preview_cards_by_section"] = preview_cards_by_section
         context["preview_mode"] = True
         context["preview_fixed_child"] = None
         context["preview_children"] = Child.objects.all().order_by(
