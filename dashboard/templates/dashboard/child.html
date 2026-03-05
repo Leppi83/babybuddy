@@ -15,133 +15,82 @@
         <div id="dashboard-child"
              class="dashboard-sections"
              data-order-key="dashboard-child-sections-{{ object.slug }}">
-            {% if user.settings.dashboard_show_diaper_section %}
+            {% if 'section.diaper' in visible_dashboard_items %}
                 <section class="dashboard-section section-diaper" data-section-id="diaper">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
                             <i class="icon-list" aria-hidden="true"></i>
                         </button>
                         <span>{% trans "Diaper changes" %}</span>
-                        <form method="post" class="section-hide-form">
-                            {% csrf_token %}
-                            <button class="section-visibility-toggle"
-                                    type="submit"
-                                    name="hide_section"
-                                    value="diaper"
-                                    aria-label="{% trans "Hide section" %}"
-                                    title="{% trans "Hide section" %}">
-                                <span class="eye-icon eye-open" aria-hidden="true"></span>
-                            </button>
-                        </form>
                     </h2>
                     <div class="section-body">
-                        {% card_diaperchange_last object %}
-                        {% card_diaperchange_types object %}
+                        {% if 'card.diaper.last' in visible_dashboard_items %}{% card_diaperchange_last object %}{% endif %}
+                        {% if 'card.diaper.types' in visible_dashboard_items %}{% card_diaperchange_types object %}{% endif %}
                     </div>
                 </section>
             {% endif %}
 
-            {% if user.settings.dashboard_show_feeding_section %}
+            {% if 'section.feedings' in visible_dashboard_items %}
                 <section class="dashboard-section section-feeding" data-section-id="feeding">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
                             <i class="icon-list" aria-hidden="true"></i>
                         </button>
                         <span>{% trans "Feedings" %}</span>
-                        <form method="post" class="section-hide-form">
-                            {% csrf_token %}
-                            <button class="section-visibility-toggle"
-                                    type="submit"
-                                    name="hide_section"
-                                    value="feeding"
-                                    aria-label="{% trans "Hide section" %}"
-                                    title="{% trans "Hide section" %}">
-                                <span class="eye-icon eye-open" aria-hidden="true"></span>
-                            </button>
-                        </form>
                     </h2>
                     <div class="section-body">
-                        {% card_feeding_last object %}
-                        {% card_feeding_last_method object %}
-                        {% card_feeding_recent object %}
-                        {% card_breastfeeding object %}
+                        {% if 'card.feedings.last' in visible_dashboard_items %}{% card_feeding_last object %}{% endif %}
+                        {% if 'card.feedings.method' in visible_dashboard_items %}{% card_feeding_last_method object %}{% endif %}
+                        {% if 'card.feedings.recent' in visible_dashboard_items %}{% card_feeding_recent object %}{% endif %}
+                        {% if 'card.feedings.breastfeeding' in visible_dashboard_items %}{% card_breastfeeding object %}{% endif %}
                     </div>
                 </section>
             {% endif %}
 
-            {% if user.settings.dashboard_show_pumping_section %}
+            {% if 'section.pumpings' in visible_dashboard_items %}
                 <section class="dashboard-section section-pumping" data-section-id="pumping">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
                             <i class="icon-list" aria-hidden="true"></i>
                         </button>
                         <span>{% trans "Pumpings" %}</span>
-                        <form method="post" class="section-hide-form">
-                            {% csrf_token %}
-                            <button class="section-visibility-toggle"
-                                    type="submit"
-                                    name="hide_section"
-                                    value="pumping"
-                                    aria-label="{% trans "Hide section" %}"
-                                    title="{% trans "Hide section" %}">
-                                <span class="eye-icon eye-open" aria-hidden="true"></span>
-                            </button>
-                        </form>
                     </h2>
-                    <div class="section-body">{% card_pumping_last object %}</div>
+                    <div class="section-body">
+                        {% if 'card.pumpings.last' in visible_dashboard_items %}{% card_pumping_last object %}{% endif %}
+                    </div>
                 </section>
             {% endif %}
 
-            {% if user.settings.dashboard_show_sleep_section %}
+            {% if 'section.sleep' in visible_dashboard_items %}
                 <section class="dashboard-section section-sleep" data-section-id="sleep">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
                             <i class="icon-list" aria-hidden="true"></i>
                         </button>
                         <span>{% trans "Sleep" %}</span>
-                        <form method="post" class="section-hide-form">
-                            {% csrf_token %}
-                            <button class="section-visibility-toggle"
-                                    type="submit"
-                                    name="hide_section"
-                                    value="sleep"
-                                    aria-label="{% trans "Hide section" %}"
-                                    title="{% trans "Hide section" %}">
-                                <span class="eye-icon eye-open" aria-hidden="true"></span>
-                            </button>
-                        </form>
                     </h2>
                     <div class="section-body">
-                        {% card_timer_list object %}
-                        {% card_sleep_last object %}
-                        {% card_sleep_recommendations object %}
-                        {% card_sleep_recent object %}
-                        {% card_sleep_naps_day object %}
-                        {% card_statistics object %}
+                        {% if 'card.sleep.timers' in visible_dashboard_items %}{% card_timer_list object %}{% endif %}
+                        {% if 'card.sleep.last' in visible_dashboard_items %}{% card_sleep_last object %}{% endif %}
+                        {% if 'card.sleep.recommendations' in visible_dashboard_items %}{% card_sleep_recommendations object %}{% endif %}
+                        {% if 'card.sleep.recent' in visible_dashboard_items %}{% card_sleep_recent object %}{% endif %}
+                        {% if 'card.sleep.naps_day' in visible_dashboard_items %}{% card_sleep_naps_day object %}{% endif %}
+                        {% if 'card.sleep.statistics' in visible_dashboard_items %}{% card_statistics object %}{% endif %}
                     </div>
                 </section>
             {% endif %}
 
-            {% if user.settings.dashboard_show_tummytime_section %}
+            {% if 'section.tummytime' in visible_dashboard_items %}
                 <section class="dashboard-section section-tummytime" data-section-id="tummytime">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
                             <i class="icon-list" aria-hidden="true"></i>
                         </button>
                         <span>{% trans "Tummy time" %}</span>
-                        <form method="post" class="section-hide-form">
-                            {% csrf_token %}
-                            <button class="section-visibility-toggle"
-                                    type="submit"
-                                    name="hide_section"
-                                    value="tummytime"
-                                    aria-label="{% trans "Hide section" %}"
-                                    title="{% trans "Hide section" %}">
-                                <span class="eye-icon eye-open" aria-hidden="true"></span>
-                            </button>
-                        </form>
                     </h2>
-                    <div class="section-body">{% card_tummytime_day object %}</div>
+                    <div class="section-body">
+                        {% if 'card.tummytime.day' in visible_dashboard_items %}{% card_tummytime_day object %}{% endif %}
+                    </div>
                 </section>
             {% endif %}
         </div>

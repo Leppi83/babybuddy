@@ -79,18 +79,45 @@ class UserPasswordForm(PasswordChangeForm):
 
 
 class UserSettingsForm(forms.ModelForm):
+    dashboard_visible_items = forms.CharField(
+        required=False, widget=forms.HiddenInput()
+    )
+
     class Meta:
         model = Settings
         fields = [
             "dashboard_refresh_rate",
             "dashboard_hide_empty",
             "dashboard_hide_age",
-            "dashboard_show_diaper_section",
-            "dashboard_show_feeding_section",
-            "dashboard_show_pumping_section",
-            "dashboard_show_sleep_section",
-            "dashboard_show_tummytime_section",
             "language",
             "timezone",
             "pagination_count",
+            "dashboard_visible_items",
         ]
+
+    def __init__(self, *args, **kwargs):
+        super(UserSettingsForm, self).__init__(*args, **kwargs)
+        self.dashboard_item_choices = Settings.DASHBOARD_ITEM_CHOICES
+        if self.instance and self.instance.pk:
+            selected = self.instance.dashboard_selected_items()
+        else:
+            selected = Settings.dashboard_default_visible_items()
+        self.dashboard_selected_items = selected
+        self.fields["dashboard_visible_items"].initial = ",".join(selected)
+
+    def clean_dashboard_visible_items(self):
+        raw = self.cleaned_data.get("dashboard_visible_items", "")
+        allowed = {key for key, _label in Settings.DASHBOARD_ITEM_CHOICES}
+        if not raw and self.instance and self.instance.pk:
+            return self.instance.dashboard_selected_items()
+        selected = [item.strip() for item in raw.split(",") if item.strip()]
+        return [item for item in selected if item in allowed]
+
+    def save(self, commit=True):
+        instance = super(UserSettingsForm, self).save(commit=False)
+        instance.dashboard_visible_items = self.cleaned_data.get(
+            "dashboard_visible_items", []
+        )
+        if commit:
+            instance.save()
+        return instance

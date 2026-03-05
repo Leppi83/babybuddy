@@ -36,19 +36,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     permission_required = ("core.view_child",)
     template_name = "dashboard/child.html"
 
-    hide_field_map = {
-        "diaper": "dashboard_show_diaper_section",
-        "feeding": "dashboard_show_feeding_section",
-        "pumping": "dashboard_show_pumping_section",
-        "sleep": "dashboard_show_sleep_section",
-        "tummytime": "dashboard_show_tummytime_section",
-    }
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        section = request.POST.get("hide_section")
-        field_name = self.hide_field_map.get(section)
-        if field_name and hasattr(request.user, "settings"):
-            setattr(request.user.settings, field_name, False)
-            request.user.settings.save(update_fields=[field_name])
-        return HttpResponseRedirect(self.request.path)
+    def get_context_data(self, **kwargs):
+        context = super(ChildDashboard, self).get_context_data(**kwargs)
+        context["visible_dashboard_items"] = set(
+            self.request.user.settings.dashboard_selected_items()
+        )
+        return context
