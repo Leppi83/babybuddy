@@ -71,6 +71,7 @@
                     </h2>
                     <div class="section-body">
                         {% if 'card.sleep.timers' in visible_dashboard_items %}{% card_timer_list object %}{% endif %}
+                        {% if 'card.sleep.quick_timer' in visible_dashboard_items %}{% card_sleep_quick_timer object %}{% endif %}
                         {% if 'card.sleep.last' in visible_dashboard_items %}{% card_sleep_last object %}{% endif %}
                         {% if 'card.sleep.recommendations' in visible_dashboard_items %}{% card_sleep_recommendations object %}{% endif %}
                         {% if 'card.sleep.recent' in visible_dashboard_items %}{% card_sleep_recent object %}{% endif %}

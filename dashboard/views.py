@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils import timezone
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from core.models import Child
+from core.models import Child, Sleep
 
 
 class Dashboard(LoginRequiredMixin, TemplateView):
@@ -52,6 +55,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         ],
         "sleep": [
             "card.sleep.timers",
+            "card.sleep.quick_timer",
             "card.sleep.last",
             "card.sleep.recommendations",
             "card.sleep.recent",
@@ -63,6 +67,40 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "card.tummytime.day",
         ],
     }
+
+    @staticmethod
+    def _timer_session_key(child_id):
+        return f"sleep_timer_start_{child_id}"
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        action = request.POST.get("sleep_timer_action")
+        key = self._timer_session_key(self.object.id)
+
+        if action == "start":
+            request.session[key] = timezone.now().isoformat()
+            request.session.modified = True
+        elif action == "stop":
+            start_raw = request.session.get(key)
+            if start_raw:
+                try:
+                    start_dt = timezone.datetime.fromisoformat(start_raw)
+                    end_dt = timezone.now()
+                    duration = end_dt - start_dt
+                    sleep = Sleep(
+                        child=self.object,
+                        start=start_dt,
+                        end=end_dt,
+                        nap=duration < timezone.timedelta(hours=2),
+                    )
+                    sleep.full_clean()
+                    sleep.save()
+                    del request.session[key]
+                    request.session.modified = True
+                except (TypeError, ValueError, ValidationError) as exc:
+                    messages.error(request, f"Unable to create sleep entry: {exc}")
+
+        return HttpResponseRedirect(request.get_full_path())
 
     def get_context_data(self, **kwargs):
         context = super(ChildDashboard, self).get_context_data(**kwargs)

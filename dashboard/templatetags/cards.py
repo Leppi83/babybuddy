@@ -319,6 +319,35 @@ def card_sleep_last(context, child):
     }
 
 
+@register.inclusion_tag("cards/sleep_quick_timer.html", takes_context=True)
+def card_sleep_quick_timer(context, child):
+    key = f"sleep_timer_start_{child.id}"
+    start_raw = context["request"].session.get(key)
+    running = False
+    start_iso = ""
+    elapsed_seconds = 0
+
+    if start_raw:
+        try:
+            start_dt = timezone.datetime.fromisoformat(start_raw)
+            elapsed_seconds = max(
+                0, int((timezone.now() - start_dt).total_seconds())
+            )
+            start_iso = start_dt.isoformat()
+            running = True
+        except (TypeError, ValueError):
+            running = False
+
+    return {
+        "type": "sleep",
+        "running": running,
+        "start_iso": start_iso,
+        "elapsed_seconds": elapsed_seconds,
+        "empty": False,
+        "hide_empty": _hide_empty(context),
+    }
+
+
 @register.inclusion_tag("cards/sleep_recommendations.html", takes_context=True)
 def card_sleep_recommendations(context, child):
     recommendations = recommend_sleep_bundle(child)
@@ -556,6 +585,10 @@ def card_sleep_timeline_day(context, child):
         "has_next_day": target_date < today,
         "next_date": min(today, target_date + timezone.timedelta(days=1)),
         "prev_date": target_date - timezone.timedelta(days=1),
+        "is_today": target_date == today,
+        "current_time_pct": (
+            (now.hour * 60 + now.minute) / 1440 * 100 if target_date == today else None
+        ),
     }
 
 
