@@ -218,42 +218,78 @@
                 });
             }
 
-            function scheduleAutosave() {
+            function autosaveDashboardItems() {
+                if (!hiddenField || autosaveSuppressed) {
+                    return;
+                }
+                updateStatus('{% trans "Saving..." %}');
+                const payload = new URLSearchParams();
+                payload.set('action', 'autosave_dashboard_visible_items');
+                payload.set('dashboard_visible_items', hiddenField.value);
+
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                        'X-CSRFToken': csrfInput ? csrfInput.value : '',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: payload.toString()
+                }).then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Save failed');
+                    }
+                    return response.json();
+                }).then(() => {
+                    updateStatus('{% trans "Saved" %}');
+                }).catch(() => {
+                    updateStatus('{% trans "Save failed" %}');
+                });
+            }
+
+            function scheduleAutosave(mode) {
                 if (autosaveTimer) {
                     clearTimeout(autosaveTimer);
                 }
-                autosaveTimer = setTimeout(autosaveAllSettings, 220);
+                autosaveTimer = setTimeout(() => {
+                    if (mode === 'dashboard') {
+                        autosaveDashboardItems();
+                        return;
+                    }
+                    autosaveAllSettings();
+                }, 220);
             }
 
             root.querySelector('[data-dual-list-action="add-one"]').addEventListener('click', () => {
                 moveOptions(available, selected, true);
                 syncHiddenField();
-                scheduleAutosave();
+                scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="add-all"]').addEventListener('click', () => {
                 moveOptions(available, selected, false);
                 syncHiddenField();
-                scheduleAutosave();
+                scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="remove-one"]').addEventListener('click', () => {
                 moveOptions(selected, available, true);
                 syncHiddenField();
-                scheduleAutosave();
+                scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="remove-all"]').addEventListener('click', () => {
                 moveOptions(selected, available, false);
                 syncHiddenField();
-                scheduleAutosave();
+                scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="move-up"]').addEventListener('click', () => {
                 moveSelected('up');
                 syncHiddenField();
-                scheduleAutosave();
+                scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="move-down"]').addEventListener('click', () => {
                 moveSelected('down');
                 syncHiddenField();
-                scheduleAutosave();
+                scheduleAutosave('dashboard');
             });
 
             form.addEventListener('change', (event) => {
@@ -269,7 +305,7 @@
                     return;
                 }
                 syncHiddenField();
-                scheduleAutosave();
+                scheduleAutosave('all');
             });
 
             form.addEventListener('input', (event) => {
@@ -284,7 +320,7 @@
                     return;
                 }
                 syncHiddenField();
-                scheduleAutosave();
+                scheduleAutosave('all');
             });
 
             form.addEventListener('submit', (event) => {
