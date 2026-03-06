@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Baby Buddy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 14:34+0000\n"
+"POT-Creation-Date: 2026-03-06 14:43+0000\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -15,25 +15,21 @@ msgstr ""
 #: babybuddy/templates/babybuddy/nav-dropdown.html:339
 #: babybuddy/templates/babybuddy/user_settings_form.html:8
 #: babybuddy/templates/babybuddy/user_settings_form.html:149
-#: babybuddy/templates/dbsettings/site_settings.html:8 babybuddy/views.py:196
-#: babybuddy/views.py:231 core/views.py:65 dashboard/views.py:48
+#: babybuddy/templates/dbsettings/site_settings.html:8 babybuddy/views.py:193
+#: babybuddy/views.py:228 core/views.py:65 dashboard/views.py:48
 #: reports/views.py:39
 msgid "Settings"
 msgstr "Einstellungen"
 
 #: babybuddy/admin.py:17 babybuddy/templates/babybuddy/nav-dropdown.html:112
-#: babybuddy/templates/babybuddy/shadcn_preview.html:8
-#: babybuddy/templates/babybuddy/shadcn_preview.html:20
-#: babybuddy/templates/babybuddy/shadcn_preview.html:36
-#: babybuddy/templates/babybuddy/shadcn_preview.html:37
 #: babybuddy/templates/babybuddy/user_settings_form.html:60
-#: babybuddy/views.py:194 babybuddy/views.py:201 core/views.py:63
+#: babybuddy/views.py:191 babybuddy/views.py:198 core/views.py:63
 #: dashboard/templates/dashboard/child.html:4
 #: dashboard/templates/dashboard/child.html:11
 #: dashboard/templates/dashboard/child_button_group.html:8
 #: dashboard/templates/dashboard/dashboard.html:4
 #: dashboard/templates/dashboard/dashboard.html:7 dashboard/views.py:45
-#: dashboard/views.py:145 dashboard/views.py:320 reports/views.py:37
+#: dashboard/views.py:145 dashboard/views.py:311 reports/views.py:37
 msgid "Dashboard"
 msgstr "Dashboard"
 
@@ -45,16 +41,15 @@ msgstr "Nur lesen"
 msgid "Restricts user to viewing data only."
 msgstr "Benutzer kann Daten lesen, aber nicht schreiben."
 
-#: babybuddy/models.py:19 babybuddy/templates/babybuddy/shadcn_preview.html:77
-#: dashboard/templates/dashboard/child.html:27 dashboard/views.py:64
-#: dashboard/views.py:65 reports/views.py:64 reports/views.py:72
-#: reports/views.py:80 reports/views.py:88 reports/views.py:363
-#: reports/views.py:385 reports/views.py:409 reports/views.py:431
+#: babybuddy/models.py:19 dashboard/templates/dashboard/child.html:27
+#: dashboard/views.py:64 dashboard/views.py:65 reports/views.py:64
+#: reports/views.py:72 reports/views.py:80 reports/views.py:88
+#: reports/views.py:363 reports/views.py:385 reports/views.py:409
+#: reports/views.py:431
 msgid "Diaper changes"
 msgstr "Windelwechsel"
 
 #: babybuddy/models.py:20 babybuddy/templates/babybuddy/nav-dropdown.html:261
-#: babybuddy/templates/babybuddy/shadcn_preview.html:145
 #: babybuddy/templates/babybuddy/welcome.html:37 core/models.py:360
 #: core/views.py:940 core/views.py:953 core/views.py:1666
 #: dashboard/templates/dashboard/child.html:43 dashboard/views.py:66
@@ -64,17 +59,14 @@ msgstr "Windelwechsel"
 msgid "Feedings"
 msgstr "Mahlzeiten"
 
-#: babybuddy/models.py:21 babybuddy/templates/babybuddy/shadcn_preview.html:170
-#: core/views.py:1673 dashboard/templates/dashboard/child.html:60
-#: dashboard/views.py:67 reports/views.py:159 reports/views.py:625
+#: babybuddy/models.py:21 core/views.py:1673
+#: dashboard/templates/dashboard/child.html:60 dashboard/views.py:67
+#: reports/views.py:159 reports/views.py:625
 msgid "Pumpings"
 msgstr "Abpumpvorgänge"
 
 #: babybuddy/models.py:22 babybuddy/templates/babybuddy/nav-dropdown.html:86
 #: babybuddy/templates/babybuddy/nav-dropdown.html:292
-#: babybuddy/templates/babybuddy/shadcn_preview.html:189
-#: babybuddy/templates/babybuddy/shadcn_preview.html:291
-#: babybuddy/templates/babybuddy/shadcn_preview.html:330
 #: babybuddy/templates/babybuddy/welcome.html:47 core/models.py:567
 #: core/models.py:568 core/models.py:571 core/views.py:1462 core/views.py:1479
 #: core/views.py:1989 dashboard/templates/cards/sleep_timeline_day.html:67
@@ -157,7 +149,7 @@ msgstr "Schlaf - Schlaf-Timeline (24h)"
 msgid "tummy time - Today's Tummy Time"
 msgstr "Bauchzeit - Heutige Bauchzeit"
 
-#: babybuddy/models.py:47 babybuddy/views.py:213
+#: babybuddy/models.py:47 babybuddy/views.py:210
 msgid "Refresh rate"
 msgstr "Aktualisierungs-Intervall"
 
@@ -182,11 +174,11 @@ msgid_plural "%(minutes)d minutes"
 msgstr[0] "%(minutes)d Minute"
 msgstr[1] "%(minutes)d Minuten"
 
-#: babybuddy/models.py:99 babybuddy/views.py:214
+#: babybuddy/models.py:99 babybuddy/views.py:211
 msgid "Hide Empty Dashboard Cards"
 msgstr "Dashboard-Karten ohne Inhalt verbergen"
 
-#: babybuddy/models.py:102 babybuddy/views.py:215
+#: babybuddy/models.py:102 babybuddy/views.py:212
 msgid "Hide data older than"
 msgstr "Verstecke Daten älter als"
 
@@ -225,11 +217,11 @@ msgstr "Dashboard-Bereichsreihenfolge"
 msgid "Hidden dashboard sections"
 msgstr "Ausgeblendete Dashboard-Bereiche"
 
-#: babybuddy/models.py:146 babybuddy/views.py:210
+#: babybuddy/models.py:146 babybuddy/views.py:207
 msgid "Language"
 msgstr "Sprache"
 
-#: babybuddy/models.py:154 babybuddy/views.py:211
+#: babybuddy/models.py:154 babybuddy/views.py:208
 msgid "Timezone"
 msgstr "Zeitzone"
 
@@ -243,7 +235,7 @@ msgstr "%(count)d pro Seite"
 msgid "Show All"
 msgstr "Zeige Alle"
 
-#: babybuddy/models.py:166 babybuddy/views.py:212
+#: babybuddy/models.py:166 babybuddy/views.py:209
 msgid "Items Per Page"
 msgstr "Einträge pro Seite"
 
@@ -290,7 +282,7 @@ msgstr ""
 #: babybuddy/templates/admin/base_site.html:8
 #: babybuddy/templates/babybuddy/nav-dropdown.html:342
 #: babybuddy/templates/babybuddy/user_settings_form.html:158
-#: babybuddy/views.py:228
+#: babybuddy/views.py:225
 msgid "Database Admin"
 msgstr "Datenbankadministration"
 
@@ -312,7 +304,7 @@ msgstr "Filter"
 
 #: babybuddy/templates/babybuddy/form.html:19
 #: babybuddy/templates/babybuddy/user_settings_form.html:176
-#: babybuddy/views.py:221
+#: babybuddy/views.py:218
 msgid "Submit"
 msgstr "Senden"
 
@@ -322,7 +314,6 @@ msgstr "Schließen"
 
 #: babybuddy/templates/babybuddy/messages.html:19
 #: babybuddy/templates/babybuddy/messages.html:24
-#: babybuddy/templates/babybuddy/shadcn_preview.html:390
 #: babybuddy/templates/babybuddy/user_settings_form.html:18
 #: babybuddy/templates/babybuddy/user_settings_form.html:23
 msgid "Error"
@@ -374,7 +365,6 @@ msgstr "Notiz"
 
 #: babybuddy/templates/babybuddy/nav-dropdown.html:92
 #: babybuddy/templates/babybuddy/nav-dropdown.html:304
-#: babybuddy/templates/babybuddy/shadcn_preview.html:306
 #: babybuddy/templates/babybuddy/welcome.html:57 core/models.py:724
 #: core/models.py:725 core/models.py:728 core/views.py:1994 core/views.py:2170
 #: core/views.py:2173 dashboard/views.py:69 dashboard/views.py:70
@@ -386,7 +376,7 @@ msgstr "Bauchzeit"
 msgid "Toggle navigation"
 msgstr "Navigation umschalten"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:118 babybuddy/views.py:195
+#: babybuddy/templates/babybuddy/nav-dropdown.html:118 babybuddy/views.py:192
 #: core/templates/timeline/timeline.html:4
 #: core/templates/timeline/timeline.html:7
 #: core/templates/timeline/timeline.html:15 core/views.py:64 core/views.py:1872
@@ -396,16 +386,13 @@ msgid "Timeline"
 msgstr "Zeitverlauf"
 
 #: babybuddy/templates/babybuddy/nav-dropdown.html:128
-#: babybuddy/templates/babybuddy/nav-dropdown.html:135
-#: babybuddy/templates/babybuddy/shadcn_preview.html:17 core/models.py:221
+#: babybuddy/templates/babybuddy/nav-dropdown.html:135 core/models.py:221
 #: core/views.py:578 core/views.py:581
 #: dashboard/templates/dashboard/child.html:8 dashboard/views.py:46
 msgid "Children"
 msgstr "Kinder"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:141
-#: babybuddy/templates/babybuddy/shadcn_preview.html:57
-#: babybuddy/templates/babybuddy/shadcn_preview.html:354 core/models.py:163
+#: babybuddy/templates/babybuddy/nav-dropdown.html:141 core/models.py:163
 #: core/models.py:220 core/models.py:261 core/models.py:314 core/models.py:382
 #: core/models.py:414 core/models.py:466 core/models.py:495 core/models.py:543
 #: core/models.py:597 core/models.py:631 core/models.py:700 core/models.py:748
@@ -546,7 +533,7 @@ msgstr "Admin"
 
 #: babybuddy/templates/babybuddy/nav-dropdown.html:340
 #: babybuddy/templates/babybuddy/user_settings_form.html:152
-#: babybuddy/views.py:229 core/forms.py:138 core/models.py:123
+#: babybuddy/views.py:226 core/forms.py:138 core/models.py:123
 #: core/views.py:1564 core/views.py:1567
 msgid "Tags"
 msgstr "Tags"
@@ -559,11 +546,11 @@ msgstr "Tags"
 #: babybuddy/templates/babybuddy/user_list.html:7
 #: babybuddy/templates/babybuddy/user_list.html:10
 #: babybuddy/templates/babybuddy/user_settings_form.html:155
-#: babybuddy/views.py:230
+#: babybuddy/views.py:227
 msgid "Users"
 msgstr "Benutzer"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:352 babybuddy/views.py:197
+#: babybuddy/templates/babybuddy/nav-dropdown.html:352 babybuddy/views.py:194
 #: core/views.py:66 dashboard/views.py:49 reports/views.py:40
 msgid "Logout"
 msgstr "Logout"
@@ -604,591 +591,6 @@ msgstr "Weiter"
 msgid "Last"
 msgstr "Letzte"
 
-#: babybuddy/templates/babybuddy/shadcn_preview.html:6
-#: babybuddy/templates/babybuddy/shadcn_preview.html:14
-#: babybuddy/templates/babybuddy/shadcn_preview.html:36
-msgid "UI Preview"
-msgstr "UI-Vorschau"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:40
-#: babybuddy/templates/babybuddy/shadcn_preview.html:322
-msgid "visible"
-msgstr "sichtbar"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:41
-#: babybuddy/templates/babybuddy/shadcn_preview.html:323
-msgid "hidden"
-msgstr "ausgeblendet"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:47
-#, python-format
-msgid "Signed in as %(name)s. This is the standalone dashboard preview."
-msgstr ""
-"Angemeldet als %(name)s. Dies ist die eigenstaendige Dashboard-Vorschau."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:51
-#, python-format
-msgid "Signed in as %(name)s."
-msgstr "Angemeldet als %(name)s."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:58
-msgid "Child selector"
-msgstr "Kindauswahl"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:64
-#: babybuddy/templates/babybuddy/shadcn_preview.html:352
-msgid "No children found"
-msgstr "Keine Kinder gefunden"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:67
-msgid "Refresh data"
-msgstr "Daten aktualisieren"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:78
-#: babybuddy/templates/babybuddy/shadcn_preview.html:146
-#: babybuddy/templates/babybuddy/shadcn_preview.html:171
-#: babybuddy/templates/babybuddy/shadcn_preview.html:190
-#: babybuddy/templates/babybuddy/shadcn_preview.html:307
-#: babybuddy/templates/babybuddy/shadcn_preview.html:395 dashboard/views.py:57
-msgid "Show"
-msgstr "Anzeigen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:78
-#: babybuddy/templates/babybuddy/shadcn_preview.html:146
-#: babybuddy/templates/babybuddy/shadcn_preview.html:171
-#: babybuddy/templates/babybuddy/shadcn_preview.html:190
-#: babybuddy/templates/babybuddy/shadcn_preview.html:307
-#: babybuddy/templates/babybuddy/shadcn_preview.html:396 dashboard/views.py:56
-msgid "Hide"
-msgstr "Ausblenden"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:84
-#: dashboard/templates/cards/diaperchange_quick_entry.html:5
-#: dashboard/views.py:59
-msgid "Quick Entry"
-msgstr "Schnelleingabe"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:93 core/models.py:167
-#: core/models.py:388 core/models.py:418 core/models.py:752 core/views.py:482
-#: core/views.py:869 core/views.py:1008 core/views.py:1114 core/views.py:2230
-#: dashboard/templates/cards/diaperchange_quick_entry.html:14
-#: dashboard/views.py:60 reports/graphs/bmi_change.py:28
-#: reports/graphs/diaperchange_amounts.py:37
-#: reports/graphs/diaperchange_intervals.py:67
-#: reports/graphs/diaperchange_types.py:49 reports/graphs/feeding_amounts.py:70
-#: reports/graphs/feeding_duration.py:58 reports/graphs/feeding_intervals.py:42
-#: reports/graphs/feeding_pattern.py:181
-#: reports/graphs/head_circumference_change.py:28
-#: reports/graphs/height_change.py:87 reports/graphs/pumping_amounts.py:60
-#: reports/graphs/sleep_pattern.py:168 reports/graphs/sleep_totals.py:59
-#: reports/graphs/tummytime_duration.py:51 reports/graphs/weight_change.py:85
-msgid "Date"
-msgstr "Datum"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:102 core/models.py:264
-#: core/models.py:470 core/models.py:603 core/views.py:739 core/views.py:1210
-#: core/views.py:1769
-#: dashboard/templates/cards/diaperchange_quick_entry.html:23
-#: dashboard/views.py:61 reports/graphs/temperature_change.py:27
-msgid "Time"
-msgstr "Zeit"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:116
-#: dashboard/templates/cards/diaperchange_quick_entry.html:39
-#: dashboard/views.py:62
-msgid "Liquid"
-msgstr "Flüssig"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:120 core/models.py:267
-#: core/views.py:760 dashboard/templates/cards/diaperchange_quick_entry.html:45
-#: dashboard/views.py:63 reports/graphs/diaperchange_intervals.py:38
-#: reports/graphs/diaperchange_types.py:30
-msgid "Solid"
-msgstr "Fest"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:126
-msgid "Open a child dashboard to save a nappy change directly."
-msgstr "Öffne ein Kind-Dashboard, um einen Windelwechsel direkt zu speichern."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:130 dashboard/views.py:71
-msgid "Last Nappy Change"
-msgstr "Letzter Windelwechsel"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:130
-#: babybuddy/templates/babybuddy/shadcn_preview.html:132
-#: babybuddy/templates/babybuddy/shadcn_preview.html:151
-#: babybuddy/templates/babybuddy/shadcn_preview.html:153
-#: babybuddy/templates/babybuddy/shadcn_preview.html:155
-#: babybuddy/templates/babybuddy/shadcn_preview.html:157
-#: babybuddy/templates/babybuddy/shadcn_preview.html:176
-#: babybuddy/templates/babybuddy/shadcn_preview.html:195
-#: babybuddy/templates/babybuddy/shadcn_preview.html:252
-#: babybuddy/templates/babybuddy/shadcn_preview.html:259
-#: babybuddy/templates/babybuddy/shadcn_preview.html:263
-#: babybuddy/templates/babybuddy/shadcn_preview.html:268
-#: babybuddy/templates/babybuddy/shadcn_preview.html:270
-#: babybuddy/templates/babybuddy/shadcn_preview.html:272
-#: babybuddy/templates/babybuddy/shadcn_preview.html:312
-#: babybuddy/templates/babybuddy/shadcn_preview.html:355 dashboard/views.py:58
-msgid "Loading..."
-msgstr "Laedt..."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:132 dashboard/views.py:72
-msgid "Nappy Changes"
-msgstr "Windelwechsel"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:151
-#: dashboard/templates/cards/feeding_last.html:4 dashboard/views.py:73
-msgid "Last Feeding"
-msgstr "Letzte Mahlzeit"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:153
-#: dashboard/templates/cards/feeding_last_method.html:4 dashboard/views.py:74
-msgid "Last Feeding Method"
-msgstr "Letzte Mahlzeitart"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:155
-#: dashboard/templates/cards/feeding_recent.html:4 dashboard/views.py:75
-msgid "Recent Feedings"
-msgstr "Letzte Mahlzeiten"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:157
-#: dashboard/templates/cards/breastfeeding.html:4 dashboard/views.py:76
-msgid "Breastfeeding"
-msgstr "Stillen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:176
-#: dashboard/templates/cards/pumping_last.html:4 dashboard/views.py:77
-msgid "Last Pumping"
-msgstr "Letztes Abpumpen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:195 core/models.py:653
-#: core/templates/core/timer_nav.html:9 core/templates/core/timer_nav.html:49
-#: core/views.py:1938 core/views.py:1941
-#: dashboard/templates/cards/timer_list.html:4 dashboard/views.py:78
-msgid "Timers"
-msgstr "Timer"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:198
-#: dashboard/templates/cards/sleep_quick_timer.html:5 dashboard/views.py:79
-msgid "Sleep Timer"
-msgstr "Schlaf-Timer"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:199
-msgid "Sleep duration"
-msgstr "Schlafdauer"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:205
-#: babybuddy/templates/babybuddy/shadcn_preview.html:341 core/views.py:1307
-#: core/views.py:1412 core/views.py:1946 core/views.py:2126
-#: dashboard/templates/cards/sleep_quick_timer.html:19
-msgid "Start"
-msgstr "Start"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:211
-msgid "Start date"
-msgstr "Startdatum"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:217 core/models.py:320
-#: core/models.py:501 core/models.py:549 core/models.py:637 core/models.py:706
-msgid "Start time"
-msgstr "Startzeit"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:224
-msgid "End date"
-msgstr "Enddatum"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:230 core/models.py:323
-#: core/models.py:507 core/models.py:552 core/models.py:709
-msgid "End time"
-msgstr "Endzeit"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:241
-#: babybuddy/templates/babybuddy/shadcn_preview.html:258
-#: babybuddy/templates/babybuddy/shadcn_preview.html:290
-#: babybuddy/templates/babybuddy/shadcn_preview.html:329 core/models.py:554
-#: core/views.py:1420 dashboard/templates/cards/sleep_timeline_day.html:66
-#: dashboard/templatetags/cards.py:551
-msgid "Nap"
-msgstr "Nickerchen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:245
-msgid "Save sleep entry"
-msgstr "Schlafeintrag speichern"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:249
-msgid "Timer idle. Start to create a new sleep entry."
-msgstr "Timer inaktiv. Starte ihn, um einen neuen Schlafeintrag zu erstellen."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:252
-#: dashboard/templates/cards/sleep_last.html:4 dashboard/views.py:80
-msgid "Last Sleep"
-msgstr "Letzter Schlaf"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:255
-#: dashboard/templates/cards/sleep_recommendations.html:4 dashboard/views.py:81
-msgid "Sleep Recommendations"
-msgstr "Schlafempfehlungen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:262
-#: babybuddy/templates/babybuddy/shadcn_preview.html:331
-#: dashboard/templates/cards/sleep_recommendations.html:32
-msgid "Bedtime"
-msgstr "Schlafenszeit"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:268
-#: dashboard/templates/cards/sleep_recent.html:4 dashboard/views.py:82
-msgid "Recent Sleep"
-msgstr "Kürzlicher Schlaf"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:270
-#: dashboard/templates/cards/sleep_naps_day.html:4 dashboard/views.py:83
-msgid "Today's Naps"
-msgstr "Heutige Nickerchen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:272
-#: dashboard/templates/cards/statistics.html:6 dashboard/views.py:84
-msgid "Statistics"
-msgstr "Statistiken"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:275
-#: dashboard/templates/cards/sleep_timeline_day.html:5 dashboard/views.py:85
-msgid "Sleep Timeline (24h)"
-msgstr "Schlaf-Timeline (24h)"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:277
-#: dashboard/templates/cards/sleep_timeline_day.html:12
-msgid "Previous day"
-msgstr "Vorheriger Tag"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:280
-msgid "Select day"
-msgstr "Tag auswaehlen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:282
-#: dashboard/templates/cards/sleep_timeline_day.html:38
-msgid "Next day"
-msgstr "Nächster Tag"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:312
-#: dashboard/templates/cards/tummytime_day.html:4 dashboard/views.py:86
-msgid "Today's Tummy Time"
-msgstr "Heutige Bauchzeit"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:321
-msgid "n/a"
-msgstr "k. A."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:324
-msgid "OK"
-msgstr "OK"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:325
-msgid "No Data"
-msgstr "Keine Daten"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:326
-msgid "Nighttime"
-msgstr "Nacht"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:327
-msgid "Overdue"
-msgstr "Ueberfaellig"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:328
-msgid "Info"
-msgstr "Info"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:332
-msgid "ideal"
-msgstr "ideal"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:333
-msgid "window"
-msgstr "Fenster"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:334
-msgid "target"
-msgstr "Ziel"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:335
-msgid "no schedule available"
-msgstr "kein Zeitfenster verfuegbar"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:336
-msgid "Sleeping"
-msgstr "Schlaeft"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:337
-msgid "min"
-msgstr "Min."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:338
-msgid "h"
-msgstr "Std."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:339
-msgid "m"
-msgstr "Min."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:340
-msgid "ago"
-msgstr "her"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:342
-#: dashboard/templates/cards/sleep_quick_timer.html:19
-msgid "Stop"
-msgstr "Stoppen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:343
-msgid "Select a child first."
-msgstr "Waehle zuerst ein Kind aus."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:344
-msgid "Timer running... Stop to create sleep entry."
-msgstr "Timer laeuft... Stoppen, um einen Schlafeintrag zu erstellen."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:345
-#, python-format
-msgid "Saved %%(entry_type)s entry (%%(value)s)."
-msgstr "%%(entry_type)s-Eintrag gespeichert (%%(value)s)."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:346
-#, python-format
-msgid "Saved %%(entry_type)s entry (%%(start)s - %%(end)s)."
-msgstr "%%(entry_type)s-Eintrag gespeichert (%%(start)s - %%(end)s)."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:347
-msgid "sleep"
-msgstr "Schlaf"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:348
-msgid "nap"
-msgstr "Nickerchen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:349
-msgid "Please enter Start and End as hh:mm."
-msgstr "Bitte Start und Ende als hh:mm eingeben."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:350
-msgid "Invalid start or end time."
-msgstr "Ungueltige Start- oder Endzeit."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:351
-msgid ""
-"End must be after start. For overnight sleep choose next day in End date."
-msgstr ""
-"Das Ende muss nach dem Start liegen. Fuer Schlaf ueber Nacht bitte im "
-"Enddatum den naechsten Tag waehlen."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:353
-msgid "Configured child not found"
-msgstr "Konfiguriertes Kind nicht gefunden"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:356
-msgid "yes"
-msgstr "ja"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:357
-msgid "no"
-msgstr "nein"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:358
-#: dashboard/templates/cards/diaperchange_types.html:20
-msgid "wet"
-msgstr "nass"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:359
-#: dashboard/templates/cards/diaperchange_types.html:26
-msgid "solid"
-msgstr "fest"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:360
-msgid "No diaper changes yet"
-msgstr "Noch keine Windelwechsel"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:361
-#, python-format
-msgid "%%(count)s changes today"
-msgstr "%%(count)s Wechsel heute"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:362
-#, python-format
-msgid "%%(count)s in recent history"
-msgstr "%%(count)s in der letzten Historie"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:363
-msgid "diaper"
-msgstr "Windel"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:364
-msgid "amount"
-msgstr "Menge"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:365
-msgid "unknown"
-msgstr "unbekannt"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:366
-msgid "No feedings yet"
-msgstr "Noch keine Mahlzeiten"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:367
-#, python-format
-msgid "%%(count)sx in recent entries"
-msgstr "%%(count)sx in den letzten Eintraegen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:368
-msgid "dominant method"
-msgstr "haeufigste Methode"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:369
-msgid "No feeding method available"
-msgstr "Keine Mahlzeitmethode verfuegbar"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:370
-#, python-format
-msgid "%%(count)s feedings today"
-msgstr "%%(count)s Mahlzeiten heute"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:371
-#, python-format
-msgid "avg duration %%(count)s min"
-msgstr "durchschn. Dauer %%(count)s Min."
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:372
-msgid "no entries today"
-msgstr "heute keine Eintraege"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:373
-#: core/templatetags/duration.py:109
-#: dashboard/templates/cards/breastfeeding.html:24
-#: dashboard/templates/cards/diaperchange_types.html:36
-msgid "today"
-msgstr "heute"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:374
-#, python-format
-msgid "%%(count)s in recent entries"
-msgstr "%%(count)s in den letzten Eintraegen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:375
-msgid "breastfeeding"
-msgstr "Stillen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:376
-msgid "pumping"
-msgstr "Abpumpen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:377
-msgid "No pumping entries yet"
-msgstr "Noch keine Abpump-Eintraege"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:378
-msgid "No sleep entries yet"
-msgstr "Noch keine Schlafeintraege"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:379
-#, python-format
-msgid "%%(count)s timers"
-msgstr "%%(count)s Timer"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:380
-#, python-format
-msgid "latest: %%(name)s (%%(time)s)"
-msgstr "zuletzt: %%(name)s (%%(time)s)"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:381
-msgid "no active timer"
-msgstr "kein aktiver Timer"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:382
-msgid "running"
-msgstr "laeuft"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:383
-msgid "idle"
-msgstr "inaktiv"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:384
-#, python-format
-msgid "%%(count)s sleep entries today"
-msgstr "%%(count)s Schlafeintraege heute"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:385
-msgid "sleep log"
-msgstr "Schlafprotokoll"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:386
-#, python-format
-msgid "%%(count)s naps today"
-msgstr "%%(count)s Nickerchen heute"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:387
-#, python-format
-msgid "%%(count)s min avg nap"
-msgstr "%%(count)s Min. durchschn. Nickerchen"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:388
-#, python-format
-msgid "%%(count)s min avg sleep"
-msgstr "%%(count)s Min. durchschn. Schlaf"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:389
-msgid "statistics"
-msgstr "Statistiken"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:391
-#, python-format
-msgid "%%(count)s min today"
-msgstr "%%(count)s Min. heute"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:392
-#, python-format
-msgid "%%(count)s recent tummy time entries"
-msgstr "%%(count)s letzte Bauchzeit-Eintraege"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:393
-msgid "tummy time"
-msgstr "Bauchzeit"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:394
-#, python-format
-msgid "Existing running timer: %%(name)s"
-msgstr "Bereits laufender Timer: %%(name)s"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:397
-#, python-format
-msgid "Error loading data: %%(message)s"
-msgstr "Fehler beim Laden der Daten: %%(message)s"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:398
-msgid "Error loading children"
-msgstr "Fehler beim Laden der Kinder"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:399
-#, python-format
-msgid "Timeline error: %%(message)s"
-msgstr "Timeline-Fehler: %%(message)s"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:400
-#, python-format
-msgid "Timer error: %%(message)s"
-msgstr "Timer-Fehler: %%(message)s"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:401
-#, python-format
-msgid "Manual save error: %%(message)s"
-msgstr "Fehler beim manuellen Speichern: %%(message)s"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:402
-msgid "Sleep preview timer"
-msgstr "Schlaf-Vorschau-Timer"
-
-#: babybuddy/templates/babybuddy/shadcn_preview.html:403 core/models.py:652
-msgid "Timer"
-msgstr "Timer"
-
 #: babybuddy/templates/babybuddy/user_add_device.html:13
 msgid "Authentication Methods"
 msgstr "Authentifizierungsmethoden"
@@ -1200,7 +602,7 @@ msgstr "Schlüssel"
 
 #: babybuddy/templates/babybuddy/user_add_device.html:23
 #: babybuddy/templates/babybuddy/user_settings_form.html:134
-#: babybuddy/views.py:220
+#: babybuddy/views.py:217
 msgid "Regenerate"
 msgstr "Neu generieren"
 
@@ -1262,7 +664,7 @@ msgstr "Vorname"
 msgid "Last Name"
 msgstr "Nachname"
 
-#: babybuddy/templates/babybuddy/user_list.html:19 babybuddy/views.py:209
+#: babybuddy/templates/babybuddy/user_list.html:19 babybuddy/views.py:206
 msgid "Email"
 msgstr "E-Mail"
 
@@ -1299,103 +701,103 @@ msgstr "Passwort ändern"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:4
 #: babybuddy/templates/babybuddy/user_settings_form.html:11
-#: babybuddy/views.py:198 babybuddy/views.py:389
+#: babybuddy/views.py:195 babybuddy/views.py:386
 msgid "User Settings"
 msgstr "Benutzereinstellungen"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:27
-#: babybuddy/views.py:199
+#: babybuddy/views.py:196
 msgid "User Profile"
 msgstr "Benutzerprofil"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:78
-#: babybuddy/views.py:202
+#: babybuddy/views.py:199
 msgid "Dashboard Sections & Cards"
 msgstr "Dashboard-Bereiche & Karten"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:83
 #: babybuddy/templates/babybuddy/user_settings_form.html:94
-#: babybuddy/views.py:216
+#: babybuddy/views.py:213
 msgid "Available"
 msgstr "Verfügbar"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:87
 #: babybuddy/templates/babybuddy/user_settings_form.html:113
-#: babybuddy/views.py:217
+#: babybuddy/views.py:214
 msgid "Selected"
 msgstr "Ausgewählt"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:109
-#: babybuddy/views.py:218
+#: babybuddy/views.py:215
 msgid "Up"
 msgstr "Nach oben"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:110
-#: babybuddy/views.py:219
+#: babybuddy/views.py:216
 msgid "Down"
 msgstr "Nach unten"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:124
 #: babybuddy/templates/babybuddy/user_settings_form.html:355
 #: babybuddy/templates/babybuddy/user_settings_form.html:385
-#: babybuddy/views.py:223 dashboard/views.py:90
+#: babybuddy/views.py:220 dashboard/views.py:90
 msgid "Saved"
 msgstr "Gespeichert"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:127
-#: babybuddy/views.py:203
+#: babybuddy/views.py:200
 msgid "API"
 msgstr "API"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:140
-#: babybuddy/views.py:204
+#: babybuddy/views.py:201
 msgid "Site & Support"
 msgstr "Seite & Support"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:143
-#: babybuddy/templates/dbsettings/site_settings.html:7 babybuddy/views.py:205
+#: babybuddy/templates/dbsettings/site_settings.html:7 babybuddy/views.py:202
 msgid "Site"
 msgstr "Seite"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:145
-#: babybuddy/views.py:225
+#: babybuddy/views.py:222
 msgid "API Browser"
 msgstr "API-Browser"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:163
-#: babybuddy/views.py:206
+#: babybuddy/views.py:203
 msgid "Support"
 msgstr "Support"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:165
-#: babybuddy/views.py:226
+#: babybuddy/views.py:223
 msgid "Source Code"
 msgstr "Quellcode"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:168
-#: babybuddy/views.py:227
+#: babybuddy/views.py:224
 msgid "Chat / Support"
 msgstr "Chat / Support"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:311
-#: babybuddy/views.py:232
+#: babybuddy/views.py:229
 msgid "No items available"
 msgstr "Keine Elemente verfügbar"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:322
-#: babybuddy/views.py:233
+#: babybuddy/views.py:230
 msgid "No items selected"
 msgstr "Keine Elemente ausgewählt"
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:335
 #: babybuddy/templates/babybuddy/user_settings_form.html:365
-#: babybuddy/views.py:222
+#: babybuddy/views.py:219
 msgid "Saving..."
 msgstr "Wird gespeichert..."
 
 #: babybuddy/templates/babybuddy/user_settings_form.html:357
 #: babybuddy/templates/babybuddy/user_settings_form.html:387
-#: babybuddy/views.py:224 dashboard/views.py:89
+#: babybuddy/views.py:221 dashboard/views.py:89
 msgid "Save failed"
 msgstr "Speichern fehlgeschlagen"
 
@@ -1607,54 +1009,54 @@ msgstr "Bist du sicher, dass du %(name)s löschen möchtest?"
 msgid "Are you sure you want to unlock %(name)s?"
 msgstr "Bist du sicher, dass du %(name)s entsperren möchtest?"
 
-#: babybuddy/views.py:60
+#: babybuddy/views.py:57
 msgid "Forbidden"
 msgstr "Verboten"
 
-#: babybuddy/views.py:61
+#: babybuddy/views.py:58
 msgid "CSRF verification failed. Request aborted."
 msgstr "CSRF Verifikation fehlgeschlagen. Anfrage abgebrochen."
 
-#: babybuddy/views.py:200
+#: babybuddy/views.py:197
 msgid "Preferences"
 msgstr "Einstellungen"
 
-#: babybuddy/views.py:207 core/models.py:189
+#: babybuddy/views.py:204 core/models.py:189
 msgid "First name"
 msgstr "Vorname"
 
-#: babybuddy/views.py:208 core/models.py:191
+#: babybuddy/views.py:205 core/models.py:191
 msgid "Last name"
 msgstr "Nachname"
 
-#: babybuddy/views.py:234 babybuddy/views.py:487
+#: babybuddy/views.py:231 babybuddy/views.py:484
 msgid "Settings saved!"
 msgstr "Einstellungen gespeichert!"
 
-#: babybuddy/views.py:235 babybuddy/views.py:351 babybuddy/views.py:412
+#: babybuddy/views.py:232 babybuddy/views.py:348 babybuddy/views.py:409
 msgid "User API key regenerated."
 msgstr "User-API-Key neu generiert."
 
-#: babybuddy/views.py:266
+#: babybuddy/views.py:263
 #, python-format
 msgid "User %(username)s added!"
 msgstr "User %(username)s hinzugefügt!"
 
-#: babybuddy/views.py:277
+#: babybuddy/views.py:274
 #, python-format
 msgid "User %(username)s updated."
 msgstr "User %(username)s geändert."
 
-#: babybuddy/views.py:292
+#: babybuddy/views.py:289
 msgid "User unlocked."
 msgstr "Benutzer entsperrt."
 
-#: babybuddy/views.py:316
+#: babybuddy/views.py:313
 #, python-brace-format
 msgid "User {user} deleted."
 msgstr "User {user} gelöscht."
 
-#: babybuddy/views.py:337
+#: babybuddy/views.py:334
 msgid "Password updated."
 msgstr "Passwort geändert."
 
@@ -1723,6 +1125,23 @@ msgstr "Farbe"
 msgid "Last used"
 msgstr "zuletzt verwendet"
 
+#: core/models.py:167 core/models.py:388 core/models.py:418 core/models.py:752
+#: core/views.py:482 core/views.py:869 core/views.py:1008 core/views.py:1114
+#: core/views.py:2230
+#: dashboard/templates/cards/diaperchange_quick_entry.html:14
+#: dashboard/views.py:60 reports/graphs/bmi_change.py:28
+#: reports/graphs/diaperchange_amounts.py:37
+#: reports/graphs/diaperchange_intervals.py:67
+#: reports/graphs/diaperchange_types.py:49 reports/graphs/feeding_amounts.py:70
+#: reports/graphs/feeding_duration.py:58 reports/graphs/feeding_intervals.py:42
+#: reports/graphs/feeding_pattern.py:181
+#: reports/graphs/head_circumference_change.py:28
+#: reports/graphs/height_change.py:87 reports/graphs/pumping_amounts.py:60
+#: reports/graphs/sleep_pattern.py:168 reports/graphs/sleep_totals.py:59
+#: reports/graphs/tummytime_duration.py:51 reports/graphs/weight_change.py:85
+msgid "Date"
+msgstr "Datum"
+
 #: core/models.py:193
 msgid "Birth date"
 msgstr "Geburtsdatum"
@@ -1747,11 +1166,25 @@ msgstr "Slug"
 msgid "Picture"
 msgstr "Bild"
 
+#: core/models.py:264 core/models.py:470 core/models.py:603 core/views.py:739
+#: core/views.py:1210 core/views.py:1769
+#: dashboard/templates/cards/diaperchange_quick_entry.html:23
+#: dashboard/views.py:61 reports/graphs/temperature_change.py:27
+msgid "Time"
+msgstr "Zeit"
+
 #: core/models.py:266 core/views.py:759
 #: reports/graphs/diaperchange_intervals.py:47
 #: reports/graphs/diaperchange_types.py:36
 msgid "Wet"
 msgstr "Nass"
+
+#: core/models.py:267 core/views.py:760
+#: dashboard/templates/cards/diaperchange_quick_entry.html:45
+#: dashboard/views.py:63 reports/graphs/diaperchange_intervals.py:38
+#: reports/graphs/diaperchange_types.py:30
+msgid "Solid"
+msgstr "Fest"
 
 #: core/models.py:271
 msgid "Black"
@@ -1774,6 +1207,15 @@ msgstr "Gelb"
 #: dashboard/templates/cards/pumping_last.html:20
 msgid "Amount"
 msgstr "Menge"
+
+#: core/models.py:320 core/models.py:501 core/models.py:549 core/models.py:637
+#: core/models.py:706
+msgid "Start time"
+msgstr "Startzeit"
+
+#: core/models.py:323 core/models.py:507 core/models.py:552 core/models.py:709
+msgid "End time"
+msgstr "Endzeit"
 
 #: core/models.py:326 core/models.py:512 core/models.py:556 core/models.py:712
 #: core/views.py:137 core/views.py:187 core/views.py:878 core/views.py:1315
@@ -1841,6 +1283,12 @@ msgstr "Junge"
 msgid "Image"
 msgstr "Bild"
 
+#: core/models.py:554 core/views.py:1420
+#: dashboard/templates/cards/sleep_timeline_day.html:66
+#: dashboard/templatetags/cards.py:551
+msgid "Nap"
+msgstr "Nickerchen"
+
 #: core/models.py:562
 msgid "Nap settings"
 msgstr "Schlaf-Einstellungen"
@@ -1848,6 +1296,16 @@ msgstr "Schlaf-Einstellungen"
 #: core/models.py:634 core/views.py:1570 core/views.py:1944
 msgid "Name"
 msgstr "Name"
+
+#: core/models.py:652
+msgid "Timer"
+msgstr "Timer"
+
+#: core/models.py:653 core/templates/core/timer_nav.html:9
+#: core/templates/core/timer_nav.html:49 core/views.py:1938 core/views.py:1941
+#: dashboard/templates/cards/timer_list.html:4 dashboard/views.py:78
+msgid "Timers"
+msgstr "Timer"
 
 #: core/models.py:656
 #, python-brace-format
@@ -1991,6 +1449,12 @@ msgstr "heute"
 #, python-format
 msgid "%(days_ago)s days ago"
 msgstr "Vor %(days_ago)s Tagen"
+
+#: core/templatetags/duration.py:109
+#: dashboard/templates/cards/breastfeeding.html:24
+#: dashboard/templates/cards/diaperchange_types.html:36
+msgid "today"
+msgstr "heute"
 
 #: core/templatetags/duration.py:111
 #: dashboard/templates/cards/breastfeeding.html:26
@@ -2305,6 +1769,11 @@ msgstr "Notiz bearbeiten"
 msgid "Delete Note"
 msgstr "Notiz löschen"
 
+#: core/views.py:1307 core/views.py:1412 core/views.py:1946 core/views.py:2126
+#: dashboard/templates/cards/sleep_quick_timer.html:19
+msgid "Start"
+msgstr "Start"
+
 #: core/views.py:1308 core/views.py:1413 core/views.py:2127
 msgid "End"
 msgstr "Ende"
@@ -2459,6 +1928,10 @@ msgstr "Gewicht bearbeiten"
 msgid "Delete Weight"
 msgstr "Gewicht löschen"
 
+#: dashboard/templates/cards/breastfeeding.html:4 dashboard/views.py:76
+msgid "Breastfeeding"
+msgstr "Stillen"
+
 #: dashboard/templates/cards/breastfeeding.html:10
 #: dashboard/templates/cards/diaperchange_types.html:10
 msgid "Past Week"
@@ -2489,6 +1962,11 @@ msgstr "Letzter Windelwechsel"
 msgid "%(time_ago)s ago"
 msgstr "vor %(time_ago)s"
 
+#: dashboard/templates/cards/diaperchange_quick_entry.html:5
+#: dashboard/views.py:59
+msgid "Quick Entry"
+msgstr "Schnelleingabe"
+
 #: dashboard/templates/cards/diaperchange_quick_entry.html:6
 msgid "New nappy change"
 msgstr "Neuer Windelwechsel"
@@ -2497,9 +1975,30 @@ msgstr "Neuer Windelwechsel"
 msgid "Consistency"
 msgstr "Konsistenz"
 
+#: dashboard/templates/cards/diaperchange_quick_entry.html:39
+#: dashboard/views.py:62
+msgid "Liquid"
+msgstr "Flüssig"
+
+#: dashboard/templates/cards/diaperchange_types.html:20
+msgid "wet"
+msgstr "nass"
+
+#: dashboard/templates/cards/diaperchange_types.html:26
+msgid "solid"
+msgstr "fest"
+
 #: dashboard/templates/cards/diaperchange_types.html:43
 msgid "changes"
 msgstr "Wechsel"
+
+#: dashboard/templates/cards/feeding_last.html:4 dashboard/views.py:73
+msgid "Last Feeding"
+msgstr "Letzte Mahlzeit"
+
+#: dashboard/templates/cards/feeding_last_method.html:4 dashboard/views.py:74
+msgid "Last Feeding Method"
+msgstr "Letzte Mahlzeitart"
 
 #: dashboard/templates/cards/feeding_last_method.html:17
 msgid "most recent"
@@ -2512,12 +2011,28 @@ msgid_plural "%(n)s feedings ago"
 msgstr[0] "vor %(n)s Mahlzeit"
 msgstr[1] "vor %(n)s Mahlzeiten"
 
+#: dashboard/templates/cards/feeding_recent.html:4 dashboard/views.py:75
+msgid "Recent Feedings"
+msgstr "Letzte Mahlzeiten"
+
 #: dashboard/templates/cards/feeding_recent.html:23
 #, python-format
 msgid "%(counter)s feeding"
 msgid_plural "%(counter)s feedings"
 msgstr[0] "%(counter)s Mahlzeit"
 msgstr[1] "%(counter)s Mahlzeiten"
+
+#: dashboard/templates/cards/pumping_last.html:4 dashboard/views.py:77
+msgid "Last Pumping"
+msgstr "Letztes Abpumpen"
+
+#: dashboard/templates/cards/sleep_last.html:4 dashboard/views.py:80
+msgid "Last Sleep"
+msgstr "Letzter Schlaf"
+
+#: dashboard/templates/cards/sleep_naps_day.html:4 dashboard/views.py:83
+msgid "Today's Naps"
+msgstr "Heutige Nickerchen"
 
 #: dashboard/templates/cards/sleep_naps_day.html:8
 #, python-format
@@ -2526,12 +2041,28 @@ msgid_plural "%(count)s naps"
 msgstr[0] "%(count)s Nickerchen"
 msgstr[1] "%(count)s Nickerchen"
 
+#: dashboard/templates/cards/sleep_quick_timer.html:5 dashboard/views.py:79
+msgid "Sleep Timer"
+msgstr "Schlaf-Timer"
+
+#: dashboard/templates/cards/sleep_quick_timer.html:19
+msgid "Stop"
+msgstr "Stoppen"
+
+#: dashboard/templates/cards/sleep_recent.html:4 dashboard/views.py:82
+msgid "Recent Sleep"
+msgstr "Kürzlicher Schlaf"
+
 #: dashboard/templates/cards/sleep_recent.html:23
 #, python-format
 msgid "%(counter)s sleep"
 msgid_plural "%(counter)s sleeps"
 msgstr[0] "%(counter)s Schlaf"
 msgstr[1] "%(counter)s Schlaf"
+
+#: dashboard/templates/cards/sleep_recommendations.html:4 dashboard/views.py:81
+msgid "Sleep Recommendations"
+msgstr "Schlafempfehlungen"
 
 #: dashboard/templates/cards/sleep_recommendations.html:5
 msgid "Nap + Bedtime Guidance"
@@ -2560,13 +2091,33 @@ msgstr "Ideal"
 msgid "Window"
 msgstr "Fenster"
 
+#: dashboard/templates/cards/sleep_recommendations.html:32
+msgid "Bedtime"
+msgstr "Schlafenszeit"
+
 #: dashboard/templates/cards/sleep_recommendations.html:37
 msgid "Target"
 msgstr "Ziel"
 
+#: dashboard/templates/cards/sleep_timeline_day.html:5 dashboard/views.py:85
+msgid "Sleep Timeline (24h)"
+msgstr "Schlaf-Timeline (24h)"
+
+#: dashboard/templates/cards/sleep_timeline_day.html:12
+msgid "Previous day"
+msgstr "Vorheriger Tag"
+
 #: dashboard/templates/cards/sleep_timeline_day.html:27
 msgid "Choose date"
 msgstr "Datum auswählen"
+
+#: dashboard/templates/cards/sleep_timeline_day.html:38
+msgid "Next day"
+msgstr "Nächster Tag"
+
+#: dashboard/templates/cards/statistics.html:6 dashboard/views.py:84
+msgid "Statistics"
+msgstr "Statistiken"
 
 #: dashboard/templates/cards/statistics.html:26
 msgid "Not enough data"
@@ -2587,6 +2138,10 @@ msgstr[1] "%(count)s Timer"
 #, python-format
 msgid "Started by %(user)s at %(start)s"
 msgstr "Gestartet von %(user)s um %(start)s"
+
+#: dashboard/templates/cards/tummytime_day.html:4 dashboard/views.py:86
+msgid "Today's Tummy Time"
+msgstr "Heutige Bauchzeit"
 
 #: dashboard/templates/cards/tummytime_day.html:17
 #, python-format
@@ -2693,6 +2248,26 @@ msgstr "Dashboard öffnen"
 #: dashboard/views.py:55
 msgid "Refresh"
 msgstr "Aktualisieren"
+
+#: dashboard/views.py:56
+msgid "Hide"
+msgstr "Ausblenden"
+
+#: dashboard/views.py:57
+msgid "Show"
+msgstr "Anzeigen"
+
+#: dashboard/views.py:58
+msgid "Loading..."
+msgstr "Laedt..."
+
+#: dashboard/views.py:71
+msgid "Last Nappy Change"
+msgstr "Letzter Windelwechsel"
+
+#: dashboard/views.py:72
+msgid "Nappy Changes"
+msgstr "Windelwechsel"
 
 #: dashboard/views.py:87
 msgid "No data available yet."
@@ -2932,6 +2507,278 @@ msgstr "WHO Gewichts-Perzentile für Jungen in kg"
 #: reports/views.py:209 reports/views.py:782
 msgid "WHO Weight Percentiles for Girls in kg"
 msgstr "WHO Gewichts-Perzentile für Mädchen in kg"
+
+#~ msgid "UI Preview"
+#~ msgstr "UI-Vorschau"
+
+#~ msgid "visible"
+#~ msgstr "sichtbar"
+
+#~ msgid "hidden"
+#~ msgstr "ausgeblendet"
+
+#, python-format
+#~ msgid "Signed in as %(name)s. This is the standalone dashboard preview."
+#~ msgstr ""
+#~ "Angemeldet als %(name)s. Dies ist die eigenstaendige Dashboard-Vorschau."
+
+#, python-format
+#~ msgid "Signed in as %(name)s."
+#~ msgstr "Angemeldet als %(name)s."
+
+#~ msgid "Child selector"
+#~ msgstr "Kindauswahl"
+
+#~ msgid "No children found"
+#~ msgstr "Keine Kinder gefunden"
+
+#~ msgid "Refresh data"
+#~ msgstr "Daten aktualisieren"
+
+#~ msgid "Open a child dashboard to save a nappy change directly."
+#~ msgstr ""
+#~ "Öffne ein Kind-Dashboard, um einen Windelwechsel direkt zu speichern."
+
+#~ msgid "Sleep duration"
+#~ msgstr "Schlafdauer"
+
+#~ msgid "Start date"
+#~ msgstr "Startdatum"
+
+#~ msgid "End date"
+#~ msgstr "Enddatum"
+
+#~ msgid "Save sleep entry"
+#~ msgstr "Schlafeintrag speichern"
+
+#~ msgid "Timer idle. Start to create a new sleep entry."
+#~ msgstr ""
+#~ "Timer inaktiv. Starte ihn, um einen neuen Schlafeintrag zu erstellen."
+
+#~ msgid "Select day"
+#~ msgstr "Tag auswaehlen"
+
+#~ msgid "n/a"
+#~ msgstr "k. A."
+
+#~ msgid "OK"
+#~ msgstr "OK"
+
+#~ msgid "No Data"
+#~ msgstr "Keine Daten"
+
+#~ msgid "Nighttime"
+#~ msgstr "Nacht"
+
+#~ msgid "Overdue"
+#~ msgstr "Ueberfaellig"
+
+#~ msgid "Info"
+#~ msgstr "Info"
+
+#~ msgid "ideal"
+#~ msgstr "ideal"
+
+#~ msgid "window"
+#~ msgstr "Fenster"
+
+#~ msgid "target"
+#~ msgstr "Ziel"
+
+#~ msgid "no schedule available"
+#~ msgstr "kein Zeitfenster verfuegbar"
+
+#~ msgid "Sleeping"
+#~ msgstr "Schlaeft"
+
+#~ msgid "min"
+#~ msgstr "Min."
+
+#~ msgid "h"
+#~ msgstr "Std."
+
+#~ msgid "m"
+#~ msgstr "Min."
+
+#~ msgid "ago"
+#~ msgstr "her"
+
+#~ msgid "Select a child first."
+#~ msgstr "Waehle zuerst ein Kind aus."
+
+#~ msgid "Timer running... Stop to create sleep entry."
+#~ msgstr "Timer laeuft... Stoppen, um einen Schlafeintrag zu erstellen."
+
+#, python-format
+#~ msgid "Saved %%(entry_type)s entry (%%(value)s)."
+#~ msgstr "%%(entry_type)s-Eintrag gespeichert (%%(value)s)."
+
+#, python-format
+#~ msgid "Saved %%(entry_type)s entry (%%(start)s - %%(end)s)."
+#~ msgstr "%%(entry_type)s-Eintrag gespeichert (%%(start)s - %%(end)s)."
+
+#~ msgid "sleep"
+#~ msgstr "Schlaf"
+
+#~ msgid "nap"
+#~ msgstr "Nickerchen"
+
+#~ msgid "Please enter Start and End as hh:mm."
+#~ msgstr "Bitte Start und Ende als hh:mm eingeben."
+
+#~ msgid "Invalid start or end time."
+#~ msgstr "Ungueltige Start- oder Endzeit."
+
+#~ msgid ""
+#~ "End must be after start. For overnight sleep choose next day in End date."
+#~ msgstr ""
+#~ "Das Ende muss nach dem Start liegen. Fuer Schlaf ueber Nacht bitte im "
+#~ "Enddatum den naechsten Tag waehlen."
+
+#~ msgid "Configured child not found"
+#~ msgstr "Konfiguriertes Kind nicht gefunden"
+
+#~ msgid "yes"
+#~ msgstr "ja"
+
+#~ msgid "no"
+#~ msgstr "nein"
+
+#~ msgid "No diaper changes yet"
+#~ msgstr "Noch keine Windelwechsel"
+
+#, python-format
+#~ msgid "%%(count)s changes today"
+#~ msgstr "%%(count)s Wechsel heute"
+
+#, python-format
+#~ msgid "%%(count)s in recent history"
+#~ msgstr "%%(count)s in der letzten Historie"
+
+#~ msgid "diaper"
+#~ msgstr "Windel"
+
+#~ msgid "amount"
+#~ msgstr "Menge"
+
+#~ msgid "unknown"
+#~ msgstr "unbekannt"
+
+#~ msgid "No feedings yet"
+#~ msgstr "Noch keine Mahlzeiten"
+
+#, python-format
+#~ msgid "%%(count)sx in recent entries"
+#~ msgstr "%%(count)sx in den letzten Eintraegen"
+
+#~ msgid "dominant method"
+#~ msgstr "haeufigste Methode"
+
+#~ msgid "No feeding method available"
+#~ msgstr "Keine Mahlzeitmethode verfuegbar"
+
+#, python-format
+#~ msgid "%%(count)s feedings today"
+#~ msgstr "%%(count)s Mahlzeiten heute"
+
+#, python-format
+#~ msgid "avg duration %%(count)s min"
+#~ msgstr "durchschn. Dauer %%(count)s Min."
+
+#~ msgid "no entries today"
+#~ msgstr "heute keine Eintraege"
+
+#, python-format
+#~ msgid "%%(count)s in recent entries"
+#~ msgstr "%%(count)s in den letzten Eintraegen"
+
+#~ msgid "breastfeeding"
+#~ msgstr "Stillen"
+
+#~ msgid "pumping"
+#~ msgstr "Abpumpen"
+
+#~ msgid "No pumping entries yet"
+#~ msgstr "Noch keine Abpump-Eintraege"
+
+#~ msgid "No sleep entries yet"
+#~ msgstr "Noch keine Schlafeintraege"
+
+#, python-format
+#~ msgid "%%(count)s timers"
+#~ msgstr "%%(count)s Timer"
+
+#, python-format
+#~ msgid "latest: %%(name)s (%%(time)s)"
+#~ msgstr "zuletzt: %%(name)s (%%(time)s)"
+
+#~ msgid "no active timer"
+#~ msgstr "kein aktiver Timer"
+
+#~ msgid "running"
+#~ msgstr "laeuft"
+
+#~ msgid "idle"
+#~ msgstr "inaktiv"
+
+#, python-format
+#~ msgid "%%(count)s sleep entries today"
+#~ msgstr "%%(count)s Schlafeintraege heute"
+
+#~ msgid "sleep log"
+#~ msgstr "Schlafprotokoll"
+
+#, python-format
+#~ msgid "%%(count)s naps today"
+#~ msgstr "%%(count)s Nickerchen heute"
+
+#, python-format
+#~ msgid "%%(count)s min avg nap"
+#~ msgstr "%%(count)s Min. durchschn. Nickerchen"
+
+#, python-format
+#~ msgid "%%(count)s min avg sleep"
+#~ msgstr "%%(count)s Min. durchschn. Schlaf"
+
+#~ msgid "statistics"
+#~ msgstr "Statistiken"
+
+#, python-format
+#~ msgid "%%(count)s min today"
+#~ msgstr "%%(count)s Min. heute"
+
+#, python-format
+#~ msgid "%%(count)s recent tummy time entries"
+#~ msgstr "%%(count)s letzte Bauchzeit-Eintraege"
+
+#~ msgid "tummy time"
+#~ msgstr "Bauchzeit"
+
+#, python-format
+#~ msgid "Existing running timer: %%(name)s"
+#~ msgstr "Bereits laufender Timer: %%(name)s"
+
+#, python-format
+#~ msgid "Error loading data: %%(message)s"
+#~ msgstr "Fehler beim Laden der Daten: %%(message)s"
+
+#~ msgid "Error loading children"
+#~ msgstr "Fehler beim Laden der Kinder"
+
+#, python-format
+#~ msgid "Timeline error: %%(message)s"
+#~ msgstr "Timeline-Fehler: %%(message)s"
+
+#, python-format
+#~ msgid "Timer error: %%(message)s"
+#~ msgstr "Timer-Fehler: %%(message)s"
+
+#, python-format
+#~ msgid "Manual save error: %%(message)s"
+#~ msgstr "Fehler beim manuellen Speichern: %%(message)s"
+
+#~ msgid "Sleep preview timer"
+#~ msgstr "Schlaf-Vorschau-Timer"
 
 #~ msgid "Delete a BMI Entry"
 #~ msgstr "Lösche BMI-Eintrag"

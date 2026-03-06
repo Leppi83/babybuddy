@@ -241,8 +241,6 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     def get_template_names(self):
         if _ant_dashboard_enabled():
             return ["babybuddy/ant_app.html"]
-        if settings.BABY_BUDDY.get("DASHBOARD_SHADCN_CHILD_ENABLED", False):
-            return ["babybuddy/shadcn_preview.html"]
         return [self.template_name]
 
     def post(self, request, *args, **kwargs):
@@ -308,14 +306,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         context["visible_dashboard_sections"] = set(visible_sections)
         context["dashboard_section_order"] = visible_sections
         context["dashboard_hidden_sections"] = hidden_sections
-        context["preview_visible_items"] = visible_items
-        context["preview_visible_sections"] = visible_sections
-        context["preview_hidden_sections"] = hidden_sections
-        context["preview_cards_by_section"] = preview_cards_by_section
-        context["preview_mode"] = False
-        context["preview_fixed_child"] = self.object
         children = Child.objects.all().order_by("last_name", "first_name", "id")
-        context["preview_children"] = children
         if _ant_dashboard_enabled():
             context["ant_page_title"] = _("Dashboard")
             context["ant_bootstrap"] = {

@@ -43,9 +43,6 @@ from django_filters.views import FilterView
 from babybuddy import forms
 from babybuddy.models import Settings as UserSettingsModel
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin, StaffOnlyMixin
-from core.models import Child
-
-
 def csrf_failure(request, reason=""):
     """
     Overrides the 403 CSRF failure template for bad origins in order to provide more
@@ -547,70 +544,3 @@ class Welcome(LoginRequiredMixin, TemplateView):
     """
 
     template_name = "babybuddy/welcome.html"
-
-
-class ShadcnPreview(LoginRequiredMixin, TemplateView):
-    """
-    Isolated preview route for the React/shadcn migration.
-    """
-
-    template_name = "babybuddy/shadcn_preview.html"
-
-    SECTION_CARD_KEYS = {
-        "diaper": [
-            "card.diaper.quick_entry",
-            "card.diaper.last",
-            "card.diaper.types",
-        ],
-        "feedings": [
-            "card.feedings.last",
-            "card.feedings.method",
-            "card.feedings.recent",
-            "card.feedings.breastfeeding",
-        ],
-        "pumpings": ["card.pumpings.last"],
-        "sleep": [
-            "card.sleep.timers",
-            "card.sleep.quick_timer",
-            "card.sleep.last",
-            "card.sleep.recent",
-            "card.sleep.naps_day",
-            "card.sleep.statistics",
-            "card.sleep.timeline_day",
-            "card.sleep.recommendations",
-        ],
-        "tummytime": ["card.tummytime.day"],
-    }
-    SECTION_ORDER = ["diaper", "feedings", "pumpings", "sleep", "tummytime"]
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        selected_items = self.request.user.settings.dashboard_selected_items()
-        ordered_sections = self.request.user.settings.dashboard_selected_section_order()
-        hidden_sections = self.request.user.settings.dashboard_selected_hidden_sections()
-        allowed_items = {
-            key for keys in self.SECTION_CARD_KEYS.values() for key in keys
-        }
-        ordered_visible_items = [
-            item for item in selected_items if item in allowed_items
-        ]
-        selected = set(ordered_visible_items)
-        preview_cards_by_section = {
-            section: [item for item in ordered_visible_items if item in keys]
-            for section, keys in self.SECTION_CARD_KEYS.items()
-        }
-        visible_sections = [
-            section
-            for section in ordered_sections
-            if preview_cards_by_section.get(section)
-        ]
-        context["preview_visible_items"] = selected
-        context["preview_visible_sections"] = visible_sections
-        context["preview_hidden_sections"] = hidden_sections
-        context["preview_cards_by_section"] = preview_cards_by_section
-        context["preview_mode"] = True
-        context["preview_fixed_child"] = None
-        context["preview_children"] = Child.objects.all().order_by(
-            "last_name", "first_name", "id"
-        )
-        return context

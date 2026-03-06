@@ -393,9 +393,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 BABY_BUDDY = {
     "ALLOW_UPLOADS": bool(strtobool(os.environ.get("ALLOW_UPLOADS") or "True")),
     "READ_ONLY_GROUP_NAME": "read_only",
-    "DASHBOARD_SHADCN_CHILD_ENABLED": bool(
-        strtobool(os.environ.get("DASHBOARD_SHADCN_CHILD_ENABLED") or "False")
-    ),
     "DASHBOARD_ANT_ENABLED": bool(
         strtobool(os.environ.get("DASHBOARD_ANT_ENABLED") or "True")
     ),
