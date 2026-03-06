@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   App as AntApp,
   Alert,
+  Avatar,
   Badge,
   Button,
   Card,
@@ -16,6 +17,7 @@ import {
   Layout,
   List,
   Menu,
+  Pagination,
   Row,
   Select,
   Segmented,
@@ -23,6 +25,7 @@ import {
   Spin,
   Statistic,
   Switch,
+  Table,
   Tag,
   theme,
   Typography
@@ -206,6 +209,10 @@ function AppShell({ bootstrap, children }) {
     settings: {
       eyebrow: bootstrap.strings.settings,
       title: bootstrap.strings.userSettings
+    },
+    list: {
+      eyebrow: bootstrap.listPage?.kicker || bootstrap.strings.list,
+      title: bootstrap.listPage?.title || bootstrap.strings.list
     }
   }[bootstrap.pageType] || {
     eyebrow: bootstrap.strings.dashboard,
@@ -269,6 +276,106 @@ function AppShell({ bootstrap, children }) {
         <Content className="ant-shell-content">{children}</Content>
       </Layout>
     </Layout>
+  );
+}
+
+function renderListCell(cell) {
+  if (cell == null || cell === "") {
+    return <Text type="secondary">-</Text>;
+  }
+  if (typeof cell === "object" && cell.type === "link") {
+    return <a href={cell.href}>{cell.label}</a>;
+  }
+  if (typeof cell === "object" && cell.type === "image") {
+    return <Avatar src={cell.src} shape="circle" size={40} />;
+  }
+  if (typeof cell === "object" && cell.type === "actions") {
+    return (
+      <Space wrap>
+        {(cell.items || []).filter(Boolean).map((item) => (
+          <Button
+            key={`${item.label}-${item.href}`}
+            href={item.href}
+            size="small"
+            danger={Boolean(item.danger)}
+          >
+            {item.label}
+          </Button>
+        ))}
+      </Space>
+    );
+  }
+  return cell;
+}
+
+function ListPage({ bootstrap }) {
+  const pagination = bootstrap.listPage.pagination;
+  const columns = bootstrap.listPage.columns.map((column) => ({
+    title: column.title,
+    dataIndex: column.key,
+    key: column.key,
+    render: (value) => renderListCell(value)
+  }));
+
+  const dataSource = bootstrap.listPage.rows.map((row) => ({
+    key: row.key,
+    ...row.cells
+  }));
+
+  function handlePageChange(page) {
+    const url = new URL(window.location.href);
+    if (page <= 1) {
+      url.searchParams.delete("page");
+    } else {
+      url.searchParams.set("page", String(page));
+    }
+    window.location.assign(url.toString());
+  }
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Row gutter={[16, 16]} align="middle">
+          <Col flex="auto">
+            <Space direction="vertical" size={6}>
+              <Text type="secondary">{bootstrap.listPage.kicker}</Text>
+              <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+                {bootstrap.listPage.title}
+              </Title>
+            </Space>
+          </Col>
+          <Col>
+            <Space wrap>
+              {(bootstrap.listPage.addActions || []).map((action) => (
+                <Button key={action.href} type="primary" href={action.href}>
+                  {action.label}
+                </Button>
+              ))}
+            </Space>
+          </Col>
+        </Row>
+      </Card>
+      <Card className="ant-section-card">
+        <Table
+          columns={columns}
+          dataSource={dataSource}
+          pagination={false}
+          locale={{ emptyText: bootstrap.strings.empty }}
+          scroll={{ x: 860 }}
+        />
+        {pagination ? (
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
+            <Pagination
+              current={pagination.page}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              onChange={handlePageChange}
+              showSizeChanger={false}
+            />
+          </div>
+        ) : null}
+      </Card>
+    </Space>
   );
 }
 
@@ -1275,6 +1382,8 @@ export function App({ bootstrap }) {
             <DashboardHomePage bootstrap={bootstrap} />
           ) : bootstrap.pageType === "settings" ? (
             <SettingsPage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "list" ? (
+            <ListPage bootstrap={bootstrap} />
           ) : (
             <ChildDashboardPage bootstrap={bootstrap} />
           )}
