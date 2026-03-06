@@ -60,6 +60,12 @@ def _build_ant_strings():
         "time": _("Time"),
         "liquid": _("Liquid"),
         "solid": _("Solid"),
+        "sleepType": _("Type"),
+        "sleepEntry": _("Sleep entry"),
+        "startDate": _("Start date"),
+        "startTime": _("Start time"),
+        "endDate": _("End date"),
+        "endTime": _("End time"),
         "diaperChanges": _("Diaper changes"),
         "diaper": _("Diaper changes"),
         "feedings": _("Feedings"),
@@ -92,6 +98,7 @@ def _build_ant_strings():
         "ready": _("Ready"),
         "start": _("Start"),
         "stop": _("Stop"),
+        "manualEntry": _("Manual entry"),
         "running": _("Running"),
         "now": _("Now"),
         "sleepTimerActive": _("Sleep timer active"),
@@ -248,6 +255,52 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                 request, _("Unable to create diaper entry: %(error)s") % {"error": exc}
             )
 
+    def _handle_sleep_manual_entry(self, request):
+        start_date = (request.POST.get("sleep_entry_start_date") or "").strip()
+        start_time = (request.POST.get("sleep_entry_start_time") or "").strip()
+        end_date = (request.POST.get("sleep_entry_end_date") or "").strip()
+        end_time = (request.POST.get("sleep_entry_end_time") or "").strip()
+        sleep_type = (request.POST.get("sleep_entry_type") or "").strip()
+
+        if not start_date or not start_time or not end_date or not end_time:
+            messages.error(
+                request,
+                _(
+                    "Unable to create sleep entry: start and end date/time are required."
+                ),
+            )
+            return
+
+        if sleep_type not in {"sleep", "nap"}:
+            messages.error(
+                request, _("Unable to create sleep entry: type is required.")
+            )
+            return
+
+        try:
+            start_dt = self._parse_local_datetime(start_date, start_time)
+            end_dt = self._parse_local_datetime(end_date, end_time)
+        except ValueError as exc:
+            messages.error(
+                request, _("Unable to create sleep entry: %(error)s") % {"error": exc}
+            )
+            return
+
+        sleep = Sleep(
+            child=self.object,
+            start=start_dt,
+            end=end_dt,
+            nap=sleep_type == "nap",
+        )
+        try:
+            sleep.full_clean()
+            sleep.save()
+            messages.success(request, _("Sleep entry saved."))
+        except ValidationError as exc:
+            messages.error(
+                request, _("Unable to create sleep entry: %(error)s") % {"error": exc}
+            )
+
     def get_template_names(self):
         if _ant_dashboard_enabled():
             return ["babybuddy/ant_app.html"]
@@ -257,6 +310,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         self.object = self.get_object()
         if request.POST.get("diaper_quick_entry_action") == "create":
             self._handle_diaper_quick_entry(request)
+            return HttpResponseRedirect(request.get_full_path())
+        if request.POST.get("sleep_manual_entry_action") == "create":
+            self._handle_sleep_manual_entry(request)
             return HttpResponseRedirect(request.get_full_path())
 
         action = request.POST.get("sleep_timer_action")
@@ -328,9 +384,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         if start_raw:
             try:
                 start_dt = timezone.datetime.fromisoformat(start_raw)
-                elapsed = max(
-                    0, int((timezone.now() - start_dt).total_seconds())
-                )
+                elapsed = max(0, int((timezone.now() - start_dt).total_seconds()))
                 timer_payload = {
                     "running": True,
                     "startIso": start_dt.isoformat(),

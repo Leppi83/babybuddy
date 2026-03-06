@@ -102,3 +102,32 @@ class ViewsTestCase(TestCase):
         sleep = Sleep.objects.order_by("-id").first()
         self.assertIsNotNone(sleep)
         self.assertEqual(sleep.child, child)
+
+    def test_dashboard_manual_sleep_entry(self):
+        child = Child.objects.create(
+            first_name="Sleep",
+            last_name="Test",
+            birth_date="2025-01-01",
+        )
+        previous_max_id = (
+            Sleep.objects.order_by("-id").values_list("id", flat=True).first() or 0
+        )
+
+        response = self.c.post(
+            f"/children/{child.slug}/dashboard/",
+            data={
+                "sleep_manual_entry_action": "create",
+                "sleep_entry_start_date": "2026-03-06",
+                "sleep_entry_start_time": "08:00",
+                "sleep_entry_end_date": "2026-03-06",
+                "sleep_entry_end_time": "09:30",
+                "sleep_entry_type": "nap",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        sleep = Sleep.objects.filter(child=child, id__gt=previous_max_id).latest("id")
+        self.assertTrue(sleep.nap)
+        self.assertEqual(sleep.start.date().isoformat(), "2026-03-06")
+        self.assertEqual(sleep.end.date().isoformat(), "2026-03-06")
