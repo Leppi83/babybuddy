@@ -23,6 +23,7 @@ class Settings(models.Model):
         ("tummytime", _("Tummy time")),
     ]
     DASHBOARD_ITEM_CHOICES = [
+        ("card.diaper.quick_entry", _("diaper changes - Quick Entry")),
         ("card.diaper.last", _("diaper changes - Last nappy change")),
         ("card.diaper.types", _("diaper changes - Nappy changes")),
         ("card.feedings.last", _("feedings - Last feeding")),

@@ -336,6 +336,17 @@
         line-height: 1;
     }
 
+    .diaper-quick-entry-form {
+        display: grid;
+        gap: .55rem;
+    }
+
+    .diaper-quick-entry-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
     .sleep-harvey {
         --fill-angle: 0deg;
         width: 1.1rem;

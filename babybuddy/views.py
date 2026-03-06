@@ -383,7 +383,11 @@ class ShadcnPreview(LoginRequiredMixin, TemplateView):
     template_name = "babybuddy/shadcn_preview.html"
 
     SECTION_CARD_KEYS = {
-        "diaper": ["card.diaper.last", "card.diaper.types"],
+        "diaper": [
+            "card.diaper.quick_entry",
+            "card.diaper.last",
+            "card.diaper.types",
+        ],
         "feedings": [
             "card.feedings.last",
             "card.feedings.method",

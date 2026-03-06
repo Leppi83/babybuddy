@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from core.models import Child, Sleep
+from core.models import Child, DiaperChange, Sleep
 
 
 class Dashboard(LoginRequiredMixin, TemplateView):
@@ -42,6 +45,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
 
     SECTION_CARD_MAP = {
         "diaper": [
+            "card.diaper.quick_entry",
             "card.diaper.last",
             "card.diaper.types",
         ],
@@ -74,6 +78,44 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     def _timer_session_key(child_id):
         return f"sleep_timer_start_{child_id}"
 
+    @staticmethod
+    def _parse_local_datetime(date_value, time_value):
+        entry_date = datetime.date.fromisoformat(date_value)
+        entry_time = datetime.time.fromisoformat(time_value)
+        naive_dt = datetime.datetime.combine(entry_date, entry_time)
+        return timezone.make_aware(naive_dt, timezone.get_current_timezone())
+
+    def _handle_diaper_quick_entry(self, request):
+        entry_date = (request.POST.get("diaper_entry_date") or "").strip()
+        entry_time = (request.POST.get("diaper_entry_time") or "").strip()
+        consistency = (request.POST.get("diaper_entry_consistency") or "").strip()
+
+        if not entry_date or not entry_time or consistency not in {"liquid", "solid"}:
+            messages.error(
+                request,
+                _("Unable to create diaper entry: date, time, and consistency are required."),
+            )
+            return
+
+        try:
+            entry_dt = self._parse_local_datetime(entry_date, entry_time)
+        except ValueError as exc:
+            messages.error(request, f"Unable to create diaper entry: {exc}")
+            return
+
+        change = DiaperChange(
+            child=self.object,
+            time=entry_dt,
+            wet=consistency == "liquid",
+            solid=consistency == "solid",
+        )
+        try:
+            change.full_clean()
+            change.save()
+            messages.success(request, _("Nappy change saved."))
+        except ValidationError as exc:
+            messages.error(request, f"Unable to create diaper entry: {exc}")
+
     def get_template_names(self):
         if settings.BABY_BUDDY.get("DASHBOARD_SHADCN_CHILD_ENABLED", False):
             return ["babybuddy/shadcn_preview.html"]
@@ -81,6 +123,10 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        if request.POST.get("diaper_quick_entry_action") == "create":
+            self._handle_diaper_quick_entry(request)
+            return HttpResponseRedirect(request.get_full_path())
+
         action = request.POST.get("sleep_timer_action")
         key = self._timer_session_key(self.object.id)
 
