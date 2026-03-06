@@ -283,6 +283,10 @@ body {
   width: 100%;
 }
 
+.ant-dashboard-picker--compact.ant-picker {
+  max-width: 220px;
+}
+
 .ant-diaper-save {
   align-self: flex-start;
 }
@@ -296,6 +300,14 @@ body {
 
 .ant-sleep-timer-card .ant-statistic {
   width: 100%;
+}
+
+.ant-sleep-timer-layout {
+  align-items: stretch;
+}
+
+.ant-sleep-timer-layout .ant-card {
+  height: 100%;
 }
 
 .ant-dashboard-child-avatar {
@@ -397,6 +409,10 @@ body {
 
   .ant-timeline-legend {
     gap: 10px;
+  }
+
+  .ant-dashboard-picker--compact.ant-picker {
+    max-width: 100%;
   }
 
   .ant-hero-card .ant-space,
