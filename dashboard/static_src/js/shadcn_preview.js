@@ -38,6 +38,7 @@
             const recommendationsRoot = root.querySelector("#ui-reco-content");
             const fixedChildId = root.dataset.fixedChildId || "";
             const childDashboardUrlTemplate = root.dataset.childDashboardUrlTemplate || "";
+            const layoutUrl = root.dataset.layoutUrl || "";
 
             const selectionKey = "ui-preview-selected-child";
             const timerKey = "ui-preview-sleep-timer";
@@ -98,6 +99,66 @@
                 const hiddenCount = sections.filter((section) => section.dataset.collapsed === "1").length;
                 visible.textContent = `${sections.length - hiddenCount} visible`;
                 hidden.textContent = `${hiddenCount} hidden`;
+            }
+
+            function csrfToken() {
+                const tokenInput = document.querySelector("[name=csrfmiddlewaretoken]");
+                return tokenInput ? tokenInput.value : "";
+            }
+
+            function currentSectionOrder() {
+                return Array.from(root.querySelectorAll(".ui-preview-section"))
+                    .map((section) => section.dataset.sectionId)
+                    .filter(Boolean);
+            }
+
+            function currentHiddenSections() {
+                return Array.from(root.querySelectorAll(".ui-preview-section"))
+                    .filter((section) => section.dataset.collapsed === "1")
+                    .map((section) => section.dataset.sectionId)
+                    .filter(Boolean);
+            }
+
+            function applySectionOrder() {
+                const rawOrder = (root.dataset.sectionOrder || "")
+                    .split(",")
+                    .map((value) => value.trim())
+                    .filter(Boolean);
+                if (!rawOrder.length) {
+                    return;
+                }
+                const container = root.querySelector(".ui-preview-sections");
+                if (!container) {
+                    return;
+                }
+                rawOrder.forEach((sectionId) => {
+                    const section = container.querySelector(`.ui-preview-section[data-section-id="${sectionId}"]`);
+                    if (section) {
+                        container.appendChild(section);
+                    }
+                });
+            }
+
+            function persistLayout() {
+                if (!layoutUrl || !window.fetch) {
+                    return Promise.resolve();
+                }
+                const payload = new URLSearchParams();
+                payload.set("action", "autosave_dashboard_layout");
+                payload.set("dashboard_section_order", currentSectionOrder().join(","));
+                payload.set("dashboard_hidden_sections", currentHiddenSections().join(","));
+                return fetch(layoutUrl, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                        "X-CSRFToken": csrfToken(),
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: payload.toString()
+                }).catch(() => {
+                    // Ignore transient layout save failures.
+                });
             }
 
             function asItems(payload) {
@@ -959,6 +1020,7 @@
                     section.dataset.collapsed = collapsed ? "0" : "1";
                     button.textContent = collapsed ? "Hide" : "Show";
                     refreshCounts();
+                    persistLayout();
                 });
             });
 
@@ -1058,6 +1120,7 @@
             })();
 
             restoreTimerState();
+            applySectionOrder();
             refreshCounts();
             refreshTimelineHeader();
             updateSleepTimerUI();

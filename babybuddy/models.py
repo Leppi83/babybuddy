@@ -15,6 +15,13 @@ from rest_framework.authtoken.models import Token
 
 
 class Settings(models.Model):
+    DASHBOARD_SECTION_CHOICES = [
+        ("diaper", _("Diaper changes")),
+        ("feedings", _("Feedings")),
+        ("pumpings", _("Pumpings")),
+        ("sleep", _("Sleep")),
+        ("tummytime", _("Tummy time")),
+    ]
     DASHBOARD_ITEM_CHOICES = [
         ("card.diaper.last", _("diaper changes - Last nappy change")),
         ("card.diaper.types", _("diaper changes - Nappy changes")),
@@ -125,6 +132,12 @@ class Settings(models.Model):
     dashboard_visible_items = models.JSONField(
         verbose_name=_("Dashboard visible items"), default=list, blank=True
     )
+    dashboard_section_order = models.JSONField(
+        verbose_name=_("Dashboard section order"), default=list, blank=True
+    )
+    dashboard_hidden_sections = models.JSONField(
+        verbose_name=_("Hidden dashboard sections"), default=list, blank=True
+    )
     language = models.CharField(
         choices=settings.LANGUAGES,
         default=settings.LANGUAGE_CODE,
@@ -180,10 +193,32 @@ class Settings(models.Model):
     def dashboard_default_visible_items(cls):
         return [item[0] for item in cls.DASHBOARD_ITEM_CHOICES]
 
+    @classmethod
+    def dashboard_default_section_order(cls):
+        return [section[0] for section in cls.DASHBOARD_SECTION_CHOICES]
+
     def dashboard_selected_items(self):
         if self.dashboard_visible_items:
             return self.dashboard_visible_items
         return self.dashboard_default_visible_items()
+
+    def dashboard_selected_section_order(self):
+        allowed = set(self.dashboard_default_section_order())
+        stored = [
+            section for section in (self.dashboard_section_order or []) if section in allowed
+        ]
+        for section in self.dashboard_default_section_order():
+            if section not in stored:
+                stored.append(section)
+        return stored
+
+    def dashboard_selected_hidden_sections(self):
+        allowed = set(self.dashboard_default_section_order())
+        return [
+            section
+            for section in (self.dashboard_hidden_sections or [])
+            if section in allowed
+        ]
 
 
 @receiver(post_save, sender=get_user_model())

@@ -23,3 +23,20 @@ class SettingsTestCase(TestCase):
         user.settings.language = "fr"
         user.save()
         self.assertEqual(user.settings.language, "fr")
+
+    def test_dashboard_layout_helpers(self):
+        user = get_user_model().objects.create_user(
+            username="layout", password="User", is_superuser=True
+        )
+        user.settings.dashboard_section_order = ["sleep", "diaper"]
+        user.settings.dashboard_hidden_sections = ["sleep", "invalid", "feedings"]
+        user.settings.save()
+
+        self.assertEqual(
+            user.settings.dashboard_selected_section_order(),
+            ["sleep", "diaper", "feedings", "pumpings", "tummytime"],
+        )
+        self.assertEqual(
+            user.settings.dashboard_selected_hidden_sections(),
+            ["sleep", "feedings"],
+        )

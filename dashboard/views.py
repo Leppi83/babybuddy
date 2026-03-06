@@ -112,6 +112,8 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(ChildDashboard, self).get_context_data(**kwargs)
         selected_items = self.request.user.settings.dashboard_selected_items()
+        ordered_sections = self.request.user.settings.dashboard_selected_section_order()
+        hidden_sections = self.request.user.settings.dashboard_selected_hidden_sections()
         allowed_items = {
             card
             for section_cards in self.SECTION_CARD_MAP.values()
@@ -128,14 +130,17 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         }
         visible_sections = [
             section
-            for section in self.SECTION_ORDER
+            for section in ordered_sections
             if preview_cards_by_section.get(section)
         ]
 
         context["visible_dashboard_items"] = visible_items
         context["visible_dashboard_sections"] = set(visible_sections)
+        context["dashboard_section_order"] = visible_sections
+        context["dashboard_hidden_sections"] = hidden_sections
         context["preview_visible_items"] = visible_items
         context["preview_visible_sections"] = visible_sections
+        context["preview_hidden_sections"] = hidden_sections
         context["preview_cards_by_section"] = preview_cards_by_section
         context["preview_mode"] = False
         context["preview_fixed_child"] = self.object

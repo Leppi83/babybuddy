@@ -68,6 +68,24 @@ class ViewsTestCase(TestCase):
         page = self.c.get("/user/settings/")
         self.assertEqual(page.status_code, 200)
 
+    def test_user_settings_autosave_dashboard_layout(self):
+        page = self.c.post(
+            "/user/settings/",
+            data={
+                "action": "autosave_dashboard_layout",
+                "dashboard_section_order": "sleep,diaper",
+                "dashboard_hidden_sections": "sleep,invalid",
+            },
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        self.assertEqual(page.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(
+            self.user.settings.dashboard_section_order,
+            ["sleep", "diaper", "feedings", "pumpings", "tummytime"],
+        )
+        self.assertEqual(self.user.settings.dashboard_hidden_sections, ["sleep"])
+
     def test_add_device_page(self):
         page = self.c.get("/user/add-device/")
         self.assertRegex(

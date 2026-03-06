@@ -14,7 +14,10 @@
     <div class="dashboard-md3 dashboard-child-view">
         <div id="dashboard-child"
              class="dashboard-sections"
-             data-order-key="dashboard-child-sections-{{ object.slug }}">
+             data-order-key="dashboard-child-sections-{{ object.slug }}"
+             data-layout-url="{% url 'babybuddy:user-settings' %}"
+             data-section-order="{{ dashboard_section_order|join:',' }}"
+             data-hidden-sections="{{ dashboard_hidden_sections|join:',' }}">
             {% if 'diaper' in visible_dashboard_sections %}
                 <section class="dashboard-section section-diaper" data-section-id="diaper">
                     <h2 class="section-title">
@@ -31,7 +34,7 @@
             {% endif %}
 
             {% if 'feedings' in visible_dashboard_sections %}
-                <section class="dashboard-section section-feeding" data-section-id="feeding">
+                <section class="dashboard-section section-feeding" data-section-id="feedings">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
                             <i class="icon-list" aria-hidden="true"></i>
@@ -48,7 +51,7 @@
             {% endif %}
 
             {% if 'pumpings' in visible_dashboard_sections %}
-                <section class="dashboard-section section-pumping" data-section-id="pumping">
+                <section class="dashboard-section section-pumping" data-section-id="pumpings">
                     <h2 class="section-title">
                         <button class="section-drag-handle" type="button" aria-label="{% trans "Drag section" %}" title="{% trans "Drag to reorder" %}">
                             <i class="icon-list" aria-hidden="true"></i>

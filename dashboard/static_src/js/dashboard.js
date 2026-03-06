@@ -10,12 +10,49 @@ BabyBuddy.Dashboard = (function ($) {
   var draggedSection = null;
   var dragSourceSection = null;
 
-  function saveSectionOrder() {
+  function csrfToken() {
+    var tokenInput = document.querySelector("[name=csrfmiddlewaretoken]");
+    return tokenInput ? tokenInput.value : "";
+  }
+
+  function currentHiddenSections() {
     if (!dashboardElement || dashboardElement.length == 0) {
+      return [];
+    }
+    var rawHidden = dashboardElement.attr("data-hidden-sections") || "";
+    return rawHidden
+      .split(",")
+      .map(function (value) {
+        return value.trim();
+      })
+      .filter(Boolean);
+  }
+
+  function persistLayout(order, hiddenSections) {
+    var layoutUrl = dashboardElement && dashboardElement.data("layout-url");
+    if (!layoutUrl || !window.fetch) {
       return;
     }
-    var storageKey = dashboardElement.data("order-key");
-    if (!storageKey || !window.localStorage) {
+    var payload = new URLSearchParams();
+    payload.set("action", "autosave_dashboard_layout");
+    payload.set("dashboard_section_order", order.join(","));
+    payload.set("dashboard_hidden_sections", hiddenSections.join(","));
+    window.fetch(layoutUrl, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        "X-CSRFToken": csrfToken(),
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: payload.toString(),
+    }).catch(function () {
+      // Ignore transient layout save failures.
+    });
+  }
+
+  function saveSectionOrder() {
+    if (!dashboardElement || dashboardElement.length == 0) {
       return;
     }
     var order = dashboardElement
@@ -24,30 +61,24 @@ BabyBuddy.Dashboard = (function ($) {
         return this.dataset.sectionId;
       })
       .get();
-    window.localStorage.setItem(storageKey, JSON.stringify(order));
+    dashboardElement.attr("data-section-order", order.join(","));
+    persistLayout(order, currentHiddenSections());
   }
 
   function loadSectionOrder() {
     if (!dashboardElement || dashboardElement.length == 0) {
       return;
     }
-    var storageKey = dashboardElement.data("order-key");
-    if (!storageKey || !window.localStorage) {
+    var rawOrder = dashboardElement.attr("data-section-order");
+    if (!rawOrder) {
       return;
     }
-    var storedOrder = window.localStorage.getItem(storageKey);
-    if (!storedOrder) {
-      return;
-    }
-    var order;
-    try {
-      order = JSON.parse(storedOrder);
-    } catch (_err) {
-      return;
-    }
-    if (!Array.isArray(order)) {
-      return;
-    }
+    var order = rawOrder
+      .split(",")
+      .map(function (value) {
+        return value.trim();
+      })
+      .filter(Boolean);
     order.forEach(function (sectionId) {
       var section = dashboardElement.find(
         '.dashboard-section[data-section-id="' + sectionId + '"]',
