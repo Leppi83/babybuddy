@@ -25,6 +25,7 @@
         <link rel="shortcut icon"
               href="{% static "babybuddy/root/favicon.ico" %}?v=20260306" />
         <link rel="stylesheet" href="{% static "babybuddy/css/app.css" %}" />
+        {% block extra_head %}{% endblock %}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Baby Buddy" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />

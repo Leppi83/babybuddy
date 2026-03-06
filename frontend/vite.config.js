@@ -5,17 +5,17 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: "dist",
+    outDir: "../babybuddy/static/babybuddy/ant",
     emptyOutDir: true,
     lib: {
       entry: resolve(__dirname, "src/main.jsx"),
-      name: "BabyBuddyShadcnPreview",
+      name: "BabyBuddyAntApp",
       formats: ["iife"],
-      fileName: () => "preview"
+      fileName: () => "app.js"
     },
     rollupOptions: {
       output: {
-        assetFileNames: "preview.[ext]"
+        assetFileNames: "app.[ext]"
       }
     }
   }

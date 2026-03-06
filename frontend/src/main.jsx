@@ -3,15 +3,17 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import "./index.css";
 
-const mountNode =
-  document.getElementById("shadcn-root") || document.getElementById("root");
+const mountNode = document.getElementById("ant-app-root");
+const bootstrapNode = document.getElementById("ant-app-bootstrap");
 
-if (!mountNode) {
-  throw new Error("No mount node found for shadcn preview.");
+if (!mountNode || !bootstrapNode) {
+  throw new Error("Ant app mount bootstrap is missing.");
 }
+
+const bootstrap = JSON.parse(bootstrapNode.textContent);
 
 createRoot(mountNode).render(
   <React.StrictMode>
-    <App bootstrap={mountNode.dataset} />
+    <App bootstrap={bootstrap} />
   </React.StrictMode>
 );
