@@ -1989,7 +1989,7 @@ class TemperatureDelete(AntDeleteMixin, CoreDeleteView):
 
 
 class Timeline(LoginRequiredMixin, TemplateView):
-    template_name = "timeline/timeline.html"
+    template_name = "babybuddy/ant_app.html"
 
     # Show the overall timeline or a child timeline if one Child instance.
     def get(self, request, *args, **kwargs):

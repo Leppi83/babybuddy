@@ -3,6 +3,8 @@
 from django import template
 from django.apps import apps
 from django.conf import settings
+from django.middleware.csrf import get_token
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import lazy
 from django.utils.html import format_html
@@ -106,3 +108,62 @@ def confirm_unlock_text(object):
             "name": format_html('<span class="text-info">{}</span>', str(object)),
         }
     )
+
+
+@register.simple_tag(takes_context=True)
+def ant_error_bootstrap(
+    context,
+    *,
+    title,
+    kicker,
+    body,
+    action_href="",
+    action_label="",
+):
+    request = context.get("request")
+    user = getattr(request, "user", None)
+    is_authenticated = bool(getattr(user, "is_authenticated", False))
+
+    if not action_href:
+        action_href = reverse(
+            "babybuddy:root-router" if is_authenticated else "babybuddy:login"
+        )
+    if not action_label:
+        action_label = (
+            str(_("Return to Baby Buddy"))
+            if is_authenticated
+            else str(_("Back to login"))
+        )
+
+    return {
+        "layout": "auth",
+        "pageType": "message",
+        "currentPath": getattr(request, "path", "/"),
+        "locale": getattr(request, "LANGUAGE_CODE", get_language() or "en"),
+        "csrfToken": get_token(request) if request else "",
+        "user": None,
+        "urls": {
+            "self": getattr(request, "path", "/"),
+        },
+        "strings": {
+            "overview": str(_("Overview")),
+            "dashboard": str(_("Dashboard")),
+            "timeline": str(_("Timeline")),
+            "settings": str(_("Settings")),
+            "logout": str(_("Logout")),
+            "welcome": str(_("Welcome")),
+            "login": str(_("Login")),
+            "backToLogin": str(_("Back to login")),
+        },
+        "messages": [],
+        "messagePage": {
+            "title": str(title),
+            "kicker": str(kicker),
+            "body": [str(body)] if body else [],
+            "actions": (
+                [{"href": action_href, "label": str(action_label)}]
+                if action_href and action_label
+                else []
+            ),
+        },
+    }

@@ -127,7 +127,7 @@ def _build_section_payload(section_cards, section_order, hidden_sections):
 
 class Dashboard(LoginRequiredMixin, TemplateView):
     # TODO: Use .card-deck in this template once BS4 is finalized.
-    template_name = "dashboard/dashboard.html"
+    template_name = "babybuddy/ant_app.html"
 
     # Show the overall dashboard or a child dashboard if one Child instance.
     def get(self, request, *args, **kwargs):
@@ -167,7 +167,7 @@ class Dashboard(LoginRequiredMixin, TemplateView):
 class ChildDashboard(PermissionRequiredMixin, DetailView):
     model = Child
     permission_required = ("core.view_child",)
-    template_name = "dashboard/child.html"
+    template_name = "babybuddy/ant_app.html"
 
     SECTION_CARD_MAP = {
         "diaper": [
