@@ -65,6 +65,16 @@ BabyBuddy.RememberAdvancedToggle = function (ptr) {
 
   function applyCollapsedState(collapsed) {
     document.body.classList.toggle("app-sidebar-collapsed", collapsed);
+    var toggleButton = document.getElementById("app-shell-collapse-toggle");
+    if (toggleButton) {
+      var label = collapsed
+        ? toggleButton.dataset.labelCollapsed
+        : toggleButton.dataset.labelExpanded;
+      if (label) {
+        toggleButton.setAttribute("aria-label", label);
+        toggleButton.setAttribute("title", label);
+      }
+    }
   }
 
   window.addEventListener("load", function () {
