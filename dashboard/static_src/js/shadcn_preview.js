@@ -29,6 +29,12 @@
             const sleepTimerCaption = root.querySelector("#ui-sleep-timer-caption");
             const sleepTimerDots = root.querySelector("#ui-sleep-timer-dots");
             const sleepTimerNote = root.querySelector("#ui-sleep-timer-note");
+            const sleepManualStartText = root.querySelector("#ui-sleep-manual-start-text");
+            const sleepManualStartPicker = root.querySelector("#ui-sleep-manual-start-picker");
+            const sleepManualEndText = root.querySelector("#ui-sleep-manual-end-text");
+            const sleepManualEndPicker = root.querySelector("#ui-sleep-manual-end-picker");
+            const sleepManualNap = root.querySelector("#ui-sleep-manual-nap");
+            const sleepManualSave = root.querySelector("#ui-sleep-manual-save");
             const recommendationsRoot = root.querySelector("#ui-reco-content");
             const fixedChildId = root.dataset.fixedChildId || "";
             const childDashboardUrlTemplate = root.dataset.childDashboardUrlTemplate || "";
@@ -485,6 +491,44 @@
                 return `Sleeping: ${hours} h`;
             }
 
+            function normalizeHHMM(rawValue) {
+                const value = (rawValue || "").trim();
+                if (!value) {
+                    return "";
+                }
+                const match = value.match(/^(\d{1,2}):(\d{2})$/);
+                if (!match) {
+                    return "";
+                }
+                const hour = parseInt(match[1], 10);
+                const minute = parseInt(match[2], 10);
+                if (Number.isNaN(hour) || Number.isNaN(minute)) {
+                    return "";
+                }
+                if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+                    return "";
+                }
+                return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+            }
+
+            function combineDateAndTime(dateString, timeString) {
+                const day = parseDateInput(dateString);
+                const normalizedTime = normalizeHHMM(timeString);
+                if (!day || !normalizedTime) {
+                    return null;
+                }
+                const [hour, minute] = normalizedTime.split(":").map((value) => parseInt(value, 10));
+                return new Date(
+                    day.getFullYear(),
+                    day.getMonth(),
+                    day.getDate(),
+                    hour,
+                    minute,
+                    0,
+                    0
+                );
+            }
+
             function persistTimerState() {
                 localStorage.setItem(timerKey, JSON.stringify(state.timer));
             }
@@ -606,6 +650,59 @@
                 stopTimerTicking();
                 if (sleepTimerNote) {
                     sleepTimerNote.textContent = `Saved ${nap ? "nap" : "sleep"} entry (${durationMin} min).`;
+                }
+
+                await loadCards(state.selectedChildId);
+            }
+
+            async function saveManualSleepEntry() {
+                if (!state.selectedChildId) {
+                    if (sleepTimerNote) {
+                        sleepTimerNote.textContent = "Select a child first.";
+                    }
+                    return;
+                }
+                const startText = normalizeHHMM(
+                    (sleepManualStartText && sleepManualStartText.value) ||
+                    (sleepManualStartPicker && sleepManualStartPicker.value) ||
+                    ""
+                );
+                const endText = normalizeHHMM(
+                    (sleepManualEndText && sleepManualEndText.value) ||
+                    (sleepManualEndPicker && sleepManualEndPicker.value) ||
+                    ""
+                );
+                if (!startText || !endText) {
+                    if (sleepTimerNote) {
+                        sleepTimerNote.textContent = "Please enter Start and End as hh:mm.";
+                    }
+                    return;
+                }
+
+                const selectedDate = state.timelineDate || localDateString(new Date());
+                const startLocal = combineDateAndTime(selectedDate, startText);
+                const endLocal = combineDateAndTime(selectedDate, endText);
+                if (!startLocal || !endLocal) {
+                    if (sleepTimerNote) {
+                        sleepTimerNote.textContent = "Invalid start or end time.";
+                    }
+                    return;
+                }
+
+                if (endLocal <= startLocal) {
+                    endLocal.setDate(endLocal.getDate() + 1);
+                }
+
+                const nap = Boolean(sleepManualNap && sleepManualNap.checked);
+                await fetchMutation("/api/sleep/", "POST", {
+                    child: Number(state.selectedChildId),
+                    start: startLocal.toISOString(),
+                    end: endLocal.toISOString(),
+                    nap
+                });
+
+                if (sleepTimerNote) {
+                    sleepTimerNote.textContent = `Saved ${nap ? "nap" : "sleep"} entry (${startText} - ${endText}).`;
                 }
 
                 await loadCards(state.selectedChildId);
@@ -930,6 +1027,21 @@
                         }
                     } finally {
                         sleepTimerAction.disabled = false;
+                    }
+                });
+            }
+
+            if (sleepManualSave) {
+                sleepManualSave.addEventListener("click", async () => {
+                    try {
+                        sleepManualSave.disabled = true;
+                        await saveManualSleepEntry();
+                    } catch (error) {
+                        if (sleepTimerNote) {
+                            sleepTimerNote.textContent = `Manual save error: ${error.message}`;
+                        }
+                    } finally {
+                        sleepManualSave.disabled = false;
                     }
                 });
             }
