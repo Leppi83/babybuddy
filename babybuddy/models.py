@@ -206,7 +206,9 @@ class Settings(models.Model):
     def dashboard_selected_section_order(self):
         allowed = set(self.dashboard_default_section_order())
         stored = [
-            section for section in (self.dashboard_section_order or []) if section in allowed
+            section
+            for section in (self.dashboard_section_order or [])
+            if section in allowed
         ]
         for section in self.dashboard_default_section_order():
             if section not in stored:

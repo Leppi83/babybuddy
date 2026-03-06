@@ -5,7 +5,11 @@ from django.test import TestCase
 from django.utils import timezone
 
 from core import models
-from core.recommendations import recommend_bedtime, recommend_nap, recommend_sleep_bundle
+from core.recommendations import (
+    recommend_bedtime,
+    recommend_nap,
+    recommend_sleep_bundle,
+)
 
 
 class SleepRecommendationsTestCase(TestCase):

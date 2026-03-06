@@ -31,14 +31,9 @@ class SiteSettingsTestCase(TestCase):
         self.c.login(**self.credentials)
         page = self.c.get("/settings/")
         self.assertEqual(page.status_code, 200)
-        self.assertEqual(
-            page.context["form"]["core.models__Sleep__nap_start_max"].value(),
-            "18:00:00",
-        )
-        self.assertEqual(
-            page.context["form"]["core.models__Sleep__nap_start_min"].value(),
-            "06:00:00",
-        )
+        self.assertContains(page, 'id="ant-app-root"')
+        self.assertContains(page, "18:00:00")
+        self.assertContains(page, "06:00:00")
 
     def test_settings_nap_start(self):
         self.c.login(**self.credentials)
@@ -48,6 +43,7 @@ class SiteSettingsTestCase(TestCase):
         }
         page = self.c.post("/settings/", params, follow=True)
         self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Settings saved!")
         self.assertEqual(
             Sleep.settings.nap_start_max.strftime("%H:%M:%S"),
             params["core.models__Sleep__nap_start_max"],

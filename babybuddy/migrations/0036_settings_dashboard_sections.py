@@ -13,26 +13,36 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="settings",
             name="dashboard_show_diaper_section",
-            field=models.BooleanField(default=True, editable=True, verbose_name="Show diaper changes section"),
+            field=models.BooleanField(
+                default=True, editable=True, verbose_name="Show diaper changes section"
+            ),
         ),
         migrations.AddField(
             model_name="settings",
             name="dashboard_show_feeding_section",
-            field=models.BooleanField(default=True, editable=True, verbose_name="Show feedings section"),
+            field=models.BooleanField(
+                default=True, editable=True, verbose_name="Show feedings section"
+            ),
         ),
         migrations.AddField(
             model_name="settings",
             name="dashboard_show_pumping_section",
-            field=models.BooleanField(default=True, editable=True, verbose_name="Show pumpings section"),
+            field=models.BooleanField(
+                default=True, editable=True, verbose_name="Show pumpings section"
+            ),
         ),
         migrations.AddField(
             model_name="settings",
             name="dashboard_show_sleep_section",
-            field=models.BooleanField(default=True, editable=True, verbose_name="Show sleep section"),
+            field=models.BooleanField(
+                default=True, editable=True, verbose_name="Show sleep section"
+            ),
         ),
         migrations.AddField(
             model_name="settings",
             name="dashboard_show_tummytime_section",
-            field=models.BooleanField(default=True, editable=True, verbose_name="Show tummy time section"),
+            field=models.BooleanField(
+                default=True, editable=True, verbose_name="Show tummy time section"
+            ),
         ),
     ]

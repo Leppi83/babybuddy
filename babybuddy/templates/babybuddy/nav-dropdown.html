@@ -345,7 +345,9 @@
             </div>
         </li>
         <li class="nav-item">
-            <form action="{% url 'babybuddy:logout' %}" method="post" class="app-shell-logout-form">
+            <form action="{% url 'babybuddy:logout' %}"
+                  method="post"
+                  class="app-shell-logout-form">
                 {% csrf_token %}
                 <button class="nav-link app-shell-logout-button" type="submit">
                     <i class="icon-cancel" aria-hidden="true"></i>

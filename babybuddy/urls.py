@@ -1,37 +1,36 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path, reverse_lazy
 from django.views.static import serve
 
 from . import views
 
 app_patterns = [
-    path("login/", auth_views.LoginView.as_view(), name="login"),
+    path("login/", views.LoginView.as_view(), name="login"),
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path(
         "reset/",
-        auth_views.PasswordResetView.as_view(
+        views.PasswordResetView.as_view(
             success_url=reverse_lazy("babybuddy:password_reset_done")
         ),
         name="password_reset",
     ),
     path(
         "reset/<uidb64>/<token>/",
-        auth_views.PasswordResetConfirmView.as_view(
+        views.PasswordResetConfirmView.as_view(
             success_url=reverse_lazy("babybuddy:password_reset_complete")
         ),
         name="password_reset_confirm",
     ),
     path(
         "reset/done/",
-        auth_views.PasswordResetDoneView.as_view(),
+        views.PasswordResetDoneView.as_view(),
         name="password_reset_done",
     ),
     path(
         "reset/complete/",
-        auth_views.PasswordResetCompleteView.as_view(),
+        views.PasswordResetCompleteView.as_view(),
         name="password_reset_complete",
     ),
     path("", views.RootRouter.as_view(), name="root-router"),
@@ -44,7 +43,8 @@ app_patterns = [
     path("user/password/", views.UserPassword.as_view(), name="user-password"),
     path("user/settings/", views.UserSettings.as_view(), name="user-settings"),
     path("user/add-device/", views.UserAddDevice.as_view(), name="user-add-device"),
-    path("settings/", include("dbsettings.urls")),
+    path("settings/", views.SiteSettings.as_view(), name="site_settings"),
+    path("settings/<str:app_label>/", views.AppSettings.as_view(), name="app_settings"),
 ]
 
 urlpatterns = [

@@ -37,18 +37,20 @@ BabyBuddy.Dashboard = (function ($) {
     payload.set("action", "autosave_dashboard_layout");
     payload.set("dashboard_section_order", order.join(","));
     payload.set("dashboard_hidden_sections", hiddenSections.join(","));
-    window.fetch(layoutUrl, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        "X-CSRFToken": csrfToken(),
-        "X-Requested-With": "XMLHttpRequest",
-      },
-      body: payload.toString(),
-    }).catch(function () {
-      // Ignore transient layout save failures.
-    });
+    window
+      .fetch(layoutUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "X-CSRFToken": csrfToken(),
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: payload.toString(),
+      })
+      .catch(function () {
+        // Ignore transient layout save failures.
+      });
   }
 
   function saveSectionOrder() {
@@ -137,7 +139,8 @@ BabyBuddy.Dashboard = (function ($) {
       }
       this.classList.add("drag-over");
       var rect = this.getBoundingClientRect();
-      var insertBefore = event.originalEvent.clientY < rect.top + rect.height / 2;
+      var insertBefore =
+        event.originalEvent.clientY < rect.top + rect.height / 2;
       if (insertBefore) {
         this.parentNode.insertBefore(draggedSection, this);
       } else {
@@ -218,9 +221,9 @@ BabyBuddy.Dashboard = (function ($) {
         if (!this.dataset.tooltip || this.classList.contains("none")) {
           return;
         }
-        var tooltip = this
-          .closest(".sleep-timeline-card-root")
-          .querySelector("[data-sleep-timeline-tooltip]");
+        var tooltip = this.closest(".sleep-timeline-card-root").querySelector(
+          "[data-sleep-timeline-tooltip]",
+        );
         if (!tooltip) {
           return;
         }
@@ -235,9 +238,9 @@ BabyBuddy.Dashboard = (function ($) {
       "mouseleave",
       ".sleep-timeline-card-root .bar[data-tooltip]",
       function () {
-        var tooltip = this
-          .closest(".sleep-timeline-card-root")
-          .querySelector("[data-sleep-timeline-tooltip]");
+        var tooltip = this.closest(".sleep-timeline-card-root").querySelector(
+          "[data-sleep-timeline-tooltip]",
+        );
         if (tooltip) {
           tooltip.classList.remove("visible");
         }
@@ -261,7 +264,9 @@ BabyBuddy.Dashboard = (function ($) {
     var totalMinutes = Math.floor(seconds / 60);
     var hours = Math.floor(totalMinutes / 60);
     var minutes = totalMinutes % 60;
-    return String(hours).padStart(2, "0") + ":" + String(minutes).padStart(2, "0");
+    return (
+      String(hours).padStart(2, "0") + ":" + String(minutes).padStart(2, "0")
+    );
   }
 
   function bindSleepQuickTimer() {
@@ -280,9 +285,9 @@ BabyBuddy.Dashboard = (function ($) {
           elapsed += 1;
           this.dataset.elapsedSeconds = String(elapsed);
         }
-        var label = this
-          .closest(".sleep-quick-timer-card")
-          .querySelector("[data-sleep-timer-label]");
+        var label = this.closest(".sleep-quick-timer-card").querySelector(
+          "[data-sleep-timer-label]",
+        );
         if (label) {
           label.textContent = formatSleepDuration(elapsed);
         }

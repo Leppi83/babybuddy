@@ -1,10 +1,10 @@
 {% extends 'cards/base.html' %}
 {% load i18n %}
-
 {% block card_classes %}sleep-quick-timer-card{% endblock %}
-{% block header %}{% trans "Sleep Timer" %}{% endblock %}
+{% block header %}
+    {% trans "Sleep Timer" %}
+{% endblock %}
 {% block title %}{% endblock %}
-
 {% block content %}
     <div class="sleep-quick-timer"
          data-sleep-timer
@@ -13,10 +13,18 @@
          data-elapsed-seconds="{{ elapsed_seconds }}">
         <form method="post" class="sleep-quick-timer-form">
             {% csrf_token %}
-            <input type="hidden" name="sleep_timer_action" value="{% if running %}stop{% else %}start{% endif %}" />
+            <input type="hidden"
+                   name="sleep_timer_action"
+                   value="{% if running %}stop{% else %}start{% endif %}" />
             <button type="submit" class="btn btn-primary sleep-quick-timer-button">
                 <i class="icon-timer" aria-hidden="true"></i>
-                <span>{% if running %}{% trans "Stop" %}{% else %}{% trans "Start" %}{% endif %}</span>
+                <span>
+                    {% if running %}
+                        {% trans "Stop" %}
+                    {% else %}
+                        {% trans "Start" %}
+                    {% endif %}
+                </span>
                 {% if running %}<span class="sleep-running-dots" data-sleep-running-dots>...</span>{% endif %}
             </button>
         </form>

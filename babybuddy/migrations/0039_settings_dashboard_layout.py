@@ -13,11 +13,15 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="settings",
             name="dashboard_hidden_sections",
-            field=models.JSONField(blank=True, default=list, verbose_name="Hidden dashboard sections"),
+            field=models.JSONField(
+                blank=True, default=list, verbose_name="Hidden dashboard sections"
+            ),
         ),
         migrations.AddField(
             model_name="settings",
             name="dashboard_section_order",
-            field=models.JSONField(blank=True, default=list, verbose_name="Dashboard section order"),
+            field=models.JSONField(
+                blank=True, default=list, verbose_name="Dashboard section order"
+            ),
         ),
     ]

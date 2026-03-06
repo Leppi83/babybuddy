@@ -34,5 +34,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(cleanup_dashboard_visible_items, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(
+            cleanup_dashboard_visible_items, reverse_code=migrations.RunPython.noop
+        ),
     ]
