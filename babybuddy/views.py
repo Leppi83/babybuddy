@@ -280,6 +280,39 @@ class UserSettings(LoginRequiredMixin, View):
             user_settings.dashboard_visible_items = selected_items
             user_settings.save(update_fields=["dashboard_visible_items"])
             return JsonResponse({"saved": True, "count": len(selected_items)})
+        if request.POST.get("action") == "autosave_dashboard_layout":
+            allowed_sections = set(
+                request.user.settings.dashboard_default_section_order()
+            )
+            raw_order = request.POST.get("dashboard_section_order", "")
+            raw_hidden = request.POST.get("dashboard_hidden_sections", "")
+            section_order = [
+                item.strip()
+                for item in raw_order.split(",")
+                if item.strip() in allowed_sections
+            ]
+            hidden_sections = [
+                item.strip()
+                for item in raw_hidden.split(",")
+                if item.strip() in allowed_sections
+            ]
+            for section in request.user.settings.dashboard_default_section_order():
+                if section not in section_order:
+                    section_order.append(section)
+
+            user_settings = request.user.settings
+            user_settings.dashboard_section_order = section_order
+            user_settings.dashboard_hidden_sections = hidden_sections
+            user_settings.save(
+                update_fields=["dashboard_section_order", "dashboard_hidden_sections"]
+            )
+            return JsonResponse(
+                {
+                    "saved": True,
+                    "section_order": section_order,
+                    "hidden_sections": hidden_sections,
+                }
+            )
 
         ok, form_user, form_settings = self._save_forms(request)
         if ok:
@@ -375,6 +408,8 @@ class ShadcnPreview(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         selected_items = self.request.user.settings.dashboard_selected_items()
+        ordered_sections = self.request.user.settings.dashboard_selected_section_order()
+        hidden_sections = self.request.user.settings.dashboard_selected_hidden_sections()
         allowed_items = {
             key for keys in self.SECTION_CARD_KEYS.values() for key in keys
         }
@@ -388,11 +423,12 @@ class ShadcnPreview(LoginRequiredMixin, TemplateView):
         }
         visible_sections = [
             section
-            for section in self.SECTION_ORDER
+            for section in ordered_sections
             if preview_cards_by_section.get(section)
         ]
         context["preview_visible_items"] = selected
         context["preview_visible_sections"] = visible_sections
+        context["preview_hidden_sections"] = hidden_sections
         context["preview_cards_by_section"] = preview_cards_by_section
         context["preview_mode"] = True
         context["preview_fixed_child"] = None

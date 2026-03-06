@@ -26,6 +26,9 @@
     <div class="ui-preview-shell"
          id="ui-preview-shell"
          {% if preview_fixed_child %}data-fixed-child-id="{{ preview_fixed_child.id }}"{% endif %}
+         data-layout-url="{% url 'babybuddy:user-settings' %}"
+         data-section-order="{{ preview_visible_sections|join:',' }}"
+         data-hidden-sections="{{ preview_hidden_sections|join:',' }}"
          data-child-dashboard-url-template="{% url 'dashboard:dashboard-child' slug='__CHILD_SLUG__' %}">
         <form style="display:none" aria-hidden="true">{% csrf_token %}</form>
         <header class="ui-preview-header">
@@ -62,10 +65,13 @@
 
         <div class="ui-preview-sections">
             {% if 'diaper' in preview_visible_sections %}
-            <section class="ui-preview-section" data-tone="diaper" data-collapsed="0">
+            <section class="ui-preview-section"
+                     data-section-id="diaper"
+                     data-tone="diaper"
+                     data-collapsed="{% if 'diaper' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Diaper changes</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'diaper' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.diaper %}
@@ -80,10 +86,13 @@
             {% endif %}
 
             {% if 'feedings' in preview_visible_sections %}
-            <section class="ui-preview-section" data-tone="feedings" data-collapsed="0">
+            <section class="ui-preview-section"
+                     data-section-id="feedings"
+                     data-tone="feedings"
+                     data-collapsed="{% if 'feedings' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Feedings</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'feedings' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.feedings %}
@@ -102,10 +111,13 @@
             {% endif %}
 
             {% if 'pumpings' in preview_visible_sections %}
-            <section class="ui-preview-section" data-tone="pumpings" data-collapsed="0">
+            <section class="ui-preview-section"
+                     data-section-id="pumpings"
+                     data-tone="pumpings"
+                     data-collapsed="{% if 'pumpings' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Pumpings</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'pumpings' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.pumpings %}
@@ -118,10 +130,13 @@
             {% endif %}
 
             {% if 'sleep' in preview_visible_sections %}
-            <section class="ui-preview-section" data-tone="sleep" data-collapsed="0">
+            <section class="ui-preview-section"
+                     data-section-id="sleep"
+                     data-tone="sleep"
+                     data-collapsed="{% if 'sleep' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Sleep</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'sleep' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.sleep %}
@@ -232,10 +247,13 @@
             {% endif %}
 
             {% if 'tummytime' in preview_visible_sections %}
-            <section class="ui-preview-section" data-tone="tummy" data-collapsed="0">
+            <section class="ui-preview-section"
+                     data-section-id="tummytime"
+                     data-tone="tummy"
+                     data-collapsed="{% if 'tummytime' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
                     <h2 class="ui-preview-section-title">Tummy Time</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>Hide</button>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'tummytime' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.tummytime %}
