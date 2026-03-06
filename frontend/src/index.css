@@ -188,6 +188,31 @@ body {
   padding: 9px 12px;
 }
 
+.ant-managed-form {
+  width: 100%;
+}
+
+.ant-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ant-form-field__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ant-form-field__help {
+  display: block;
+}
+
+.ant-form-field__error {
+  margin-top: 4px;
+}
+
 @media (max-width: 767px) {
   .ant-shell-content {
     padding: 14px;

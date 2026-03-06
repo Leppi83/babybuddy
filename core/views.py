@@ -4,6 +4,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.conf import settings
 from django.db.models import Count
 from django.db.models.functions import Lower
+from django import forms as django_forms
 from django.forms import Form
 from django.http import HttpResponseRedirect
 from django.middleware.csrf import get_token
@@ -35,6 +36,10 @@ def _lists_ant_enabled():
     return settings.BABY_BUDDY.get("LISTS_ANT_ENABLED", False)
 
 
+def _forms_ant_enabled():
+    return settings.BABY_BUDDY.get("FORMS_ANT_ENABLED", False)
+
+
 def _display_name(user):
     return user.get_full_name() or user.username
 
@@ -58,6 +63,16 @@ def _list_strings():
         "list": _("List"),
         "actions": _("Actions"),
         "empty": _("No entries found."),
+        "form": _("Form"),
+        "save": _("Save"),
+        "cancel": _("Cancel"),
+        "delete": _("Delete"),
+        "dangerZone": _("Danger Zone"),
+        "confirmDelete": _("Confirm Deletion"),
+        "required": _("Required"),
+        "optional": _("Optional"),
+        "yes": _("Yes"),
+        "no": _("No"),
     }
 
 
@@ -89,6 +104,179 @@ def _build_ant_list_bootstrap(
             "pagination": pagination,
         },
     }
+
+
+def _serialize_bound_field(bound_field):
+    field = bound_field.field
+    widget = field.widget
+    input_type = getattr(widget, "input_type", "text")
+    value = bound_field.value()
+    choices = []
+
+    if hasattr(field, "choices") and getattr(field, "choices", None):
+        choices = [
+            {
+                "value": str(choice_value),
+                "label": str(choice_label),
+            }
+            for choice_value, choice_label in field.choices
+            if choice_value not in ("", None)
+        ]
+
+    if widget.__class__.__name__ == "TagsEditor":
+        input_type = "tags"
+        value = ", ".join(tag.name for tag in bound_field.form.instance.tags.all()) if getattr(
+            bound_field.form.instance, "pk", None
+        ) else (value or "")
+    elif isinstance(widget, django_forms.Textarea):
+        input_type = "textarea"
+    elif isinstance(field, django_forms.BooleanField):
+        input_type = "checkbox"
+        value = bool(value)
+    elif isinstance(widget, django_forms.FileInput):
+        input_type = "file"
+        value = None
+    elif choices and input_type == "radio":
+        input_type = "radio"
+        value = "" if value in (None, "") else str(value)
+    elif choices:
+        input_type = "select"
+        value = "" if value in (None, "") else str(value)
+    elif value is not None and input_type not in ("checkbox", "file"):
+        value = str(value)
+
+    return {
+        "name": bound_field.name,
+        "label": str(bound_field.label),
+        "type": input_type,
+        "value": value,
+        "choices": choices,
+        "helpText": str(bound_field.help_text or ""),
+        "errors": [str(error) for error in bound_field.errors],
+        "required": field.required,
+        "disabled": field.disabled,
+    }
+
+
+def _serialize_form_fieldsets(form):
+    if hasattr(form, "hydrated_fielsets"):
+        fieldsets = form.hydrated_fielsets
+    else:
+        fieldsets = [{"fields": list(form), "layout": "default", "layout_attrs": {}}]
+
+    serialized = []
+    for index, fieldset in enumerate(fieldsets):
+        fields = [_serialize_bound_field(bound_field) for bound_field in fieldset["fields"]]
+        if not fields:
+            continue
+        serialized.append(
+            {
+                "key": f"fieldset-{index}",
+                "layout": fieldset.get("layout", "default"),
+                "label": fieldset.get("layout_attrs", {}).get("label", ""),
+                "fields": fields,
+            }
+        )
+    return serialized
+
+
+def _build_ant_form_bootstrap(
+    request,
+    *,
+    title,
+    kicker,
+    form,
+    submit_label,
+    cancel_url,
+    delete_mode=False,
+    danger_text="",
+):
+    return {
+        "pageType": "confirm-delete" if delete_mode else "form",
+        "currentPath": request.path,
+        "locale": getattr(request, "LANGUAGE_CODE", "en"),
+        "csrfToken": get_token(request),
+        "user": {"displayName": _display_name(request.user)},
+        "urls": {**_nav_urls(), "self": request.path, "cancel": cancel_url},
+        "strings": _list_strings(),
+        "formPage": {
+            "title": title,
+            "kicker": kicker,
+            "submitLabel": submit_label,
+            "cancelLabel": str(_("Cancel")),
+            "method": "post",
+            "enctype": "multipart/form-data"
+            if form.is_multipart()
+            else "application/x-www-form-urlencoded",
+            "fieldsets": _serialize_form_fieldsets(form),
+            "dangerText": danger_text,
+        },
+    }
+
+
+class AntFormMixin:
+    ant_title = ""
+    ant_kicker = _("Form")
+
+    def ant_enabled(self):
+        return _forms_ant_enabled()
+
+    def get_template_names(self):
+        if self.ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return super().get_template_names()
+
+    def get_ant_title(self):
+        return str(self.ant_title)
+
+    def get_ant_kicker(self):
+        return str(self.ant_kicker)
+
+    def get_ant_cancel_url(self):
+        success_url = self.get_success_url()
+        return str(success_url)
+
+    def get_ant_submit_label(self):
+        return str(_("Save"))
+
+    def get_ant_bootstrap(self, form):
+        return _build_ant_form_bootstrap(
+            self.request,
+            title=self.get_ant_title(),
+            kicker=self.get_ant_kicker(),
+            form=form,
+            submit_label=self.get_ant_submit_label(),
+            cancel_url=self.get_ant_cancel_url(),
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.ant_enabled():
+            context["ant_page_title"] = self.get_ant_title()
+            context["ant_bootstrap"] = self.get_ant_bootstrap(context["form"])
+        return context
+
+
+class AntDeleteMixin(AntFormMixin):
+    ant_kicker = _("Danger Zone")
+
+    def get_ant_submit_label(self):
+        return str(_("Delete"))
+
+    def get_ant_danger_text(self):
+        return str(_("This action cannot be undone."))
+
+    def get_ant_bootstrap(self, form):
+        return _build_ant_form_bootstrap(
+            self.request,
+            title=self.get_ant_title(),
+            kicker=self.get_ant_kicker(),
+            form=form,
+            submit_label=self.get_ant_submit_label(),
+            cancel_url=self.get_ant_cancel_url(),
+            delete_mode=True,
+            danger_text=self.get_ant_danger_text(),
+        )
 
 
 class CoreAddView(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
@@ -250,12 +438,14 @@ class ChildList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
         return context
 
 
-class ChildAdd(CoreAddView):
+class ChildAdd(AntFormMixin, CoreAddView):
     model = models.Child
     permission_required = ("core.add_child",)
     form_class = forms.ChildForm
     success_url = reverse_lazy("core:child-list")
     success_message = _("%(first_name)s %(last_name)s added!")
+    ant_title = _("Add a Child")
+    ant_kicker = _("Entry Form")
 
 
 class ChildDetail(PermissionRequiredMixin, DetailView):
@@ -269,19 +459,22 @@ class ChildDetail(PermissionRequiredMixin, DetailView):
         return context
 
 
-class ChildUpdate(CoreUpdateView):
+class ChildUpdate(AntFormMixin, CoreUpdateView):
     model = models.Child
     permission_required = ("core.change_child",)
     form_class = forms.ChildForm
     success_url = reverse_lazy("core:child-list")
+    ant_title = _("Update Child")
+    ant_kicker = _("Entry Form")
 
 
-class ChildDelete(CoreUpdateView):
+class ChildDelete(AntDeleteMixin, CoreUpdateView):
     model = models.Child
     form_class = forms.ChildDeleteForm
     template_name = "core/child_confirm_delete.html"
     permission_required = ("core.delete_child",)
     success_url = reverse_lazy("core:child-list")
+    ant_title = _("Delete a Child")
 
     def get_success_message(self, cleaned_data):
         """This class cannot use `CoreDeleteView` because of the confirmation
@@ -290,6 +483,14 @@ class ChildDelete(CoreUpdateView):
             "model": self.model._meta.verbose_name.title()
         }
         return success_message % cleaned_data
+
+    def get_ant_cancel_url(self):
+        return reverse("core:child", kwargs={"slug": self.object.slug})
+
+    def get_ant_danger_text(self):
+        return str(
+            _("To confirm this action, type the full name of the child below.")
+        )
 
 
 class DiaperChangeList(
@@ -399,24 +600,29 @@ class DiaperChangeList(
         return context
 
 
-class DiaperChangeAdd(CoreAddView):
+class DiaperChangeAdd(AntFormMixin, CoreAddView):
     model = models.DiaperChange
     permission_required = ("core.add_diaperchange",)
     form_class = forms.DiaperChangeForm
     success_url = reverse_lazy("core:diaperchange-list")
+    ant_title = _("Add a Diaper Change")
+    ant_kicker = _("Entry Form")
 
 
-class DiaperChangeUpdate(CoreUpdateView):
+class DiaperChangeUpdate(AntFormMixin, CoreUpdateView):
     model = models.DiaperChange
     permission_required = ("core.change_diaperchange",)
     form_class = forms.DiaperChangeForm
     success_url = reverse_lazy("core:diaperchange-list")
+    ant_title = _("Update Diaper Change")
+    ant_kicker = _("Entry Form")
 
 
-class DiaperChangeDelete(CoreDeleteView):
+class DiaperChangeDelete(AntDeleteMixin, CoreDeleteView):
     model = models.DiaperChange
     permission_required = ("core.delete_diaperchange",)
     success_url = reverse_lazy("core:diaperchange-list")
+    ant_title = _("Delete a Diaper Change")
 
 
 class FeedingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
@@ -524,31 +730,38 @@ class FeedingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilt
         return context
 
 
-class FeedingAdd(CoreAddView):
+class FeedingAdd(AntFormMixin, CoreAddView):
     model = models.Feeding
     permission_required = ("core.add_feeding",)
     form_class = forms.FeedingForm
     success_url = reverse_lazy("core:feeding-list")
+    ant_title = _("Add a Feeding")
+    ant_kicker = _("Entry Form")
 
 
-class BottleFeedingAdd(CoreAddView):
+class BottleFeedingAdd(AntFormMixin, CoreAddView):
     model = models.Feeding
     permission_required = ("core.add_feeding",)
     form_class = forms.BottleFeedingForm
     success_url = reverse_lazy("core:feeding-list")
+    ant_title = _("Add a Bottle Feeding")
+    ant_kicker = _("Entry Form")
 
 
-class FeedingUpdate(CoreUpdateView):
+class FeedingUpdate(AntFormMixin, CoreUpdateView):
     model = models.Feeding
     permission_required = ("core.change_feeding",)
     form_class = forms.FeedingForm
     success_url = reverse_lazy("core:feeding-list")
+    ant_title = _("Update Feeding")
+    ant_kicker = _("Entry Form")
 
 
-class FeedingDelete(CoreDeleteView):
+class FeedingDelete(AntDeleteMixin, CoreDeleteView):
     model = models.Feeding
     permission_required = ("core.delete_feeding",)
     success_url = reverse_lazy("core:feeding-list")
+    ant_title = _("Delete a Feeding")
 
 
 class HeadCircumferenceList(
@@ -754,24 +967,29 @@ class SleepList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
         return context
 
 
-class SleepAdd(CoreAddView):
+class SleepAdd(AntFormMixin, CoreAddView):
     model = models.Sleep
     permission_required = ("core.add_sleep",)
     form_class = forms.SleepForm
     success_url = reverse_lazy("core:sleep-list")
+    ant_title = _("Add a Sleep Entry")
+    ant_kicker = _("Entry Form")
 
 
-class SleepUpdate(CoreUpdateView):
+class SleepUpdate(AntFormMixin, CoreUpdateView):
     model = models.Sleep
     permission_required = ("core.change_sleep",)
     form_class = forms.SleepForm
     success_url = reverse_lazy("core:sleep-list")
+    ant_title = _("Update Sleep Entry")
+    ant_kicker = _("Entry Form")
 
 
-class SleepDelete(CoreDeleteView):
+class SleepDelete(AntDeleteMixin, CoreDeleteView):
     model = models.Sleep
     permission_required = ("core.delete_sleep",)
     success_url = reverse_lazy("core:sleep-list")
+    ant_title = _("Delete a Sleep Entry")
 
 
 class TagAdminList(

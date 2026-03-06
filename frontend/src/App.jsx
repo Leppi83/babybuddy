@@ -6,8 +6,10 @@ import {
   Badge,
   Button,
   Card,
+  Checkbox,
   Col,
   ConfigProvider,
+  DatePicker,
   Drawer,
   Empty,
   Form,
@@ -18,6 +20,7 @@ import {
   List,
   Menu,
   Pagination,
+  Radio,
   Row,
   Select,
   Segmented,
@@ -27,6 +30,7 @@ import {
   Switch,
   Table,
   Tag,
+  TimePicker,
   theme,
   Typography
 } from "antd";
@@ -213,6 +217,14 @@ function AppShell({ bootstrap, children }) {
     list: {
       eyebrow: bootstrap.listPage?.kicker || bootstrap.strings.list,
       title: bootstrap.listPage?.title || bootstrap.strings.list
+    },
+    form: {
+      eyebrow: bootstrap.formPage?.kicker || bootstrap.strings.form,
+      title: bootstrap.formPage?.title || bootstrap.strings.form
+    },
+    "confirm-delete": {
+      eyebrow: bootstrap.strings.dangerZone,
+      title: bootstrap.formPage?.title || bootstrap.strings.confirmDelete
     }
   }[bootstrap.pageType] || {
     eyebrow: bootstrap.strings.dashboard,
@@ -375,6 +387,236 @@ function ListPage({ bootstrap }) {
           </div>
         ) : null}
       </Card>
+    </Space>
+  );
+}
+
+function buildInitialFormState(fieldsets) {
+  return fieldsets.reduce((result, fieldset) => {
+    fieldset.fields.forEach((field) => {
+      result[field.name] = field.type === "checkbox" ? Boolean(field.value) : field.value ?? "";
+    });
+    return result;
+  }, {});
+}
+
+function parsePickerValue(fieldType, value) {
+  if (!value) {
+    return null;
+  }
+  if (fieldType === "date") {
+    return dayjs(value, "YYYY-MM-DD");
+  }
+  if (fieldType === "time") {
+    return dayjs(value, "HH:mm:ss").isValid()
+      ? dayjs(value, "HH:mm:ss")
+      : dayjs(value, "HH:mm");
+  }
+  if (fieldType === "datetime-local") {
+    return dayjs(value);
+  }
+  return null;
+}
+
+function formatHiddenValue(fieldType, value) {
+  if (value == null || value === "") {
+    return "";
+  }
+  if (fieldType === "date") {
+    return dayjs(value).format("YYYY-MM-DD");
+  }
+  if (fieldType === "time") {
+    return dayjs(value).format("HH:mm:ss");
+  }
+  if (fieldType === "datetime-local") {
+    return dayjs(value).format("YYYY-MM-DDTHH:mm:ss");
+  }
+  if (typeof value === "boolean") {
+    return value ? "on" : "";
+  }
+  return String(value);
+}
+
+function AntFieldControl({ field, value, onChange }) {
+  if (field.type === "textarea") {
+    return <Input.TextArea rows={5} value={value} onChange={(event) => onChange(event.target.value)} />;
+  }
+
+  if (field.type === "select") {
+    return (
+      <Select
+        value={value === "" ? undefined : value}
+        options={field.choices}
+        onChange={(nextValue) => onChange(nextValue ?? "")}
+      />
+    );
+  }
+
+  if (field.type === "radio") {
+    return (
+      <Radio.Group
+        value={value === "" ? undefined : value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <Space wrap>
+          {field.choices.map((choice) => (
+            <Radio.Button key={`${field.name}-${choice.value}`} value={choice.value}>
+              {choice.label}
+            </Radio.Button>
+          ))}
+        </Space>
+      </Radio.Group>
+    );
+  }
+
+  if (field.type === "checkbox") {
+    return <Checkbox checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} />;
+  }
+
+  if (field.type === "date") {
+    return (
+      <DatePicker
+        style={{ width: "100%" }}
+        value={parsePickerValue("date", value)}
+        onChange={(nextValue) => onChange(nextValue ? nextValue.format("YYYY-MM-DD") : "")}
+      />
+    );
+  }
+
+  if (field.type === "time") {
+    return (
+      <TimePicker
+        style={{ width: "100%" }}
+        value={parsePickerValue("time", value)}
+        onChange={(nextValue) => onChange(nextValue ? nextValue.format("HH:mm:ss") : "")}
+      />
+    );
+  }
+
+  if (field.type === "datetime-local") {
+    return (
+      <DatePicker
+        style={{ width: "100%" }}
+        showTime
+        value={parsePickerValue("datetime-local", value)}
+        onChange={(nextValue) =>
+          onChange(nextValue ? nextValue.format("YYYY-MM-DDTHH:mm:ss") : "")
+        }
+      />
+    );
+  }
+
+  if (field.type === "file") {
+    return <input type="file" name={field.name} className="ant-native-input" />;
+  }
+
+  return (
+    <Input
+      type={field.type === "tags" ? "text" : field.type}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  );
+}
+
+function HiddenFieldInput({ field, value }) {
+  if (field.type === "file") {
+    return null;
+  }
+  if (field.type === "checkbox") {
+    return value ? <input type="hidden" name={field.name} value="on" /> : null;
+  }
+  return <input type="hidden" name={field.name} value={formatHiddenValue(field.type, value)} />;
+}
+
+function AntFormPage({ bootstrap, deleteMode = false }) {
+  const [values, setValues] = useState(() =>
+    buildInitialFormState(bootstrap.formPage.fieldsets || [])
+  );
+
+  useEffect(() => {
+    setValues(buildInitialFormState(bootstrap.formPage.fieldsets || []));
+  }, [bootstrap]);
+
+  function updateValue(name, nextValue) {
+    setValues((current) => ({ ...current, [name]: nextValue }));
+  }
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Space direction="vertical" size={6}>
+          <Text type="secondary">{bootstrap.formPage.kicker}</Text>
+          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+            {bootstrap.formPage.title}
+          </Title>
+          {deleteMode && bootstrap.formPage.dangerText ? (
+            <Text style={{ color: "#fca5a5" }}>{bootstrap.formPage.dangerText}</Text>
+          ) : null}
+        </Space>
+      </Card>
+
+      <form
+        action={bootstrap.urls.self}
+        method="post"
+        encType={bootstrap.formPage.enctype}
+        className="ant-managed-form"
+      >
+        <input type="hidden" name="csrfmiddlewaretoken" value={bootstrap.csrfToken} />
+        {(bootstrap.formPage.fieldsets || []).map((fieldset) => (
+          <Card
+            key={fieldset.key}
+            className="ant-section-card"
+            title={fieldset.label || bootstrap.strings.form}
+          >
+            <Row gutter={[16, 16]}>
+              {fieldset.fields.map((field) => (
+                <Col
+                  xs={24}
+                  md={field.type === "textarea" ? 24 : 12}
+                  key={`${fieldset.key}-${field.name}`}
+                >
+                  <div className="ant-form-field">
+                    <div className="ant-form-field__label">
+                      <Text strong>{field.label}</Text>
+                      <Text type="secondary">
+                        {field.required ? bootstrap.strings.required : bootstrap.strings.optional}
+                      </Text>
+                    </div>
+                    <AntFieldControl
+                      field={field}
+                      value={values[field.name]}
+                      onChange={(nextValue) => updateValue(field.name, nextValue)}
+                    />
+                    <HiddenFieldInput field={field} value={values[field.name]} />
+                    {field.helpText ? (
+                      <Text type="secondary" className="ant-form-field__help">
+                        {field.helpText}
+                      </Text>
+                    ) : null}
+                    {field.errors.length ? (
+                      <Alert
+                        type="error"
+                        showIcon
+                        message={field.errors[0]}
+                        className="ant-form-field__error"
+                      />
+                    ) : null}
+                  </div>
+                </Col>
+              ))}
+            </Row>
+          </Card>
+        ))}
+        <Space style={{ marginTop: 20 }} wrap>
+          <Button type={deleteMode ? "primary" : "primary"} danger={deleteMode} htmlType="submit" size="large">
+            {bootstrap.formPage.submitLabel}
+          </Button>
+          <Button href={bootstrap.urls.cancel} size="large">
+            {bootstrap.formPage.cancelLabel}
+          </Button>
+        </Space>
+      </form>
     </Space>
   );
 }
@@ -1384,6 +1626,10 @@ export function App({ bootstrap }) {
             <SettingsPage bootstrap={bootstrap} />
           ) : bootstrap.pageType === "list" ? (
             <ListPage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "form" ? (
+            <AntFormPage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "confirm-delete" ? (
+            <AntFormPage bootstrap={bootstrap} deleteMode />
           ) : (
             <ChildDashboardPage bootstrap={bootstrap} />
           )}
