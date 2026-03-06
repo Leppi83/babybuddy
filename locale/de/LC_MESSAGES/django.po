@@ -85,22 +85,34 @@ msgid "diaper changes - Nappy changes"
 msgstr "Windelwechsel - Windelwechsel"
 
 #: babybuddy/models.py:29
+msgid "feedings - Quick Entry"
+msgstr "Mahlzeiten - Schnelleingabe"
+
+#: babybuddy/models.py:30
+msgid "feedings - Breastfeeding Quick Entry"
+msgstr "Mahlzeiten - Stillen Schnelleingabe"
+
+#: babybuddy/models.py:31
 msgid "feedings - Last feeding"
 msgstr "Mahlzeiten - Letzte Mahlzeit"
 
-#: babybuddy/models.py:30
+#: babybuddy/models.py:32
 msgid "feedings - Last Feeding Method"
 msgstr "Mahlzeiten - Letzte Mahlzeitart"
 
-#: babybuddy/models.py:31
+#: babybuddy/models.py:33
 msgid "feedings - Recent Feedings"
 msgstr "Mahlzeiten - Letzte Mahlzeiten"
 
-#: babybuddy/models.py:32
+#: babybuddy/models.py:34
 msgid "feedings - Breastfeeding"
 msgstr "Mahlzeiten - Stillen"
 
-#: babybuddy/models.py:33
+#: babybuddy/models.py:35
+msgid "pumpings - Quick Entry"
+msgstr "Abpumpen - Schnelleingabe"
+
+#: babybuddy/models.py:36
 msgid "pumpings - Last Pumping"
 msgstr "Abpumpen - Letztes Abpumpen"
 
@@ -1251,6 +1263,10 @@ msgstr "Gelb"
 msgid "Amount"
 msgstr "Menge"
 
+#: core/models.py:521 dashboard/views.py:65
+msgid "Side"
+msgstr "Seite"
+
 #: core/models.py:320 core/models.py:501 core/models.py:549 core/models.py:637
 #: core/models.py:706
 msgid "Start time"
@@ -1305,6 +1321,14 @@ msgstr "Linke Brust"
 #: core/models.py:342
 msgid "Right breast"
 msgstr "Rechte Brust"
+
+#: core/models.py:492 dashboard/views.py:63
+msgid "Left"
+msgstr "Links"
+
+#: core/models.py:493 dashboard/views.py:64
+msgid "Right"
+msgstr "Rechts"
 
 #: core/models.py:343
 msgid "Both breasts"
@@ -2265,24 +2289,52 @@ msgid "Running"
 msgstr "Läuft"
 
 #: dashboard/views.py:96
+msgid "Quick Feeding"
+msgstr "Schnelle Mahlzeit"
+
+#: dashboard/views.py:97
+msgid "Quick Breastfeeding"
+msgstr "Schnelles Stillen"
+
+#: dashboard/views.py:98
+msgid "Quick Pumping"
+msgstr "Schnelles Abpumpen"
+
+#: dashboard/views.py:102
+msgid "Baby food"
+msgstr "Babynahrung"
+
+#: dashboard/views.py:111
 msgid "Manual entry"
 msgstr "Manueller Eintrag"
 
-#: dashboard/views.py:97
+#: dashboard/views.py:112
 msgid "Now"
 msgstr "Jetzt"
 
-#: dashboard/views.py:98
+#: dashboard/views.py:113
 msgid "Sleep timer active"
 msgstr "Schlaf-Timer aktiv"
 
-#: dashboard/views.py:99
+#: dashboard/views.py:114
 msgid "Sleep entry saved."
 msgstr "Schlafeintrag gespeichert."
 
-#: dashboard/views.py:100
+#: dashboard/views.py:115
 msgid "Sleep timer migration pending"
 msgstr "Migration des Schlaf-Timers ausstehend"
+
+#: dashboard/views.py:116
+msgid "Feeding saved."
+msgstr "Mahlzeit gespeichert."
+
+#: dashboard/views.py:117
+msgid "Breastfeeding entry saved."
+msgstr "Still-Eintrag gespeichert."
+
+#: dashboard/views.py:118
+msgid "Pumping entry saved."
+msgstr "Abpump-Eintrag gespeichert."
 
 #: dashboard/views.py:223
 msgid ""
@@ -2314,6 +2366,36 @@ msgstr "Schlafeintrag konnte nicht erstellt werden: %(error)s"
 #: dashboard/views.py:245
 msgid "Nappy change saved."
 msgstr "Windelwechsel gespeichert."
+
+#: dashboard/views.py:321
+msgid "Unable to create feeding entry: start, end, and type are required."
+msgstr ""
+"Mahlzeit konnte nicht erstellt werden: Start, Ende und Typ sind erforderlich."
+
+#: dashboard/views.py:334 dashboard/views.py:350
+#, python-format
+msgid "Unable to create feeding entry: %(error)s"
+msgstr "Mahlzeit konnte nicht erstellt werden: %(error)s"
+
+#: dashboard/views.py:379
+msgid "Unable to create breastfeeding entry: start, end, and side are required."
+msgstr ""
+"Still-Eintrag konnte nicht erstellt werden: Start, Ende und Seite sind erforderlich."
+
+#: dashboard/views.py:392 dashboard/views.py:407
+#, python-format
+msgid "Unable to create breastfeeding entry: %(error)s"
+msgstr "Still-Eintrag konnte nicht erstellt werden: %(error)s"
+
+#: dashboard/views.py:428
+msgid "Unable to create pumping entry: start, end, amount, and side are required."
+msgstr ""
+"Abpump-Eintrag konnte nicht erstellt werden: Start, Ende, Menge und Seite sind erforderlich."
+
+#: dashboard/views.py:441 dashboard/views.py:455
+#, python-format
+msgid "Unable to create pumping entry: %(error)s"
+msgstr "Abpump-Eintrag konnte nicht erstellt werden: %(error)s"
 
 #: reports/graphs/diaperchange_amounts.py:27
 msgid "Diaper change amount"

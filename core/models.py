@@ -488,6 +488,10 @@ class Note(models.Model):
 
 class Pumping(models.Model):
     model_name = "pumping"
+    SIDE_CHOICES = [
+        ("left", _("Left")),
+        ("right", _("Right")),
+    ]
     child = models.ForeignKey(
         "Child",
         on_delete=models.CASCADE,
@@ -512,6 +516,13 @@ class Pumping(models.Model):
         verbose_name=_("Duration"),
     )
     amount = models.FloatField(blank=False, null=False, verbose_name=_("Amount"))
+    side = models.CharField(
+        max_length=32,
+        choices=SIDE_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name=_("Side"),
+    )
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 

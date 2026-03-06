@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from faker import Faker
 
-from core.models import Child, DiaperChange, Sleep
+from core.models import Child, DiaperChange, Feeding, Pumping, Sleep
 
 
 class ViewsTestCase(TestCase):
@@ -131,3 +131,79 @@ class ViewsTestCase(TestCase):
         self.assertTrue(sleep.nap)
         self.assertEqual(sleep.start.date().isoformat(), "2026-03-06")
         self.assertEqual(sleep.end.date().isoformat(), "2026-03-06")
+
+    def test_dashboard_feeding_quick_entry(self):
+        child = Child.objects.create(
+            first_name="Feed",
+            last_name="Test",
+            birth_date="2025-01-01",
+        )
+
+        response = self.c.post(
+            f"/children/{child.slug}/dashboard/",
+            data={
+                "feeding_quick_entry_action": "create",
+                "feeding_entry_start_date": "2026-03-06",
+                "feeding_entry_start_time": "10:00",
+                "feeding_entry_end_date": "2026-03-06",
+                "feeding_entry_end_time": "10:20",
+                "feeding_entry_type": "breast_milk",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        feeding = Feeding.objects.filter(child=child).latest("id")
+        self.assertEqual(feeding.type, "breast milk")
+        self.assertEqual(feeding.method, "bottle")
+
+    def test_dashboard_breastfeeding_quick_entry(self):
+        child = Child.objects.create(
+            first_name="Breast",
+            last_name="Test",
+            birth_date="2025-01-01",
+        )
+
+        response = self.c.post(
+            f"/children/{child.slug}/dashboard/",
+            data={
+                "breastfeeding_quick_entry_action": "create",
+                "breastfeeding_entry_start_date": "2026-03-06",
+                "breastfeeding_entry_start_time": "11:00",
+                "breastfeeding_entry_end_date": "2026-03-06",
+                "breastfeeding_entry_end_time": "11:15",
+                "breastfeeding_entry_side": "left",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        feeding = Feeding.objects.filter(child=child).latest("id")
+        self.assertEqual(feeding.type, "breast milk")
+        self.assertEqual(feeding.method, "left breast")
+
+    def test_dashboard_pumping_quick_entry(self):
+        child = Child.objects.create(
+            first_name="Pump",
+            last_name="Test",
+            birth_date="2025-01-01",
+        )
+
+        response = self.c.post(
+            f"/children/{child.slug}/dashboard/",
+            data={
+                "pumping_quick_entry_action": "create",
+                "pumping_entry_start_date": "2026-03-06",
+                "pumping_entry_start_time": "12:00",
+                "pumping_entry_end_date": "2026-03-06",
+                "pumping_entry_end_time": "12:12",
+                "pumping_entry_amount": "90",
+                "pumping_entry_side": "right",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        pumping = Pumping.objects.filter(child=child).latest("id")
+        self.assertEqual(pumping.amount, 90)
+        self.assertEqual(pumping.side, "right")

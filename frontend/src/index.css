@@ -161,7 +161,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 980px;
+  max-width: 760px;
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -212,6 +213,18 @@ body {
   box-shadow: 0 0 16px rgba(255, 77, 79, 0.45);
   pointer-events: none;
   z-index: 2;
+}
+
+.ant-timeline-now-line::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ff4d4f;
+  transform: translateX(-50%);
 }
 
 .ant-timeline-axis {
@@ -266,6 +279,10 @@ body {
   padding: 9px 12px;
 }
 
+.ant-dashboard-picker {
+  width: 100%;
+}
+
 .ant-diaper-save {
   align-self: flex-start;
 }
@@ -279,6 +296,12 @@ body {
 
 .ant-sleep-timer-card .ant-statistic {
   width: 100%;
+}
+
+.ant-dashboard-child-avatar {
+  flex-shrink: 0;
+  border: 1px solid rgba(77, 182, 255, 0.24);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.22);
 }
 
 .ant-managed-form {

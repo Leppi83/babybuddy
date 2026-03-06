@@ -124,6 +124,7 @@ class PumpingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
             "id",
             "child",
             "amount",
+            "side",
             "start",
             "end",
             "duration",

@@ -13,7 +13,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from core.models import Child, DiaperChange, Sleep
+from core.models import Child, DiaperChange, Feeding, Pumping, Sleep
 
 
 def _ant_dashboard_enabled():
@@ -26,6 +26,10 @@ def _child_picture_url(child):
     return static("babybuddy/img/core/child-placeholder.png")
 
 
+def _format_short_date(value):
+    return value.strftime("%m.%d.") if value else ""
+
+
 def _display_name(user):
     return user.get_full_name() or user.username
 
@@ -36,12 +40,14 @@ def _build_nav_urls(request):
         "timeline": reverse("core:timeline"),
         "settings": reverse("babybuddy:user-settings"),
         "logout": reverse("babybuddy:logout"),
+        "addChild": reverse("core:child-add"),
     }
 
 
 def _build_ant_strings():
     return {
         "dashboard": _("Dashboard"),
+        "addChild": _("Add Child"),
         "children": _("Children"),
         "timeline": _("Timeline"),
         "settings": _("Settings"),
@@ -56,10 +62,21 @@ def _build_ant_strings():
         "show": _("Show"),
         "loading": _("Loading..."),
         "quickEntry": _("Quick Entry"),
+        "quickFeeding": _("Quick Feeding"),
+        "quickBreastfeeding": _("Quick Breastfeeding"),
+        "quickPumping": _("Quick Pumping"),
         "date": _("Date"),
         "time": _("Time"),
+        "start": _("Start"),
+        "end": _("End"),
         "liquid": _("Liquid"),
         "solid": _("Solid"),
+        "babyFood": _("Baby food"),
+        "breastMilk": _("Breast milk"),
+        "left": _("Left"),
+        "right": _("Right"),
+        "side": _("Side"),
+        "amount": _("Amount"),
         "sleepType": _("Type"),
         "sleepEntry": _("Sleep entry"),
         "startDate": _("Start date"),
@@ -104,6 +121,9 @@ def _build_ant_strings():
         "sleepTimerActive": _("Sleep timer active"),
         "sleepEntrySaved": _("Sleep entry saved."),
         "sleepTimerPending": _("Sleep timer migration pending"),
+        "feedingSaved": _("Feeding saved."),
+        "breastfeedingSaved": _("Breastfeeding entry saved."),
+        "pumpingSaved": _("Pumping entry saved."),
     }
 
 
@@ -114,7 +134,7 @@ def _serialize_children(request, children):
             "slug": child.slug,
             "name": str(child),
             "birthDate": child.birth_date.isoformat() if child.birth_date else None,
-            "birthDateLabel": str(child.birth_date) if child.birth_date else "",
+            "birthDateLabel": _format_short_date(child.birth_date),
             "pictureUrl": request.build_absolute_uri(_child_picture_url(child)),
             "dashboardUrl": reverse(
                 "dashboard:dashboard-child", kwargs={"slug": child.slug}
@@ -183,12 +203,15 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "card.diaper.types",
         ],
         "feedings": [
+            "card.feedings.quick_entry",
+            "card.feedings.breast_quick_entry",
             "card.feedings.last",
             "card.feedings.method",
             "card.feedings.recent",
             "card.feedings.breastfeeding",
         ],
         "pumpings": [
+            "card.pumpings.quick_entry",
             "card.pumpings.last",
         ],
         "sleep": [
@@ -301,6 +324,162 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                 request, _("Unable to create sleep entry: %(error)s") % {"error": exc}
             )
 
+    def _handle_feeding_quick_entry(self, request):
+        start_date = (request.POST.get("feeding_entry_start_date") or "").strip()
+        start_time = (request.POST.get("feeding_entry_start_time") or "").strip()
+        end_date = (request.POST.get("feeding_entry_end_date") or "").strip()
+        end_time = (request.POST.get("feeding_entry_end_time") or "").strip()
+        feeding_type = (request.POST.get("feeding_entry_type") or "").strip()
+
+        type_map = {
+            "solid": ("solid food", "parent fed"),
+            "baby_food": ("formula", "bottle"),
+            "breast_milk": ("breast milk", "bottle"),
+        }
+
+        if (
+            not start_date
+            or not start_time
+            or not end_date
+            or not end_time
+            or feeding_type not in type_map
+        ):
+            messages.error(
+                request,
+                _("Unable to create feeding entry: start, end, and type are required."),
+            )
+            return
+
+        try:
+            start_dt = self._parse_local_datetime(start_date, start_time)
+            end_dt = self._parse_local_datetime(end_date, end_time)
+        except ValueError as exc:
+            messages.error(
+                request, _("Unable to create feeding entry: %(error)s") % {"error": exc}
+            )
+            return
+
+        mapped_type, mapped_method = type_map[feeding_type]
+        feeding = Feeding(
+            child=self.object,
+            start=start_dt,
+            end=end_dt,
+            type=mapped_type,
+            method=mapped_method,
+        )
+        try:
+            feeding.full_clean()
+            feeding.save()
+            messages.success(request, _("Feeding saved."))
+        except ValidationError as exc:
+            messages.error(
+                request, _("Unable to create feeding entry: %(error)s") % {"error": exc}
+            )
+
+    def _handle_breastfeeding_quick_entry(self, request):
+        start_date = (request.POST.get("breastfeeding_entry_start_date") or "").strip()
+        start_time = (request.POST.get("breastfeeding_entry_start_time") or "").strip()
+        end_date = (request.POST.get("breastfeeding_entry_end_date") or "").strip()
+        end_time = (request.POST.get("breastfeeding_entry_end_time") or "").strip()
+        side = (request.POST.get("breastfeeding_entry_side") or "").strip()
+
+        side_map = {
+            "left": "left breast",
+            "right": "right breast",
+        }
+
+        if (
+            not start_date
+            or not start_time
+            or not end_date
+            or not end_time
+            or side not in side_map
+        ):
+            messages.error(
+                request,
+                _(
+                    "Unable to create breastfeeding entry: start, end, and side are required."
+                ),
+            )
+            return
+
+        try:
+            start_dt = self._parse_local_datetime(start_date, start_time)
+            end_dt = self._parse_local_datetime(end_date, end_time)
+        except ValueError as exc:
+            messages.error(
+                request,
+                _("Unable to create breastfeeding entry: %(error)s") % {"error": exc},
+            )
+            return
+
+        feeding = Feeding(
+            child=self.object,
+            start=start_dt,
+            end=end_dt,
+            type="breast milk",
+            method=side_map[side],
+        )
+        try:
+            feeding.full_clean()
+            feeding.save()
+            messages.success(request, _("Breastfeeding entry saved."))
+        except ValidationError as exc:
+            messages.error(
+                request,
+                _("Unable to create breastfeeding entry: %(error)s") % {"error": exc},
+            )
+
+    def _handle_pumping_quick_entry(self, request):
+        start_date = (request.POST.get("pumping_entry_start_date") or "").strip()
+        start_time = (request.POST.get("pumping_entry_start_time") or "").strip()
+        end_date = (request.POST.get("pumping_entry_end_date") or "").strip()
+        end_time = (request.POST.get("pumping_entry_end_time") or "").strip()
+        amount_raw = (request.POST.get("pumping_entry_amount") or "").strip()
+        side = (request.POST.get("pumping_entry_side") or "").strip()
+
+        if (
+            not start_date
+            or not start_time
+            or not end_date
+            or not end_time
+            or not amount_raw
+            or side not in {"left", "right"}
+        ):
+            messages.error(
+                request,
+                _(
+                    "Unable to create pumping entry: start, end, amount, and side are required."
+                ),
+            )
+            return
+
+        try:
+            start_dt = self._parse_local_datetime(start_date, start_time)
+            end_dt = self._parse_local_datetime(end_date, end_time)
+            amount = float(amount_raw)
+        except (TypeError, ValueError) as exc:
+            messages.error(
+                request, _("Unable to create pumping entry: %(error)s") % {"error": exc}
+            )
+            return
+
+        pumping = Pumping(
+            child=self.object,
+            start=start_dt,
+            end=end_dt,
+            amount=amount,
+            side=side,
+        )
+        try:
+            pumping.full_clean()
+            pumping.save()
+            messages.success(request, _("Pumping entry saved."))
+        except ValidationError as exc:
+            messages.error(
+                request, _("Unable to create pumping entry: %(error)s") % {"error": exc}
+            )
+
     def get_template_names(self):
         if _ant_dashboard_enabled():
             return ["babybuddy/ant_app.html"]
@@ -313,6 +492,15 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             return HttpResponseRedirect(request.get_full_path())
         if request.POST.get("sleep_manual_entry_action") == "create":
             self._handle_sleep_manual_entry(request)
+            return HttpResponseRedirect(request.get_full_path())
+        if request.POST.get("feeding_quick_entry_action") == "create":
+            self._handle_feeding_quick_entry(request)
+            return HttpResponseRedirect(request.get_full_path())
+        if request.POST.get("breastfeeding_quick_entry_action") == "create":
+            self._handle_breastfeeding_quick_entry(request)
+            return HttpResponseRedirect(request.get_full_path())
+        if request.POST.get("pumping_quick_entry_action") == "create":
+            self._handle_pumping_quick_entry(request)
             return HttpResponseRedirect(request.get_full_path())
 
         action = request.POST.get("sleep_timer_action")
@@ -414,6 +602,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     "id": self.object.id,
                     "slug": self.object.slug,
                     "name": str(self.object),
+                    "birthDateLabel": _format_short_date(self.object.birth_date),
                     "pictureUrl": self.request.build_absolute_uri(
                         _child_picture_url(self.object)
                     ),

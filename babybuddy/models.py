@@ -26,10 +26,13 @@ class Settings(models.Model):
         ("card.diaper.quick_entry", _("diaper changes - Quick Entry")),
         ("card.diaper.last", _("diaper changes - Last nappy change")),
         ("card.diaper.types", _("diaper changes - Nappy changes")),
+        ("card.feedings.quick_entry", _("feedings - Quick Entry")),
+        ("card.feedings.breast_quick_entry", _("feedings - Breastfeeding Quick Entry")),
         ("card.feedings.last", _("feedings - Last feeding")),
         ("card.feedings.method", _("feedings - Last Feeding Method")),
         ("card.feedings.recent", _("feedings - Recent Feedings")),
         ("card.feedings.breastfeeding", _("feedings - Breastfeeding")),
+        ("card.pumpings.quick_entry", _("pumpings - Quick Entry")),
         ("card.pumpings.last", _("pumpings - Last Pumping")),
         ("card.sleep.timers", _("sleep - Timers")),
         ("card.sleep.quick_timer", _("sleep - Sleep Timer")),
@@ -199,9 +202,14 @@ class Settings(models.Model):
         return [section[0] for section in cls.DASHBOARD_SECTION_CHOICES]
 
     def dashboard_selected_items(self):
-        if self.dashboard_visible_items:
-            return self.dashboard_visible_items
-        return self.dashboard_default_visible_items()
+        allowed = set(self.dashboard_default_visible_items())
+        stored = [
+            item for item in (self.dashboard_visible_items or []) if item in allowed
+        ]
+        for item in self.dashboard_default_visible_items():
+            if item not in stored:
+                stored.append(item)
+        return stored
 
     def dashboard_selected_section_order(self):
         allowed = set(self.dashboard_default_section_order())
