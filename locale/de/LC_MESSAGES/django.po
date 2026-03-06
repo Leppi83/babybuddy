@@ -605,6 +605,46 @@ msgstr "Quellcode"
 msgid "Chat / Support"
 msgstr "Chat / Support"
 
+#: babybuddy/models.py:26
+msgid "diaper changes - Quick Entry"
+msgstr "Windelwechsel - Schnelleingabe"
+
+#: babybuddy/templates/babybuddy/user_settings_form.html:140
+msgid "Site & Support"
+msgstr "Seite & Support"
+
+#: babybuddy/templates/babybuddy/shadcn_preview.html:80
+#: dashboard/templates/cards/diaperchange_quick_entry.html:5
+msgid "Quick Entry"
+msgstr "Schnelleingabe"
+
+#: dashboard/templates/cards/diaperchange_quick_entry.html:6
+msgid "New nappy change"
+msgstr "Neuer Windelwechsel"
+
+#: dashboard/templates/cards/diaperchange_quick_entry.html:31
+msgid "Consistency"
+msgstr "Konsistenz"
+
+#: babybuddy/templates/babybuddy/shadcn_preview.html:122
+msgid "Open a child dashboard to save a nappy change directly."
+msgstr "Öffne ein Kind-Dashboard, um einen Windelwechsel direkt zu speichern."
+
+#: dashboard/views.py:97
+msgid "Unable to create diaper entry: date, time, and consistency are required."
+msgstr ""
+"Windeleintrag konnte nicht erstellt werden: Datum, Uhrzeit und Konsistenz "
+"sind erforderlich."
+
+#: dashboard/views.py:103 dashboard/views.py:119
+#, python-format
+msgid "Unable to create diaper entry: %(error)s"
+msgstr "Windeleintrag konnte nicht erstellt werden: %(error)s"
+
+#: dashboard/views.py:117
+msgid "Nappy change saved."
+msgstr "Windelwechsel gespeichert."
+
 #: babybuddy/templates/babybuddy/paginator.html:11
 #, fuzzy
 msgid "First"
@@ -1214,6 +1254,11 @@ msgstr "Nass"
 #: reports/graphs/diaperchange_types.py:30
 msgid "Solid"
 msgstr "Fest"
+
+#: babybuddy/templates/babybuddy/shadcn_preview.html:112
+#: dashboard/templates/cards/diaperchange_quick_entry.html:39
+msgid "Liquid"
+msgstr "Flüssig"
 
 #: core/models.py:246
 msgid "Black"

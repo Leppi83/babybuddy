@@ -190,31 +190,8 @@ LOCALE_PATHS = [
 ]
 
 LANGUAGES = [
-    ("pt-BR", _("Brazilian Portuguese")),
-    ("ca", _("Catalan")),
-    ("hr", _("Croatian")),
-    ("cs", _("Czech")),
-    ("zh-hans", _("Chinese (simplified)")),
-    ("da", _("Danish")),
-    ("nl", _("Dutch")),
     ("en-US", _("English (US)")),
-    ("en-GB", _("English (UK)")),
-    ("fr", _("French")),
-    ("fi", _("Finnish")),
     ("de", _("German")),
-    ("he", _("Hebrew")),
-    ("hu", _("Hungarian")),
-    ("it", _("Italian")),
-    ("ja", _("Japanese")),
-    ("nb", _("Norwegian Bokmål")),
-    ("pl", _("Polish")),
-    ("pt", _("Portuguese")),
-    ("ru", _("Russian")),
-    ("sr", _("Serbian")),
-    ("es", _("Spanish")),
-    ("sv", _("Swedish")),
-    ("tr", _("Turkish")),
-    ("uk", _("Ukrainian")),
 ]
 
 
