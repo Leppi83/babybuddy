@@ -33,25 +33,29 @@
         <form style="display:none" aria-hidden="true">{% csrf_token %}</form>
         <header class="ui-preview-header">
             <div>
-                <p class="ui-preview-kicker">{% if preview_mode %}UI Preview{% else %}Dashboard{% endif %}</p>
+                <p class="ui-preview-kicker">{% if preview_mode %}{% trans "UI Preview" %}{% else %}{% trans "Dashboard" %}{% endif %}</p>
                 <h1>{% if preview_fixed_child %}{{ preview_fixed_child }}{% else %}{% trans "Dashboard" %}{% endif %}</h1>
             </div>
             <div class="ui-preview-badges">
-                <span class="ui-preview-badge" id="ui-preview-visible-count">0 visible</span>
-                <span class="ui-preview-badge" id="ui-preview-hidden-count">0 hidden</span>
+                <span class="ui-preview-badge" id="ui-preview-visible-count">0 {% trans "visible" %}</span>
+                <span class="ui-preview-badge" id="ui-preview-hidden-count">0 {% trans "hidden" %}</span>
             </div>
         </header>
 
         <p class="ui-preview-subtitle">
             {% if preview_mode %}
-                Signed in as {% firstof request.user.get_full_name request.user.username %}. This is the standalone dashboard preview.
+                {% blocktranslate trimmed with name=request.user.get_full_name|default:request.user.username %}
+                    Signed in as {{ name }}. This is the standalone dashboard preview.
+                {% endblocktranslate %}
             {% else %}
-                Signed in as {% firstof request.user.get_full_name request.user.username %}.
+                {% blocktranslate trimmed with name=request.user.get_full_name|default:request.user.username %}
+                    Signed in as {{ name }}.
+                {% endblocktranslate %}
             {% endif %}
         </p>
         <div class="ui-preview-controls">
-            <label for="ui-preview-child-select">Child</label>
-            <select id="ui-preview-child-select" aria-label="Child selector">
+            <label for="ui-preview-child-select">{% trans "Child" %}</label>
+            <select id="ui-preview-child-select" aria-label="{% trans "Child selector" %}">
                 {% for child_item in preview_children %}
                     <option value="{{ child_item.id }}"{% if preview_fixed_child and child_item.id == preview_fixed_child.id %} selected{% endif %}>
                         {{ child_item }}
@@ -60,7 +64,7 @@
                     <option value="">{% trans "No children found" %}</option>
                 {% endfor %}
             </select>
-            <button id="ui-preview-refresh" class="btn btn-sm btn-secondary" type="button">Refresh data</button>
+            <button id="ui-preview-refresh" class="btn btn-sm btn-secondary" type="button">{% trans "Refresh data" %}</button>
         </div>
 
         <div class="ui-preview-sections">
@@ -70,8 +74,8 @@
                      data-tone="diaper"
                      data-collapsed="{% if 'diaper' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
-                    <h2 class="ui-preview-section-title">Diaper changes</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'diaper' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
+                    <h2 class="ui-preview-section-title">{% trans "Diaper changes" %}</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'diaper' in preview_hidden_sections %}{% trans "Show" %}{% else %}{% trans "Hide" %}{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.diaper %}
@@ -123,9 +127,9 @@
                                 {% endif %}
                             </article>
                         {% elif card_key == 'card.diaper.last' %}
-                            <article class="ui-preview-card" data-card="last-nappy-change"><h3>Last Nappy Change</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="last-nappy-change"><h3>{% trans "Last Nappy Change" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% elif card_key == 'card.diaper.types' %}
-                            <article class="ui-preview-card" data-card="nappy-changes"><h3>Nappy Changes</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="nappy-changes"><h3>{% trans "Nappy Changes" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -138,19 +142,19 @@
                      data-tone="feedings"
                      data-collapsed="{% if 'feedings' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
-                    <h2 class="ui-preview-section-title">Feedings</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'feedings' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
+                    <h2 class="ui-preview-section-title">{% trans "Feedings" %}</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'feedings' in preview_hidden_sections %}{% trans "Show" %}{% else %}{% trans "Hide" %}{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.feedings %}
                         {% if card_key == 'card.feedings.last' %}
-                            <article class="ui-preview-card" data-card="last-feeding"><h3>Last Feeding</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="last-feeding"><h3>{% trans "Last Feeding" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% elif card_key == 'card.feedings.method' %}
-                            <article class="ui-preview-card" data-card="last-feeding-method"><h3>Last Feeding Method</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="last-feeding-method"><h3>{% trans "Last Feeding Method" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% elif card_key == 'card.feedings.recent' %}
-                            <article class="ui-preview-card" data-card="recent-feedings"><h3>Recent Feedings</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="recent-feedings"><h3>{% trans "Recent Feedings" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% elif card_key == 'card.feedings.breastfeeding' %}
-                            <article class="ui-preview-card" data-card="breastfeeding"><h3>Breastfeeding</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="breastfeeding"><h3>{% trans "Breastfeeding" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -163,13 +167,13 @@
                      data-tone="pumpings"
                      data-collapsed="{% if 'pumpings' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
-                    <h2 class="ui-preview-section-title">Pumpings</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'pumpings' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
+                    <h2 class="ui-preview-section-title">{% trans "Pumpings" %}</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'pumpings' in preview_hidden_sections %}{% trans "Show" %}{% else %}{% trans "Hide" %}{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.pumpings %}
                         {% if card_key == 'card.pumpings.last' %}
-                            <article class="ui-preview-card" data-card="last-pumping"><h3>Last Pumping</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="last-pumping"><h3>{% trans "Last Pumping" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -182,48 +186,48 @@
                      data-tone="sleep"
                      data-collapsed="{% if 'sleep' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
-                    <h2 class="ui-preview-section-title">Sleep</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'sleep' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
+                    <h2 class="ui-preview-section-title">{% trans "Sleep" %}</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'sleep' in preview_hidden_sections %}{% trans "Show" %}{% else %}{% trans "Hide" %}{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.sleep %}
                         {% if card_key == 'card.sleep.timers' %}
-                            <article class="ui-preview-card" data-card="sleep-timers"><h3>Timers</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="sleep-timers"><h3>{% trans "Timers" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% elif card_key == 'card.sleep.quick_timer' %}
                             <article class="ui-preview-card">
-                                <h3>Sleep Timer</h3>
-                                <p class="ui-sleep-timer-caption" id="ui-sleep-timer-caption">Sleep duration: 00:00:00</p>
+                                <h3>{% trans "Sleep Timer" %}</h3>
+                                <p class="ui-sleep-timer-caption" id="ui-sleep-timer-caption">{% trans "Sleep duration" %}: 00:00:00</p>
                                 <div class="ui-sleep-timer-head">
                                     <p class="time" id="ui-sleep-timer-time">00:00:00</p>
                                     <span class="dots" id="ui-sleep-timer-dots">...</span>
                                 </div>
                                 <div class="ui-sleep-timer-row">
-                                    <button id="ui-sleep-timer-action" class="btn btn-primary ui-sleep-timer-action" type="button">Start</button>
+                                    <button id="ui-sleep-timer-action" class="btn btn-primary ui-sleep-timer-action" type="button">{% trans "Start" %}</button>
                                 </div>
                                 <hr />
                                 <div class="ui-sleep-quick-entry">
                                     <div class="row g-2 align-items-end">
                                         <div class="col-6">
-                                            <label class="form-label mb-1" for="ui-sleep-manual-start-date">Start date</label>
+                                            <label class="form-label mb-1" for="ui-sleep-manual-start-date">{% trans "Start date" %}</label>
                                             <input id="ui-sleep-manual-start-date"
                                                    class="form-control form-control-sm"
                                                    type="date" />
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label mb-1" for="ui-sleep-manual-start-picker">Start picker</label>
+                                            <label class="form-label mb-1" for="ui-sleep-manual-start-picker">{% trans "Start time" %}</label>
                                             <input id="ui-sleep-manual-start-picker"
                                                    class="form-control form-control-sm"
                                                    type="time"
                                                    step="60" />
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label mb-1" for="ui-sleep-manual-end-date">End date</label>
+                                            <label class="form-label mb-1" for="ui-sleep-manual-end-date">{% trans "End date" %}</label>
                                             <input id="ui-sleep-manual-end-date"
                                                    class="form-control form-control-sm"
                                                    type="date" />
                                         </div>
                                         <div class="col-6">
-                                            <label class="form-label mb-1" for="ui-sleep-manual-end-picker">End picker</label>
+                                            <label class="form-label mb-1" for="ui-sleep-manual-end-picker">{% trans "End time" %}</label>
                                             <input id="ui-sleep-manual-end-picker"
                                                    class="form-control form-control-sm"
                                                    type="time"
@@ -234,48 +238,48 @@
                                                 <input id="ui-sleep-manual-nap"
                                                        class="form-check-input"
                                                        type="checkbox" />
-                                                <label class="form-check-label" for="ui-sleep-manual-nap">Nap</label>
+                                                <label class="form-check-label" for="ui-sleep-manual-nap">{% trans "Nap" %}</label>
                                             </div>
                                         </div>
                                         <div class="col-12">
-                                            <button id="ui-sleep-manual-save" class="btn btn-secondary btn-sm" type="button">Save sleep entry</button>
+                                            <button id="ui-sleep-manual-save" class="btn btn-secondary btn-sm" type="button">{% trans "Save sleep entry" %}</button>
                                         </div>
                                     </div>
                                 </div>
-                                <p class="ui-sleep-timer-note" id="ui-sleep-timer-note">Timer idle. Start to create a new sleep entry.</p>
+                                <p class="ui-sleep-timer-note" id="ui-sleep-timer-note">{% trans "Timer idle. Start to create a new sleep entry." %}</p>
                             </article>
                         {% elif card_key == 'card.sleep.last' %}
-                            <article class="ui-preview-card" data-card="last-sleep"><h3>Last Sleep</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="last-sleep"><h3>{% trans "Last Sleep" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% elif card_key == 'card.sleep.recommendations' %}
                             <article class="ui-preview-card">
-                                <h3>Sleep Recommendations</h3>
+                                <h3>{% trans "Sleep Recommendations" %}</h3>
                                 <div id="ui-reco-content" class="ui-reco">
                                     <div class="ui-reco-row">
-                                        <div class="ui-reco-title">Nap</div>
-                                        <div>Loading...</div>
+                                        <div class="ui-reco-title">{% trans "Nap" %}</div>
+                                        <div>{% trans "Loading..." %}</div>
                                     </div>
                                     <div class="ui-reco-row">
-                                        <div class="ui-reco-title">Bedtime</div>
-                                        <div>Loading...</div>
+                                        <div class="ui-reco-title">{% trans "Bedtime" %}</div>
+                                        <div>{% trans "Loading..." %}</div>
                                     </div>
                                 </div>
                             </article>
                         {% elif card_key == 'card.sleep.recent' %}
-                            <article class="ui-preview-card" data-card="recent-sleep"><h3>Recent Sleep</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="recent-sleep"><h3>{% trans "Recent Sleep" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% elif card_key == 'card.sleep.naps_day' %}
-                            <article class="ui-preview-card" data-card="todays-naps"><h3>Today's Naps</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="todays-naps"><h3>{% trans "Today's Naps" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% elif card_key == 'card.sleep.statistics' %}
-                            <article class="ui-preview-card" data-card="sleep-statistics"><h3>Statistics</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="sleep-statistics"><h3>{% trans "Statistics" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% elif card_key == 'card.sleep.timeline_day' %}
                             <article class="ui-preview-card">
-                                <h3>Sleep Timeline (24h)</h3>
+                                <h3>{% trans "Sleep Timeline (24h)" %}</h3>
                                 <div class="ui-sleep-timeline-toolbar">
-                                    <button id="ui-sleep-date-prev" class="btn btn-sm btn-secondary" type="button" aria-label="Previous day">&lsaquo;</button>
+                                    <button id="ui-sleep-date-prev" class="btn btn-sm btn-secondary" type="button" aria-label="{% trans "Previous day" %}">&lsaquo;</button>
                                     <div class="ui-sleep-timeline-date">
                                         <span id="ui-sleep-date-label">--.--.----</span>
-                                        <input id="ui-sleep-date-input" type="date" aria-label="Select day">
+                                        <input id="ui-sleep-date-input" type="date" aria-label="{% trans "Select day" %}">
                                     </div>
-                                    <button id="ui-sleep-date-next" class="btn btn-sm btn-secondary" type="button" aria-label="Next day">&rsaquo;</button>
+                                    <button id="ui-sleep-date-next" class="btn btn-sm btn-secondary" type="button" aria-label="{% trans "Next day" %}">&rsaquo;</button>
                                 </div>
                                 <div class="ui-sleep-timeline-chart-wrap" id="ui-sleep-timeline-wrap">
                                     <div class="ui-sleep-timeline-chart" id="ui-sleep-timeline-chart"></div>
@@ -283,8 +287,8 @@
                                     <div class="ui-sleep-axis" id="ui-sleep-axis"></div>
                                 </div>
                                 <div class="ui-sleep-legend">
-                                    <span><span class="ui-sleep-dot nap"></span>Nap</span>
-                                    <span><span class="ui-sleep-dot"></span>Sleep</span>
+                                    <span><span class="ui-sleep-dot nap"></span>{% trans "Nap" %}</span>
+                                    <span><span class="ui-sleep-dot"></span>{% trans "Sleep" %}</span>
                                 </div>
                             </article>
                         {% endif %}
@@ -299,19 +303,106 @@
                      data-tone="tummy"
                      data-collapsed="{% if 'tummytime' in preview_hidden_sections %}1{% else %}0{% endif %}">
                 <div class="ui-preview-section-header">
-                    <h2 class="ui-preview-section-title">Tummy Time</h2>
-                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'tummytime' in preview_hidden_sections %}Show{% else %}Hide{% endif %}</button>
+                    <h2 class="ui-preview-section-title">{% trans "Tummy Time" %}</h2>
+                    <button class="ui-preview-toggle" type="button" data-section-toggle>{% if 'tummytime' in preview_hidden_sections %}{% trans "Show" %}{% else %}{% trans "Hide" %}{% endif %}</button>
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.tummytime %}
                         {% if card_key == 'card.tummytime.day' %}
-                            <article class="ui-preview-card" data-card="tummy-time"><h3>Today's Tummy Time</h3><p>Loading...</p></article>
+                            <article class="ui-preview-card" data-card="tummy-time"><h3>{% trans "Today's Tummy Time" %}</h3><p>{% trans "Loading..." %}</p></article>
                         {% endif %}
                     {% endfor %}
                 </div>
             </section>
             {% endif %}
         </div>
+        <script id="ui-preview-i18n" type="application/json">
+            {
+                "na": "{% trans 'n/a' %}",
+                "visible_suffix": "{% trans 'visible' %}",
+                "hidden_suffix": "{% trans 'hidden' %}",
+                "ok": "{% trans 'OK' %}",
+                "no_data": "{% trans 'No Data' %}",
+                "nighttime": "{% trans 'Nighttime' %}",
+                "overdue": "{% trans 'Overdue' %}",
+                "info": "{% trans 'Info' %}",
+                "nap": "{% trans 'Nap' %}",
+                "sleep": "{% trans 'Sleep' %}",
+                "bedtime": "{% trans 'Bedtime' %}",
+                "ideal": "{% trans 'ideal' %}",
+                "window": "{% trans 'window' %}",
+                "target": "{% trans 'target' %}",
+                "no_schedule_available": "{% trans 'no schedule available' %}",
+                "sleeping": "{% trans 'Sleeping' %}",
+                "min_short": "{% trans 'min' %}",
+                "h_short": "{% trans 'h' %}",
+                "m_short": "{% trans 'm' %}",
+                "ago": "{% trans 'ago' %}",
+                "start": "{% trans 'Start' %}",
+                "stop": "{% trans 'Stop' %}",
+                "select_child_first": "{% trans 'Select a child first.' %}",
+                "timer_running": "{% trans 'Timer running... Stop to create sleep entry.' %}",
+                "saved_entry": "{% trans 'Saved %(entry_type)s entry (%(value)s).' %}",
+                "saved_entry_range": "{% trans 'Saved %(entry_type)s entry (%(start)s - %(end)s).' %}",
+                "sleep_entry": "{% trans 'sleep' %}",
+                "nap_entry": "{% trans 'nap' %}",
+                "enter_hhmm": "{% trans 'Please enter Start and End as hh:mm.' %}",
+                "invalid_time": "{% trans 'Invalid start or end time.' %}",
+                "end_after_start": "{% trans 'End must be after start. For overnight sleep choose next day in End date.' %}",
+                "no_children_found": "{% trans 'No children found' %}",
+                "configured_child_not_found": "{% trans 'Configured child not found' %}",
+                "child_fallback": "{% trans 'Child' %}",
+                "loading": "{% trans 'Loading...' %}",
+                "yes": "{% trans 'yes' %}",
+                "no": "{% trans 'no' %}",
+                "wet": "{% trans 'wet' %}",
+                "solid_lower": "{% trans 'solid' %}",
+                "no_diaper_changes": "{% trans 'No diaper changes yet' %}",
+                "changes_today": "{% trans '%(count)s changes today' %}",
+                "recent_history": "{% trans '%(count)s in recent history' %}",
+                "diaper": "{% trans 'diaper' %}",
+                "amount": "{% trans 'amount' %}",
+                "unknown": "{% trans 'unknown' %}",
+                "no_feedings": "{% trans 'No feedings yet' %}",
+                "recent_entries_x": "{% trans '%(count)sx in recent entries' %}",
+                "dominant_method": "{% trans 'dominant method' %}",
+                "no_feeding_method": "{% trans 'No feeding method available' %}",
+                "feedings_today": "{% trans '%(count)s feedings today' %}",
+                "avg_duration_minutes": "{% trans 'avg duration %(count)s min' %}",
+                "no_entries_today": "{% trans 'no entries today' %}",
+                "today": "{% trans 'today' %}",
+                "recent_entries_count": "{% trans '%(count)s in recent entries' %}",
+                "breastfeeding": "{% trans 'breastfeeding' %}",
+                "pumping": "{% trans 'pumping' %}",
+                "no_pumping_entries": "{% trans 'No pumping entries yet' %}",
+                "no_sleep_entries": "{% trans 'No sleep entries yet' %}",
+                "timers_count": "{% trans '%(count)s timers' %}",
+                "latest_timer": "{% trans 'latest: %(name)s (%(time)s)' %}",
+                "no_active_timer": "{% trans 'no active timer' %}",
+                "running": "{% trans 'running' %}",
+                "idle": "{% trans 'idle' %}",
+                "sleep_entries_today": "{% trans '%(count)s sleep entries today' %}",
+                "sleep_log": "{% trans 'sleep log' %}",
+                "naps_today": "{% trans '%(count)s naps today' %}",
+                "avg_nap": "{% trans '%(count)s min avg nap' %}",
+                "avg_sleep": "{% trans '%(count)s min avg sleep' %}",
+                "statistics": "{% trans 'statistics' %}",
+                "error": "{% trans 'Error' %}",
+                "tummy_time_today": "{% trans '%(count)s min today' %}",
+                "recent_tummy_entries": "{% trans '%(count)s recent tummy time entries' %}",
+                "tummy_time": "{% trans 'tummy time' %}",
+                "existing_running_timer": "{% trans 'Existing running timer: %(name)s' %}",
+                "show": "{% trans 'Show' %}",
+                "hide": "{% trans 'Hide' %}",
+                "error_loading_data": "{% trans 'Error loading data: %(message)s' %}",
+                "error_loading_children": "{% trans 'Error loading children' %}",
+                "timeline_error": "{% trans 'Timeline error: %(message)s' %}",
+                "timer_error": "{% trans 'Timer error: %(message)s' %}",
+                "manual_save_error": "{% trans 'Manual save error: %(message)s' %}",
+                "sleep_preview_timer": "{% trans 'Sleep preview timer' %}",
+                "timer_default_name": "{% trans 'Timer' %}"
+            }
+        </script>
     </div>
 
     <div id="ui-preview-tooltip" class="ui-tooltip" role="status" aria-live="polite"></div>
