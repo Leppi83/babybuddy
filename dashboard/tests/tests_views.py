@@ -3,10 +3,11 @@ from django.test import TestCase
 from django.test import Client as HttpClient
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from django.utils import timezone
 
 from faker import Faker
 
-from core.models import Child
+from core.models import Child, DiaperChange
 
 
 class ViewsTestCase(TestCase):
@@ -50,3 +51,29 @@ class ViewsTestCase(TestCase):
         )
         page = self.c.get("/dashboard/")
         self.assertEqual(page.status_code, 200)
+
+    def test_dashboard_diaper_quick_entry(self):
+        call_command("fake", verbosity=0, children=1, days=1)
+        child = Child.objects.first()
+
+        response = self.c.post(
+            f"/children/{child.slug}/dashboard/",
+            data={
+                "diaper_quick_entry_action": "create",
+                "diaper_entry_date": "2025-03-06",
+                "diaper_entry_time": "08:15",
+                "diaper_entry_consistency": "solid",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        change = DiaperChange.objects.order_by("-id").first()
+        self.assertIsNotNone(change)
+        self.assertEqual(change.child, child)
+        self.assertFalse(change.wet)
+        self.assertTrue(change.solid)
+        self.assertEqual(
+            timezone.localtime(change.time).strftime("%Y-%m-%d %H:%M"),
+            "2025-03-06 08:15",
+        )

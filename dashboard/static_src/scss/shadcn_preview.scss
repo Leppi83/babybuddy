@@ -212,6 +212,17 @@
             color: #fde68a;
         }
 
+        .ui-diaper-quick-entry {
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .ui-diaper-quick-entry-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+        }
+
         .ui-preview-section[data-collapsed="1"] .ui-preview-cards {
             display: none;
         }

@@ -52,6 +52,19 @@ def card_diaperchange_last(context, child):
     }
 
 
+@register.inclusion_tag("cards/diaperchange_quick_entry.html", takes_context=True)
+def card_diaperchange_quick_entry(context, child):
+    now = timezone.localtime()
+    return {
+        "type": "diaperchange",
+        "child": child,
+        "entry_date": now.date().isoformat(),
+        "entry_time": now.strftime("%H:%M"),
+        "empty": False,
+        "hide_empty": False,
+    }
+
+
 @register.inclusion_tag("cards/diaperchange_types.html", takes_context=True)
 def card_diaperchange_types(context, child, date=None):
     """

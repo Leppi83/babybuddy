@@ -75,7 +75,54 @@
                 </div>
                 <div class="ui-preview-cards">
                     {% for card_key in preview_cards_by_section.diaper %}
-                        {% if card_key == 'card.diaper.last' %}
+                        {% if card_key == 'card.diaper.quick_entry' %}
+                            <article class="ui-preview-card">
+                                <h3>{% trans "Quick Entry" %}</h3>
+                                {% if preview_fixed_child %}
+                                    {% now "Y-m-d" as diaper_entry_date %}
+                                    {% now "H:i" as diaper_entry_time %}
+                                    <form method="post" class="ui-diaper-quick-entry">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="diaper_quick_entry_action" value="create" />
+                                        <div class="row g-2 align-items-end">
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ui-diaper-entry-date">{% trans "Date" %}</label>
+                                                <input id="ui-diaper-entry-date"
+                                                       name="diaper_entry_date"
+                                                       class="form-control form-control-sm"
+                                                       type="date"
+                                                       value="{{ diaper_entry_date }}"
+                                                       required />
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label mb-1" for="ui-diaper-entry-time">{% trans "Time" %}</label>
+                                                <input id="ui-diaper-entry-time"
+                                                       name="diaper_entry_time"
+                                                       class="form-control form-control-sm"
+                                                       type="time"
+                                                       step="60"
+                                                       value="{{ diaper_entry_time }}"
+                                                       required />
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="ui-diaper-quick-entry-actions">
+                                                    <button class="btn btn-secondary btn-sm"
+                                                            type="submit"
+                                                            name="diaper_entry_consistency"
+                                                            value="liquid">{% trans "Flüssig" %}</button>
+                                                    <button class="btn btn-secondary btn-sm"
+                                                            type="submit"
+                                                            name="diaper_entry_consistency"
+                                                            value="solid">{% trans "Hart" %}</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                {% else %}
+                                    <p>{% trans "Open a child dashboard to save a nappy change directly." %}</p>
+                                {% endif %}
+                            </article>
+                        {% elif card_key == 'card.diaper.last' %}
                             <article class="ui-preview-card" data-card="last-nappy-change"><h3>Last Nappy Change</h3><p>Loading...</p></article>
                         {% elif card_key == 'card.diaper.types' %}
                             <article class="ui-preview-card" data-card="nappy-changes"><h3>Nappy Changes</h3><p>Loading...</p></article>

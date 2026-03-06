@@ -1,0 +1,51 @@
+{% extends 'cards/base.html' %}
+{% load i18n %}
+
+{% block card_classes %}diaper-quick-entry-card{% endblock %}
+{% block header %}{% trans "Quick Entry" %}{% endblock %}
+{% block title %}{% trans "New nappy change" %}{% endblock %}
+
+{% block content %}
+    <form method="post" class="diaper-quick-entry-form">
+        {% csrf_token %}
+        <input type="hidden" name="diaper_quick_entry_action" value="create" />
+        <div class="row g-2 align-items-end">
+            <div class="col-sm-6">
+                <label class="form-label mb-1" for="diaper-entry-date-{{ child.id }}">{% trans "Date" %}</label>
+                <input id="diaper-entry-date-{{ child.id }}"
+                       name="diaper_entry_date"
+                       class="form-control form-control-sm"
+                       type="date"
+                       value="{{ entry_date }}"
+                       required />
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label mb-1" for="diaper-entry-time-{{ child.id }}">{% trans "Time" %}</label>
+                <input id="diaper-entry-time-{{ child.id }}"
+                       name="diaper_entry_time"
+                       class="form-control form-control-sm"
+                       type="time"
+                       step="60"
+                       value="{{ entry_time }}"
+                       required />
+            </div>
+            <div class="col-12">
+                <span class="form-label d-block mb-1">{% trans "Consistency" %}</span>
+                <div class="diaper-quick-entry-actions">
+                    <button type="submit"
+                            class="btn btn-outline-light btn-sm"
+                            name="diaper_entry_consistency"
+                            value="liquid">
+                        {% trans "Flüssig" %}
+                    </button>
+                    <button type="submit"
+                            class="btn btn-outline-light btn-sm"
+                            name="diaper_entry_consistency"
+                            value="solid">
+                        {% trans "Hart" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}
