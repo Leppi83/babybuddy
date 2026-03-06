@@ -2189,7 +2189,7 @@ function ChildDashboardPage({ bootstrap }) {
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       setCurrentTime(Date.now());
-    }, 30000);
+    }, 1000);
     return () => window.clearInterval(intervalId);
   }, []);
 
@@ -2250,12 +2250,15 @@ function ChildDashboardPage({ bootstrap }) {
     return date.toDateString() === now.toDateString();
   }
 
-  async function loadDashboardData(childId) {
+  async function loadDashboardData(childId, options = {}) {
     if (!childId) {
       return;
     }
 
-    setLoading(true);
+    const { background = false } = options;
+    if (!background) {
+      setLoading(true);
+    }
     const query = `child=${encodeURIComponent(childId)}`;
 
     try {
@@ -2509,7 +2512,9 @@ function ChildDashboardPage({ bootstrap }) {
     } catch (error) {
       ant.message.error(error.message);
     } finally {
-      setLoading(false);
+      if (!background) {
+        setLoading(false);
+      }
     }
   }
 
@@ -2541,8 +2546,8 @@ function ChildDashboardPage({ bootstrap }) {
           elapsedSeconds: 0,
         });
         ant.message.success(bootstrap.strings.sleepEntrySaved);
+        await loadDashboardData(selectedChildId, { background: true });
       }
-      await loadDashboardData(selectedChildId);
     } finally {
       setSubmittingSleepTimer(false);
     }
