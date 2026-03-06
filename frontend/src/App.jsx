@@ -139,6 +139,41 @@ function createApiClient(csrfToken) {
   };
 }
 
+function loadScriptOnce(src) {
+  const existing = document.querySelector(`script[data-ant-src="${src}"]`);
+  if (existing) {
+    if (existing.dataset.loaded === "true") {
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      existing.addEventListener("load", resolve, { once: true });
+      existing.addEventListener("error", reject, { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.dataset.antSrc = src;
+    script.addEventListener(
+      "load",
+      () => {
+        script.dataset.loaded = "true";
+        resolve();
+      },
+      { once: true }
+    );
+    script.addEventListener("error", reject, { once: true });
+    document.body.appendChild(script);
+  });
+}
+
+function extractScriptContent(scriptMarkup) {
+  const match = String(scriptMarkup || "").match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+  return match ? match[1] : String(scriptMarkup || "");
+}
+
 function AppShell({ bootstrap, children }) {
   const screens = useBreakpoint();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -185,10 +220,13 @@ function AppShell({ bootstrap, children }) {
   }
 
   const selectedKey =
-    bootstrap.activeNavKey ||
-    navItems.find((item) => item.key !== "__logout__" && bootstrap.currentPath.startsWith(item.key))
-      ?.key ||
-    bootstrap.urls.dashboard;
+    bootstrap.activeNavKey === null
+      ? null
+      : bootstrap.activeNavKey ||
+        navItems.find(
+          (item) => item.key !== "__logout__" && bootstrap.currentPath.startsWith(item.key)
+        )?.key ||
+        bootstrap.urls.dashboard;
 
   const brand = (
     <div className="ant-shell-brand">
@@ -200,7 +238,7 @@ function AppShell({ bootstrap, children }) {
   const menu = (
     <Menu
       mode="inline"
-      selectedKeys={[selectedKey]}
+      selectedKeys={selectedKey ? [selectedKey] : []}
       items={navItems}
       onClick={handleNavClick}
       className="ant-shell-menu"
@@ -243,6 +281,18 @@ function AppShell({ bootstrap, children }) {
     "timer-detail": {
       eyebrow: bootstrap.strings.timeline,
       title: bootstrap.timerDetail?.name || bootstrap.strings.timeline
+    },
+    timeline: {
+      eyebrow: bootstrap.timelinePage?.kicker || bootstrap.strings.timeline,
+      title: bootstrap.timelinePage?.title || bootstrap.strings.timeline
+    },
+    "report-list": {
+      eyebrow: bootstrap.strings.overview,
+      title: bootstrap.strings.reports
+    },
+    "report-detail": {
+      eyebrow: bootstrap.reportDetail?.category || bootstrap.strings.reports,
+      title: bootstrap.reportDetail?.title || bootstrap.strings.reports
     }
   }[bootstrap.pageType] || {
     eyebrow: bootstrap.strings.dashboard,
@@ -864,6 +914,226 @@ function TimerDetailPage({ bootstrap }) {
             {bootstrap.strings.restartTimer}
           </Button>
         </Space>
+      </Card>
+    </Space>
+  );
+}
+
+function TimelinePage({ bootstrap }) {
+  const timeline = bootstrap.timelinePage;
+  const items = (timeline.items || []).map((entry) => ({
+    color: entry.type === "start" ? "green" : entry.type === "end" ? "red" : "blue",
+    children: (
+      <div className="ant-timeline-event-card">
+        <Space direction="vertical" size={8} style={{ width: "100%" }}>
+          <Space split={<span className="ant-dot-separator">•</span>} wrap>
+            <Text strong>{entry.timeLabel}</Text>
+            <Text type="secondary">{entry.sinceLabel}</Text>
+          </Space>
+          <Text strong>{entry.event}</Text>
+          {entry.details.length ? (
+            <Space direction="vertical" size={4}>
+              {entry.details.map((detail, index) => (
+                <Text key={`${entry.key}-detail-${index}`} type="secondary">
+                  {detail}
+                </Text>
+              ))}
+            </Space>
+          ) : null}
+          {entry.tags.length ? (
+            <Space wrap>
+              {entry.tags.map((tag) => (
+                <Tag key={`${entry.key}-${tag.name}`} color={tag.color || "default"}>
+                  {tag.name}
+                </Tag>
+              ))}
+            </Space>
+          ) : null}
+          <Space wrap>
+            {entry.duration ? (
+              <Tag>{bootstrap.strings.duration}: {entry.duration}</Tag>
+            ) : null}
+            {entry.timeSincePrev ? (
+              <Tag color="cyan">
+                {entry.timeSincePrev} {bootstrap.strings.sincePrevious}
+              </Tag>
+            ) : null}
+            {entry.editLink ? (
+              <Button size="small" href={entry.editLink} icon={<EditOutlined />}>
+                {bootstrap.strings.edit}
+              </Button>
+            ) : null}
+          </Space>
+        </Space>
+      </div>
+    )
+  }));
+
+  return (
+    <Card
+      className="ant-section-card"
+      title={timeline.dateLabel}
+      extra={
+        <Space wrap>
+          {timeline.previousUrl ? (
+            <Button href={timeline.previousUrl}>{bootstrap.strings.previous}</Button>
+          ) : null}
+          {timeline.nextUrl ? <Button href={timeline.nextUrl}>{bootstrap.strings.next}</Button> : null}
+        </Space>
+      }
+    >
+      {items.length ? (
+        <AntTimeline items={items} />
+      ) : (
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noEvents} />
+      )}
+    </Card>
+  );
+}
+
+function ReportListPage({ bootstrap }) {
+  const reportList = bootstrap.reportList;
+  const groupedEntries = (reportList.entries || []).reduce((result, entry) => {
+    const key = entry.category || bootstrap.strings.reports;
+    result[key] = result[key] || [];
+    result[key].push(entry);
+    return result;
+  }, {});
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Row gutter={[16, 16]} align="middle">
+          <Col flex="auto">
+            <Space direction="vertical" size={6}>
+              <Text type="secondary">{bootstrap.strings.reports}</Text>
+              <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+                {reportList.childName}
+              </Title>
+              <Text style={{ color: "#cbd5e1" }}>{bootstrap.strings.reportSummary}</Text>
+            </Space>
+          </Col>
+          <Col>
+            <Space wrap>
+              <Button href={reportList.actions.dashboard} icon={<DashboardOutlined />}>
+                {bootstrap.strings.dashboard}
+              </Button>
+              <Button href={reportList.actions.timeline} icon={<CalendarOutlined />}>
+                {bootstrap.strings.timeline}
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+      </Card>
+
+      <Row gutter={[16, 16]}>
+        {Object.entries(groupedEntries).map(([category, entries]) => (
+          <Col xs={24} xl={12} key={category}>
+            <Card className="ant-section-card" title={category}>
+              <List
+                className="ant-link-list"
+                dataSource={entries}
+                renderItem={(entry) => (
+                  <List.Item
+                    extra={
+                      <Button type="link" href={entry.href}>
+                        {bootstrap.strings.open}
+                      </Button>
+                    }
+                  >
+                    <a href={entry.href}>{entry.title}</a>
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    </Space>
+  );
+}
+
+function ReportDetailPage({ bootstrap }) {
+  const report = bootstrap.reportDetail;
+  const graphRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function renderGraph() {
+      if (!graphRef.current) {
+        return;
+      }
+
+      if (!report.html) {
+        graphRef.current.innerHTML = "";
+        return;
+      }
+
+      await loadScriptOnce(bootstrap.urls.graphJs);
+      if (cancelled || !graphRef.current) {
+        return;
+      }
+
+      graphRef.current.innerHTML = report.html;
+      if (window.Plotly && report.plotlyLocale) {
+        window.Plotly.setPlotConfig({ locale: report.plotlyLocale });
+      }
+
+      const scriptContent = extractScriptContent(report.js).trim();
+      if (scriptContent) {
+        new Function(scriptContent)();
+      }
+    }
+
+    renderGraph();
+
+    return () => {
+      cancelled = true;
+      if (graphRef.current) {
+        graphRef.current.innerHTML = "";
+      }
+    };
+  }, [bootstrap.urls.graphJs, report.html, report.js, report.plotlyLocale]);
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Row gutter={[16, 16]} align="middle">
+          <Col flex="auto">
+            <Space direction="vertical" size={6}>
+              <Text type="secondary">{report.category}</Text>
+              <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+                {report.title}
+              </Title>
+              <Text style={{ color: "#cbd5e1" }}>{report.childName}</Text>
+            </Space>
+          </Col>
+          <Col>
+            <Space wrap>
+              <Button href={report.actions.dashboard} icon={<DashboardOutlined />}>
+                {bootstrap.strings.dashboard}
+              </Button>
+              <Button href={report.actions.timeline} icon={<CalendarOutlined />}>
+                {bootstrap.strings.timeline}
+              </Button>
+              <Button href={report.actions.reports} icon={<LineChartOutlined />}>
+                {bootstrap.strings.reports}
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+      </Card>
+
+      <Card className="ant-section-card">
+        {report.html ? (
+          <div className="ant-report-graph" ref={graphRef} />
+        ) : (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noReportData}
+          />
+        )}
       </Card>
     </Space>
   );
@@ -1884,6 +2154,12 @@ export function App({ bootstrap }) {
             <TagDetailPage bootstrap={bootstrap} />
           ) : bootstrap.pageType === "timer-detail" ? (
             <TimerDetailPage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "timeline" ? (
+            <TimelinePage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "report-list" ? (
+            <ReportListPage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "report-detail" ? (
+            <ReportDetailPage bootstrap={bootstrap} />
           ) : (
             <ChildDashboardPage bootstrap={bootstrap} />
           )}
