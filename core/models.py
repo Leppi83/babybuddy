@@ -491,6 +491,7 @@ class Pumping(models.Model):
     SIDE_CHOICES = [
         ("left", _("Left")),
         ("right", _("Right")),
+        ("both", _("Both")),
     ]
     child = models.ForeignKey(
         "Child",

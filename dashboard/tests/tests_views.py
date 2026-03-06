@@ -198,7 +198,7 @@ class ViewsTestCase(TestCase):
                 "pumping_entry_end_date": "2026-03-06",
                 "pumping_entry_end_time": "12:12",
                 "pumping_entry_amount": "90",
-                "pumping_entry_side": "right",
+                "pumping_entry_side": "both",
             },
             follow=True,
         )
@@ -206,4 +206,4 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         pumping = Pumping.objects.filter(child=child).latest("id")
         self.assertEqual(pumping.amount, 90)
-        self.assertEqual(pumping.side, "right")
+        self.assertEqual(pumping.side, "both")

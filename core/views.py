@@ -55,6 +55,7 @@ def _nav_urls():
         "timeline": reverse("core:timeline"),
         "settings": reverse("babybuddy:user-settings"),
         "logout": reverse("babybuddy:logout"),
+        "addChild": reverse("core:child-add"),
     }
 
 
@@ -64,6 +65,7 @@ def _list_strings():
         "timeline": _("Timeline"),
         "settings": _("Settings"),
         "logout": _("Logout"),
+        "addChild": _("Add Child"),
         "overview": _("Overview"),
         "list": _("List"),
         "actions": _("Actions"),

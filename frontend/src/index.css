@@ -398,4 +398,26 @@ body {
   .ant-timeline-legend {
     gap: 10px;
   }
+
+  .ant-hero-card .ant-space,
+  .ant-section-card .ant-space {
+    width: 100%;
+  }
+
+  .ant-hero-card .ant-space-wrap {
+    width: 100%;
+  }
+
+  .ant-hero-card .ant-space-wrap .ant-btn,
+  .ant-section-card .ant-btn {
+    max-width: 100%;
+  }
+
+  .ant-summary-card .ant-row > .ant-col {
+    max-width: 100%;
+  }
+
+  .ant-summary-card .ant-segmented {
+    width: 100%;
+  }
 }

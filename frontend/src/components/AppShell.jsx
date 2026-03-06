@@ -10,6 +10,7 @@ import {
   Typography,
 } from "antd";
 import {
+  PlusOutlined,
   DashboardOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
@@ -44,12 +45,19 @@ export function AppShell({ bootstrap, children }) {
       icon: <SettingOutlined />,
       label: bootstrap.strings.settings,
     },
+    bootstrap.urls.addChild
+      ? {
+          key: bootstrap.urls.addChild,
+          icon: <PlusOutlined />,
+          label: bootstrap.strings.addChild,
+        }
+      : null,
     {
       key: "__logout__",
       icon: <LogoutOutlined />,
       label: bootstrap.strings.logout,
     },
-  ];
+  ].filter(Boolean);
 
   function handleNavClick({ key }) {
     if (key === "__logout__") {
