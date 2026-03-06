@@ -2,10 +2,12 @@
 {% load babybuddy i18n static %}
 {% trans "Page not found" as error_kicker %}
 {% blocktrans trimmed with path=request_path asvar error_body %}
-The path {{ path }} does not exist.
+    The path {{ path }} does not exist.
 {% endblocktrans %}
 {% ant_error_bootstrap title="404 Page Not Found" kicker=error_kicker body=error_body as ant_bootstrap %}
-{% block title %}404 {% trans "Page Not Found" %}{% endblock %}
+{% block title %}
+    404 {% trans "Page Not Found" %}
+{% endblock %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}" />
 {% endblock %}

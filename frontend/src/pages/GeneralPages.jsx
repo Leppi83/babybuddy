@@ -232,7 +232,12 @@ export function AntFormPage({ bootstrap, deleteMode = false }) {
           </Card>
         ))}
         <Space style={{ marginTop: 20 }} wrap>
-          <Button danger={deleteMode} htmlType="submit" type="primary" size="large">
+          <Button
+            danger={deleteMode}
+            htmlType="submit"
+            type="primary"
+            size="large"
+          >
             {bootstrap.formPage.submitLabel}
           </Button>
           <Button href={bootstrap.urls.cancel} size="large">

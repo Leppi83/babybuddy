@@ -4,7 +4,9 @@
 {% trans "Back to login" as back_to_login %}
 {% axes_lockout_message as lockout_message %}
 {% ant_error_bootstrap title=lockout_message kicker=error_kicker body="" action_href="/login/" action_label=back_to_login as ant_bootstrap %}
-{% block title %}403 {% trans "Too Many Login Attempts" %}{% endblock %}
+{% block title %}
+    403 {% trans "Too Many Login Attempts" %}
+{% endblock %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}" />
 {% endblock %}

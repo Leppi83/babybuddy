@@ -2,10 +2,12 @@
 {% load babybuddy i18n static %}
 {% trans "Access denied" as error_kicker %}
 {% blocktrans trimmed asvar error_body %}
-You do not have permission to access this resource. Contact a site administrator for assistance.
+    You do not have permission to access this resource. Contact a site administrator for assistance.
 {% endblocktrans %}
 {% ant_error_bootstrap title="403 Permission Denied" kicker=error_kicker body=error_body as ant_bootstrap %}
-{% block title %}403 {% trans "Permission Denied" %}{% endblock %}
+{% block title %}
+    403 {% trans "Permission Denied" %}
+{% endblock %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}" />
 {% endblock %}
