@@ -3,7 +3,9 @@
 {% trans "Server error" as error_kicker %}
 {% trans "An unexpected server error occurred." as error_body %}
 {% ant_error_bootstrap title="500 Server Error" kicker=error_kicker body=error_body as ant_bootstrap %}
-{% block title %}500 {% trans "Server Error" %}{% endblock %}
+{% block title %}
+    500 {% trans "Server Error" %}
+{% endblock %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}" />
 {% endblock %}
