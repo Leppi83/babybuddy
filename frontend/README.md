@@ -1,24 +1,16 @@
-# BabyBuddy Shadcn Frontend (WIP)
+# BabyBuddy Ant Frontend (WIP)
 
-This folder contains the React + Tailwind foundation for the shadcn-based UI migration.
-The `/ui-preview/` Django route loads the built files:
-- `dist/preview.js`
-- `dist/preview.css`
+This folder contains the React + Ant Design frontend for the UI migration.
+The build writes directly into Django static files:
+- `babybuddy/static/babybuddy/ant/app.js`
+- `babybuddy/static/babybuddy/ant/app.css`
 
 ## Local usage
 
 ```bash
 cd frontend
 npm install
-npm run dev
-```
-
-## Build
-
-```bash
-cd frontend
 npm run build
 ```
 
-The build artifacts can later be integrated into Django static files for production.
-The current Dockerfile already copies these files to `static/babybuddy/shadcn/`.
+The Dockerfile builds this frontend during image creation.

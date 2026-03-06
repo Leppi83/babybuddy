@@ -5,6 +5,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
+from django.middleware.csrf import get_token
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -13,6 +15,106 @@ from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from core.models import Child, DiaperChange, Sleep
+
+
+def _ant_dashboard_enabled():
+    return settings.BABY_BUDDY.get("DASHBOARD_ANT_ENABLED", False)
+
+
+def _child_picture_url(child):
+    if child.picture:
+        return child.picture.url
+    return static("babybuddy/img/core/child-placeholder.png")
+
+
+def _display_name(user):
+    return user.get_full_name() or user.username
+
+
+def _build_nav_urls(request):
+    return {
+        "dashboard": reverse("dashboard:dashboard"),
+        "timeline": reverse("core:timeline"),
+        "settings": reverse("babybuddy:user-settings"),
+        "logout": reverse("babybuddy:logout"),
+    }
+
+
+def _build_ant_strings():
+    return {
+        "dashboard": _("Dashboard"),
+        "children": _("Children"),
+        "timeline": _("Timeline"),
+        "settings": _("Settings"),
+        "logout": _("Logout"),
+        "childDashboard": _("Child Dashboard"),
+        "overview": _("Overview"),
+        "born": _("Born"),
+        "age": _("Age"),
+        "openDashboard": _("Open dashboard"),
+        "refresh": _("Refresh"),
+        "hide": _("Hide"),
+        "show": _("Show"),
+        "loading": _("Loading..."),
+        "quickEntry": _("Quick Entry"),
+        "date": _("Date"),
+        "time": _("Time"),
+        "liquid": _("Liquid"),
+        "solid": _("Solid"),
+        "diaperChanges": _("Diaper changes"),
+        "diaper": _("Diaper changes"),
+        "feedings": _("Feedings"),
+        "pumpings": _("Pumpings"),
+        "sleep": _("Sleep"),
+        "tummyTime": _("Tummy Time"),
+        "tummytime": _("Tummy Time"),
+        "lastNappyChange": _("Last Nappy Change"),
+        "nappyChanges": _("Nappy Changes"),
+        "lastFeeding": _("Last Feeding"),
+        "lastFeedingMethod": _("Last Feeding Method"),
+        "recentFeedings": _("Recent Feedings"),
+        "breastfeeding": _("Breastfeeding"),
+        "lastPumping": _("Last Pumping"),
+        "timers": _("Timers"),
+        "sleepTimer": _("Sleep Timer"),
+        "lastSleep": _("Last Sleep"),
+        "sleepRecommendations": _("Sleep Recommendations"),
+        "recentSleep": _("Recent Sleep"),
+        "todaysNaps": _("Today's Naps"),
+        "statistics": _("Statistics"),
+        "sleepTimeline": _("Sleep Timeline (24h)"),
+        "todaysTummyTime": _("Today's Tummy Time"),
+        "noData": _("No data available yet."),
+        "migrationPending": _("Migration pending"),
+        "saveFailed": _("Save failed"),
+        "saved": _("Saved"),
+        "sleepTimerPending": _("Sleep timer migration pending"),
+    }
+
+
+def _serialize_children(request, children):
+    return [
+        {
+            "id": child.id,
+            "slug": child.slug,
+            "name": str(child),
+            "birthDate": child.birth_date.isoformat() if child.birth_date else None,
+            "birthDateLabel": str(child.birth_date) if child.birth_date else "",
+            "pictureUrl": request.build_absolute_uri(_child_picture_url(child)),
+            "dashboardUrl": reverse(
+                "dashboard:dashboard-child", kwargs={"slug": child.slug}
+            ),
+        }
+        for child in children
+    ]
+
+
+def _build_section_payload(section_cards, section_order, hidden_sections):
+    return {
+        "cardsBySection": section_cards,
+        "sectionOrder": section_order,
+        "hiddenSections": hidden_sections,
+    }
 
 
 class Dashboard(LoginRequiredMixin, TemplateView):
@@ -30,11 +132,27 @@ class Dashboard(LoginRequiredMixin, TemplateView):
             )
         return super(Dashboard, self).get(request, *args, **kwargs)
 
+    def get_template_names(self):
+        if _ant_dashboard_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
+
     def get_context_data(self, **kwargs):
         context = super(Dashboard, self).get_context_data(**kwargs)
-        context["objects"] = Child.objects.all().order_by(
-            "last_name", "first_name", "id"
-        )
+        children = Child.objects.all().order_by("last_name", "first_name", "id")
+        context["objects"] = children
+        if _ant_dashboard_enabled():
+            context["ant_page_title"] = _("Dashboard")
+            context["ant_bootstrap"] = {
+                "pageType": "dashboard-home",
+                "currentPath": self.request.path,
+                "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
+                "csrfToken": get_token(self.request),
+                "user": {"displayName": _display_name(self.request.user)},
+                "urls": _build_nav_urls(self.request),
+                "children": _serialize_children(self.request, children),
+                "strings": _build_ant_strings(),
+            }
         return context
 
 
@@ -121,6 +239,8 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             )
 
     def get_template_names(self):
+        if _ant_dashboard_enabled():
+            return ["babybuddy/ant_app.html"]
         if settings.BABY_BUDDY.get("DASHBOARD_SHADCN_CHILD_ENABLED", False):
             return ["babybuddy/shadcn_preview.html"]
         return [self.template_name]
@@ -194,7 +314,36 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         context["preview_cards_by_section"] = preview_cards_by_section
         context["preview_mode"] = False
         context["preview_fixed_child"] = self.object
-        context["preview_children"] = Child.objects.all().order_by(
-            "last_name", "first_name", "id"
-        )
+        children = Child.objects.all().order_by("last_name", "first_name", "id")
+        context["preview_children"] = children
+        if _ant_dashboard_enabled():
+            context["ant_page_title"] = _("Dashboard")
+            context["ant_bootstrap"] = {
+                "pageType": "dashboard-child",
+                "currentPath": self.request.path,
+                "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
+                "csrfToken": get_token(self.request),
+                "user": {"displayName": _display_name(self.request.user)},
+                "urls": {
+                    **_build_nav_urls(self.request),
+                    "layout": reverse("babybuddy:user-settings"),
+                    "current": self.request.get_full_path(),
+                    "childDashboardTemplate": reverse(
+                        "dashboard:dashboard-child", kwargs={"slug": "__CHILD_SLUG__"}
+                    ),
+                },
+                "children": _serialize_children(self.request, children),
+                "currentChild": {
+                    "id": self.object.id,
+                    "slug": self.object.slug,
+                    "name": str(self.object),
+                    "pictureUrl": self.request.build_absolute_uri(
+                        _child_picture_url(self.object)
+                    ),
+                },
+                "dashboard": _build_section_payload(
+                    preview_cards_by_section, visible_sections, hidden_sections
+                ),
+                "strings": _build_ant_strings(),
+            }
         return context

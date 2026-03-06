@@ -7,6 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # System deps (für Pillow + Build)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    ca-certificates \
     nodejs \
     npm \
     libjpeg62-turbo-dev \
@@ -18,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libtiff5-dev \
     tk-dev \
     curl \
+    && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -36,6 +38,7 @@ COPY . /app
 # Gulp builds into babybuddy/static/babybuddy/*.
 # Sync into /app/static/babybuddy/* because FileSystemFinder prefers /app/static.
 RUN npm ci && npx gulp build \
+    && cd /app/frontend && npm ci --cache /tmp/frontend-npm-cache && npm run build \
     && mkdir -p /app/static/babybuddy \
     && cp -a /app/babybuddy/static/babybuddy/. /app/static/babybuddy/
 
