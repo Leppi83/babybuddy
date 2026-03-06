@@ -106,6 +106,33 @@ body {
   justify-content: center;
 }
 
+.ant-picker-list,
+.ant-link-list {
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.58);
+}
+
+.ant-picker-list .ant-list-item,
+.ant-link-list .ant-list-item {
+  cursor: pointer;
+  color: #e2e8f0;
+}
+
+.ant-picker-list .ant-list-item.is-active {
+  background: rgba(77, 182, 255, 0.12);
+}
+
+.ant-link-list a {
+  color: #cfe8ff;
+  text-decoration: none;
+}
+
+.ant-link-list a:hover {
+  color: #ffffff;
+}
+
 .ant-timeline {
   display: flex;
   flex-direction: column;

@@ -399,6 +399,9 @@ BABY_BUDDY = {
     "DASHBOARD_ANT_ENABLED": bool(
         strtobool(os.environ.get("DASHBOARD_ANT_ENABLED") or "True")
     ),
+    "SETTINGS_ANT_ENABLED": bool(
+        strtobool(os.environ.get("SETTINGS_ANT_ENABLED") or "True")
+    ),
 }
 
 # Home assistant specific configuration
