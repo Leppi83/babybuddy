@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.conf import settings
 from django.db.models import Count
 from django.db.models.functions import Lower
 from django.forms import Form
 from django.http import HttpResponseRedirect
+from django.middleware.csrf import get_token
+from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -26,6 +29,66 @@ def _prepare_timeline_context_data(context, date, child=None):
     if date.date() < timezone.localdate():
         context["date_next"] = date + timezone.timedelta(days=1)
     pass
+
+
+def _lists_ant_enabled():
+    return settings.BABY_BUDDY.get("LISTS_ANT_ENABLED", False)
+
+
+def _display_name(user):
+    return user.get_full_name() or user.username
+
+
+def _nav_urls():
+    return {
+        "dashboard": reverse("dashboard:dashboard"),
+        "timeline": reverse("core:timeline"),
+        "settings": reverse("babybuddy:user-settings"),
+        "logout": reverse("babybuddy:logout"),
+    }
+
+
+def _list_strings():
+    return {
+        "dashboard": _("Dashboard"),
+        "timeline": _("Timeline"),
+        "settings": _("Settings"),
+        "logout": _("Logout"),
+        "overview": _("Overview"),
+        "list": _("List"),
+        "actions": _("Actions"),
+        "empty": _("No entries found."),
+    }
+
+
+def _child_image_url(request, child):
+    if child.picture:
+        return request.build_absolute_uri(child.picture.url)
+    return request.build_absolute_uri(
+        static("babybuddy/img/core/child-placeholder.png")
+    )
+
+
+def _build_ant_list_bootstrap(
+    request, *, title, kicker, columns, rows, add_actions, pagination=None
+):
+    return {
+        "pageType": "list",
+        "currentPath": request.path,
+        "locale": getattr(request, "LANGUAGE_CODE", "en"),
+        "csrfToken": get_token(request),
+        "user": {"displayName": _display_name(request.user)},
+        "urls": {**_nav_urls(), "self": request.path},
+        "strings": _list_strings(),
+        "listPage": {
+            "title": title,
+            "kicker": kicker,
+            "columns": columns,
+            "rows": rows,
+            "addActions": add_actions,
+            "pagination": pagination,
+        },
+    }
 
 
 class CoreAddView(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
@@ -106,6 +169,86 @@ class ChildList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
     permission_required = ("core.view_child",)
     filterset_fields = ("first_name", "last_name")
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
+
+    def get_context_data(self, **kwargs):
+        context = super(ChildList, self).get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            page_obj = context.get("page_obj")
+            context["ant_page_title"] = _("Children")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Children")),
+                kicker=str(_("Overview")),
+                columns=[
+                    {"key": "photo", "title": ""},
+                    {"key": "first_name", "title": str(_("First Name"))},
+                    {"key": "last_name", "title": str(_("Last Name"))},
+                    {"key": "birth_date", "title": str(_("Birth Date"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ],
+                rows=[
+                    {
+                        "key": child.slug,
+                        "cells": {
+                            "photo": {
+                                "type": "image",
+                                "src": _child_image_url(self.request, child),
+                            },
+                            "first_name": {
+                                "type": "link",
+                                "label": child.first_name,
+                                "href": reverse("core:child", kwargs={"slug": child.slug}),
+                            },
+                            "last_name": child.last_name,
+                            "birth_date": str(child.birth_datetime),
+                            "actions": {
+                                "type": "actions",
+                                "items": [
+                                    {
+                                        "label": str(_("Edit")),
+                                        "href": reverse(
+                                            "core:child-update", kwargs={"slug": child.slug}
+                                        ),
+                                    }
+                                    if self.request.user.has_perm("core.change_child")
+                                    else None,
+                                    {
+                                        "label": str(_("Delete")),
+                                        "href": reverse(
+                                            "core:child-delete", kwargs={"slug": child.slug}
+                                        ),
+                                        "danger": True,
+                                    }
+                                    if self.request.user.has_perm("core.delete_child")
+                                    else None,
+                                ],
+                            },
+                        },
+                    }
+                    for child in context["object_list"]
+                ],
+                add_actions=[
+                    {
+                        "label": str(_("Add Child")),
+                        "href": reverse("core:child-add"),
+                    }
+                ]
+                if self.request.user.has_perm("core.add_child")
+                else [],
+                pagination={
+                    "page": page_obj.number,
+                    "pageSize": page_obj.paginator.per_page,
+                    "total": page_obj.paginator.count,
+                }
+                if page_obj
+                else None,
+            )
+        return context
+
 
 class ChildAdd(CoreAddView):
     model = models.Child
@@ -157,6 +300,104 @@ class DiaperChangeList(
     permission_required = ("core.view_diaperchange",)
     filterset_class = filters.DiaperChangeFilter
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
+
+    def get_context_data(self, **kwargs):
+        context = super(DiaperChangeList, self).get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            page_obj = context.get("page_obj")
+            columns = [
+                {"key": "time", "title": str(_("Time"))},
+            ]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "contents", "title": str(_("Contents"))},
+                    {"key": "color", "title": str(_("Color"))},
+                    {"key": "amount", "title": str(_("Amount"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for change in context["object_list"]:
+                cells = {
+                    "time": str(change.time),
+                    "contents": ", ".join(
+                        [
+                            label
+                            for enabled, label in [
+                                (change.wet, str(_("Wet"))),
+                                (change.solid, str(_("Solid"))),
+                            ]
+                            if enabled
+                        ]
+                    )
+                    or "-",
+                    "color": str(change.get_color_display() or ""),
+                    "amount": str(change.amount or ""),
+                    "actions": {
+                        "type": "actions",
+                        "items": [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse(
+                                    "core:diaperchange-update", kwargs={"pk": change.id}
+                                ),
+                            }
+                            if self.request.user.has_perm("core.change_diaperchange")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse(
+                                    "core:diaperchange-delete", kwargs={"pk": change.id}
+                                ),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_diaperchange")
+                            else None,
+                        ],
+                    },
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(change.child),
+                        "href": reverse(
+                            "core:child", kwargs={"slug": change.child.slug}
+                        ),
+                    }
+                rows.append({"key": str(change.id), "cells": cells})
+
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Diaper Changes")),
+                kicker=str(_("Activity")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {
+                        "label": str(_("Add Diaper Change")),
+                        "href": reverse("core:diaperchange-add"),
+                    }
+                ]
+                if self.request.user.has_perm("core.add_diaperchange")
+                else [],
+                pagination={
+                    "page": page_obj.number,
+                    "pageSize": page_obj.paginator.per_page,
+                    "total": page_obj.paginator.count,
+                }
+                if page_obj
+                else None,
+            )
+            context["ant_page_title"] = _("Diaper Changes")
+        return context
+
 
 class DiaperChangeAdd(CoreAddView):
     model = models.DiaperChange
@@ -183,6 +424,104 @@ class FeedingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilt
     template_name = "core/feeding_list.html"
     permission_required = ("core.view_feeding",)
     filterset_class = filters.FeedingFilter
+
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
+
+    def get_context_data(self, **kwargs):
+        context = super(FeedingList, self).get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            page_obj = context.get("page_obj")
+            columns = [
+                {"key": "date", "title": str(_("Date"))},
+            ]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "method", "title": str(_("Method"))},
+                    {"key": "type", "title": str(_("Type"))},
+                    {"key": "amount", "title": str(_("Amt."))},
+                    {"key": "duration", "title": str(_("Duration"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for feeding in context["object_list"]:
+                cells = {
+                    "date": str(feeding.start),
+                    "method": str(feeding.get_method_display()),
+                    "type": str(feeding.get_type_display()),
+                    "amount": str(feeding.amount or ""),
+                    "duration": str(feeding.duration or ""),
+                    "actions": {
+                        "type": "actions",
+                        "items": [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse(
+                                    "core:feeding-update", kwargs={"pk": feeding.id}
+                                ),
+                            }
+                            if self.request.user.has_perm("core.change_feeding")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse(
+                                    "core:feeding-delete", kwargs={"pk": feeding.id}
+                                ),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_feeding")
+                            else None,
+                        ],
+                    },
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(feeding.child),
+                        "href": reverse(
+                            "core:child", kwargs={"slug": feeding.child.slug}
+                        ),
+                    }
+                rows.append({"key": str(feeding.id), "cells": cells})
+
+            add_actions = []
+            if self.request.user.has_perm("core.add_feeding"):
+                add_actions.append(
+                    {
+                        "label": str(_("Add Feeding")),
+                        "href": reverse("core:feeding-add"),
+                    }
+                )
+                add_actions.append(
+                    {
+                        "label": str(_("Add Bottle Feeding")),
+                        "href": reverse("core:bottle-feeding-add"),
+                    }
+                )
+
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Feedings")),
+                kicker=str(_("Activity")),
+                columns=columns,
+                rows=rows,
+                add_actions=add_actions,
+                pagination={
+                    "page": page_obj.number,
+                    "pageSize": page_obj.paginator.per_page,
+                    "total": page_obj.paginator.count,
+                }
+                if page_obj
+                else None,
+            )
+            context["ant_page_title"] = _("Feedings")
+        return context
 
 
 class FeedingAdd(CoreAddView):
@@ -332,6 +671,87 @@ class SleepList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
     template_name = "core/sleep_list.html"
     permission_required = ("core.view_sleep",)
     filterset_class = filters.SleepFilter
+
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
+
+    def get_context_data(self, **kwargs):
+        context = super(SleepList, self).get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            page_obj = context.get("page_obj")
+            columns = [
+                {"key": "start", "title": str(_("Start"))},
+                {"key": "end", "title": str(_("End"))},
+            ]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "duration", "title": str(_("Duration"))},
+                    {"key": "nap", "title": str(_("Nap"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for sleep in context["object_list"]:
+                cells = {
+                    "start": str(sleep.start),
+                    "end": str(sleep.end),
+                    "duration": str(sleep.duration or ""),
+                    "nap": str(_("Yes")) if sleep.nap else str(_("No")),
+                    "actions": {
+                        "type": "actions",
+                        "items": [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse("core:sleep-update", kwargs={"pk": sleep.id}),
+                            }
+                            if self.request.user.has_perm("core.change_sleep")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse("core:sleep-delete", kwargs={"pk": sleep.id}),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_sleep")
+                            else None,
+                        ],
+                    },
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(sleep.child),
+                        "href": reverse(
+                            "core:child", kwargs={"slug": sleep.child.slug}
+                        ),
+                    }
+                rows.append({"key": str(sleep.id), "cells": cells})
+
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Sleep")),
+                kicker=str(_("Activity")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {"label": str(_("Add Sleep")), "href": reverse("core:sleep-add")}
+                ]
+                if self.request.user.has_perm("core.add_sleep")
+                else [],
+                pagination={
+                    "page": page_obj.number,
+                    "pageSize": page_obj.paginator.per_page,
+                    "total": page_obj.paginator.count,
+                }
+                if page_obj
+                else None,
+            )
+            context["ant_page_title"] = _("Sleep")
+        return context
 
 
 class SleepAdd(CoreAddView):

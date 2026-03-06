@@ -402,6 +402,9 @@ BABY_BUDDY = {
     "SETTINGS_ANT_ENABLED": bool(
         strtobool(os.environ.get("SETTINGS_ANT_ENABLED") or "True")
     ),
+    "LISTS_ANT_ENABLED": bool(
+        strtobool(os.environ.get("LISTS_ANT_ENABLED") or "True")
+    ),
 }
 
 # Home assistant specific configuration
