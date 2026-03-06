@@ -186,7 +186,8 @@ class HomeAssistant:
                     "be incorrect."
                 )
             elif isinstance(response, HttpResponse):
-                if response["Content-Type"].lower().startswith("text/html"):
+                content_type = response.headers.get("Content-Type", "")
+                if content_type.lower().startswith("text/html"):
                     # Filter /static and /media URLs, I did not find a better
                     # way that would be compatible with external third-party apps.
                     content = response.content.decode()
@@ -219,7 +220,7 @@ class HomeAssistant:
                     response = HttpResponse(
                         content.encode(),
                         status=response.status_code,
-                        content_type=response["Content-Type"],
+                        content_type=content_type,
                         charset=response.charset,
                         headers=filtered_headers,
                     )
