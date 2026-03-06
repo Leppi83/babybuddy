@@ -189,6 +189,24 @@ def _build_ant_list_bootstrap(
     }
 
 
+def _build_actions(items):
+    return {
+        "type": "actions",
+        "items": [item for item in items if item],
+    }
+
+
+def _page_info(context):
+    page_obj = context.get("page_obj")
+    if not page_obj:
+        return None
+    return {
+        "page": page_obj.number,
+        "pageSize": page_obj.paginator.per_page,
+        "total": page_obj.paginator.count,
+    }
+
+
 def _serialize_bound_field(bound_field):
     field = bound_field.field
     widget = field.widget
@@ -316,8 +334,10 @@ class AntFormMixin:
         return str(self.ant_kicker)
 
     def get_ant_cancel_url(self):
-        success_url = self.get_success_url()
-        return str(success_url)
+        success_url = getattr(self, "success_url", None)
+        if success_url:
+            return str(success_url)
+        return str(self.get_success_url())
 
     def get_ant_submit_label(self):
         return str(_("Save"))
@@ -413,25 +433,94 @@ class BMIList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterVi
     permission_required = ("core.view_bmi",)
     filterset_class = filters.BMIFilter
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
 
-class BMIAdd(CoreAddView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            columns = [{"key": "date", "title": str(_("Date"))}]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "value", "title": str(_("BMI"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for item in context["object_list"]:
+                cells = {
+                    "date": str(item.date),
+                    "value": str(item.bmi),
+                    "actions": _build_actions(
+                        [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse("core:bmi-update", kwargs={"pk": item.id}),
+                            }
+                            if self.request.user.has_perm("core.change_bmi")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse("core:bmi-delete", kwargs={"pk": item.id}),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_bmi")
+                            else None,
+                        ]
+                    ),
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(item.child),
+                        "href": reverse("core:child", kwargs={"slug": item.child.slug}),
+                    }
+                rows.append({"key": str(item.id), "cells": cells})
+            context["ant_page_title"] = _("BMI")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("BMI")),
+                kicker=str(_("Measurements")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {"label": str(_("Add BMI")), "href": reverse("core:bmi-add")}
+                ]
+                if self.request.user.has_perm("core.add_bmi")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
+
+class BMIAdd(AntFormMixin, CoreAddView):
     model = models.BMI
     permission_required = ("core.add_bmi",)
     form_class = forms.BMIForm
     success_url = reverse_lazy("core:bmi-list")
+    ant_title = _("Add BMI")
+    ant_kicker = _("Entry Form")
 
 
-class BMIUpdate(CoreUpdateView):
+class BMIUpdate(AntFormMixin, CoreUpdateView):
     model = models.BMI
     permission_required = ("core.change_bmi",)
     form_class = forms.BMIForm
     success_url = reverse_lazy("core:bmi-list")
+    ant_title = _("Update BMI")
+    ant_kicker = _("Entry Form")
 
 
-class BMIDelete(CoreDeleteView):
+class BMIDelete(AntDeleteMixin, CoreDeleteView):
     model = models.BMI
     permission_required = ("core.delete_bmi",)
     success_url = reverse_lazy("core:bmi-list")
+    ant_title = _("Delete BMI")
 
 
 class ChildList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
@@ -870,28 +959,104 @@ class HeadCircumferenceList(
     permission_required = ("core.view_head_circumference",)
     filterset_class = filters.HeadCircumferenceFilter
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
 
-class HeadCircumferenceAdd(CoreAddView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            columns = [{"key": "date", "title": str(_("Date"))}]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "value", "title": str(_("Head Circumference"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for item in context["object_list"]:
+                cells = {
+                    "date": str(item.date),
+                    "value": str(item.head_circumference),
+                    "actions": _build_actions(
+                        [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse(
+                                    "core:head-circumference-update", kwargs={"pk": item.id}
+                                ),
+                            }
+                            if self.request.user.has_perm("core.change_head_circumference")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse(
+                                    "core:head-circumference-delete", kwargs={"pk": item.id}
+                                ),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_head_circumference")
+                            else None,
+                        ]
+                    ),
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(item.child),
+                        "href": reverse("core:child", kwargs={"slug": item.child.slug}),
+                    }
+                rows.append({"key": str(item.id), "cells": cells})
+            context["ant_page_title"] = _("Head Circumference")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Head Circumference")),
+                kicker=str(_("Measurements")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {
+                        "label": str(_("Add Head Circumference")),
+                        "href": reverse("core:head-circumference-add"),
+                    }
+                ]
+                if self.request.user.has_perm("core.add_head_circumference")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
+
+class HeadCircumferenceAdd(AntFormMixin, CoreAddView):
     model = models.HeadCircumference
     template_name = "core/head_circumference_form.html"
     permission_required = ("core.add_head_circumference",)
     form_class = forms.HeadCircumferenceForm
     success_url = reverse_lazy("core:head-circumference-list")
+    ant_title = _("Add Head Circumference")
+    ant_kicker = _("Entry Form")
 
 
-class HeadCircumferenceUpdate(CoreUpdateView):
+class HeadCircumferenceUpdate(AntFormMixin, CoreUpdateView):
     model = models.HeadCircumference
     template_name = "core/head_circumference_form.html"
     permission_required = ("core.change_head_circumference",)
     form_class = forms.HeadCircumferenceForm
     success_url = reverse_lazy("core:head-circumference-list")
+    ant_title = _("Update Head Circumference")
+    ant_kicker = _("Entry Form")
 
 
-class HeadCircumferenceDelete(CoreDeleteView):
+class HeadCircumferenceDelete(AntDeleteMixin, CoreDeleteView):
     model = models.HeadCircumference
     template_name = "core/head_circumference_confirm_delete.html"
     permission_required = ("core.delete_head_circumference",)
     success_url = reverse_lazy("core:head-circumference-list")
+    ant_title = _("Delete Head Circumference")
 
 
 class HeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
@@ -900,25 +1065,94 @@ class HeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilte
     permission_required = ("core.view_height",)
     filterset_class = filters.HeightFilter
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
 
-class HeightAdd(CoreAddView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            columns = [{"key": "date", "title": str(_("Date"))}]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "value", "title": str(_("Height"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for item in context["object_list"]:
+                cells = {
+                    "date": str(item.date),
+                    "value": str(item.height),
+                    "actions": _build_actions(
+                        [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse("core:height-update", kwargs={"pk": item.id}),
+                            }
+                            if self.request.user.has_perm("core.change_height")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse("core:height-delete", kwargs={"pk": item.id}),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_height")
+                            else None,
+                        ]
+                    ),
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(item.child),
+                        "href": reverse("core:child", kwargs={"slug": item.child.slug}),
+                    }
+                rows.append({"key": str(item.id), "cells": cells})
+            context["ant_page_title"] = _("Height")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Height")),
+                kicker=str(_("Measurements")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {"label": str(_("Add Height")), "href": reverse("core:height-add")}
+                ]
+                if self.request.user.has_perm("core.add_height")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
+
+class HeightAdd(AntFormMixin, CoreAddView):
     model = models.Height
     permission_required = ("core.add_height",)
     form_class = forms.HeightForm
     success_url = reverse_lazy("core:height-list")
+    ant_title = _("Add Height")
+    ant_kicker = _("Entry Form")
 
 
-class HeightUpdate(CoreUpdateView):
+class HeightUpdate(AntFormMixin, CoreUpdateView):
     model = models.Height
     permission_required = ("core.change_height",)
     form_class = forms.HeightForm
     success_url = reverse_lazy("core:height-list")
+    ant_title = _("Update Height")
+    ant_kicker = _("Entry Form")
 
 
-class HeightDelete(CoreDeleteView):
+class HeightDelete(AntDeleteMixin, CoreDeleteView):
     model = models.Height
     permission_required = ("core.delete_height",)
     success_url = reverse_lazy("core:height-list")
+    ant_title = _("Delete Height")
 
 
 class NoteList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
@@ -927,25 +1161,94 @@ class NoteList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterV
     permission_required = ("core.view_note",)
     filterset_class = filters.NoteFilter
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
 
-class NoteAdd(CoreAddView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            columns = [{"key": "time", "title": str(_("Time"))}]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "note", "title": str(_("Note"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for item in context["object_list"]:
+                cells = {
+                    "time": str(item.time),
+                    "note": str(item.note),
+                    "actions": _build_actions(
+                        [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse("core:note-update", kwargs={"pk": item.id}),
+                            }
+                            if self.request.user.has_perm("core.change_note")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse("core:note-delete", kwargs={"pk": item.id}),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_note")
+                            else None,
+                        ]
+                    ),
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(item.child),
+                        "href": reverse("core:child", kwargs={"slug": item.child.slug}),
+                    }
+                rows.append({"key": str(item.id), "cells": cells})
+            context["ant_page_title"] = _("Notes")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Notes")),
+                kicker=str(_("Activity")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {"label": str(_("Add Note")), "href": reverse("core:note-add")}
+                ]
+                if self.request.user.has_perm("core.add_note")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
+
+class NoteAdd(AntFormMixin, CoreAddView):
     model = models.Note
     permission_required = ("core.add_note",)
     form_class = forms.NoteForm
     success_url = reverse_lazy("core:note-list")
+    ant_title = _("Add Note")
+    ant_kicker = _("Entry Form")
 
 
-class NoteUpdate(CoreUpdateView):
+class NoteUpdate(AntFormMixin, CoreUpdateView):
     model = models.Note
     permission_required = ("core.change_note",)
     form_class = forms.NoteForm
     success_url = reverse_lazy("core:note-list")
+    ant_title = _("Update Note")
+    ant_kicker = _("Entry Form")
 
 
-class NoteDelete(CoreDeleteView):
+class NoteDelete(AntDeleteMixin, CoreDeleteView):
     model = models.Note
     permission_required = ("core.delete_note",)
     success_url = reverse_lazy("core:note-list")
+    ant_title = _("Delete Note")
 
 
 class PumpingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
@@ -954,27 +1257,102 @@ class PumpingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilt
     permission_required = ("core.view_pumping",)
     filterset_class = filters.PumpingFilter
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
 
-class PumpingAdd(CoreAddView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            columns = [
+                {"key": "start", "title": str(_("Start"))},
+                {"key": "end", "title": str(_("End"))},
+            ]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "amount", "title": str(_("Amount"))},
+                    {"key": "duration", "title": str(_("Duration"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for item in context["object_list"]:
+                cells = {
+                    "start": str(item.start),
+                    "end": str(item.end),
+                    "amount": str(item.amount or ""),
+                    "duration": str(item.duration or ""),
+                    "actions": _build_actions(
+                        [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse("core:pumping-update", kwargs={"pk": item.id}),
+                            }
+                            if self.request.user.has_perm("core.change_pumping")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse("core:pumping-delete", kwargs={"pk": item.id}),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_pumping")
+                            else None,
+                        ]
+                    ),
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(item.child),
+                        "href": reverse("core:child", kwargs={"slug": item.child.slug}),
+                    }
+                rows.append({"key": str(item.id), "cells": cells})
+            context["ant_page_title"] = _("Pumping")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Pumping")),
+                kicker=str(_("Activity")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {"label": str(_("Add Pumping")), "href": reverse("core:pumping-add")}
+                ]
+                if self.request.user.has_perm("core.add_pumping")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
+
+class PumpingAdd(AntFormMixin, CoreAddView):
     model = models.Pumping
     permission_required = ("core.add_pumping",)
     form_class = forms.PumpingForm
     success_url = reverse_lazy("core:pumping-list")
     success_message = _("%(model)s entry added!")
+    ant_title = _("Add Pumping")
+    ant_kicker = _("Entry Form")
 
 
-class PumpingUpdate(CoreUpdateView):
+class PumpingUpdate(AntFormMixin, CoreUpdateView):
     model = models.Pumping
     permission_required = ("core.change_pumping",)
     form_class = forms.PumpingForm
     success_url = reverse_lazy("core:pumping-list")
     success_message = _("%(model)s entry for %(child)s updated.")
+    ant_title = _("Update Pumping")
+    ant_kicker = _("Entry Form")
 
 
-class PumpingDelete(CoreDeleteView):
+class PumpingDelete(AntDeleteMixin, CoreDeleteView):
     model = models.Pumping
     permission_required = ("core.delete_pumping",)
     success_url = reverse_lazy("core:pumping-list")
+    ant_title = _("Delete Pumping")
 
 
 class SleepList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
@@ -1106,6 +1484,66 @@ class TagAdminList(
             .order_by(Lower("name"))
         )
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            rows = []
+            for item in context["object_list"]:
+                rows.append(
+                    {
+                        "key": item.slug,
+                        "cells": {
+                            "name": {
+                                "type": "link",
+                                "label": str(item.name),
+                                "href": reverse("core:tag-detail", kwargs={"slug": item.slug}),
+                            },
+                            "usage": str(getattr(item, "core_tagged_items__count", 0)),
+                            "actions": _build_actions(
+                                [
+                                    {
+                                        "label": str(_("Edit")),
+                                        "href": reverse("core:tag-update", kwargs={"slug": item.slug}),
+                                    }
+                                    if self.request.user.has_perm("core.change_tag")
+                                    else None,
+                                    {
+                                        "label": str(_("Delete")),
+                                        "href": reverse("core:tag-delete", kwargs={"slug": item.slug}),
+                                        "danger": True,
+                                    }
+                                    if self.request.user.has_perm("core.delete_tag")
+                                    else None,
+                                ]
+                            ),
+                        },
+                    }
+                )
+            context["ant_page_title"] = _("Tags")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Tags")),
+                kicker=str(_("Overview")),
+                columns=[
+                    {"key": "name", "title": str(_("Name"))},
+                    {"key": "usage", "title": str(_("Usage"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ],
+                rows=rows,
+                add_actions=[
+                    {"label": str(_("Add a Tag")), "href": reverse("core:tag-add")}
+                ]
+                if self.request.user.has_perm("core.add_tag")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
 
 class TagAdminDetail(PermissionRequiredMixin, DetailView):
     model = models.Tag
@@ -1127,25 +1565,147 @@ class TagAdminDetail(PermissionRequiredMixin, DetailView):
         )
         return qs
 
+    def get_template_names(self):
+        if _details_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return super().get_template_names()
 
-class TagAdminAdd(CoreAddView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _details_ant_enabled():
+            tag = context["object"]
+            sections = [
+                {
+                    "title": str(_("Tagged Measurements")),
+                    "items": [
+                        {
+                            "label": str(_("BMI Measurements")),
+                            "count": getattr(tag, "bmi__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:bmi-list"), tag.id
+                            ),
+                        },
+                        {
+                            "label": str(_("Head Circumference Measurements")),
+                            "count": getattr(tag, "headcircumference__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:head-circumference-list"), tag.id
+                            ),
+                        },
+                        {
+                            "label": str(_("Height Measurements")),
+                            "count": getattr(tag, "height__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:height-list"), tag.id
+                            ),
+                        },
+                        {
+                            "label": str(_("Temperature Measurements")),
+                            "count": getattr(tag, "temperature__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:temperature-list"), tag.id
+                            ),
+                        },
+                        {
+                            "label": str(_("Weight Measurements")),
+                            "count": getattr(tag, "weight__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:weight-list"), tag.id
+                            ),
+                        },
+                    ],
+                },
+                {
+                    "title": str(_("Tagged Activities")),
+                    "items": [
+                        {
+                            "label": str(_("Diaper Changes")),
+                            "count": getattr(tag, "diaperchange__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:diaperchange-list"), tag.id
+                            ),
+                        },
+                        {
+                            "label": str(_("Feedings")),
+                            "count": getattr(tag, "feeding__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:feeding-list"), tag.id
+                            ),
+                        },
+                        {
+                            "label": str(_("Pumpings")),
+                            "count": getattr(tag, "pumping__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:pumping-list"), tag.id
+                            ),
+                        },
+                        {
+                            "label": str(_("Sleeps")),
+                            "count": getattr(tag, "sleep__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:sleep-list"), tag.id
+                            ),
+                        },
+                        {
+                            "label": str(_("Tummy Times")),
+                            "count": getattr(tag, "tummytime__count", 0),
+                            "href": "{}?tag={}&filtered=1".format(
+                                reverse("core:tummytime-list"), tag.id
+                            ),
+                        },
+                    ],
+                },
+            ]
+            context["ant_page_title"] = str(tag)
+            context["ant_bootstrap"] = {
+                "pageType": "tag-detail",
+                "activeNavKey": reverse("babybuddy:user-settings"),
+                "currentPath": self.request.path,
+                "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
+                "csrfToken": get_token(self.request),
+                "user": {"displayName": _display_name(self.request.user)},
+                "urls": {**_nav_urls(), "self": self.request.path},
+                "strings": {
+                    **_list_strings(),
+                    "edit": _("Edit"),
+                    "delete": _("Delete"),
+                },
+                "tagDetail": {
+                    "name": str(tag),
+                    "color": str(tag.color),
+                    "sections": sections,
+                    "actions": {
+                        "edit": reverse("core:tag-update", kwargs={"slug": tag.slug}),
+                        "delete": reverse("core:tag-delete", kwargs={"slug": tag.slug}),
+                    },
+                },
+            }
+        return context
+
+
+class TagAdminAdd(AntFormMixin, CoreAddView):
     model = models.Tag
     permission_required = ("core.add_tag",)
     form_class = forms.TagAdminForm
     success_url = reverse_lazy("core:tag-list")
+    ant_title = _("Add a Tag")
+    ant_kicker = _("Entry Form")
 
 
-class TagAdminUpdate(CoreUpdateView):
+class TagAdminUpdate(AntFormMixin, CoreUpdateView):
     model = models.Tag
     permission_required = ("core.change_tag",)
     form_class = forms.TagAdminForm
     success_url = reverse_lazy("core:tag-list")
+    ant_title = _("Update a Tag")
+    ant_kicker = _("Entry Form")
 
 
-class TagAdminDelete(CoreDeleteView):
+class TagAdminDelete(AntDeleteMixin, CoreDeleteView):
     model = models.Tag
     permission_required = ("core.delete_tag",)
     success_url = reverse_lazy("core:tag-list")
+    ant_title = _("Delete Tag")
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -1160,27 +1720,99 @@ class TemperatureList(
     permission_required = ("core.view_temperature",)
     filterset_class = filters.TemperatureFilter
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
 
-class TemperatureAdd(CoreAddView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            columns = [{"key": "time", "title": str(_("Time"))}]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "temperature", "title": str(_("Temperature"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for item in context["object_list"]:
+                cells = {
+                    "time": str(item.time),
+                    "temperature": str(item.temperature),
+                    "actions": _build_actions(
+                        [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse("core:temperature-update", kwargs={"pk": item.id}),
+                            }
+                            if self.request.user.has_perm("core.change_temperature")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse("core:temperature-delete", kwargs={"pk": item.id}),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_temperature")
+                            else None,
+                        ]
+                    ),
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(item.child),
+                        "href": reverse("core:child", kwargs={"slug": item.child.slug}),
+                    }
+                rows.append({"key": str(item.id), "cells": cells})
+            context["ant_page_title"] = _("Temperature")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Temperature")),
+                kicker=str(_("Measurements")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {
+                        "label": str(_("Add Temperature")),
+                        "href": reverse("core:temperature-add"),
+                    }
+                ]
+                if self.request.user.has_perm("core.add_temperature")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
+
+class TemperatureAdd(AntFormMixin, CoreAddView):
     model = models.Temperature
     permission_required = ("core.add_temperature",)
     form_class = forms.TemperatureForm
     success_url = reverse_lazy("core:temperature-list")
     success_message = _("%(model)s reading added!")
+    ant_title = _("Add Temperature")
+    ant_kicker = _("Entry Form")
 
 
-class TemperatureUpdate(CoreUpdateView):
+class TemperatureUpdate(AntFormMixin, CoreUpdateView):
     model = models.Temperature
     permission_required = ("core.change_temperature",)
     form_class = forms.TemperatureForm
     success_url = reverse_lazy("core:temperature-list")
     success_message = _("%(model)s reading for %(child)s updated.")
+    ant_title = _("Update Temperature")
+    ant_kicker = _("Entry Form")
 
 
-class TemperatureDelete(CoreDeleteView):
+class TemperatureDelete(AntDeleteMixin, CoreDeleteView):
     model = models.Temperature
     permission_required = ("core.delete_temperature",)
     success_url = reverse_lazy("core:temperature-list")
+    ant_title = _("Delete Temperature")
 
 
 class Timeline(LoginRequiredMixin, TemplateView):
@@ -1208,31 +1840,165 @@ class TimerList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
     permission_required = ("core.view_timer",)
     filterset_fields = ("user",)
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            rows = []
+            for item in context["object_list"]:
+                rows.append(
+                    {
+                        "key": str(item.id),
+                        "cells": {
+                            "name": {
+                                "type": "link",
+                                "label": str(item),
+                                "href": reverse("core:timer-detail", kwargs={"pk": item.id}),
+                            },
+                            "child": str(item.child or ""),
+                            "start": str(item.start),
+                            "user": str(item.user_username),
+                            "actions": _build_actions(
+                                [
+                                    {
+                                        "label": str(_("Edit")),
+                                        "href": reverse("core:timer-update", kwargs={"pk": item.id}),
+                                    }
+                                    if self.request.user.has_perm("core.change_timer")
+                                    else None,
+                                    {
+                                        "label": str(_("Delete")),
+                                        "href": reverse("core:timer-delete", kwargs={"pk": item.id}),
+                                        "danger": True,
+                                    }
+                                    if self.request.user.has_perm("core.delete_timer")
+                                    else None,
+                                ]
+                            ),
+                        },
+                    }
+                )
+            context["ant_page_title"] = _("Timers")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Timers")),
+                kicker=str(_("Activity")),
+                columns=[
+                    {"key": "name", "title": str(_("Name"))},
+                    {"key": "child", "title": str(_("Child"))},
+                    {"key": "start", "title": str(_("Start"))},
+                    {"key": "user", "title": str(_("User"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ],
+                rows=rows,
+                add_actions=[
+                    {"label": str(_("Start Timer")), "href": reverse("core:timer-add")}
+                ]
+                if self.request.user.has_perm("core.add_timer")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
 
 class TimerDetail(PermissionRequiredMixin, DetailView):
     model = models.Timer
     permission_required = ("core.view_timer",)
 
+    def get_template_names(self):
+        if _details_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return super().get_template_names()
 
-class TimerAdd(PermissionRequiredMixin, CreateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _details_ant_enabled():
+            timer = context["object"]
+            quick_actions = []
+            if self.request.user.has_perm("core.add_feeding"):
+                href = "{}?timer={}".format(reverse("core:feeding-add"), timer.id)
+                if timer.child:
+                    href += "&child={}".format(timer.child.slug)
+                quick_actions.append({"label": str(_("Feeding")), "href": href})
+            if self.request.user.has_perm("core.add_pumping"):
+                href = "{}?timer={}".format(reverse("core:pumping-add"), timer.id)
+                if timer.child:
+                    href += "&child={}".format(timer.child.slug)
+                quick_actions.append({"label": str(_("Pumping")), "href": href})
+            if self.request.user.has_perm("core.add_sleep"):
+                href = "{}?timer={}".format(reverse("core:sleep-add"), timer.id)
+                if timer.child:
+                    href += "&child={}".format(timer.child.slug)
+                quick_actions.append({"label": str(_("Sleep")), "href": href})
+            if self.request.user.has_perm("core.add_tummytime"):
+                href = "{}?timer={}".format(reverse("core:tummytime-add"), timer.id)
+                if timer.child:
+                    href += "&child={}".format(timer.child.slug)
+                quick_actions.append({"label": str(_("Tummy Time")), "href": href})
+
+            context["ant_page_title"] = str(timer)
+            context["ant_bootstrap"] = {
+                "pageType": "timer-detail",
+                "activeNavKey": reverse("core:timeline"),
+                "currentPath": self.request.path,
+                "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
+                "csrfToken": get_token(self.request),
+                "user": {"displayName": _display_name(self.request.user)},
+                "urls": {**_nav_urls(), "self": self.request.path},
+                "strings": {
+                    **_list_strings(),
+                    "started": _("Started"),
+                    "createdBy": _("created by"),
+                    "restartTimer": _("Restart timer"),
+                    "timerActions": _("Timer actions"),
+                },
+                "timerDetail": {
+                    "id": timer.id,
+                    "name": str(timer),
+                    "child": str(timer.child or ""),
+                    "start": str(timer.start),
+                    "createdBy": str(timer.user_username),
+                    "quickActions": quick_actions,
+                    "actions": {
+                        "edit": reverse("core:timer-update", kwargs={"pk": timer.id}),
+                        "delete": reverse("core:timer-delete", kwargs={"pk": timer.id}),
+                        "restart": reverse("core:timer-restart", kwargs={"pk": timer.id}),
+                    },
+                },
+            }
+        return context
+
+
+class TimerAdd(AntFormMixin, PermissionRequiredMixin, CreateView):
     model = models.Timer
     permission_required = ("core.add_timer",)
     form_class = forms.TimerForm
+    ant_title = _("Start Timer")
+    ant_kicker = _("Entry Form")
 
     def get_form_kwargs(self):
         kwargs = super(TimerAdd, self).get_form_kwargs()
         kwargs.update({"user": self.request.user})
         return kwargs
 
+    def get_ant_cancel_url(self):
+        return str(reverse("core:timer-list"))
+
     def get_success_url(self):
         return reverse("core:timer-detail", kwargs={"pk": self.object.pk})
 
 
-class TimerUpdate(CoreUpdateView):
+class TimerUpdate(AntFormMixin, CoreUpdateView):
     model = models.Timer
     permission_required = ("core.change_timer",)
     form_class = forms.TimerForm
     success_url = reverse_lazy("core:timer-list")
+    ant_title = _("Update Timer")
+    ant_kicker = _("Entry Form")
 
     def get_form_kwargs(self):
         kwargs = super(TimerUpdate, self).get_form_kwargs()
@@ -1279,10 +2045,11 @@ class TimerRestart(PermissionRequiredMixin, RedirectView):
         return reverse("core:timer-detail", kwargs={"pk": kwargs["pk"]})
 
 
-class TimerDelete(CoreDeleteView):
+class TimerDelete(AntDeleteMixin, CoreDeleteView):
     model = models.Timer
     permission_required = ("core.delete_timer",)
     success_url = reverse_lazy("core:timer-list")
+    ant_title = _("Delete Timer")
 
 
 class TummyTimeList(
@@ -1293,25 +2060,103 @@ class TummyTimeList(
     permission_required = ("core.view_tummytime",)
     filterset_class = filters.TummyTimeFilter
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
 
-class TummyTimeAdd(CoreAddView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            columns = [
+                {"key": "start", "title": str(_("Start"))},
+                {"key": "end", "title": str(_("End"))},
+            ]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "milestone", "title": str(_("Milestone"))},
+                    {"key": "duration", "title": str(_("Duration"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for item in context["object_list"]:
+                cells = {
+                    "start": str(item.start),
+                    "end": str(item.end),
+                    "milestone": str(item.milestone or ""),
+                    "duration": str(item.duration or ""),
+                    "actions": _build_actions(
+                        [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse("core:tummytime-update", kwargs={"pk": item.id}),
+                            }
+                            if self.request.user.has_perm("core.change_tummytime")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse("core:tummytime-delete", kwargs={"pk": item.id}),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_tummytime")
+                            else None,
+                        ]
+                    ),
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(item.child),
+                        "href": reverse("core:child", kwargs={"slug": item.child.slug}),
+                    }
+                rows.append({"key": str(item.id), "cells": cells})
+            context["ant_page_title"] = _("Tummy Time")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Tummy Time")),
+                kicker=str(_("Activity")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {
+                        "label": str(_("Add Tummy Time")),
+                        "href": reverse("core:tummytime-add"),
+                    }
+                ]
+                if self.request.user.has_perm("core.add_tummytime")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
+
+class TummyTimeAdd(AntFormMixin, CoreAddView):
     model = models.TummyTime
     permission_required = ("core.add_tummytime",)
     form_class = forms.TummyTimeForm
     success_url = reverse_lazy("core:tummytime-list")
+    ant_title = _("Add Tummy Time")
+    ant_kicker = _("Entry Form")
 
 
-class TummyTimeUpdate(CoreUpdateView):
+class TummyTimeUpdate(AntFormMixin, CoreUpdateView):
     model = models.TummyTime
     permission_required = ("core.change_tummytime",)
     form_class = forms.TummyTimeForm
     success_url = reverse_lazy("core:tummytime-list")
+    ant_title = _("Update Tummy Time")
+    ant_kicker = _("Entry Form")
 
 
-class TummyTimeDelete(CoreDeleteView):
+class TummyTimeDelete(AntDeleteMixin, CoreDeleteView):
     model = models.TummyTime
     permission_required = ("core.delete_tummytime",)
     success_url = reverse_lazy("core:tummytime-list")
+    ant_title = _("Delete Tummy Time")
 
 
 class WeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
@@ -1320,22 +2165,91 @@ class WeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilte
     permission_required = ("core.view_weight",)
     filterset_class = filters.WeightFilter
 
+    def get_template_names(self):
+        if _lists_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
 
-class WeightAdd(CoreAddView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if _lists_ant_enabled():
+            unique_child = context.get("unique_child", False)
+            columns = [{"key": "date", "title": str(_("Date"))}]
+            if not unique_child:
+                columns.append({"key": "child", "title": str(_("Child"))})
+            columns.extend(
+                [
+                    {"key": "value", "title": str(_("Weight"))},
+                    {"key": "actions", "title": str(_("Actions"))},
+                ]
+            )
+            rows = []
+            for item in context["object_list"]:
+                cells = {
+                    "date": str(item.date),
+                    "value": str(item.weight),
+                    "actions": _build_actions(
+                        [
+                            {
+                                "label": str(_("Edit")),
+                                "href": reverse("core:weight-update", kwargs={"pk": item.id}),
+                            }
+                            if self.request.user.has_perm("core.change_weight")
+                            else None,
+                            {
+                                "label": str(_("Delete")),
+                                "href": reverse("core:weight-delete", kwargs={"pk": item.id}),
+                                "danger": True,
+                            }
+                            if self.request.user.has_perm("core.delete_weight")
+                            else None,
+                        ]
+                    ),
+                }
+                if not unique_child:
+                    cells["child"] = {
+                        "type": "link",
+                        "label": str(item.child),
+                        "href": reverse("core:child", kwargs={"slug": item.child.slug}),
+                    }
+                rows.append({"key": str(item.id), "cells": cells})
+            context["ant_page_title"] = _("Weight")
+            context["ant_bootstrap"] = _build_ant_list_bootstrap(
+                self.request,
+                title=str(_("Weight")),
+                kicker=str(_("Measurements")),
+                columns=columns,
+                rows=rows,
+                add_actions=[
+                    {"label": str(_("Add Weight")), "href": reverse("core:weight-add")}
+                ]
+                if self.request.user.has_perm("core.add_weight")
+                else [],
+                pagination=_page_info(context),
+            )
+        return context
+
+
+class WeightAdd(AntFormMixin, CoreAddView):
     model = models.Weight
     permission_required = ("core.add_weight",)
     form_class = forms.WeightForm
     success_url = reverse_lazy("core:weight-list")
+    ant_title = _("Add Weight")
+    ant_kicker = _("Entry Form")
 
 
-class WeightUpdate(CoreUpdateView):
+class WeightUpdate(AntFormMixin, CoreUpdateView):
     model = models.Weight
     permission_required = ("core.change_weight",)
     form_class = forms.WeightForm
     success_url = reverse_lazy("core:weight-list")
+    ant_title = _("Update Weight")
+    ant_kicker = _("Entry Form")
 
 
-class WeightDelete(CoreDeleteView):
+class WeightDelete(AntDeleteMixin, CoreDeleteView):
     model = models.Weight
     permission_required = ("core.delete_weight",)
     success_url = reverse_lazy("core:weight-list")
+    ant_title = _("Delete Weight")
