@@ -331,10 +331,6 @@
                 <a href="{% url 'babybuddy:user-settings' %}" class="dropdown-item">{% trans "Settings" %}</a>
                 <a href="{% url 'babybuddy:user-password' %}" class="dropdown-item">{% trans "Password" %}</a>
                 <a href="{% url 'babybuddy:user-add-device' %}" class="dropdown-item">{% trans "Add a device" %}</a>
-                <form action="{% url 'babybuddy:logout' %}" role="form" method="post">
-                    {% csrf_token %}
-                    <button class="dropdown-item">{% trans "Logout" %}</button>
-                </form>
                 {% if request.user.is_staff %}
                     <h6 class="dropdown-header">{% trans "Admin" %}</h6>
                     <a href="{% url 'babybuddy:site_settings' %}" class="dropdown-item">{% trans "Settings" %}</a>
@@ -344,6 +340,15 @@
                 {% endif %}
                 <h6 class="dropdown-header">v{% version_string %}</h6>
             </div>
+        </li>
+        <li class="nav-item">
+            <form action="{% url 'babybuddy:logout' %}" method="post" class="app-shell-logout-form">
+                {% csrf_token %}
+                <button class="nav-link app-shell-logout-button" type="submit">
+                    <i class="icon-cancel" aria-hidden="true"></i>
+                    {% trans "Logout" %}
+                </button>
+            </form>
         </li>
     </ul>
 {% endif %}
