@@ -77,7 +77,18 @@
             <fieldset>
                 <legend>{% trans "Dashboard Sections & Cards" %}</legend>
                 {{ form_settings.dashboard_visible_items }}
-                <div class="row g-3 align-items-start dual-list"
+                <div class="dual-list-mobile d-lg-none mb-3"
+                     data-dual-list-mobile-root="dashboard-visible-items">
+                    <div class="dual-list-mobile-section">
+                        <label class="form-label mb-2">{% trans "Available" %}</label>
+                        <div class="dual-list-mobile-list" data-dual-list-mobile-list="available"></div>
+                    </div>
+                    <div class="dual-list-mobile-section">
+                        <label class="form-label mb-2">{% trans "Selected" %}</label>
+                        <div class="dual-list-mobile-list" data-dual-list-mobile-list="selected"></div>
+                    </div>
+                </div>
+                <div class="row g-3 align-items-start dual-list d-none d-lg-flex"
                      data-dual-list-root="dashboard-visible-items">
                     <div class="col-lg-5">
                         <label class="form-label" for="dashboard-available-items">{% trans "Available" %}</label>
@@ -141,6 +152,9 @@
             if (!form || !root) return;
             const available = root.querySelector('#dashboard-available-items');
             const selected = root.querySelector('#dashboard-selected-items');
+            const mobileRoot = document.querySelector('[data-dual-list-mobile-root="dashboard-visible-items"]');
+            const mobileAvailable = mobileRoot ? mobileRoot.querySelector('[data-dual-list-mobile-list="available"]') : null;
+            const mobileSelected = mobileRoot ? mobileRoot.querySelector('[data-dual-list-mobile-list="selected"]') : null;
             const hiddenField = document.querySelector('input[name="dashboard_visible_items"]');
             const status = document.getElementById('dashboard-settings-autosave-state');
             const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
@@ -158,6 +172,13 @@
 
             function syncHiddenField() {
                 hiddenField.value = Array.from(selected.options).map((option) => option.value).join(',');
+            }
+
+            function moveOptionByValue(from, to, value) {
+                const option = Array.from(from.options).find((item) => item.value === value);
+                if (option) {
+                    to.add(option);
+                }
             }
 
             function moveSelected(direction) {
@@ -182,9 +203,97 @@
                 }
             }
 
+            function moveOptionWithinSelected(value, direction) {
+                const option = Array.from(selected.options).find((item) => item.value === value);
+                if (!option) {
+                    return;
+                }
+                if (direction === 'up') {
+                    const previous = option.previousElementSibling;
+                    if (previous) {
+                        selected.insertBefore(option, previous);
+                    }
+                    return;
+                }
+                const next = option.nextElementSibling;
+                if (next) {
+                    selected.insertBefore(next, option);
+                }
+            }
+
             function updateStatus(text) {
                 if (status) {
                     status.textContent = text;
+                }
+            }
+
+            function renderMobileOption(option, mode) {
+                const row = document.createElement('div');
+                row.className = 'dual-list-mobile-item';
+
+                const label = document.createElement('button');
+                label.type = 'button';
+                label.className = 'dual-list-mobile-label';
+                label.textContent = option.textContent;
+                label.dataset.dualListMobileAction = mode === 'available' ? 'add' : 'remove';
+                label.dataset.value = option.value;
+                row.appendChild(label);
+
+                const actions = document.createElement('div');
+                actions.className = 'dual-list-mobile-actions';
+
+                if (mode === 'available') {
+                    const addButton = document.createElement('button');
+                    addButton.type = 'button';
+                    addButton.className = 'btn btn-outline-light btn-sm';
+                    addButton.dataset.dualListMobileAction = 'add';
+                    addButton.dataset.value = option.value;
+                    addButton.textContent = '+';
+                    actions.appendChild(addButton);
+                } else {
+                    [['up', '↑'], ['down', '↓'], ['remove', '−']].forEach(([action, text]) => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'btn btn-outline-light btn-sm';
+                        button.dataset.dualListMobileAction = action;
+                        button.dataset.value = option.value;
+                        button.textContent = text;
+                        actions.appendChild(button);
+                    });
+                }
+
+                row.appendChild(actions);
+                return row;
+            }
+
+            function renderMobileLists() {
+                if (!mobileAvailable || !mobileSelected) {
+                    return;
+                }
+
+                mobileAvailable.innerHTML = '';
+                mobileSelected.innerHTML = '';
+
+                if (!available.options.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'dual-list-mobile-empty';
+                    empty.textContent = '{% trans "No items available" %}';
+                    mobileAvailable.appendChild(empty);
+                } else {
+                    Array.from(available.options).forEach((option) => {
+                        mobileAvailable.appendChild(renderMobileOption(option, 'available'));
+                    });
+                }
+
+                if (!selected.options.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'dual-list-mobile-empty';
+                    empty.textContent = '{% trans "No items selected" %}';
+                    mobileSelected.appendChild(empty);
+                } else {
+                    Array.from(selected.options).forEach((option) => {
+                        mobileSelected.appendChild(renderMobileOption(option, 'selected'));
+                    });
                 }
             }
 
@@ -264,33 +373,62 @@
             root.querySelector('[data-dual-list-action="add-one"]').addEventListener('click', () => {
                 moveOptions(available, selected, true);
                 syncHiddenField();
+                renderMobileLists();
                 scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="add-all"]').addEventListener('click', () => {
                 moveOptions(available, selected, false);
                 syncHiddenField();
+                renderMobileLists();
                 scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="remove-one"]').addEventListener('click', () => {
                 moveOptions(selected, available, true);
                 syncHiddenField();
+                renderMobileLists();
                 scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="remove-all"]').addEventListener('click', () => {
                 moveOptions(selected, available, false);
                 syncHiddenField();
+                renderMobileLists();
                 scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="move-up"]').addEventListener('click', () => {
                 moveSelected('up');
                 syncHiddenField();
+                renderMobileLists();
                 scheduleAutosave('dashboard');
             });
             root.querySelector('[data-dual-list-action="move-down"]').addEventListener('click', () => {
                 moveSelected('down');
                 syncHiddenField();
+                renderMobileLists();
                 scheduleAutosave('dashboard');
             });
+
+            if (mobileRoot) {
+                mobileRoot.addEventListener('click', (event) => {
+                    const control = event.target.closest('[data-dual-list-mobile-action]');
+                    if (!control) {
+                        return;
+                    }
+                    const { dualListMobileAction: action, value } = control.dataset;
+                    if (!value) {
+                        return;
+                    }
+                    if (action === 'add') {
+                        moveOptionByValue(available, selected, value);
+                    } else if (action === 'remove') {
+                        moveOptionByValue(selected, available, value);
+                    } else if (action === 'up' || action === 'down') {
+                        moveOptionWithinSelected(value, action);
+                    }
+                    syncHiddenField();
+                    renderMobileLists();
+                    scheduleAutosave('dashboard');
+                });
+            }
 
             form.addEventListener('change', (event) => {
                 const target = event.target;
@@ -335,6 +473,7 @@
             });
 
             syncHiddenField();
+            renderMobileLists();
         })();
     </script>
 {% endblock %}
