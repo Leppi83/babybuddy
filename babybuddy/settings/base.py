@@ -265,6 +265,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 MEDIA_URL = "/media/"
 
+# Serve uploaded media files directly from Django (for docker-compose setups
+# where no reverse-proxy media location is configured).
+SERVE_MEDIA = bool(strtobool(os.environ.get("SERVE_MEDIA") or "True"))
+
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME") or None
 
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID") or None

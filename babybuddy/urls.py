@@ -57,5 +57,5 @@ urlpatterns = [
     path("", include("reports.urls", namespace="reports")),
 ]
 
-if settings.DEBUG:  # pragma: no cover
+if settings.DEBUG or settings.SERVE_MEDIA:  # pragma: no cover
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
