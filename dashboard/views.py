@@ -100,7 +100,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         try:
             entry_dt = self._parse_local_datetime(entry_date, entry_time)
         except ValueError as exc:
-            messages.error(request, f"Unable to create diaper entry: {exc}")
+            messages.error(
+                request, _("Unable to create diaper entry: %(error)s") % {"error": exc}
+            )
             return
 
         change = DiaperChange(
@@ -114,7 +116,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             change.save()
             messages.success(request, _("Nappy change saved."))
         except ValidationError as exc:
-            messages.error(request, f"Unable to create diaper entry: {exc}")
+            messages.error(
+                request, _("Unable to create diaper entry: %(error)s") % {"error": exc}
+            )
 
     def get_template_names(self):
         if settings.BABY_BUDDY.get("DASHBOARD_SHADCN_CHILD_ENABLED", False):
