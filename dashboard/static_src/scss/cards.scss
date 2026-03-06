@@ -206,6 +206,22 @@
         }
     }
 
+    @include media-breakpoint-down(sm) {
+        .sleep-timeline-chart {
+            .timeline-grid {
+                gap: .2rem;
+            }
+
+            .hour-label {
+                font-size: .7rem;
+            }
+
+            .hour-slot:nth-child(even) .hour-label {
+                opacity: 0;
+            }
+        }
+    }
+
     .sleep-timeline-tooltip {
         position: fixed;
         z-index: 1100;
