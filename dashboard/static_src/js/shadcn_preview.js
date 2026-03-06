@@ -29,9 +29,9 @@
             const sleepTimerCaption = root.querySelector("#ui-sleep-timer-caption");
             const sleepTimerDots = root.querySelector("#ui-sleep-timer-dots");
             const sleepTimerNote = root.querySelector("#ui-sleep-timer-note");
-            const sleepManualStartText = root.querySelector("#ui-sleep-manual-start-text");
+            const sleepManualStartDate = root.querySelector("#ui-sleep-manual-start-date");
             const sleepManualStartPicker = root.querySelector("#ui-sleep-manual-start-picker");
-            const sleepManualEndText = root.querySelector("#ui-sleep-manual-end-text");
+            const sleepManualEndDate = root.querySelector("#ui-sleep-manual-end-date");
             const sleepManualEndPicker = root.querySelector("#ui-sleep-manual-end-picker");
             const sleepManualNap = root.querySelector("#ui-sleep-manual-nap");
             const sleepManualSave = root.querySelector("#ui-sleep-manual-save");
@@ -663,14 +663,10 @@
                     return;
                 }
                 const startText = normalizeHHMM(
-                    (sleepManualStartText && sleepManualStartText.value) ||
-                    (sleepManualStartPicker && sleepManualStartPicker.value) ||
-                    ""
+                    (sleepManualStartPicker && sleepManualStartPicker.value) || ""
                 );
                 const endText = normalizeHHMM(
-                    (sleepManualEndText && sleepManualEndText.value) ||
-                    (sleepManualEndPicker && sleepManualEndPicker.value) ||
-                    ""
+                    (sleepManualEndPicker && sleepManualEndPicker.value) || ""
                 );
                 if (!startText || !endText) {
                     if (sleepTimerNote) {
@@ -679,9 +675,11 @@
                     return;
                 }
 
-                const selectedDate = state.timelineDate || localDateString(new Date());
-                const startLocal = combineDateAndTime(selectedDate, startText);
-                const endLocal = combineDateAndTime(selectedDate, endText);
+                const defaultDate = localDateString(new Date());
+                const startDateValue = (sleepManualStartDate && sleepManualStartDate.value) || defaultDate;
+                const endDateValue = (sleepManualEndDate && sleepManualEndDate.value) || defaultDate;
+                const startLocal = combineDateAndTime(startDateValue, startText);
+                const endLocal = combineDateAndTime(endDateValue, endText);
                 if (!startLocal || !endLocal) {
                     if (sleepTimerNote) {
                         sleepTimerNote.textContent = "Invalid start or end time.";
@@ -690,7 +688,10 @@
                 }
 
                 if (endLocal <= startLocal) {
-                    endLocal.setDate(endLocal.getDate() + 1);
+                    if (sleepTimerNote) {
+                        sleepTimerNote.textContent = "End must be after start. For overnight sleep choose next day in End date.";
+                    }
+                    return;
                 }
 
                 const nap = Boolean(sleepManualNap && sleepManualNap.checked);
@@ -1045,6 +1046,16 @@
                     }
                 });
             }
+
+            (function initManualSleepDefaults() {
+                const today = localDateString(new Date());
+                if (sleepManualStartDate && !sleepManualStartDate.value) {
+                    sleepManualStartDate.value = today;
+                }
+                if (sleepManualEndDate && !sleepManualEndDate.value) {
+                    sleepManualEndDate.value = today;
+                }
+            })();
 
             restoreTimerState();
             refreshCounts();
