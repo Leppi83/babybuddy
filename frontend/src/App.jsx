@@ -31,15 +31,20 @@ import {
   Table,
   Tag,
   TimePicker,
+  Timeline as AntTimeline,
   theme,
   Typography
 } from "antd";
 import {
   DashboardOutlined,
+  DeleteOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  EditOutlined,
+  LineChartOutlined,
   ReloadOutlined,
+  CalendarOutlined,
   SettingOutlined,
   SwapOutlined,
   UserOutlined
@@ -179,10 +184,11 @@ function AppShell({ bootstrap, children }) {
     window.location.assign(key);
   }
 
-  const selectedItem = navItems.find((item) =>
-    item.key !== "__logout__" && bootstrap.currentPath.startsWith(item.key)
-  );
-  const selectedKey = selectedItem ? selectedItem.key : bootstrap.urls.dashboard;
+  const selectedKey =
+    bootstrap.activeNavKey ||
+    navItems.find((item) => item.key !== "__logout__" && bootstrap.currentPath.startsWith(item.key))
+      ?.key ||
+    bootstrap.urls.dashboard;
 
   const brand = (
     <div className="ant-shell-brand">
@@ -209,6 +215,10 @@ function AppShell({ bootstrap, children }) {
     "dashboard-child": {
       eyebrow: bootstrap.strings.childDashboard,
       title: bootstrap.currentChild?.name || bootstrap.strings.dashboard
+    },
+    "child-detail": {
+      eyebrow: bootstrap.strings.timeline,
+      title: bootstrap.childDetail?.name || bootstrap.strings.timeline
     },
     settings: {
       eyebrow: bootstrap.strings.settings,
@@ -617,6 +627,118 @@ function AntFormPage({ bootstrap, deleteMode = false }) {
           </Button>
         </Space>
       </form>
+    </Space>
+  );
+}
+
+function ChildDetailPage({ bootstrap }) {
+  const child = bootstrap.childDetail;
+  const timelineItems = (child.timeline || []).map((entry) => ({
+    color: entry.type === "start" ? "green" : entry.type === "end" ? "red" : "blue",
+    children: (
+      <div className="ant-timeline-event-card">
+        <Space direction="vertical" size={8} style={{ width: "100%" }}>
+          <Space split={<span className="ant-dot-separator">•</span>} wrap>
+            <Text strong>{entry.timeLabel}</Text>
+            <Text type="secondary">{entry.sinceLabel}</Text>
+          </Space>
+          <Text strong>{entry.event}</Text>
+          {entry.details.length ? (
+            <Space direction="vertical" size={4}>
+              {entry.details.map((detail, index) => (
+                <Text key={`${entry.key}-detail-${index}`} type="secondary">
+                  {detail}
+                </Text>
+              ))}
+            </Space>
+          ) : null}
+          {entry.tags.length ? (
+            <Space wrap>
+              {entry.tags.map((tag) => (
+                <Tag key={`${entry.key}-${tag.name}`} color={tag.color || "default"}>
+                  {tag.name}
+                </Tag>
+              ))}
+            </Space>
+          ) : null}
+          <Space wrap>
+            {entry.duration ? (
+              <Tag>{bootstrap.strings.duration}: {entry.duration}</Tag>
+            ) : null}
+            {entry.timeSincePrev ? (
+              <Tag color="cyan">
+                {entry.timeSincePrev} {bootstrap.strings.sincePrevious}
+              </Tag>
+            ) : null}
+            {entry.editLink ? (
+              <Button size="small" href={entry.editLink} icon={<EditOutlined />}>
+                {bootstrap.strings.edit}
+              </Button>
+            ) : null}
+          </Space>
+        </Space>
+      </div>
+    )
+  }));
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Row gutter={[24, 24]} align="middle">
+          <Col xs={24} md={8} lg={6}>
+            <div className="ant-child-detail-photo-wrap">
+              <Image preview={false} src={child.photoUrl} alt="" className="ant-child-detail-photo" />
+            </div>
+          </Col>
+          <Col xs={24} md={16} lg={18}>
+            <Space direction="vertical" size={12} style={{ width: "100%" }}>
+              <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+                {child.name}
+              </Title>
+              <Space wrap size="middle">
+                <Tag color="blue">{bootstrap.strings.born}: {child.birthLabel}</Tag>
+                <Tag color="geekblue">{bootstrap.strings.age}: {child.ageLabel}</Tag>
+              </Space>
+              <Space wrap>
+                <Button href={child.actions.dashboard} icon={<DashboardOutlined />}>
+                  {bootstrap.strings.dashboard}
+                </Button>
+                <Button href={child.actions.timeline} icon={<CalendarOutlined />}>
+                  {bootstrap.strings.timeline}
+                </Button>
+                <Button href={child.actions.reports} icon={<LineChartOutlined />}>
+                  {bootstrap.strings.reports}
+                </Button>
+                <Button href={child.actions.edit} icon={<EditOutlined />}>
+                  {bootstrap.strings.edit}
+                </Button>
+                <Button href={child.actions.delete} danger icon={<DeleteOutlined />}>
+                  {bootstrap.strings.delete}
+                </Button>
+              </Space>
+            </Space>
+          </Col>
+        </Row>
+      </Card>
+
+      <Card
+        className="ant-section-card"
+        title={child.dateLabel}
+        extra={
+          <Space wrap>
+            {child.previousUrl ? (
+              <Button href={child.previousUrl}>{bootstrap.strings.previous}</Button>
+            ) : null}
+            {child.nextUrl ? <Button href={child.nextUrl}>{bootstrap.strings.next}</Button> : null}
+          </Space>
+        }
+      >
+        {timelineItems.length ? (
+          <AntTimeline items={timelineItems} />
+        ) : (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noEvents} />
+        )}
+      </Card>
     </Space>
   );
 }
@@ -1630,6 +1752,8 @@ export function App({ bootstrap }) {
             <AntFormPage bootstrap={bootstrap} />
           ) : bootstrap.pageType === "confirm-delete" ? (
             <AntFormPage bootstrap={bootstrap} deleteMode />
+          ) : bootstrap.pageType === "child-detail" ? (
+            <ChildDetailPage bootstrap={bootstrap} />
           ) : (
             <ChildDashboardPage bootstrap={bootstrap} />
           )}

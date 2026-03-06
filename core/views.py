@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
-from django.utils import timezone
+from django.utils import formats, timezone, timesince
 from django.utils.translation import gettext as _
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.detail import DetailView
@@ -19,6 +19,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormVi
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from babybuddy.views import BabyBuddyFilterView, BabyBuddyPaginatedView
 from core import filters, forms, models, timeline
+from core.templatetags.duration import child_age_string
 
 
 def _prepare_timeline_context_data(context, date, child=None):
@@ -33,11 +34,15 @@ def _prepare_timeline_context_data(context, date, child=None):
 
 
 def _lists_ant_enabled():
-    return settings.BABY_BUDDY.get("LISTS_ANT_ENABLED", False)
+    return True
 
 
 def _forms_ant_enabled():
-    return settings.BABY_BUDDY.get("FORMS_ANT_ENABLED", False)
+    return True
+
+
+def _details_ant_enabled():
+    return True
 
 
 def _display_name(user):
@@ -82,6 +87,84 @@ def _child_image_url(request, child):
     return request.build_absolute_uri(
         static("babybuddy/img/core/child-placeholder.png")
     )
+
+
+def _timeline_entry_payload(entry):
+    event_time = timezone.localtime(entry["time"])
+    return {
+        "key": "{}-{}-{}".format(
+            entry.get("model_name", "event"),
+            entry.get("type", "entry"),
+            event_time.isoformat(),
+        ),
+        "type": entry.get("type", "event"),
+        "icon": entry.get("model_name", "event"),
+        "event": str(entry.get("event", "")),
+        "details": [str(detail) for detail in entry.get("details", [])],
+        "tags": [
+            {"name": str(tag.name), "color": str(tag.color or "")}
+            for tag in entry.get("tags", [])
+        ],
+        "timeLabel": formats.time_format(event_time, "TIME_FORMAT"),
+        "sinceLabel": str(_("{} ago").format(timesince.timesince(event_time))),
+        "duration": str(entry.get("duration", "")),
+        "timeSincePrev": str(entry.get("time_since_prev", "")),
+        "editLink": entry.get("edit_link", ""),
+    }
+
+
+def _build_ant_child_detail_bootstrap(
+    request, *, child, date, date_previous, date_next, timeline_objects
+):
+    return {
+        "pageType": "child-detail",
+        "currentPath": request.path,
+        "activeNavKey": reverse("core:timeline"),
+        "locale": getattr(request, "LANGUAGE_CODE", "en"),
+        "csrfToken": get_token(request),
+        "user": {"displayName": _display_name(request.user)},
+        "urls": {**_nav_urls(), "self": request.get_full_path()},
+        "strings": {
+            **_list_strings(),
+            "born": _("Born"),
+            "age": _("Age"),
+            "reports": _("Reports"),
+            "previous": _("Previous"),
+            "next": _("Next"),
+            "noEvents": _("No events"),
+            "edit": _("Edit"),
+            "delete": _("Delete"),
+            "duration": _("Duration"),
+            "sincePrevious": _("since previous"),
+            "childActions": _("Child actions"),
+        },
+        "childDetail": {
+            "name": str(child),
+            "photoUrl": _child_image_url(request, child),
+            "birthDateTime": str(child.birth_datetime()),
+            "birthLabel": formats.date_format(child.birth_datetime(), "DATETIME_FORMAT")
+            if hasattr(child.birth_datetime(), "hour")
+            else str(child.birth_datetime()),
+            "ageLabel": child_age_string(child.birth_datetime()),
+            "dateLabel": formats.date_format(date, "DATE_FORMAT"),
+            "previousUrl": "{}?date={}".format(
+                request.path, date_previous.strftime("%Y-%m-%d")
+            )
+            if date_previous
+            else "",
+            "nextUrl": "{}?date={}".format(request.path, date_next.strftime("%Y-%m-%d"))
+            if date_next
+            else "",
+            "actions": {
+                "dashboard": reverse("dashboard:dashboard-child", kwargs={"slug": child.slug}),
+                "timeline": reverse("core:child", kwargs={"slug": child.slug}),
+                "reports": reverse("reports:report-list", kwargs={"slug": child.slug}),
+                "edit": reverse("core:child-update", kwargs={"slug": child.slug}),
+                "delete": reverse("core:child-delete", kwargs={"slug": child.slug}),
+            },
+            "timeline": [_timeline_entry_payload(entry) for entry in timeline_objects],
+        },
+    }
 
 
 def _build_ant_list_bootstrap(
@@ -452,10 +535,25 @@ class ChildDetail(PermissionRequiredMixin, DetailView):
     model = models.Child
     permission_required = ("core.view_child",)
 
+    def get_template_names(self):
+        if _details_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return super().get_template_names()
+
     def get_context_data(self, **kwargs):
         context = super(ChildDetail, self).get_context_data(**kwargs)
         date = self.request.GET.get("date", str(timezone.localdate()))
         _prepare_timeline_context_data(context, date, self.object)
+        if _details_ant_enabled():
+            context["ant_page_title"] = str(self.object)
+            context["ant_bootstrap"] = _build_ant_child_detail_bootstrap(
+                self.request,
+                child=self.object,
+                date=context["date"],
+                date_previous=context.get("date_previous"),
+                date_next=context.get("date_next"),
+                timeline_objects=context.get("timeline_objects", []),
+            )
         return context
 
 

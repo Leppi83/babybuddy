@@ -213,6 +213,29 @@ body {
   margin-top: 4px;
 }
 
+.ant-child-detail-photo-wrap {
+  overflow: hidden;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.75));
+}
+
+.ant-child-detail-photo {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.ant-timeline-event-card {
+  border: 1px solid rgba(77, 182, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.42);
+  padding: 14px 16px;
+}
+
+.ant-dot-separator {
+  color: #64748b;
+}
+
 @media (max-width: 767px) {
   .ant-shell-content {
     padding: 14px;
