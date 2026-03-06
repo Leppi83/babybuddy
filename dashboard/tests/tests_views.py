@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from faker import Faker
 
-from core.models import Child, DiaperChange
+from core.models import Child, DiaperChange, Sleep
 
 
 class ViewsTestCase(TestCase):
@@ -77,3 +77,28 @@ class ViewsTestCase(TestCase):
             timezone.localtime(change.time).strftime("%Y-%m-%d %H:%M"),
             "2025-03-06 08:15",
         )
+
+    def test_dashboard_sleep_timer_start_stop(self):
+        call_command("fake", verbosity=0, children=1, days=1)
+        child = Child.objects.first()
+
+        start_response = self.c.post(
+            f"/children/{child.slug}/dashboard/",
+            data={"sleep_timer_action": "start"},
+            follow=True,
+        )
+        self.assertEqual(start_response.status_code, 200)
+
+        session = self.c.session
+        self.assertIn(f"sleep_timer_start_{child.id}", session)
+
+        stop_response = self.c.post(
+            f"/children/{child.slug}/dashboard/",
+            data={"sleep_timer_action": "stop"},
+            follow=True,
+        )
+        self.assertEqual(stop_response.status_code, 200)
+
+        sleep = Sleep.objects.order_by("-id").first()
+        self.assertIsNotNone(sleep)
+        self.assertEqual(sleep.child, child)

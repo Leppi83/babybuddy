@@ -2027,19 +2027,47 @@ function SummaryCard({ title, children }) {
   );
 }
 
-function MiniTimeline({ items, locale }) {
+function formatElapsedSeconds(totalSeconds) {
+  const safeSeconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+
+  if (hours > 0) {
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function MiniTimeline({ items, locale, currentTime, strings }) {
   const hours = Array.from({ length: 24 }, (_, index) => index);
+  const now = currentTime ? new Date(currentTime) : new Date();
+  const startOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+  const dayEnd = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+  const currentMinutes =
+    (now.getTime() - startOfDay.getTime()) / 60000;
+  const currentTimePercent = Math.max(
+    0,
+    Math.min(100, (currentMinutes / (24 * 60)) * 100),
+  );
 
   function minutesBetween(start, end) {
     return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000));
   }
 
   function barForHour(hour) {
-    const now = new Date();
     const slotStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+      startOfDay.getFullYear(),
+      startOfDay.getMonth(),
+      startOfDay.getDate(),
       hour,
       0,
       0,
@@ -2054,6 +2082,9 @@ function MiniTimeline({ items, locale }) {
     items.forEach((entry) => {
       const start = new Date(entry.start);
       const end = new Date(entry.end);
+      if (end <= startOfDay || start >= dayEnd) {
+        return;
+      }
       const overlapStart = start > slotStart ? start : slotStart;
       const overlapEnd = end < slotEnd ? end : slotEnd;
       const overlap = minutesBetween(overlapStart, overlapEnd);
@@ -2085,17 +2116,37 @@ function MiniTimeline({ items, locale }) {
 
   return (
     <div className="ant-timeline">
-      <div className="ant-timeline-bars">
-        {hours.map((hour) => (
-          <div key={hour} className="ant-timeline-slot">
-            {barForHour(hour)}
-          </div>
-        ))}
+      <div className="ant-timeline-legend">
+        <span className="ant-timeline-legend-item">
+          <i className="ant-timeline-legend-dot sleep" />
+          <span>{strings.sleep}</span>
+        </span>
+        <span className="ant-timeline-legend-item">
+          <i className="ant-timeline-legend-dot nap" />
+          <span>{strings.nap}</span>
+        </span>
+        <span className="ant-timeline-legend-item">
+          <i className="ant-timeline-legend-dot now" />
+          <span>{strings.now}</span>
+        </span>
       </div>
-      <div className="ant-timeline-axis">
-        {hours.map((hour) => (
-          <span key={hour}>{String(hour).padStart(2, "0")}</span>
-        ))}
+      <div className="ant-timeline-stage">
+        <div className="ant-timeline-bars">
+          <span
+            className="ant-timeline-now-line"
+            style={{ left: `${currentTimePercent}%` }}
+          />
+          {hours.map((hour) => (
+            <div key={hour} className="ant-timeline-slot">
+              {barForHour(hour)}
+            </div>
+          ))}
+        </div>
+        <div className="ant-timeline-axis">
+          {hours.map((hour) => (
+            <span key={hour}>{String(hour).padStart(2, "0")}</span>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -2112,8 +2163,16 @@ function ChildDashboardPage({ bootstrap }) {
   );
   const [loading, setLoading] = useState(true);
   const [cards, setCards] = useState({});
+  const [dashboardData, setDashboardData] = useState({
+    sleepItems: [],
+  });
   const [diaperDate, setDiaperDate] = useState(dayjs());
   const [diaperTime, setDiaperTime] = useState(dayjs());
+  const [diaperConsistency, setDiaperConsistency] = useState("liquid");
+  const [sleepTimer, setSleepTimer] = useState(bootstrap.sleepTimer || {});
+  const [submittingDiaper, setSubmittingDiaper] = useState(false);
+  const [submittingSleepTimer, setSubmittingSleepTimer] = useState(false);
+  const [currentTime, setCurrentTime] = useState(Date.now());
   const child = bootstrap.children.find(
     (item) => String(item.id) === String(selectedChildId),
   );
@@ -2122,6 +2181,17 @@ function ChildDashboardPage({ bootstrap }) {
   useEffect(() => {
     loadDashboardData(selectedChildId);
   }, [selectedChildId]);
+
+  useEffect(() => {
+    setSleepTimer(bootstrap.sleepTimer || {});
+  }, [bootstrap.currentChild.id, bootstrap.sleepTimer]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 30000);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   async function persistHidden(nextHidden) {
     const payload = new URLSearchParams();
@@ -2215,6 +2285,9 @@ function ChildDashboardPage({ bootstrap }) {
       const sleepItems = asItems(sleeps);
       const tummyItems = asItems(tummyTimes);
       const timerItems = asItems(timers);
+      setDashboardData({
+        sleepItems,
+      });
 
       const lastChange = changeItems[0];
       const lastFeeding = feedingItems[0];
@@ -2332,12 +2405,7 @@ function ChildDashboardPage({ bootstrap }) {
             </Text>
           </Space>
         ),
-        "card.sleep.quick_timer": (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={bootstrap.strings.sleepTimerPending}
-          />
-        ),
+        "card.sleep.quick_timer": null,
         "card.sleep.last": lastSleep ? (
           <Space direction="vertical" size={4}>
             <Statistic
@@ -2424,12 +2492,7 @@ function ChildDashboardPage({ bootstrap }) {
             />
           </Space>
         ),
-        "card.sleep.timeline_day": (
-          <MiniTimeline
-            items={sleepItems.filter((item) => item.start && item.end)}
-            locale={locale}
-          />
-        ),
+        "card.sleep.timeline_day": null,
         "card.tummytime.day": (
           <Space direction="vertical" size={4}>
             <Statistic
@@ -2450,23 +2513,120 @@ function ChildDashboardPage({ bootstrap }) {
     }
   }
 
-  async function submitDiaperEntry(consistency) {
+  async function submitSleepTimerAction(action) {
+    const payload = new URLSearchParams();
+    payload.set("sleep_timer_action", action);
+
+    setSubmittingSleepTimer(true);
+    try {
+      const response = await api.current.postForm(
+        bootstrap.urls.current,
+        payload,
+      );
+      if (!response.ok) {
+        ant.message.error(bootstrap.strings.saveFailed);
+        return;
+      }
+
+      if (action === "start") {
+        setSleepTimer({
+          running: true,
+          startIso: new Date().toISOString(),
+          elapsedSeconds: 0,
+        });
+      } else {
+        setSleepTimer({
+          running: false,
+          startIso: null,
+          elapsedSeconds: 0,
+        });
+        ant.message.success(bootstrap.strings.sleepEntrySaved);
+      }
+      await loadDashboardData(selectedChildId);
+    } finally {
+      setSubmittingSleepTimer(false);
+    }
+  }
+
+  async function submitDiaperEntry() {
     const payload = new URLSearchParams();
     payload.set("diaper_quick_entry_action", "create");
     payload.set("diaper_entry_date", diaperDate.format("YYYY-MM-DD"));
     payload.set("diaper_entry_time", diaperTime.format("HH:mm"));
-    payload.set("diaper_entry_consistency", consistency);
+    payload.set("diaper_entry_consistency", diaperConsistency);
 
-    const response = await api.current.postForm(
-      bootstrap.urls.current,
-      payload,
-    );
-    if (response.ok) {
-      ant.message.success(bootstrap.strings.saved);
-      loadDashboardData(selectedChildId);
-      return;
+    setSubmittingDiaper(true);
+    try {
+      const response = await api.current.postForm(
+        bootstrap.urls.current,
+        payload,
+      );
+      if (response.ok) {
+        ant.message.success(bootstrap.strings.saved);
+        await loadDashboardData(selectedChildId);
+        return;
+      }
+      ant.message.error(bootstrap.strings.saveFailed);
+    } finally {
+      setSubmittingDiaper(false);
     }
-    ant.message.error(bootstrap.strings.saveFailed);
+  }
+
+  function renderSleepTimerCard() {
+    const timerElapsedSeconds = sleepTimer.running
+      ? Math.max(
+          Number(sleepTimer.elapsedSeconds) || 0,
+          Math.floor(
+            (currentTime - new Date(sleepTimer.startIso || currentTime).getTime()) /
+              1000,
+          ),
+        )
+      : Number(sleepTimer.elapsedSeconds) || 0;
+
+    return (
+      <Space
+        direction="vertical"
+        size={16}
+        className="ant-sleep-timer-card"
+        style={{ width: "100%" }}
+      >
+        <Statistic
+          title={bootstrap.strings.sleepTimer}
+          value={formatElapsedSeconds(timerElapsedSeconds)}
+        />
+        <Space wrap>
+          <Tag color={sleepTimer.running ? "gold" : "default"}>
+            {sleepTimer.running
+              ? bootstrap.strings.running
+              : bootstrap.strings.ready}
+          </Tag>
+          {sleepTimer.running && (
+            <Text type="secondary">{bootstrap.strings.sleepTimerActive}</Text>
+          )}
+        </Space>
+        <Button
+          type="primary"
+          size="large"
+          loading={submittingSleepTimer}
+          onClick={() =>
+            submitSleepTimerAction(sleepTimer.running ? "stop" : "start")
+          }
+        >
+          {sleepTimer.running ? bootstrap.strings.stop : bootstrap.strings.start}
+        </Button>
+      </Space>
+    );
+  }
+
+  function renderSleepTimelineCard() {
+    return (
+      <MiniTimeline
+        items={dashboardData.sleepItems.filter((item) => item.start && item.end)}
+        locale={locale}
+        currentTime={currentTime}
+        strings={bootstrap.strings}
+      />
+    );
   }
 
   function navigateToChild(nextChildId) {
@@ -2593,6 +2753,7 @@ function ChildDashboardPage({ bootstrap }) {
                             </Row>
                             <Segmented
                               block
+                              value={diaperConsistency}
                               options={[
                                 {
                                   label: bootstrap.strings.liquid,
@@ -2603,10 +2764,23 @@ function ChildDashboardPage({ bootstrap }) {
                                   value: "solid",
                                 },
                               ]}
-                              onChange={submitDiaperEntry}
+                              onChange={setDiaperConsistency}
                             />
+                            <Button
+                              type="primary"
+                              size="large"
+                              loading={submittingDiaper}
+                              onClick={submitDiaperEntry}
+                              className="ant-diaper-save"
+                            >
+                              {bootstrap.strings.save}
+                            </Button>
                           </Space>
                         ) : (
+                          (cardKey === "card.sleep.quick_timer" &&
+                            renderSleepTimerCard()) ||
+                          (cardKey === "card.sleep.timeline_day" &&
+                            renderSleepTimelineCard()) ||
                           cards[cardKey] || (
                             <Empty
                               image={Empty.PRESENTED_IMAGE_SIMPLE}
