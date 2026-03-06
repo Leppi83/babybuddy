@@ -39,6 +39,8 @@
             const fixedChildId = root.dataset.fixedChildId || "";
             const childDashboardUrlTemplate = root.dataset.childDashboardUrlTemplate || "";
             const layoutUrl = root.dataset.layoutUrl || "";
+            const i18nNode = document.getElementById("ui-preview-i18n");
+            const i18n = i18nNode ? JSON.parse(i18nNode.textContent) : {};
 
             const selectionKey = "ui-preview-selected-child";
             const timerKey = "ui-preview-sleep-timer";
@@ -55,6 +57,16 @@
                 }
             };
             const childrenById = new Map();
+
+            function t(key, fallback, replacements) {
+                let value = Object.prototype.hasOwnProperty.call(i18n, key) ? i18n[key] : fallback;
+                if (!replacements) {
+                    return value;
+                }
+                return Object.entries(replacements).reduce((acc, [token, tokenValue]) => (
+                    acc.replace(new RegExp(`%\\(${token}\\)s`, "g"), tokenValue)
+                ), value);
+            }
 
             function localDateString(date) {
                 const dt = new Date(date);
@@ -97,8 +109,8 @@
 
             function refreshCounts() {
                 const hiddenCount = sections.filter((section) => section.dataset.collapsed === "1").length;
-                visible.textContent = `${sections.length - hiddenCount} visible`;
-                hidden.textContent = `${hiddenCount} hidden`;
+                visible.textContent = `${sections.length - hiddenCount} ${t("visible_suffix", "visible")}`;
+                hidden.textContent = `${hiddenCount} ${t("hidden_suffix", "hidden")}`;
             }
 
             function csrfToken() {
@@ -187,7 +199,7 @@
 
             function formatDateTime(value) {
                 if (!value) {
-                    return "n/a";
+                    return t("na", "n/a");
                 }
                 try {
                     return new Date(value).toLocaleString();
@@ -198,7 +210,7 @@
 
             function formatTime(value) {
                 if (!value) {
-                    return "n/a";
+                    return t("na", "n/a");
                 }
                 try {
                     return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -315,23 +327,23 @@
 
             function formatMethod(value) {
                 if (!value) {
-                    return "n/a";
+                    return t("na", "n/a");
                 }
                 return value.toString().replace(/[_-]+/g, " ");
             }
 
             function formatAgeSince(value) {
                 if (!value) {
-                    return "n/a";
+                    return t("na", "n/a");
                 }
                 const diffMs = Date.now() - new Date(value).getTime();
                 const minutes = Math.max(0, Math.floor(diffMs / 60000));
                 if (minutes < 60) {
-                    return `${minutes}m ago`;
+                    return `${minutes}${t("m_short", "m")} ${t("ago", "ago")}`;
                 }
                 const hours = Math.floor(minutes / 60);
                 const mins = minutes % 60;
-                return `${hours}h ${mins}m ago`;
+                return `${hours}${t("h_short", "h")} ${mins}${t("m_short", "m")} ${t("ago", "ago")}`;
             }
 
             function richCard(main, meta, chips) {
@@ -349,12 +361,12 @@
 
             function recommendationStatusLabel(status) {
                 const map = {
-                    ok: "OK",
-                    no_data: "No Data",
-                    nighttime: "Nighttime",
-                    overtired_risk: "Overdue"
+                    ok: t("ok", "OK"),
+                    no_data: t("no_data", "No Data"),
+                    nighttime: t("nighttime", "Nighttime"),
+                    overtired_risk: t("overdue", "Overdue")
                 };
-                return map[status] || "Info";
+                return map[status] || t("info", "Info");
             }
 
             function renderRecommendationLine(title, entry, includeTarget) {
@@ -362,7 +374,7 @@
                     return `
                         <div class="ui-reco-row">
                             <div class="ui-reco-title">${title}</div>
-                            <div class="ui-reco-main">n/a</div>
+                            <div class="ui-reco-main">${t("na", "n/a")}</div>
                         </div>
                     `;
                 }
@@ -370,13 +382,13 @@
                 const status = entry.status || "no_data";
                 const bits = [];
                 if (entry.ideal) {
-                    bits.push(`ideal ${formatTime(entry.ideal)}`);
+                    bits.push(`${t("ideal", "ideal")} ${formatTime(entry.ideal)}`);
                 }
                 if (entry.earliest && entry.latest) {
-                    bits.push(`window ${formatTime(entry.earliest)}-${formatTime(entry.latest)}`);
+                    bits.push(`${t("window", "window")} ${formatTime(entry.earliest)}-${formatTime(entry.latest)}`);
                 }
                 if (includeTarget && entry.target_bedtime) {
-                    bits.push(`target ${formatTime(entry.target_bedtime)}`);
+                    bits.push(`${t("target", "target")} ${formatTime(entry.target_bedtime)}`);
                 }
 
                 let reason = "";
@@ -390,7 +402,7 @@
                         <div>
                             <div class="ui-reco-main">
                                 <span class="ui-reco-badge ${status}">${recommendationStatusLabel(status)}</span>
-                                <span class="ui-reco-meta">${bits.join(" | ") || "no schedule available"}</span>
+                                <span class="ui-reco-meta">${bits.join(" | ") || t("no_schedule_available", "no schedule available")}</span>
                             </div>
                             ${reason}
                         </div>
@@ -404,15 +416,15 @@
                 }
                 if (!payload) {
                     recommendationsRoot.innerHTML = `
-                        <div class="ui-reco-row"><div class="ui-reco-title">Nap</div><div>n/a</div></div>
-                        <div class="ui-reco-row"><div class="ui-reco-title">Bedtime</div><div>n/a</div></div>
+                        <div class="ui-reco-row"><div class="ui-reco-title">${t("nap", "Nap")}</div><div>${t("na", "n/a")}</div></div>
+                        <div class="ui-reco-row"><div class="ui-reco-title">${t("bedtime", "Bedtime")}</div><div>${t("na", "n/a")}</div></div>
                     `;
                     return;
                 }
 
                 recommendationsRoot.innerHTML = `
-                    ${renderRecommendationLine("Nap", payload.nap, false)}
-                    ${renderRecommendationLine("Bedtime", payload.bedtime, true)}
+                    ${renderRecommendationLine(t("nap", "Nap"), payload.nap, false)}
+                    ${renderRecommendationLine(t("bedtime", "Bedtime"), payload.bedtime, true)}
                 `;
             }
 
@@ -480,7 +492,7 @@
                         const fullStart = new Date(best.start);
                         const fullEnd = new Date(best.end);
                         const fullMinutes = durationMinutes(best.duration);
-                        const tooltipText = `${best.nap ? "Nap" : "Sleep"} | ${fullStart.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${fullEnd.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} | ${fullMinutes} min`;
+                        const tooltipText = `${best.nap ? t("nap", "Nap") : t("sleep", "Sleep")} | ${fullStart.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${fullEnd.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} | ${fullMinutes} ${t("min_short", "min")}`;
 
                         bar.addEventListener("mouseenter", (event) => showTooltip(tooltipText, event.clientX, event.clientY));
                         bar.addEventListener("mousemove", (event) => showTooltip(tooltipText, event.clientX, event.clientY));
@@ -546,10 +558,10 @@
             function formatSleepCaption(ms) {
                 const minutes = Math.floor(ms / 60000);
                 if (minutes < 90) {
-                    return `Sleeping: ${minutes} min`;
+                    return `${t("sleeping", "Sleeping")}: ${minutes} ${t("min_short", "min")}`;
                 }
                 const hours = (minutes / 60).toFixed(1);
-                return `Sleeping: ${hours} h`;
+                return `${t("sleeping", "Sleeping")}: ${hours} ${t("h_short", "h")}`;
             }
 
             function normalizeHHMM(rawValue) {
@@ -625,12 +637,12 @@
                 sleepTimerCaption.textContent = formatSleepCaption(elapsed);
 
                 if (state.timer.running) {
-                    sleepTimerAction.textContent = "Stop";
+                    sleepTimerAction.textContent = t("stop", "Stop");
                     sleepTimerAction.classList.remove("btn-primary");
                     sleepTimerAction.classList.add("btn-danger");
                     sleepTimerDots.classList.add("running");
                 } else {
-                    sleepTimerAction.textContent = "Start";
+                    sleepTimerAction.textContent = t("start", "Start");
                     sleepTimerAction.classList.add("btn-primary");
                     sleepTimerAction.classList.remove("btn-danger");
                     sleepTimerDots.classList.remove("running");
@@ -656,13 +668,13 @@
 
             async function startSleepTimer() {
                 if (!state.selectedChildId) {
-                    sleepTimerNote.textContent = "Select a child first.";
+                    sleepTimerNote.textContent = t("select_child_first", "Select a child first.");
                     return;
                 }
 
                 const payload = await fetchMutation("/api/timers/", "POST", {
                     child: Number(state.selectedChildId),
-                    name: "Sleep preview timer"
+                    name: t("sleep_preview_timer", "Sleep preview timer")
                 });
 
                 state.timer.running = true;
@@ -670,7 +682,7 @@
                 state.timer.apiTimerId = payload.id;
                 state.timer.childId = state.selectedChildId;
                 if (sleepTimerNote) {
-                    sleepTimerNote.textContent = "Timer running... Stop to create sleep entry.";
+                    sleepTimerNote.textContent = t("timer_running", "Timer running... Stop to create sleep entry.");
                 }
                 persistTimerState();
                 startTimerTicking();
@@ -710,7 +722,10 @@
                 clearTimerState();
                 stopTimerTicking();
                 if (sleepTimerNote) {
-                    sleepTimerNote.textContent = `Saved ${nap ? "nap" : "sleep"} entry (${durationMin} min).`;
+                    sleepTimerNote.textContent = t("saved_entry", "Saved %(entry_type)s entry (%(value)s).", {
+                        entry_type: nap ? t("nap_entry", "nap") : t("sleep_entry", "sleep"),
+                        value: `${durationMin} ${t("min_short", "min")}`
+                    });
                 }
 
                 await loadCards(state.selectedChildId);
@@ -719,7 +734,7 @@
             async function saveManualSleepEntry() {
                 if (!state.selectedChildId) {
                     if (sleepTimerNote) {
-                        sleepTimerNote.textContent = "Select a child first.";
+                        sleepTimerNote.textContent = t("select_child_first", "Select a child first.");
                     }
                     return;
                 }
@@ -731,7 +746,7 @@
                 );
                 if (!startText || !endText) {
                     if (sleepTimerNote) {
-                        sleepTimerNote.textContent = "Please enter Start and End as hh:mm.";
+                        sleepTimerNote.textContent = t("enter_hhmm", "Please enter Start and End as hh:mm.");
                     }
                     return;
                 }
@@ -743,14 +758,14 @@
                 const endLocal = combineDateAndTime(endDateValue, endText);
                 if (!startLocal || !endLocal) {
                     if (sleepTimerNote) {
-                        sleepTimerNote.textContent = "Invalid start or end time.";
+                        sleepTimerNote.textContent = t("invalid_time", "Invalid start or end time.");
                     }
                     return;
                 }
 
                 if (endLocal <= startLocal) {
                     if (sleepTimerNote) {
-                        sleepTimerNote.textContent = "End must be after start. For overnight sleep choose next day in End date.";
+                        sleepTimerNote.textContent = t("end_after_start", "End must be after start. For overnight sleep choose next day in End date.");
                     }
                     return;
                 }
@@ -764,7 +779,11 @@
                 });
 
                 if (sleepTimerNote) {
-                    sleepTimerNote.textContent = `Saved ${nap ? "nap" : "sleep"} entry (${startText} - ${endText}).`;
+                    sleepTimerNote.textContent = t("saved_entry_range", "Saved %(entry_type)s entry (%(start)s - %(end)s).", {
+                        entry_type: nap ? t("nap_entry", "nap") : t("sleep_entry", "sleep"),
+                        start: startText,
+                        end: endText
+                    });
                 }
 
                 await loadCards(state.selectedChildId);
@@ -775,7 +794,7 @@
                 const children = asItems(payload);
                 childSelect.innerHTML = "";
                 if (!children.length) {
-                    childSelect.innerHTML = '<option value="">No children found</option>';
+                    childSelect.innerHTML = `<option value="">${escapeHtml(t("no_children_found", "No children found"))}</option>`;
                     return [];
                 }
 
@@ -783,7 +802,7 @@
                     childrenById.set(String(child.id), child);
                     const option = document.createElement("option");
                     option.value = String(child.id);
-                    option.textContent = [child.first_name, child.last_name].filter(Boolean).join(" ").trim() || `Child ${child.id}`;
+                    option.textContent = [child.first_name, child.last_name].filter(Boolean).join(" ").trim() || `${t("child_fallback", "Child")} ${child.id}`;
                     childSelect.appendChild(option);
                 });
 
@@ -791,7 +810,7 @@
                     if (children.some((child) => String(child.id) === fixedChildId)) {
                         childSelect.value = fixedChildId;
                     } else {
-                        childSelect.innerHTML = '<option value="">Configured child not found</option>';
+                        childSelect.innerHTML = `<option value="">${escapeHtml(t("configured_child_not_found", "Configured child not found"))}</option>`;
                     }
                     return children;
                 }
@@ -829,7 +848,7 @@
                 }
                 state.selectedChildId = String(childId);
 
-                Object.keys(cards).forEach((key) => setCard(key, "Loading..."));
+                Object.keys(cards).forEach((key) => setCard(key, t("loading", "Loading...")));
 
                 const query = `child=${encodeURIComponent(childId)}`;
                 const [changes, feedings, pumpings, sleeps, tummyTimes, timers] = await Promise.all([
@@ -859,35 +878,35 @@
                         `${formatAgeSince(lastChange.time)}`,
                         `${formatDateTime(lastChange.time)}`,
                         [
-                            { label: `wet: ${lastChange.wet ? "yes" : "no"}`, tone: "rose" },
-                            { label: `solid: ${lastChange.solid ? "yes" : "no"}`, tone: "rose" }
+                            { label: `${t("wet", "wet")}: ${lastChange.wet ? t("yes", "yes") : t("no", "no")}`, tone: "rose" },
+                            { label: `${t("solid_lower", "solid")}: ${lastChange.solid ? t("yes", "yes") : t("no", "no")}`, tone: "rose" }
                         ]
                     ));
                 } else {
-                    setCard("last-nappy-change", "No diaper changes yet");
+                    setCard("last-nappy-change", t("no_diaper_changes", "No diaper changes yet"));
                 }
                 const diaperTodayCount = changeItems.filter((item) => isToday(item.time)).length;
                 setCardHtml("nappy-changes", richCard(
-                    `${diaperTodayCount} changes today`,
-                    `${changeItems.length} in recent history`,
-                    [{ label: "diaper", tone: "rose" }]
+                    t("changes_today", "%(count)s changes today", { count: diaperTodayCount }),
+                    t("recent_history", "%(count)s in recent history", { count: changeItems.length }),
+                    [{ label: t("diaper", "diaper"), tone: "rose" }]
                 ));
 
                 if (lastFeeding) {
                     setCardHtml("last-feeding", richCard(
-                        `${durationMinutes(lastFeeding.duration)} min`,
-                        `${formatDateTime(lastFeeding.start)} | amount: ${lastFeeding.amount || "n/a"}`,
+                        `${durationMinutes(lastFeeding.duration)} ${t("min_short", "min")}`,
+                        `${formatDateTime(lastFeeding.start)} | ${t("amount", "amount")}: ${lastFeeding.amount || t("na", "n/a")}`,
                         [
                             { label: formatMethod(lastFeeding.method), tone: "sky" },
                             { label: formatMethod(lastFeeding.type), tone: "sky" }
                         ]
                     ));
                 } else {
-                    setCard("last-feeding", "No feedings yet");
+                    setCard("last-feeding", t("no_feedings", "No feedings yet"));
                 }
 
                 const methodCounts = feedingItems.reduce((acc, item) => {
-                    const key = formatMethod(item.method || "unknown");
+                    const key = formatMethod(item.method || t("unknown", "unknown"));
                     acc[key] = (acc[key] || 0) + 1;
                     return acc;
                 }, {});
@@ -895,11 +914,11 @@
                 if (topMethod) {
                     setCardHtml("last-feeding-method", richCard(
                         topMethod[0],
-                        `${topMethod[1]}x in recent entries`,
-                        [{ label: "dominant method", tone: "sky" }]
+                        t("recent_entries_x", "%(count)sx in recent entries", { count: topMethod[1] }),
+                        [{ label: t("dominant_method", "dominant method"), tone: "sky" }]
                     ));
                 } else {
-                    setCard("last-feeding-method", "No feeding method available");
+                    setCard("last-feeding-method", t("no_feeding_method", "No feeding method available"));
                 }
 
                 const feedingsToday = feedingItems.filter((item) => isToday(item.start));
@@ -907,37 +926,37 @@
                     ? Math.round(feedingsToday.reduce((sum, item) => sum + durationMinutes(item.duration), 0) / feedingsToday.length)
                     : 0;
                 setCardHtml("recent-feedings", richCard(
-                    `${feedingsToday.length} feedings today`,
-                    feedingsToday.length ? `avg duration ${avgDuration} min` : "no entries today",
-                    [{ label: "today", tone: "sky" }]
+                    t("feedings_today", "%(count)s feedings today", { count: feedingsToday.length }),
+                    feedingsToday.length ? t("avg_duration_minutes", "avg duration %(count)s min", { count: avgDuration }) : t("no_entries_today", "no entries today"),
+                    [{ label: t("today", "today"), tone: "sky" }]
                 ));
 
                 const breastfeedingToday = feedingsToday.filter((item) => String(item.method || "").toLowerCase().includes("breast")).length;
                 const breastfeedingRecent = feedingItems.filter((item) => String(item.method || "").toLowerCase().includes("breast")).length;
                 setCardHtml("breastfeeding", richCard(
-                    `${breastfeedingToday} today`,
-                    `${breastfeedingRecent} in recent entries`,
-                    [{ label: "breastfeeding", tone: "sky" }]
+                    `${breastfeedingToday} ${t("today", "today")}`,
+                    t("recent_entries_count", "%(count)s in recent entries", { count: breastfeedingRecent }),
+                    [{ label: t("breastfeeding", "breastfeeding"), tone: "sky" }]
                 ));
 
                 if (lastPumping) {
                     setCardHtml("last-pumping", richCard(
-                        `${durationMinutes(lastPumping.duration)} min`,
-                        `${formatDateTime(lastPumping.start)} | amount: ${lastPumping.amount || "n/a"}`,
-                        [{ label: "pumping", tone: "violet" }]
+                        `${durationMinutes(lastPumping.duration)} ${t("min_short", "min")}`,
+                        `${formatDateTime(lastPumping.start)} | ${t("amount", "amount")}: ${lastPumping.amount || t("na", "n/a")}`,
+                        [{ label: t("pumping", "pumping"), tone: "violet" }]
                     ));
                 } else {
-                    setCard("last-pumping", "No pumping entries yet");
+                    setCard("last-pumping", t("no_pumping_entries", "No pumping entries yet"));
                 }
 
                 if (lastSleep) {
                     setCardHtml("last-sleep", richCard(
-                        `${lastSleep.nap ? "Nap" : "Sleep"} | ${durationMinutes(lastSleep.duration)} min`,
+                        `${lastSleep.nap ? t("nap", "Nap") : t("sleep", "Sleep")} | ${durationMinutes(lastSleep.duration)} ${t("min_short", "min")}`,
                         `${formatDateTime(lastSleep.start)} - ${formatDateTime(lastSleep.end)}`,
-                        [{ label: lastSleep.nap ? "nap" : "sleep", tone: "amber" }]
+                        [{ label: lastSleep.nap ? t("nap_entry", "nap") : t("sleep_entry", "sleep"), tone: "amber" }]
                     ));
                 } else {
-                    setCard("last-sleep", "No sleep entries yet");
+                    setCard("last-sleep", t("no_sleep_entries", "No sleep entries yet"));
                 }
 
                 const sleepToday = sleepItems.filter((item) => isToday(item.start));
@@ -959,24 +978,29 @@
                     : 0;
 
                 setCardHtml("sleep-timers", richCard(
-                    `${timerItems.length} timers`,
-                    timerItems[0] ? `latest: ${timerItems[0].name || "Timer"} (${formatTime(timerItems[0].start)})` : "no active timer",
-                    [{ label: timerItems[0] ? "running" : "idle", tone: "amber" }]
+                    t("timers_count", "%(count)s timers", { count: timerItems.length }),
+                    timerItems[0]
+                        ? t("latest_timer", "latest: %(name)s (%(time)s)", {
+                            name: timerItems[0].name || t("timer_default_name", "Timer"),
+                            time: formatTime(timerItems[0].start)
+                        })
+                        : t("no_active_timer", "no active timer"),
+                    [{ label: timerItems[0] ? t("running", "running") : t("idle", "idle"), tone: "amber" }]
                 ));
                 setCardHtml("recent-sleep", richCard(
-                    `${sleepToday.length} sleep entries today`,
-                    `${sleepItems.length} in recent history`,
-                    [{ label: "sleep log", tone: "amber" }]
+                    t("sleep_entries_today", "%(count)s sleep entries today", { count: sleepToday.length }),
+                    t("recent_history", "%(count)s in recent history", { count: sleepItems.length }),
+                    [{ label: t("sleep_log", "sleep log"), tone: "amber" }]
                 ));
                 setCardHtml("todays-naps", richCard(
-                    `${napMinutesToday} min`,
-                    `${napsToday.length} naps today`,
-                    [{ label: "nap", tone: "amber" }]
+                    `${napMinutesToday} ${t("min_short", "min")}`,
+                    t("naps_today", "%(count)s naps today", { count: napsToday.length }),
+                    [{ label: t("nap", "nap"), tone: "amber" }]
                 ));
                 setCardHtml("sleep-statistics", richCard(
-                    `${avgNapMinutes} min avg nap`,
-                    `${avgSleepMinutes} min avg sleep`,
-                    [{ label: "statistics", tone: "amber" }]
+                    t("avg_nap", "%(count)s min avg nap", { count: avgNapMinutes }),
+                    t("avg_sleep", "%(count)s min avg sleep", { count: avgSleepMinutes }),
+                    [{ label: t("statistics", "statistics"), tone: "amber" }]
                 ));
                 const childMeta = childrenById.get(String(childId));
                 try {
@@ -985,7 +1009,7 @@
                     if (recommendationsRoot) {
                         recommendationsRoot.innerHTML = `
                             <div class="ui-reco-row">
-                                <div class="ui-reco-title">Error</div>
+                                <div class="ui-reco-title">${t("error", "Error")}</div>
                                 <div>${error.message}</div>
                             </div>
                         `;
@@ -996,14 +1020,16 @@
                     .filter((item) => isToday(item.start))
                     .reduce((acc, item) => acc + durationMinutes(item.duration), 0);
                 setCardHtml("tummy-time", richCard(
-                    `${tummyTodayMinutes} min today`,
-                    `${tummyItems.length} recent tummy time entries`,
-                    [{ label: "tummy time", tone: "emerald" }]
+                    t("tummy_time_today", "%(count)s min today", { count: tummyTodayMinutes }),
+                    t("recent_tummy_entries", "%(count)s recent tummy time entries", { count: tummyItems.length }),
+                    [{ label: t("tummy_time", "tummy time"), tone: "emerald" }]
                 ));
 
                 if (runningTimer && !state.timer.running) {
                     if (sleepTimerNote) {
-                        sleepTimerNote.textContent = `Existing running timer: ${runningTimer.name || "Timer"}`;
+                        sleepTimerNote.textContent = t("existing_running_timer", "Existing running timer: %(name)s", {
+                            name: runningTimer.name || t("timer_default_name", "Timer")
+                        });
                     }
                 }
 
@@ -1018,7 +1044,7 @@
                     }
                     const collapsed = section.dataset.collapsed === "1";
                     section.dataset.collapsed = collapsed ? "0" : "1";
-                    button.textContent = collapsed ? "Hide" : "Show";
+                    button.textContent = collapsed ? t("hide", "Hide") : t("show", "Show");
                     refreshCounts();
                     persistLayout();
                 });
@@ -1032,13 +1058,13 @@
                     localStorage.setItem(selectionKey, childSelect.value);
                 }
                 loadCards(childSelect.value).catch((error) => {
-                    Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${error.message}`));
+                    Object.keys(cards).forEach((key) => setCard(key, t("error_loading_data", "Error loading data: %(message)s", { message: error.message })));
                 });
             });
 
             refreshButton.addEventListener("click", () => {
                 loadCards(childSelect.value).catch((error) => {
-                    Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${error.message}`));
+                    Object.keys(cards).forEach((key) => setCard(key, t("error_loading_data", "Error loading data: %(message)s", { message: error.message })));
                 });
             });
 
@@ -1049,7 +1075,7 @@
                     state.timelineDate = localDateString(dt);
                     refreshTimelineHeader();
                     if (state.selectedChildId) {
-                        loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
+                        loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", t("timeline_error", "Timeline error: %(message)s", { message: error.message })));
                     }
                 });
 
@@ -1059,7 +1085,7 @@
                     state.timelineDate = localDateString(dt);
                     refreshTimelineHeader();
                     if (state.selectedChildId) {
-                        loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
+                        loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", t("timeline_error", "Timeline error: %(message)s", { message: error.message })));
                     }
                 });
 
@@ -1070,7 +1096,7 @@
                     state.timelineDate = timelineDateInput.value;
                     refreshTimelineHeader();
                     if (state.selectedChildId) {
-                        loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", `Timeline error: ${error.message}`));
+                        loadSleepTimeline(state.selectedChildId).catch((error) => setCard("last-sleep", t("timeline_error", "Timeline error: %(message)s", { message: error.message })));
                     }
                 });
             }
@@ -1086,7 +1112,7 @@
                         }
                     } catch (error) {
                         if (sleepTimerNote) {
-                            sleepTimerNote.textContent = `Timer error: ${error.message}`;
+                            sleepTimerNote.textContent = t("timer_error", "Timer error: %(message)s", { message: error.message });
                         }
                     } finally {
                         sleepTimerAction.disabled = false;
@@ -1101,7 +1127,7 @@
                         await saveManualSleepEntry();
                     } catch (error) {
                         if (sleepTimerNote) {
-                            sleepTimerNote.textContent = `Manual save error: ${error.message}`;
+                            sleepTimerNote.textContent = t("manual_save_error", "Manual save error: %(message)s", { message: error.message });
                         }
                     } finally {
                         sleepManualSave.disabled = false;
@@ -1155,12 +1181,12 @@
                     if (fixedChildId && childSelect.options.length > 0) {
                         childSelect.value = fixedChildId;
                         loadCards(fixedChildId).catch((cardError) => {
-                            Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${cardError.message}`));
+                            Object.keys(cards).forEach((key) => setCard(key, t("error_loading_data", "Error loading data: %(message)s", { message: cardError.message })));
                         });
                         return;
                     }
-                    childSelect.innerHTML = '<option value="">Error loading children</option>';
-                    Object.keys(cards).forEach((key) => setCard(key, `Error loading data: ${error.message}`));
+                    childSelect.innerHTML = `<option value="">${escapeHtml(t("error_loading_children", "Error loading children"))}</option>`;
+                    Object.keys(cards).forEach((key) => setCard(key, t("error_loading_data", "Error loading data: %(message)s", { message: error.message })));
                 });
 
             document.addEventListener("scroll", hideTooltip, { passive: true });
