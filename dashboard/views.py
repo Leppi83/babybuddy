@@ -75,6 +75,7 @@ def _build_ant_strings():
         "breastMilk": _("Breast milk"),
         "left": _("Left"),
         "right": _("Right"),
+        "both": _("Both"),
         "side": _("Side"),
         "amount": _("Amount"),
         "sleepType": _("Type"),
@@ -444,7 +445,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             or not end_date
             or not end_time
             or not amount_raw
-            or side not in {"left", "right"}
+            or side not in {"left", "right", "both"}
         ):
             messages.error(
                 request,

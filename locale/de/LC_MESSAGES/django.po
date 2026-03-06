@@ -1330,6 +1330,10 @@ msgstr "Links"
 msgid "Right"
 msgstr "Rechts"
 
+#: core/models.py:494 dashboard/views.py:65
+msgid "Both"
+msgstr "Beide"
+
 #: core/models.py:343
 msgid "Both breasts"
 msgstr "Beide Brüste"

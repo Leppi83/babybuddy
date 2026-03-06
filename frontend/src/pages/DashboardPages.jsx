@@ -1418,6 +1418,7 @@ export function ChildDashboardPage({ bootstrap }) {
               options={[
                 { label: bootstrap.strings.left, value: "left" },
                 { label: bootstrap.strings.right, value: "right" },
+                { label: bootstrap.strings.both, value: "both" },
               ]}
               onChange={setPumpingSide}
             />
