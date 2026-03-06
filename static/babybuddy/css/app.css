@@ -12387,10 +12387,9 @@ textarea.form-control-lg {
 }
 
 .dual-list-mobile-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.7rem;
   padding: 0.7rem 0.8rem;
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 0.8rem;
@@ -12398,23 +12397,23 @@ textarea.form-control-lg {
 }
 
 .dual-list-mobile-label {
-  flex: 1;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  min-width: 0;
   color: #f8fafc;
   text-align: left;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .dual-list-mobile-actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 0.4rem;
 }
 
 .dual-list-mobile-actions .btn {
-  min-width: 2.5rem;
+  min-width: 2.6rem;
 }
 
 .dual-list-mobile-empty {
@@ -12422,6 +12421,43 @@ textarea.form-control-lg {
   border: 1px dashed rgba(148, 163, 184, 0.28);
   border-radius: 0.8rem;
   color: rgba(226, 232, 240, 0.72);
+}
+
+.settings-link-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.settings-link-group {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.settings-link-heading {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.settings-link-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 0.85rem;
+  background: rgba(15, 23, 42, 0.38);
+  color: #f8fafc;
+  text-decoration: none;
+}
+
+.settings-link-card:hover,
+.settings-link-card:focus {
+  color: #fff;
+  border-color: rgba(125, 211, 252, 0.52);
+  background: rgba(15, 23, 42, 0.56);
 }
 
 @media (max-width: 575.98px) {
