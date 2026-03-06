@@ -136,6 +136,40 @@
                     </div>
                 </div>
             </fieldset>
+            <fieldset>
+                <legend>{% trans "Site & Support" %}</legend>
+                <div class="settings-link-grid">
+                    <div class="settings-link-group">
+                        <h2 class="settings-link-heading">{% trans "Site" %}</h2>
+                        <a href="{% url 'api:api-root' %}" class="settings-link-card">
+                            <span>{% trans "API Browser" %}</span>
+                        </a>
+                        {% if request.user.is_staff %}
+                            <a href="{% url 'babybuddy:site_settings' %}" class="settings-link-card">
+                                <span>{% trans "Settings" %}</span>
+                            </a>
+                            <a href="{% url 'core:tag-list' %}" class="settings-link-card">
+                                <span>{% trans "Tags" %}</span>
+                            </a>
+                            <a href="{% url 'babybuddy:user-list' %}" class="settings-link-card">
+                                <span>{% trans "Users" %}</span>
+                            </a>
+                            <a href="{% url 'admin:index' %}" class="settings-link-card">
+                                <span>{% trans "Database Admin" %}</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="settings-link-group">
+                        <h2 class="settings-link-heading">{% trans "Support" %}</h2>
+                        <a href="https://github.com/babybuddy/babybuddy" class="settings-link-card">
+                            <span><i class="icon-source" aria-hidden="true"></i> {% trans "Source Code" %}</span>
+                        </a>
+                        <a href="https://gitter.im/babybuddy/Lobby" class="settings-link-card">
+                            <span><i class="icon-chat" aria-hidden="true"></i> {% trans "Chat / Support" %}</span>
+                        </a>
+                    </div>
+                </div>
+            </fieldset>
             <input type="hidden" name="next" value="{% url 'babybuddy:user-settings' %}" />
             <input type="submit"
                    name="save_settings"
@@ -231,12 +265,9 @@
                 const row = document.createElement('div');
                 row.className = 'dual-list-mobile-item';
 
-                const label = document.createElement('button');
-                label.type = 'button';
+                const label = document.createElement('div');
                 label.className = 'dual-list-mobile-label';
                 label.textContent = option.textContent;
-                label.dataset.dualListMobileAction = mode === 'available' ? 'add' : 'remove';
-                label.dataset.value = option.value;
                 row.appendChild(label);
 
                 const actions = document.createElement('div');
