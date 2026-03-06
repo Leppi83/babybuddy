@@ -65,6 +65,7 @@ def _build_ant_strings():
         "feedings": _("Feedings"),
         "pumpings": _("Pumpings"),
         "sleep": _("Sleep"),
+        "nap": _("Nap"),
         "tummyTime": _("Tummy Time"),
         "tummytime": _("Tummy Time"),
         "lastNappyChange": _("Last Nappy Change"),
@@ -87,6 +88,14 @@ def _build_ant_strings():
         "migrationPending": _("Migration pending"),
         "saveFailed": _("Save failed"),
         "saved": _("Saved"),
+        "save": _("Save"),
+        "ready": _("Ready"),
+        "start": _("Start"),
+        "stop": _("Stop"),
+        "running": _("Running"),
+        "now": _("Now"),
+        "sleepTimerActive": _("Sleep timer active"),
+        "sleepEntrySaved": _("Sleep entry saved."),
         "sleepTimerPending": _("Sleep timer migration pending"),
     }
 
@@ -310,6 +319,26 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         context["dashboard_section_order"] = visible_sections
         context["dashboard_hidden_sections"] = hidden_sections
         children = Child.objects.all().order_by("last_name", "first_name", "id")
+        start_raw = self.request.session.get(self._timer_session_key(self.object.id))
+        timer_payload = {
+            "running": False,
+            "startIso": None,
+            "elapsedSeconds": 0,
+        }
+        if start_raw:
+            try:
+                start_dt = timezone.datetime.fromisoformat(start_raw)
+                elapsed = max(
+                    0, int((timezone.now() - start_dt).total_seconds())
+                )
+                timer_payload = {
+                    "running": True,
+                    "startIso": start_dt.isoformat(),
+                    "elapsedSeconds": elapsed,
+                }
+            except (TypeError, ValueError):
+                del self.request.session[self._timer_session_key(self.object.id)]
+                self.request.session.modified = True
         if _ant_dashboard_enabled():
             context["ant_page_title"] = _("Dashboard")
             context["ant_bootstrap"] = {
@@ -335,6 +364,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                         _child_picture_url(self.object)
                     ),
                 },
+                "sleepTimer": timer_payload,
                 "dashboard": _build_section_payload(
                     preview_cards_by_section, visible_sections, hidden_sections
                 ),

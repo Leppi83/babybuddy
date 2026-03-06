@@ -2045,6 +2045,26 @@ msgstr[1] "%(count)s Nickerchen"
 msgid "Sleep Timer"
 msgstr "Schlaf-Timer"
 
+#: dashboard/views.py:92
+msgid "Ready"
+msgstr "Bereit"
+
+#: dashboard/views.py:94
+msgid "Running"
+msgstr "Läuft"
+
+#: dashboard/views.py:95
+msgid "Now"
+msgstr "Jetzt"
+
+#: dashboard/views.py:96
+msgid "Sleep timer active"
+msgstr "Schlaf-Timer aktiv"
+
+#: dashboard/views.py:97
+msgid "Sleep entry saved."
+msgstr "Schlafeintrag gespeichert."
+
 #: dashboard/templates/cards/sleep_quick_timer.html:19
 msgid "Stop"
 msgstr "Stoppen"

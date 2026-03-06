@@ -161,6 +161,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.ant-timeline-stage {
+  position: relative;
 }
 
 .ant-timeline-bars {
@@ -169,6 +175,7 @@ body {
   grid-template-columns: repeat(24, minmax(0, 1fr));
   gap: 6px;
   align-items: end;
+  position: relative;
 }
 
 .ant-timeline-slot {
@@ -184,14 +191,27 @@ body {
 .ant-timeline-bar {
   width: 70%;
   border-radius: 999px;
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
 }
 
 .ant-timeline-bar.nap {
-  background: linear-gradient(180deg, #ffd591, #faad14);
+  background: linear-gradient(180deg, #ffdf8c, #ff9f1a);
 }
 
 .ant-timeline-bar.sleep {
   background: linear-gradient(180deg, #91caff, #1677ff);
+}
+
+.ant-timeline-now-line {
+  position: absolute;
+  top: -6px;
+  bottom: 40px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff7875, #ff4d4f);
+  box-shadow: 0 0 16px rgba(255, 77, 79, 0.45);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .ant-timeline-axis {
@@ -203,6 +223,40 @@ body {
   text-align: center;
 }
 
+.ant-timeline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  color: #cbd5e1;
+}
+
+.ant-timeline-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.ant-timeline-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.ant-timeline-legend-dot.sleep {
+  background: #1677ff;
+}
+
+.ant-timeline-legend-dot.nap {
+  background: #ffb020;
+}
+
+.ant-timeline-legend-dot.now {
+  background: #ff4d4f;
+}
+
 .ant-native-input {
   width: 100%;
   border: 1px solid rgba(148, 163, 184, 0.28);
@@ -210,6 +264,14 @@ body {
   background: rgba(2, 6, 23, 0.72);
   color: #f8fafc;
   padding: 9px 12px;
+}
+
+.ant-diaper-save {
+  align-self: flex-start;
+}
+
+.ant-sleep-timer-card .ant-statistic {
+  width: 100%;
 }
 
 .ant-managed-form {
@@ -295,10 +357,15 @@ body {
 
   .ant-timeline-bars {
     gap: 4px;
+    min-height: 180px;
   }
 
   .ant-timeline-axis {
     gap: 4px;
     font-size: 0.62rem;
+  }
+
+  .ant-timeline-legend {
+    gap: 10px;
   }
 }
