@@ -16,9 +16,12 @@
             <button class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex app-shell-collapse-toggle"
                     type="button"
                     id="app-shell-collapse-toggle"
-                    aria-label="{% trans 'Collapse sidebar' %}">
-                <span class="when-expanded">{% trans "Collapse" %}</span>
-                <span class="when-collapsed">{% trans "Expand" %}</span>
+                    aria-label="{% trans 'Collapse sidebar' %}"
+                    title="{% trans 'Collapse sidebar' %}"
+                    data-label-expanded="{% trans 'Collapse sidebar' %}"
+                    data-label-collapsed="{% trans 'Expand sidebar' %}">
+                <span class="when-expanded" aria-hidden="true">&lt;&lt;&lt;</span>
+                <span class="when-collapsed" aria-hidden="true">&gt;&gt;&gt;</span>
             </button>
             <div class="d-lg-none d-md-none d-flex me-auto p-0 ms-2">
                 <div>
