@@ -270,6 +270,13 @@ body {
   align-self: flex-start;
 }
 
+.ant-dashboard-inline-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
 .ant-sleep-timer-card .ant-statistic {
   width: 100%;
 }

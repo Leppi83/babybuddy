@@ -1256,9 +1256,17 @@ msgstr "Menge"
 msgid "Start time"
 msgstr "Startzeit"
 
+#: dashboard/views.py:65
+msgid "Start date"
+msgstr "Startdatum"
+
 #: core/models.py:323 core/models.py:507 core/models.py:552 core/models.py:709
 msgid "End time"
 msgstr "Endzeit"
+
+#: dashboard/views.py:67
+msgid "End date"
+msgstr "Enddatum"
 
 #: core/models.py:326 core/models.py:512 core/models.py:556 core/models.py:712
 #: core/views.py:137 core/views.py:193 core/views.py:928 core/views.py:1404
@@ -2257,18 +2265,22 @@ msgid "Running"
 msgstr "Läuft"
 
 #: dashboard/views.py:96
+msgid "Manual entry"
+msgstr "Manueller Eintrag"
+
+#: dashboard/views.py:97
 msgid "Now"
 msgstr "Jetzt"
 
-#: dashboard/views.py:97
+#: dashboard/views.py:98
 msgid "Sleep timer active"
 msgstr "Schlaf-Timer aktiv"
 
-#: dashboard/views.py:98
+#: dashboard/views.py:99
 msgid "Sleep entry saved."
 msgstr "Schlafeintrag gespeichert."
 
-#: dashboard/views.py:99
+#: dashboard/views.py:100
 msgid "Sleep timer migration pending"
 msgstr "Migration des Schlaf-Timers ausstehend"
 
@@ -2283,6 +2295,21 @@ msgstr ""
 #, python-format
 msgid "Unable to create diaper entry: %(error)s"
 msgstr "Windeleintrag konnte nicht erstellt werden: %(error)s"
+
+#: dashboard/views.py:265
+msgid "Unable to create sleep entry: start and end date/time are required."
+msgstr ""
+"Schlafeintrag konnte nicht erstellt werden: Start- und Enddatum/-uhrzeit "
+"sind erforderlich."
+
+#: dashboard/views.py:272
+msgid "Unable to create sleep entry: type is required."
+msgstr "Schlafeintrag konnte nicht erstellt werden: Typ ist erforderlich."
+
+#: dashboard/views.py:279 dashboard/views.py:292
+#, python-format
+msgid "Unable to create sleep entry: %(error)s"
+msgstr "Schlafeintrag konnte nicht erstellt werden: %(error)s"
 
 #: dashboard/views.py:245
 msgid "Nappy change saved."
@@ -2586,12 +2613,6 @@ msgstr "WHO Gewichts-Perzentile für Mädchen in kg"
 
 #~ msgid "Sleep duration"
 #~ msgstr "Schlafdauer"
-
-#~ msgid "Start date"
-#~ msgstr "Startdatum"
-
-#~ msgid "End date"
-#~ msgstr "Enddatum"
 
 #~ msgid "Save sleep entry"
 #~ msgstr "Schlafeintrag speichern"

@@ -616,6 +616,12 @@ export function ChildDashboardPage({ bootstrap }) {
   const [sleepTimer, setSleepTimer] = useState(bootstrap.sleepTimer || {});
   const [submittingDiaper, setSubmittingDiaper] = useState(false);
   const [submittingSleepTimer, setSubmittingSleepTimer] = useState(false);
+  const [submittingSleepEntry, setSubmittingSleepEntry] = useState(false);
+  const [sleepEntryStartDate, setSleepEntryStartDate] = useState(dayjs());
+  const [sleepEntryStartTime, setSleepEntryStartTime] = useState(dayjs());
+  const [sleepEntryEndDate, setSleepEntryEndDate] = useState(dayjs());
+  const [sleepEntryEndTime, setSleepEntryEndTime] = useState(dayjs());
+  const [sleepEntryType, setSleepEntryType] = useState("sleep");
   const [currentTime, setCurrentTime] = useState(Date.now());
   const child = bootstrap.children.find(
     (item) => String(item.id) === String(selectedChildId),
@@ -765,7 +771,10 @@ export function ChildDashboardPage({ bootstrap }) {
             </Space>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.diaper.types": (
           <Space direction="vertical" size={6}>
@@ -778,11 +787,18 @@ export function ChildDashboardPage({ bootstrap }) {
         ),
         "card.feedings.last": lastFeeding ? (
           <Space direction="vertical" size={4}>
-            <Statistic title="Duration" value={durationMinutes(lastFeeding.duration)} suffix="min" />
+            <Statistic
+              title="Duration"
+              value={durationMinutes(lastFeeding.duration)}
+              suffix="min"
+            />
             <Text type="secondary">{formatDateTime(lastFeeding.start)}</Text>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.feedings.method": topMethod ? (
           <Space direction="vertical" size={4}>
@@ -790,7 +806,10 @@ export function ChildDashboardPage({ bootstrap }) {
             <Text type="secondary">{topMethod[1]} recent entries</Text>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.feedings.recent": (
           <Space direction="vertical" size={4}>
@@ -804,7 +823,9 @@ export function ChildDashboardPage({ bootstrap }) {
               title="Breastfeeding today"
               value={
                 feedingsToday.filter((item) =>
-                  String(item.method || "").toLowerCase().includes("breast"),
+                  String(item.method || "")
+                    .toLowerCase()
+                    .includes("breast"),
                 ).length
               }
             />
@@ -812,30 +833,47 @@ export function ChildDashboardPage({ bootstrap }) {
         ),
         "card.pumpings.last": lastPumping ? (
           <Space direction="vertical" size={4}>
-            <Statistic title="Last pumping" value={durationMinutes(lastPumping.duration)} suffix="min" />
+            <Statistic
+              title="Last pumping"
+              value={durationMinutes(lastPumping.duration)}
+              suffix="min"
+            />
             <Text type="secondary">{formatDateTime(lastPumping.start)}</Text>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.sleep.timers": (
           <Space direction="vertical" size={4}>
             <Statistic title="Timers" value={timerItems.length} />
             <Text type="secondary">
-              {timerItems[0] ? formatTime(timerItems[0].start) : bootstrap.strings.noData}
+              {timerItems[0]
+                ? formatTime(timerItems[0].start)
+                : bootstrap.strings.noData}
             </Text>
           </Space>
         ),
         "card.sleep.quick_timer": null,
         "card.sleep.last": lastSleep ? (
           <Space direction="vertical" size={4}>
-            <Statistic title={lastSleep.nap ? "Nap" : "Sleep"} value={durationMinutes(lastSleep.duration)} suffix="min" />
+            <Statistic
+              title={lastSleep.nap ? "Nap" : "Sleep"}
+              value={durationMinutes(lastSleep.duration)}
+              suffix="min"
+            />
             <Text type="secondary">
-              {formatDateTime(lastSleep.start)} - {formatDateTime(lastSleep.end)}
+              {formatDateTime(lastSleep.start)} -{" "}
+              {formatDateTime(lastSleep.end)}
             </Text>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.sleep.recommendations": recommendations ? (
           <Space direction="vertical" size={8}>
@@ -859,19 +897,31 @@ export function ChildDashboardPage({ bootstrap }) {
             </Card>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.sleep.recent": (
           <Space direction="vertical" size={4}>
-            <Statistic title="Sleep entries today" value={sleepItems.filter((item) => isToday(item.start)).length} />
-            <Text type="secondary">{sleepItems.length} recent sleep entries</Text>
+            <Statistic
+              title="Sleep entries today"
+              value={sleepItems.filter((item) => isToday(item.start)).length}
+            />
+            <Text type="secondary">
+              {sleepItems.length} recent sleep entries
+            </Text>
           </Space>
         ),
         "card.sleep.naps_day": (
           <Space direction="vertical" size={4}>
             <Statistic title="Naps today" value={napsToday.length} />
             <Text type="secondary">
-              {napsToday.reduce((acc, item) => acc + durationMinutes(item.duration), 0)} min
+              {napsToday.reduce(
+                (acc, item) => acc + durationMinutes(item.duration),
+                0,
+              )}{" "}
+              min
             </Text>
           </Space>
         ),
@@ -922,7 +972,10 @@ export function ChildDashboardPage({ bootstrap }) {
 
     setSubmittingSleepTimer(true);
     try {
-      const response = await api.current.postForm(bootstrap.urls.current, payload);
+      const response = await api.current.postForm(
+        bootstrap.urls.current,
+        payload,
+      );
       if (!response.ok) {
         ant.message.error(bootstrap.strings.saveFailed);
         return;
@@ -957,7 +1010,10 @@ export function ChildDashboardPage({ bootstrap }) {
 
     setSubmittingDiaper(true);
     try {
-      const response = await api.current.postForm(bootstrap.urls.current, payload);
+      const response = await api.current.postForm(
+        bootstrap.urls.current,
+        payload,
+      );
       if (response.ok) {
         ant.message.success(bootstrap.strings.saved);
         await loadDashboardData(selectedChildId);
@@ -969,12 +1025,42 @@ export function ChildDashboardPage({ bootstrap }) {
     }
   }
 
+  async function submitSleepEntry() {
+    const payload = new URLSearchParams();
+    payload.set("sleep_manual_entry_action", "create");
+    payload.set(
+      "sleep_entry_start_date",
+      sleepEntryStartDate.format("YYYY-MM-DD"),
+    );
+    payload.set("sleep_entry_start_time", sleepEntryStartTime.format("HH:mm"));
+    payload.set("sleep_entry_end_date", sleepEntryEndDate.format("YYYY-MM-DD"));
+    payload.set("sleep_entry_end_time", sleepEntryEndTime.format("HH:mm"));
+    payload.set("sleep_entry_type", sleepEntryType);
+
+    setSubmittingSleepEntry(true);
+    try {
+      const response = await api.current.postForm(
+        bootstrap.urls.current,
+        payload,
+      );
+      if (response.ok) {
+        ant.message.success(bootstrap.strings.sleepEntrySaved);
+        await loadDashboardData(selectedChildId);
+        return;
+      }
+      ant.message.error(bootstrap.strings.saveFailed);
+    } finally {
+      setSubmittingSleepEntry(false);
+    }
+  }
+
   function renderSleepTimerCard() {
     const timerElapsedSeconds = sleepTimer.running
       ? Math.max(
           Number(sleepTimer.elapsedSeconds) || 0,
           Math.floor(
-            (currentTime - new Date(sleepTimer.startIso || currentTime).getTime()) /
+            (currentTime -
+              new Date(sleepTimer.startIso || currentTime).getTime()) /
               1000,
           ),
         )
@@ -993,7 +1079,9 @@ export function ChildDashboardPage({ bootstrap }) {
         />
         <Space wrap>
           <Tag color={sleepTimer.running ? "gold" : "default"}>
-            {sleepTimer.running ? bootstrap.strings.running : bootstrap.strings.ready}
+            {sleepTimer.running
+              ? bootstrap.strings.running
+              : bootstrap.strings.ready}
           </Tag>
           {sleepTimer.running && (
             <Text type="secondary">{bootstrap.strings.sleepTimerActive}</Text>
@@ -1007,8 +1095,96 @@ export function ChildDashboardPage({ bootstrap }) {
             submitSleepTimerAction(sleepTimer.running ? "stop" : "start")
           }
         >
-          {sleepTimer.running ? bootstrap.strings.stop : bootstrap.strings.start}
+          {sleepTimer.running
+            ? bootstrap.strings.stop
+            : bootstrap.strings.start}
         </Button>
+        <Card
+          size="small"
+          title={bootstrap.strings.manualEntry}
+          style={{ width: "100%" }}
+        >
+          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            <Row gutter={8}>
+              <Col span={12}>
+                <label className="ant-dashboard-inline-label">
+                  {bootstrap.strings.startDate}
+                </label>
+                <input
+                  type="date"
+                  value={sleepEntryStartDate.format("YYYY-MM-DD")}
+                  onChange={(event) =>
+                    setSleepEntryStartDate(dayjs(event.target.value))
+                  }
+                  className="ant-native-input"
+                />
+              </Col>
+              <Col span={12}>
+                <label className="ant-dashboard-inline-label">
+                  {bootstrap.strings.startTime}
+                </label>
+                <input
+                  type="time"
+                  value={sleepEntryStartTime.format("HH:mm")}
+                  onChange={(event) =>
+                    setSleepEntryStartTime(
+                      dayjs(`2000-01-01T${event.target.value}`),
+                    )
+                  }
+                  className="ant-native-input"
+                />
+              </Col>
+            </Row>
+            <Row gutter={8}>
+              <Col span={12}>
+                <label className="ant-dashboard-inline-label">
+                  {bootstrap.strings.endDate}
+                </label>
+                <input
+                  type="date"
+                  value={sleepEntryEndDate.format("YYYY-MM-DD")}
+                  onChange={(event) =>
+                    setSleepEntryEndDate(dayjs(event.target.value))
+                  }
+                  className="ant-native-input"
+                />
+              </Col>
+              <Col span={12}>
+                <label className="ant-dashboard-inline-label">
+                  {bootstrap.strings.endTime}
+                </label>
+                <input
+                  type="time"
+                  value={sleepEntryEndTime.format("HH:mm")}
+                  onChange={(event) =>
+                    setSleepEntryEndTime(
+                      dayjs(`2000-01-01T${event.target.value}`),
+                    )
+                  }
+                  className="ant-native-input"
+                />
+              </Col>
+            </Row>
+            <Segmented
+              block
+              value={sleepEntryType}
+              options={[
+                { label: bootstrap.strings.sleep, value: "sleep" },
+                { label: bootstrap.strings.nap, value: "nap" },
+              ]}
+              onChange={setSleepEntryType}
+            />
+            <Button
+              type="primary"
+              size="large"
+              loading={submittingSleepEntry}
+              onClick={submitSleepEntry}
+              className="ant-diaper-save"
+            >
+              {bootstrap.strings.save}
+            </Button>
+          </Space>
+        </Card>
       </Space>
     );
   }
@@ -1016,7 +1192,9 @@ export function ChildDashboardPage({ bootstrap }) {
   function renderSleepTimelineCard() {
     return (
       <MiniTimeline
-        items={dashboardData.sleepItems.filter((item) => item.start && item.end)}
+        items={dashboardData.sleepItems.filter(
+          (item) => item.start && item.end,
+        )}
         locale={locale}
         currentTime={currentTime}
         strings={bootstrap.strings}
@@ -1150,8 +1328,14 @@ export function ChildDashboardPage({ bootstrap }) {
                               block
                               value={diaperConsistency}
                               options={[
-                                { label: bootstrap.strings.liquid, value: "liquid" },
-                                { label: bootstrap.strings.solid, value: "solid" },
+                                {
+                                  label: bootstrap.strings.liquid,
+                                  value: "liquid",
+                                },
+                                {
+                                  label: bootstrap.strings.solid,
+                                  value: "solid",
+                                },
                               ]}
                               onChange={setDiaperConsistency}
                             />
