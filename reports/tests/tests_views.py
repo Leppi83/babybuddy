@@ -36,9 +36,11 @@ class ViewsTestCase(TestCase):
 
         page = self.c.get(base_url)
         self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "ant-app-bootstrap")
 
         page = self.c.get("{}/bmi/bmi/".format(base_url))
         self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "ant-app-bootstrap")
 
         page = self.c.get("{}/changes/amounts/".format(base_url))
         self.assertEqual(page.status_code, 200)

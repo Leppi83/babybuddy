@@ -236,6 +236,25 @@ body {
   color: #64748b;
 }
 
+.ant-report-graph {
+  min-height: 320px;
+}
+
+.ant-report-graph > div {
+  max-width: 100%;
+}
+
+.ant-report-graph .js-plotly-plot,
+.ant-report-graph .plot-container,
+.ant-report-graph .svg-container {
+  max-width: 100%;
+}
+
+.ant-report-graph .modebar {
+  right: 12px !important;
+  top: 12px !important;
+}
+
 @media (max-width: 767px) {
   .ant-shell-content {
     padding: 14px;

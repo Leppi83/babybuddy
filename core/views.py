@@ -167,6 +167,43 @@ def _build_ant_child_detail_bootstrap(
     }
 
 
+def _build_ant_timeline_bootstrap(
+    request, *, title, kicker, date, date_previous, date_next, timeline_objects
+):
+    return {
+        "pageType": "timeline",
+        "activeNavKey": reverse("core:timeline"),
+        "currentPath": request.path,
+        "locale": getattr(request, "LANGUAGE_CODE", "en"),
+        "csrfToken": get_token(request),
+        "user": {"displayName": _display_name(request.user)},
+        "urls": {**_nav_urls(), "self": request.get_full_path()},
+        "strings": {
+            **_list_strings(),
+            "previous": _("Previous"),
+            "next": _("Next"),
+            "noEvents": _("No events"),
+            "edit": _("Edit"),
+            "duration": _("Duration"),
+            "sincePrevious": _("since previous"),
+        },
+        "timelinePage": {
+            "title": title,
+            "kicker": kicker,
+            "dateLabel": formats.date_format(date, "DATE_FORMAT"),
+            "previousUrl": "{}?date={}".format(
+                request.path, date_previous.strftime("%Y-%m-%d")
+            )
+            if date_previous
+            else "",
+            "nextUrl": "{}?date={}".format(request.path, date_next.strftime("%Y-%m-%d"))
+            if date_next
+            else "",
+            "items": [_timeline_entry_payload(entry) for entry in timeline_objects],
+        },
+    }
+
+
 def _build_ant_list_bootstrap(
     request, *, title, kicker, columns, rows, add_actions, pagination=None
 ):
@@ -1831,7 +1868,23 @@ class Timeline(LoginRequiredMixin, TemplateView):
         context = super(Timeline, self).get_context_data(**kwargs)
         date = self.request.GET.get("date", str(timezone.localdate()))
         _prepare_timeline_context_data(context, date)
+        if _details_ant_enabled():
+            context["ant_page_title"] = _("Timeline")
+            context["ant_bootstrap"] = _build_ant_timeline_bootstrap(
+                self.request,
+                title=str(_("Timeline")),
+                kicker=str(_("Activity Stream")),
+                date=context["date"],
+                date_previous=context.get("date_previous"),
+                date_next=context.get("date_next"),
+                timeline_objects=context.get("timeline_objects", []),
+            )
         return context
+
+    def get_template_names(self):
+        if _details_ant_enabled():
+            return ["babybuddy/ant_app.html"]
+        return [self.template_name]
 
 
 class TimerList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
