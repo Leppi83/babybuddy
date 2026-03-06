@@ -1,10 +1,12 @@
 {% extends 'cards/base.html' %}
 {% load i18n %}
-
 {% block card_classes %}diaper-quick-entry-card{% endblock %}
-{% block header %}{% trans "Quick Entry" %}{% endblock %}
-{% block title %}{% trans "New nappy change" %}{% endblock %}
-
+{% block header %}
+    {% trans "Quick Entry" %}
+{% endblock %}
+{% block title %}
+    {% trans "New nappy change" %}
+{% endblock %}
 {% block content %}
     <form method="post" class="diaper-quick-entry-form">
         {% csrf_token %}
@@ -35,15 +37,11 @@
                     <button type="submit"
                             class="btn btn-outline-light btn-sm"
                             name="diaper_entry_consistency"
-                            value="liquid">
-                        {% trans "Liquid" %}
-                    </button>
+                            value="liquid">{% trans "Liquid" %}</button>
                     <button type="submit"
                             class="btn btn-outline-light btn-sm"
                             name="diaper_entry_consistency"
-                            value="solid">
-                        {% trans "Solid" %}
-                    </button>
+                            value="solid">{% trans "Solid" %}</button>
                 </div>
             </div>
         </div>

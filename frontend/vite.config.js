@@ -11,12 +11,12 @@ export default defineConfig({
       entry: resolve(__dirname, "src/main.jsx"),
       name: "BabyBuddyAntApp",
       formats: ["iife"],
-      fileName: () => "app.js"
+      fileName: () => "app.js",
     },
     rollupOptions: {
       output: {
-        assetFileNames: "app.[ext]"
-      }
-    }
-  }
+        assetFileNames: "app.[ext]",
+      },
+    },
+  },
 });

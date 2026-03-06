@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
@@ -18,7 +17,7 @@ from core.models import Child, DiaperChange, Sleep
 
 
 def _ant_dashboard_enabled():
-    return settings.BABY_BUDDY.get("DASHBOARD_ANT_ENABLED", False)
+    return True
 
 
 def _child_picture_url(child):
@@ -211,7 +210,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         if not entry_date or not entry_time or consistency not in {"liquid", "solid"}:
             messages.error(
                 request,
-                _("Unable to create diaper entry: date, time, and consistency are required."),
+                _(
+                    "Unable to create diaper entry: date, time, and consistency are required."
+                ),
             )
             return
 
@@ -281,7 +282,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         context = super(ChildDashboard, self).get_context_data(**kwargs)
         selected_items = self.request.user.settings.dashboard_selected_items()
         ordered_sections = self.request.user.settings.dashboard_selected_section_order()
-        hidden_sections = self.request.user.settings.dashboard_selected_hidden_sections()
+        hidden_sections = (
+            self.request.user.settings.dashboard_selected_hidden_sections()
+        )
         allowed_items = {
             card
             for section_cards in self.SECTION_CARD_MAP.values()

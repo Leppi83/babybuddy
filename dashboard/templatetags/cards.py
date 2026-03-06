@@ -343,9 +343,7 @@ def card_sleep_quick_timer(context, child):
     if start_raw:
         try:
             start_dt = timezone.datetime.fromisoformat(start_raw)
-            elapsed_seconds = max(
-                0, int((timezone.now() - start_dt).total_seconds())
-            )
+            elapsed_seconds = max(0, int((timezone.now() - start_dt).total_seconds()))
             start_iso = start_dt.isoformat()
             running = True
         except (TypeError, ValueError):
@@ -501,7 +499,9 @@ def card_sleep_timeline_day(context, child):
     )
     day_end = day_start + timezone.timedelta(days=1)
 
-    instances = models.Sleep.objects.filter(child=child, start__lt=day_end, end__gt=day_start)
+    instances = models.Sleep.objects.filter(
+        child=child, start__lt=day_end, end__gt=day_start
+    )
     empty = not instances.exists()
 
     hour_data = [
@@ -536,7 +536,9 @@ def card_sleep_timeline_day(context, child):
                 else:
                     data["sleep_minutes"] += minutes
 
-                total_minutes = int((instance.end - instance.start).total_seconds() // 60)
+                total_minutes = int(
+                    (instance.end - instance.start).total_seconds() // 60
+                )
                 if total_minutes < 90:
                     total_label = f"{total_minutes}m"
                 else:
@@ -545,9 +547,7 @@ def card_sleep_timeline_day(context, child):
                         total_label = f"{int(hours_value)}h"
                     else:
                         total_label = f"{hours_value:.1f}h"
-                session_label = _(
-                    "%(kind)s %(start)s-%(end)s (%(duration)s)"
-                ) % {
+                session_label = _("%(kind)s %(start)s-%(end)s (%(duration)s)") % {
                     "kind": _("Nap") if instance.nap else _("Sleep"),
                     "start": timezone.localtime(instance.start).strftime("%H:%M"),
                     "end": timezone.localtime(instance.end).strftime("%H:%M"),

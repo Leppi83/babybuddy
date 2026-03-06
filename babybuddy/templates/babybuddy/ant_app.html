@@ -1,22 +1,13 @@
-{% extends 'babybuddy/base.html' %}
+{% extends 'babybuddy/ant_base.html' %}
 {% load static i18n %}
-
-{% block title %}
-    {{ ant_page_title }}
-{% endblock %}
-
-{% block nav %}{% endblock %}
-{% block breadcrumb_nav %}{% endblock %}
-
+{% block title %}{{ ant_page_title }}{% endblock %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}" />
 {% endblock %}
-
 {% block page %}
     {{ ant_bootstrap|json_script:"ant-app-bootstrap" }}
     <div id="ant-app-root"></div>
 {% endblock %}
-
 {% block javascript %}
     <script src="{% static "babybuddy/ant/app.js" %}"></script>
 {% endblock %}

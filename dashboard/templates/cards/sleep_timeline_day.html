@@ -1,8 +1,9 @@
 {% extends 'cards/base.html' %}
 {% load i18n %}
-
 {% block card_classes %}sleep-timeline-card-root{% endblock %}
-{% block header %}{% trans "Sleep Timeline (24h)" %}{% endblock %}
+{% block header %}
+    {% trans "Sleep Timeline (24h)" %}
+{% endblock %}
 {% block title %}
     <div class="timeline-day-nav">
         <a href="?sleep_chart_date={{ prev_date|date:'Y-m-d' }}"
@@ -43,7 +44,6 @@
         {% endif %}
     </div>
 {% endblock %}
-
 {% block content %}
     <div class="sleep-timeline-chart">
         <div class="timeline-grid">

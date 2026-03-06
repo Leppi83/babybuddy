@@ -68,7 +68,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="settings",
             name="dashboard_visible_items",
-            field=models.JSONField(blank=True, default=list, verbose_name="Dashboard visible items"),
+            field=models.JSONField(
+                blank=True, default=list, verbose_name="Dashboard visible items"
+            ),
         ),
         migrations.RunPython(
             migrate_section_visibility_to_dashboard_items,

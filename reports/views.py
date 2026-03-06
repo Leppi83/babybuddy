@@ -52,7 +52,9 @@ def _report_entries(child):
         {
             "key": "bmi",
             "title": str(_("Body Mass Index (BMI)")),
-            "href": reverse("reports:report-bmi-change-child", kwargs={"slug": child.slug}),
+            "href": reverse(
+                "reports:report-bmi-change-child", kwargs={"slug": child.slug}
+            ),
             "category": str(_("Measurements")),
         },
         {
@@ -75,7 +77,8 @@ def _report_entries(child):
             "key": "diaper-intervals",
             "title": str(_("Diaper Intervals")),
             "href": reverse(
-                "reports:report-diaperchange-intervals-child", kwargs={"slug": child.slug}
+                "reports:report-diaperchange-intervals-child",
+                kwargs={"slug": child.slug},
             ),
             "category": str(_("Diaper changes")),
         },
@@ -83,7 +86,8 @@ def _report_entries(child):
             "key": "diaper-lifetimes",
             "title": str(_("Diaper Lifetimes")),
             "href": reverse(
-                "reports:report-diaperchange-lifetimes-child", kwargs={"slug": child.slug}
+                "reports:report-diaperchange-lifetimes-child",
+                kwargs={"slug": child.slug},
             ),
             "category": str(_("Diaper changes")),
         },
@@ -131,7 +135,9 @@ def _report_entries(child):
         {
             "key": "height",
             "title": str(_("Height")),
-            "href": reverse("reports:report-height-change-child", kwargs={"slug": child.slug}),
+            "href": reverse(
+                "reports:report-height-change-child", kwargs={"slug": child.slug}
+            ),
             "category": str(_("Measurements")),
         },
         {
@@ -193,7 +199,9 @@ def _report_entries(child):
         {
             "key": "weight",
             "title": str(_("Weight")),
-            "href": reverse("reports:report-weight-change-child", kwargs={"slug": child.slug}),
+            "href": reverse(
+                "reports:report-weight-change-child", kwargs={"slug": child.slug}
+            ),
             "category": str(_("Measurements")),
         },
         {
@@ -229,7 +237,9 @@ def _build_ant_report_list_bootstrap(request, *, child):
             "childName": str(child),
             "entries": _report_entries(child),
             "actions": {
-                "dashboard": reverse("dashboard:dashboard-child", kwargs={"slug": child.slug}),
+                "dashboard": reverse(
+                    "dashboard:dashboard-child", kwargs={"slug": child.slug}
+                ),
                 "timeline": reverse("core:child", kwargs={"slug": child.slug}),
                 "reports": reverse("reports:report-list", kwargs={"slug": child.slug}),
             },
@@ -441,7 +451,9 @@ class DiaperChangeIntervalsChildReport(
         return context
 
 
-class FeedingAmountsChildReport(AntReportDetailMixin, PermissionRequiredMixin, DetailView):
+class FeedingAmountsChildReport(
+    AntReportDetailMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of daily feeding amounts over time.
     """
@@ -466,7 +478,9 @@ class FeedingAmountsChildReport(AntReportDetailMixin, PermissionRequiredMixin, D
         return context
 
 
-class FeedingDurationChildReport(AntReportDetailMixin, PermissionRequiredMixin, DetailView):
+class FeedingDurationChildReport(
+    AntReportDetailMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of feeding durations over time.
     """
@@ -513,7 +527,9 @@ class FeedingIntervalsChildReport(
         return context
 
 
-class FeedingPatternChildReport(AntReportDetailMixin, PermissionRequiredMixin, DetailView):
+class FeedingPatternChildReport(
+    AntReportDetailMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of feeding pattern.
     """
@@ -562,7 +578,9 @@ class HeadCircumferenceChangeChildReport(
         return context
 
 
-class HeightChangeChildReport(AntReportDetailMixin, PermissionRequiredMixin, DetailView):
+class HeightChangeChildReport(
+    AntReportDetailMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of height change over time.
     """
@@ -633,7 +651,9 @@ class PumpingAmounts(AntReportDetailMixin, PermissionRequiredMixin, DetailView):
         return context
 
 
-class SleepPatternChildReport(AntReportDetailMixin, PermissionRequiredMixin, DetailView):
+class SleepPatternChildReport(
+    AntReportDetailMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of sleep pattern comparing sleep to wake times by day.
     """
@@ -732,7 +752,9 @@ class TummyTimeDurationChildReport(
         return context
 
 
-class WeightChangeChildReport(AntReportDetailMixin, PermissionRequiredMixin, DetailView):
+class WeightChangeChildReport(
+    AntReportDetailMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of weight change over time.
     """

@@ -15,5 +15,5 @@ const bootstrap = JSON.parse(bootstrapNode.textContent);
 createRoot(mountNode).render(
   <React.StrictMode>
     <App bootstrap={bootstrap} />
-  </React.StrictMode>
+  </React.StrictMode>,
 );

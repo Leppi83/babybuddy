@@ -67,6 +67,7 @@ class ViewsTestCase(TestCase):
     def test_user_settings(self):
         page = self.c.get("/user/settings/")
         self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'id="ant-app-root"')
 
     def test_user_settings_autosave_dashboard_layout(self):
         page = self.c.post(
@@ -88,10 +89,8 @@ class ViewsTestCase(TestCase):
 
     def test_add_device_page(self):
         page = self.c.get("/user/add-device/")
-        self.assertRegex(
-            page.content.decode(),
-            r""".*<div [^>]* data-qr-code-content="[^"]+"[^>]*>.*""",
-        )
+        self.assertContains(page, 'id="ant-app-root"')
+        self.assertContains(page, "Login QR code")
 
     def test_user_views(self):
         # Staff setting is required to access user management.
@@ -128,6 +127,7 @@ class ViewsTestCase(TestCase):
     def test_welcome(self):
         page = self.c.get("/welcome/")
         self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'id="ant-app-root"')
 
     def test_logout_get_fails(self):
         page = self.c.get("/logout/")
@@ -144,6 +144,7 @@ class ViewsTestCase(TestCase):
 
         page = client.get("/reset/")
         self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'id="ant-app-root"')
 
         page = client.post("/reset/", data={"email": self.user.email}, follow=True)
         self.assertEqual(page.status_code, 200)

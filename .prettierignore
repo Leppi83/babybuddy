@@ -3,3 +3,6 @@ vendor
 *.html
 *.css
 *.scss
+AGENTS.md
+SPEC.md
+frontend/README.md

@@ -147,7 +147,9 @@ def _resolve_target_bedtime_time(child, now):
         preferred_minutes = _time_to_minutes(child.usual_bedtime)
         if history_minutes is None:
             return child.usual_bedtime, "child_setting"
-        blended_minutes = int(round((preferred_minutes * 0.70) + (history_minutes * 0.30)))
+        blended_minutes = int(
+            round((preferred_minutes * 0.70) + (history_minutes * 0.30))
+        )
         blended_minutes %= 24 * 60
         blended = (datetime.datetime.min + _minutes_to_delta(blended_minutes)).time()
         return blended, "child_setting_blend"

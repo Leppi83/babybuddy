@@ -142,21 +142,27 @@ def _build_ant_child_detail_bootstrap(
             "name": str(child),
             "photoUrl": _child_image_url(request, child),
             "birthDateTime": str(child.birth_datetime()),
-            "birthLabel": formats.date_format(child.birth_datetime(), "DATETIME_FORMAT")
-            if hasattr(child.birth_datetime(), "hour")
-            else str(child.birth_datetime()),
+            "birthLabel": (
+                formats.date_format(child.birth_datetime(), "DATETIME_FORMAT")
+                if hasattr(child.birth_datetime(), "hour")
+                else str(child.birth_datetime())
+            ),
             "ageLabel": child_age_string(child.birth_datetime()),
             "dateLabel": formats.date_format(date, "DATE_FORMAT"),
-            "previousUrl": "{}?date={}".format(
-                request.path, date_previous.strftime("%Y-%m-%d")
-            )
-            if date_previous
-            else "",
-            "nextUrl": "{}?date={}".format(request.path, date_next.strftime("%Y-%m-%d"))
-            if date_next
-            else "",
+            "previousUrl": (
+                "{}?date={}".format(request.path, date_previous.strftime("%Y-%m-%d"))
+                if date_previous
+                else ""
+            ),
+            "nextUrl": (
+                "{}?date={}".format(request.path, date_next.strftime("%Y-%m-%d"))
+                if date_next
+                else ""
+            ),
             "actions": {
-                "dashboard": reverse("dashboard:dashboard-child", kwargs={"slug": child.slug}),
+                "dashboard": reverse(
+                    "dashboard:dashboard-child", kwargs={"slug": child.slug}
+                ),
                 "timeline": reverse("core:child", kwargs={"slug": child.slug}),
                 "reports": reverse("reports:report-list", kwargs={"slug": child.slug}),
                 "edit": reverse("core:child-update", kwargs={"slug": child.slug}),
@@ -191,14 +197,16 @@ def _build_ant_timeline_bootstrap(
             "title": title,
             "kicker": kicker,
             "dateLabel": formats.date_format(date, "DATE_FORMAT"),
-            "previousUrl": "{}?date={}".format(
-                request.path, date_previous.strftime("%Y-%m-%d")
-            )
-            if date_previous
-            else "",
-            "nextUrl": "{}?date={}".format(request.path, date_next.strftime("%Y-%m-%d"))
-            if date_next
-            else "",
+            "previousUrl": (
+                "{}?date={}".format(request.path, date_previous.strftime("%Y-%m-%d"))
+                if date_previous
+                else ""
+            ),
+            "nextUrl": (
+                "{}?date={}".format(request.path, date_next.strftime("%Y-%m-%d"))
+                if date_next
+                else ""
+            ),
             "items": [_timeline_entry_payload(entry) for entry in timeline_objects],
         },
     }
@@ -263,9 +271,11 @@ def _serialize_bound_field(bound_field):
 
     if widget.__class__.__name__ == "TagsEditor":
         input_type = "tags"
-        value = ", ".join(tag.name for tag in bound_field.form.instance.tags.all()) if getattr(
-            bound_field.form.instance, "pk", None
-        ) else (value or "")
+        value = (
+            ", ".join(tag.name for tag in bound_field.form.instance.tags.all())
+            if getattr(bound_field.form.instance, "pk", None)
+            else (value or "")
+        )
     elif isinstance(widget, django_forms.Textarea):
         input_type = "textarea"
     elif isinstance(field, django_forms.BooleanField):
@@ -304,7 +314,9 @@ def _serialize_form_fieldsets(form):
 
     serialized = []
     for index, fieldset in enumerate(fieldsets):
-        fields = [_serialize_bound_field(bound_field) for bound_field in fieldset["fields"]]
+        fields = [
+            _serialize_bound_field(bound_field) for bound_field in fieldset["fields"]
+        ]
         if not fields:
             continue
         serialized.append(
@@ -343,9 +355,11 @@ def _build_ant_form_bootstrap(
             "submitLabel": submit_label,
             "cancelLabel": str(_("Cancel")),
             "method": "post",
-            "enctype": "multipart/form-data"
-            if form.is_multipart()
-            else "application/x-www-form-urlencoded",
+            "enctype": (
+                "multipart/form-data"
+                if form.is_multipart()
+                else "application/x-www-form-urlencoded"
+            ),
             "fieldsets": _serialize_form_fieldsets(form),
             "dangerText": danger_text,
         },
@@ -495,19 +509,27 @@ class BMIList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterVi
                     "value": str(item.bmi),
                     "actions": _build_actions(
                         [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse("core:bmi-update", kwargs={"pk": item.id}),
-                            }
-                            if self.request.user.has_perm("core.change_bmi")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse("core:bmi-delete", kwargs={"pk": item.id}),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_bmi")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:bmi-update", kwargs={"pk": item.id}
+                                    ),
+                                }
+                                if self.request.user.has_perm("core.change_bmi")
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:bmi-delete", kwargs={"pk": item.id}
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm("core.delete_bmi")
+                                else None
+                            ),
                         ]
                     ),
                 }
@@ -525,11 +547,11 @@ class BMIList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterVi
                 kicker=str(_("Measurements")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
-                    {"label": str(_("Add BMI")), "href": reverse("core:bmi-add")}
-                ]
-                if self.request.user.has_perm("core.add_bmi")
-                else [],
+                add_actions=(
+                    [{"label": str(_("Add BMI")), "href": reverse("core:bmi-add")}]
+                    if self.request.user.has_perm("core.add_bmi")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context
@@ -598,51 +620,67 @@ class ChildList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
                             "first_name": {
                                 "type": "link",
                                 "label": child.first_name,
-                                "href": reverse("core:child", kwargs={"slug": child.slug}),
+                                "href": reverse(
+                                    "core:child", kwargs={"slug": child.slug}
+                                ),
                             },
                             "last_name": child.last_name,
                             "birth_date": str(child.birth_datetime),
                             "actions": {
                                 "type": "actions",
                                 "items": [
-                                    {
-                                        "label": str(_("Edit")),
-                                        "href": reverse(
-                                            "core:child-update", kwargs={"slug": child.slug}
-                                        ),
-                                    }
-                                    if self.request.user.has_perm("core.change_child")
-                                    else None,
-                                    {
-                                        "label": str(_("Delete")),
-                                        "href": reverse(
-                                            "core:child-delete", kwargs={"slug": child.slug}
-                                        ),
-                                        "danger": True,
-                                    }
-                                    if self.request.user.has_perm("core.delete_child")
-                                    else None,
+                                    (
+                                        {
+                                            "label": str(_("Edit")),
+                                            "href": reverse(
+                                                "core:child-update",
+                                                kwargs={"slug": child.slug},
+                                            ),
+                                        }
+                                        if self.request.user.has_perm(
+                                            "core.change_child"
+                                        )
+                                        else None
+                                    ),
+                                    (
+                                        {
+                                            "label": str(_("Delete")),
+                                            "href": reverse(
+                                                "core:child-delete",
+                                                kwargs={"slug": child.slug},
+                                            ),
+                                            "danger": True,
+                                        }
+                                        if self.request.user.has_perm(
+                                            "core.delete_child"
+                                        )
+                                        else None
+                                    ),
                                 ],
                             },
                         },
                     }
                     for child in context["object_list"]
                 ],
-                add_actions=[
+                add_actions=(
+                    [
+                        {
+                            "label": str(_("Add Child")),
+                            "href": reverse("core:child-add"),
+                        }
+                    ]
+                    if self.request.user.has_perm("core.add_child")
+                    else []
+                ),
+                pagination=(
                     {
-                        "label": str(_("Add Child")),
-                        "href": reverse("core:child-add"),
+                        "page": page_obj.number,
+                        "pageSize": page_obj.paginator.per_page,
+                        "total": page_obj.paginator.count,
                     }
-                ]
-                if self.request.user.has_perm("core.add_child")
-                else [],
-                pagination={
-                    "page": page_obj.number,
-                    "pageSize": page_obj.paginator.per_page,
-                    "total": page_obj.paginator.count,
-                }
-                if page_obj
-                else None,
+                    if page_obj
+                    else None
+                ),
             )
         return context
 
@@ -712,9 +750,7 @@ class ChildDelete(AntDeleteMixin, CoreUpdateView):
         return reverse("core:child", kwargs={"slug": self.object.slug})
 
     def get_ant_danger_text(self):
-        return str(
-            _("To confirm this action, type the full name of the child below.")
-        )
+        return str(_("To confirm this action, type the full name of the child below."))
 
 
 class DiaperChangeList(
@@ -768,23 +804,33 @@ class DiaperChangeList(
                     "actions": {
                         "type": "actions",
                         "items": [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse(
-                                    "core:diaperchange-update", kwargs={"pk": change.id}
-                                ),
-                            }
-                            if self.request.user.has_perm("core.change_diaperchange")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse(
-                                    "core:diaperchange-delete", kwargs={"pk": change.id}
-                                ),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_diaperchange")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:diaperchange-update",
+                                        kwargs={"pk": change.id},
+                                    ),
+                                }
+                                if self.request.user.has_perm(
+                                    "core.change_diaperchange"
+                                )
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:diaperchange-delete",
+                                        kwargs={"pk": change.id},
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm(
+                                    "core.delete_diaperchange"
+                                )
+                                else None
+                            ),
                         ],
                     },
                 }
@@ -804,21 +850,25 @@ class DiaperChangeList(
                 kicker=str(_("Activity")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
+                add_actions=(
+                    [
+                        {
+                            "label": str(_("Add Diaper Change")),
+                            "href": reverse("core:diaperchange-add"),
+                        }
+                    ]
+                    if self.request.user.has_perm("core.add_diaperchange")
+                    else []
+                ),
+                pagination=(
                     {
-                        "label": str(_("Add Diaper Change")),
-                        "href": reverse("core:diaperchange-add"),
+                        "page": page_obj.number,
+                        "pageSize": page_obj.paginator.per_page,
+                        "total": page_obj.paginator.count,
                     }
-                ]
-                if self.request.user.has_perm("core.add_diaperchange")
-                else [],
-                pagination={
-                    "page": page_obj.number,
-                    "pageSize": page_obj.paginator.per_page,
-                    "total": page_obj.paginator.count,
-                }
-                if page_obj
-                else None,
+                    if page_obj
+                    else None
+                ),
             )
             context["ant_page_title"] = _("Diaper Changes")
         return context
@@ -890,23 +940,27 @@ class FeedingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilt
                     "actions": {
                         "type": "actions",
                         "items": [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse(
-                                    "core:feeding-update", kwargs={"pk": feeding.id}
-                                ),
-                            }
-                            if self.request.user.has_perm("core.change_feeding")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse(
-                                    "core:feeding-delete", kwargs={"pk": feeding.id}
-                                ),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_feeding")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:feeding-update", kwargs={"pk": feeding.id}
+                                    ),
+                                }
+                                if self.request.user.has_perm("core.change_feeding")
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:feeding-delete", kwargs={"pk": feeding.id}
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm("core.delete_feeding")
+                                else None
+                            ),
                         ],
                     },
                 }
@@ -942,13 +996,15 @@ class FeedingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilt
                 columns=columns,
                 rows=rows,
                 add_actions=add_actions,
-                pagination={
-                    "page": page_obj.number,
-                    "pageSize": page_obj.paginator.per_page,
-                    "total": page_obj.paginator.count,
-                }
-                if page_obj
-                else None,
+                pagination=(
+                    {
+                        "page": page_obj.number,
+                        "pageSize": page_obj.paginator.per_page,
+                        "total": page_obj.paginator.count,
+                    }
+                    if page_obj
+                    else None
+                ),
             )
             context["ant_page_title"] = _("Feedings")
         return context
@@ -1021,23 +1077,33 @@ class HeadCircumferenceList(
                     "value": str(item.head_circumference),
                     "actions": _build_actions(
                         [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse(
-                                    "core:head-circumference-update", kwargs={"pk": item.id}
-                                ),
-                            }
-                            if self.request.user.has_perm("core.change_head_circumference")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse(
-                                    "core:head-circumference-delete", kwargs={"pk": item.id}
-                                ),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_head_circumference")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:head-circumference-update",
+                                        kwargs={"pk": item.id},
+                                    ),
+                                }
+                                if self.request.user.has_perm(
+                                    "core.change_head_circumference"
+                                )
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:head-circumference-delete",
+                                        kwargs={"pk": item.id},
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm(
+                                    "core.delete_head_circumference"
+                                )
+                                else None
+                            ),
                         ]
                     ),
                 }
@@ -1055,14 +1121,16 @@ class HeadCircumferenceList(
                 kicker=str(_("Measurements")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
-                    {
-                        "label": str(_("Add Head Circumference")),
-                        "href": reverse("core:head-circumference-add"),
-                    }
-                ]
-                if self.request.user.has_perm("core.add_head_circumference")
-                else [],
+                add_actions=(
+                    [
+                        {
+                            "label": str(_("Add Head Circumference")),
+                            "href": reverse("core:head-circumference-add"),
+                        }
+                    ]
+                    if self.request.user.has_perm("core.add_head_circumference")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context
@@ -1127,19 +1195,27 @@ class HeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilte
                     "value": str(item.height),
                     "actions": _build_actions(
                         [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse("core:height-update", kwargs={"pk": item.id}),
-                            }
-                            if self.request.user.has_perm("core.change_height")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse("core:height-delete", kwargs={"pk": item.id}),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_height")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:height-update", kwargs={"pk": item.id}
+                                    ),
+                                }
+                                if self.request.user.has_perm("core.change_height")
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:height-delete", kwargs={"pk": item.id}
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm("core.delete_height")
+                                else None
+                            ),
                         ]
                     ),
                 }
@@ -1157,11 +1233,16 @@ class HeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilte
                 kicker=str(_("Measurements")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
-                    {"label": str(_("Add Height")), "href": reverse("core:height-add")}
-                ]
-                if self.request.user.has_perm("core.add_height")
-                else [],
+                add_actions=(
+                    [
+                        {
+                            "label": str(_("Add Height")),
+                            "href": reverse("core:height-add"),
+                        }
+                    ]
+                    if self.request.user.has_perm("core.add_height")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context
@@ -1223,19 +1304,27 @@ class NoteList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterV
                     "note": str(item.note),
                     "actions": _build_actions(
                         [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse("core:note-update", kwargs={"pk": item.id}),
-                            }
-                            if self.request.user.has_perm("core.change_note")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse("core:note-delete", kwargs={"pk": item.id}),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_note")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:note-update", kwargs={"pk": item.id}
+                                    ),
+                                }
+                                if self.request.user.has_perm("core.change_note")
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:note-delete", kwargs={"pk": item.id}
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm("core.delete_note")
+                                else None
+                            ),
                         ]
                     ),
                 }
@@ -1253,11 +1342,11 @@ class NoteList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterV
                 kicker=str(_("Activity")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
-                    {"label": str(_("Add Note")), "href": reverse("core:note-add")}
-                ]
-                if self.request.user.has_perm("core.add_note")
-                else [],
+                add_actions=(
+                    [{"label": str(_("Add Note")), "href": reverse("core:note-add")}]
+                    if self.request.user.has_perm("core.add_note")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context
@@ -1325,19 +1414,27 @@ class PumpingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilt
                     "duration": str(item.duration or ""),
                     "actions": _build_actions(
                         [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse("core:pumping-update", kwargs={"pk": item.id}),
-                            }
-                            if self.request.user.has_perm("core.change_pumping")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse("core:pumping-delete", kwargs={"pk": item.id}),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_pumping")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:pumping-update", kwargs={"pk": item.id}
+                                    ),
+                                }
+                                if self.request.user.has_perm("core.change_pumping")
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:pumping-delete", kwargs={"pk": item.id}
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm("core.delete_pumping")
+                                else None
+                            ),
                         ]
                     ),
                 }
@@ -1355,11 +1452,16 @@ class PumpingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilt
                 kicker=str(_("Activity")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
-                    {"label": str(_("Add Pumping")), "href": reverse("core:pumping-add")}
-                ]
-                if self.request.user.has_perm("core.add_pumping")
-                else [],
+                add_actions=(
+                    [
+                        {
+                            "label": str(_("Add Pumping")),
+                            "href": reverse("core:pumping-add"),
+                        }
+                    ]
+                    if self.request.user.has_perm("core.add_pumping")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context
@@ -1431,19 +1533,27 @@ class SleepList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
                     "actions": {
                         "type": "actions",
                         "items": [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse("core:sleep-update", kwargs={"pk": sleep.id}),
-                            }
-                            if self.request.user.has_perm("core.change_sleep")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse("core:sleep-delete", kwargs={"pk": sleep.id}),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_sleep")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:sleep-update", kwargs={"pk": sleep.id}
+                                    ),
+                                }
+                                if self.request.user.has_perm("core.change_sleep")
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:sleep-delete", kwargs={"pk": sleep.id}
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm("core.delete_sleep")
+                                else None
+                            ),
                         ],
                     },
                 }
@@ -1463,18 +1573,20 @@ class SleepList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
                 kicker=str(_("Activity")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
-                    {"label": str(_("Add Sleep")), "href": reverse("core:sleep-add")}
-                ]
-                if self.request.user.has_perm("core.add_sleep")
-                else [],
-                pagination={
-                    "page": page_obj.number,
-                    "pageSize": page_obj.paginator.per_page,
-                    "total": page_obj.paginator.count,
-                }
-                if page_obj
-                else None,
+                add_actions=(
+                    [{"label": str(_("Add Sleep")), "href": reverse("core:sleep-add")}]
+                    if self.request.user.has_perm("core.add_sleep")
+                    else []
+                ),
+                pagination=(
+                    {
+                        "page": page_obj.number,
+                        "pageSize": page_obj.paginator.per_page,
+                        "total": page_obj.paginator.count,
+                    }
+                    if page_obj
+                    else None
+                ),
             )
             context["ant_page_title"] = _("Sleep")
         return context
@@ -1538,24 +1650,36 @@ class TagAdminList(
                             "name": {
                                 "type": "link",
                                 "label": str(item.name),
-                                "href": reverse("core:tag-detail", kwargs={"slug": item.slug}),
+                                "href": reverse(
+                                    "core:tag-detail", kwargs={"slug": item.slug}
+                                ),
                             },
                             "usage": str(getattr(item, "core_tagged_items__count", 0)),
                             "actions": _build_actions(
                                 [
-                                    {
-                                        "label": str(_("Edit")),
-                                        "href": reverse("core:tag-update", kwargs={"slug": item.slug}),
-                                    }
-                                    if self.request.user.has_perm("core.change_tag")
-                                    else None,
-                                    {
-                                        "label": str(_("Delete")),
-                                        "href": reverse("core:tag-delete", kwargs={"slug": item.slug}),
-                                        "danger": True,
-                                    }
-                                    if self.request.user.has_perm("core.delete_tag")
-                                    else None,
+                                    (
+                                        {
+                                            "label": str(_("Edit")),
+                                            "href": reverse(
+                                                "core:tag-update",
+                                                kwargs={"slug": item.slug},
+                                            ),
+                                        }
+                                        if self.request.user.has_perm("core.change_tag")
+                                        else None
+                                    ),
+                                    (
+                                        {
+                                            "label": str(_("Delete")),
+                                            "href": reverse(
+                                                "core:tag-delete",
+                                                kwargs={"slug": item.slug},
+                                            ),
+                                            "danger": True,
+                                        }
+                                        if self.request.user.has_perm("core.delete_tag")
+                                        else None
+                                    ),
                                 ]
                             ),
                         },
@@ -1572,11 +1696,11 @@ class TagAdminList(
                     {"key": "actions", "title": str(_("Actions"))},
                 ],
                 rows=rows,
-                add_actions=[
-                    {"label": str(_("Add a Tag")), "href": reverse("core:tag-add")}
-                ]
-                if self.request.user.has_perm("core.add_tag")
-                else [],
+                add_actions=(
+                    [{"label": str(_("Add a Tag")), "href": reverse("core:tag-add")}]
+                    if self.request.user.has_perm("core.add_tag")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context
@@ -1782,19 +1906,29 @@ class TemperatureList(
                     "temperature": str(item.temperature),
                     "actions": _build_actions(
                         [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse("core:temperature-update", kwargs={"pk": item.id}),
-                            }
-                            if self.request.user.has_perm("core.change_temperature")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse("core:temperature-delete", kwargs={"pk": item.id}),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_temperature")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:temperature-update",
+                                        kwargs={"pk": item.id},
+                                    ),
+                                }
+                                if self.request.user.has_perm("core.change_temperature")
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:temperature-delete",
+                                        kwargs={"pk": item.id},
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm("core.delete_temperature")
+                                else None
+                            ),
                         ]
                     ),
                 }
@@ -1812,14 +1946,16 @@ class TemperatureList(
                 kicker=str(_("Measurements")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
-                    {
-                        "label": str(_("Add Temperature")),
-                        "href": reverse("core:temperature-add"),
-                    }
-                ]
-                if self.request.user.has_perm("core.add_temperature")
-                else [],
+                add_actions=(
+                    [
+                        {
+                            "label": str(_("Add Temperature")),
+                            "href": reverse("core:temperature-add"),
+                        }
+                    ]
+                    if self.request.user.has_perm("core.add_temperature")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context
@@ -1910,26 +2046,42 @@ class TimerList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
                             "name": {
                                 "type": "link",
                                 "label": str(item),
-                                "href": reverse("core:timer-detail", kwargs={"pk": item.id}),
+                                "href": reverse(
+                                    "core:timer-detail", kwargs={"pk": item.id}
+                                ),
                             },
                             "child": str(item.child or ""),
                             "start": str(item.start),
                             "user": str(item.user_username),
                             "actions": _build_actions(
                                 [
-                                    {
-                                        "label": str(_("Edit")),
-                                        "href": reverse("core:timer-update", kwargs={"pk": item.id}),
-                                    }
-                                    if self.request.user.has_perm("core.change_timer")
-                                    else None,
-                                    {
-                                        "label": str(_("Delete")),
-                                        "href": reverse("core:timer-delete", kwargs={"pk": item.id}),
-                                        "danger": True,
-                                    }
-                                    if self.request.user.has_perm("core.delete_timer")
-                                    else None,
+                                    (
+                                        {
+                                            "label": str(_("Edit")),
+                                            "href": reverse(
+                                                "core:timer-update",
+                                                kwargs={"pk": item.id},
+                                            ),
+                                        }
+                                        if self.request.user.has_perm(
+                                            "core.change_timer"
+                                        )
+                                        else None
+                                    ),
+                                    (
+                                        {
+                                            "label": str(_("Delete")),
+                                            "href": reverse(
+                                                "core:timer-delete",
+                                                kwargs={"pk": item.id},
+                                            ),
+                                            "danger": True,
+                                        }
+                                        if self.request.user.has_perm(
+                                            "core.delete_timer"
+                                        )
+                                        else None
+                                    ),
                                 ]
                             ),
                         },
@@ -1948,11 +2100,16 @@ class TimerList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
                     {"key": "actions", "title": str(_("Actions"))},
                 ],
                 rows=rows,
-                add_actions=[
-                    {"label": str(_("Start Timer")), "href": reverse("core:timer-add")}
-                ]
-                if self.request.user.has_perm("core.add_timer")
-                else [],
+                add_actions=(
+                    [
+                        {
+                            "label": str(_("Start Timer")),
+                            "href": reverse("core:timer-add"),
+                        }
+                    ]
+                    if self.request.user.has_perm("core.add_timer")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context
@@ -2019,7 +2176,9 @@ class TimerDetail(PermissionRequiredMixin, DetailView):
                     "actions": {
                         "edit": reverse("core:timer-update", kwargs={"pk": timer.id}),
                         "delete": reverse("core:timer-delete", kwargs={"pk": timer.id}),
-                        "restart": reverse("core:timer-restart", kwargs={"pk": timer.id}),
+                        "restart": reverse(
+                            "core:timer-restart", kwargs={"pk": timer.id}
+                        ),
                     },
                 },
             }
@@ -2144,19 +2303,27 @@ class TummyTimeList(
                     "duration": str(item.duration or ""),
                     "actions": _build_actions(
                         [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse("core:tummytime-update", kwargs={"pk": item.id}),
-                            }
-                            if self.request.user.has_perm("core.change_tummytime")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse("core:tummytime-delete", kwargs={"pk": item.id}),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_tummytime")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:tummytime-update", kwargs={"pk": item.id}
+                                    ),
+                                }
+                                if self.request.user.has_perm("core.change_tummytime")
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:tummytime-delete", kwargs={"pk": item.id}
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm("core.delete_tummytime")
+                                else None
+                            ),
                         ]
                     ),
                 }
@@ -2174,14 +2341,16 @@ class TummyTimeList(
                 kicker=str(_("Activity")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
-                    {
-                        "label": str(_("Add Tummy Time")),
-                        "href": reverse("core:tummytime-add"),
-                    }
-                ]
-                if self.request.user.has_perm("core.add_tummytime")
-                else [],
+                add_actions=(
+                    [
+                        {
+                            "label": str(_("Add Tummy Time")),
+                            "href": reverse("core:tummytime-add"),
+                        }
+                    ]
+                    if self.request.user.has_perm("core.add_tummytime")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context
@@ -2243,19 +2412,27 @@ class WeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilte
                     "value": str(item.weight),
                     "actions": _build_actions(
                         [
-                            {
-                                "label": str(_("Edit")),
-                                "href": reverse("core:weight-update", kwargs={"pk": item.id}),
-                            }
-                            if self.request.user.has_perm("core.change_weight")
-                            else None,
-                            {
-                                "label": str(_("Delete")),
-                                "href": reverse("core:weight-delete", kwargs={"pk": item.id}),
-                                "danger": True,
-                            }
-                            if self.request.user.has_perm("core.delete_weight")
-                            else None,
+                            (
+                                {
+                                    "label": str(_("Edit")),
+                                    "href": reverse(
+                                        "core:weight-update", kwargs={"pk": item.id}
+                                    ),
+                                }
+                                if self.request.user.has_perm("core.change_weight")
+                                else None
+                            ),
+                            (
+                                {
+                                    "label": str(_("Delete")),
+                                    "href": reverse(
+                                        "core:weight-delete", kwargs={"pk": item.id}
+                                    ),
+                                    "danger": True,
+                                }
+                                if self.request.user.has_perm("core.delete_weight")
+                                else None
+                            ),
                         ]
                     ),
                 }
@@ -2273,11 +2450,16 @@ class WeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilte
                 kicker=str(_("Measurements")),
                 columns=columns,
                 rows=rows,
-                add_actions=[
-                    {"label": str(_("Add Weight")), "href": reverse("core:weight-add")}
-                ]
-                if self.request.user.has_perm("core.add_weight")
-                else [],
+                add_actions=(
+                    [
+                        {
+                            "label": str(_("Add Weight")),
+                            "href": reverse("core:weight-add"),
+                        }
+                    ]
+                    if self.request.user.has_perm("core.add_weight")
+                    else []
+                ),
                 pagination=_page_info(context),
             )
         return context

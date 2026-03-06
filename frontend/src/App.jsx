@@ -33,7 +33,7 @@ import {
   TimePicker,
   Timeline as AntTimeline,
   theme,
-  Typography
+  Typography,
 } from "antd";
 import {
   DashboardOutlined,
@@ -47,7 +47,7 @@ import {
   CalendarOutlined,
   SettingOutlined,
   SwapOutlined,
-  UserOutlined
+  UserOutlined,
 } from "@ant-design/icons";
 import deDE from "antd/locale/de_DE";
 import enUS from "antd/locale/en_US";
@@ -63,7 +63,7 @@ const SECTION_META = {
   feedings: { color: "#69b1ff" },
   pumpings: { color: "#b37feb" },
   sleep: { color: "#ffd666" },
-  tummytime: { color: "#5cdb8b" }
+  tummytime: { color: "#5cdb8b" },
 };
 
 const DASHBOARD_CARD_TITLES = {
@@ -83,7 +83,7 @@ const DASHBOARD_CARD_TITLES = {
   "card.sleep.naps_day": "Today's Naps",
   "card.sleep.statistics": "Statistics",
   "card.sleep.timeline_day": "Sleep Timeline (24h)",
-  "card.tummytime.day": "Today's Tummy Time"
+  "card.tummytime.day": "Today's Tummy Time",
 };
 
 function asItems(payload) {
@@ -108,8 +108,8 @@ function createApiClient(csrfToken) {
         "Content-Type": "application/json",
         "X-CSRFToken": csrfToken,
         "X-Requested-With": "XMLHttpRequest",
-        ...(options.headers || {})
-      }
+        ...(options.headers || {}),
+      },
     });
 
     if (!response.ok) {
@@ -132,10 +132,10 @@ function createApiClient(csrfToken) {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
           "X-CSRFToken": csrfToken,
-          "X-Requested-With": "XMLHttpRequest"
+          "X-Requested-With": "XMLHttpRequest",
         },
-        body: formData.toString()
-      })
+        body: formData.toString(),
+      }),
   };
 }
 
@@ -162,7 +162,7 @@ function loadScriptOnce(src) {
         script.dataset.loaded = "true";
         resolve();
       },
-      { once: true }
+      { once: true },
     );
     script.addEventListener("error", reject, { once: true });
     document.body.appendChild(script);
@@ -170,7 +170,9 @@ function loadScriptOnce(src) {
 }
 
 function extractScriptContent(scriptMarkup) {
-  const match = String(scriptMarkup || "").match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+  const match = String(scriptMarkup || "").match(
+    /<script[^>]*>([\s\S]*?)<\/script>/i,
+  );
   return match ? match[1] : String(scriptMarkup || "");
 }
 
@@ -179,27 +181,28 @@ function AppShell({ bootstrap, children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const isDesktop = Boolean(screens.md);
+  const isAuthLayout = bootstrap.layout === "auth";
   const navItems = [
     {
       key: bootstrap.urls.dashboard,
       icon: <DashboardOutlined />,
-      label: bootstrap.strings.dashboard
+      label: bootstrap.strings.dashboard,
     },
     {
       key: bootstrap.urls.timeline,
       icon: <SwapOutlined />,
-      label: bootstrap.strings.timeline
+      label: bootstrap.strings.timeline,
     },
     {
       key: bootstrap.urls.settings,
       icon: <SettingOutlined />,
-      label: bootstrap.strings.settings
+      label: bootstrap.strings.settings,
     },
     {
       key: "__logout__",
       icon: <LogoutOutlined />,
-      label: bootstrap.strings.logout
-    }
+      label: bootstrap.strings.logout,
+    },
   ];
 
   function handleNavClick({ key }) {
@@ -224,13 +227,20 @@ function AppShell({ bootstrap, children }) {
       ? null
       : bootstrap.activeNavKey ||
         navItems.find(
-          (item) => item.key !== "__logout__" && bootstrap.currentPath.startsWith(item.key)
+          (item) =>
+            item.key !== "__logout__" &&
+            bootstrap.currentPath.startsWith(item.key),
         )?.key ||
         bootstrap.urls.dashboard;
 
   const brand = (
     <div className="ant-shell-brand">
-      <img src="/static/babybuddy/logo/icon-brand.png" alt="" width="36" height="36" />
+      <img
+        src="/static/babybuddy/logo/icon-brand.png"
+        alt=""
+        width="36"
+        height="36"
+      />
       {!collapsed && <span>Baby Buddy</span>}
     </div>
   );
@@ -248,56 +258,101 @@ function AppShell({ bootstrap, children }) {
   const pageMeta = {
     "dashboard-home": {
       eyebrow: bootstrap.strings.overview,
-      title: bootstrap.strings.dashboard
+      title: bootstrap.strings.dashboard,
     },
     "dashboard-child": {
       eyebrow: bootstrap.strings.childDashboard,
-      title: bootstrap.currentChild?.name || bootstrap.strings.dashboard
+      title: bootstrap.currentChild?.name || bootstrap.strings.dashboard,
     },
     "child-detail": {
       eyebrow: bootstrap.strings.timeline,
-      title: bootstrap.childDetail?.name || bootstrap.strings.timeline
+      title: bootstrap.childDetail?.name || bootstrap.strings.timeline,
     },
     settings: {
       eyebrow: bootstrap.strings.settings,
-      title: bootstrap.strings.userSettings
+      title: bootstrap.strings.userSettings,
     },
     list: {
       eyebrow: bootstrap.listPage?.kicker || bootstrap.strings.list,
-      title: bootstrap.listPage?.title || bootstrap.strings.list
+      title: bootstrap.listPage?.title || bootstrap.strings.list,
     },
     form: {
       eyebrow: bootstrap.formPage?.kicker || bootstrap.strings.form,
-      title: bootstrap.formPage?.title || bootstrap.strings.form
+      title: bootstrap.formPage?.title || bootstrap.strings.form,
     },
     "confirm-delete": {
       eyebrow: bootstrap.strings.dangerZone,
-      title: bootstrap.formPage?.title || bootstrap.strings.confirmDelete
+      title: bootstrap.formPage?.title || bootstrap.strings.confirmDelete,
     },
     "tag-detail": {
       eyebrow: bootstrap.strings.overview,
-      title: bootstrap.tagDetail?.name || bootstrap.strings.overview
+      title: bootstrap.tagDetail?.name || bootstrap.strings.overview,
     },
     "timer-detail": {
       eyebrow: bootstrap.strings.timeline,
-      title: bootstrap.timerDetail?.name || bootstrap.strings.timeline
+      title: bootstrap.timerDetail?.name || bootstrap.strings.timeline,
     },
     timeline: {
       eyebrow: bootstrap.timelinePage?.kicker || bootstrap.strings.timeline,
-      title: bootstrap.timelinePage?.title || bootstrap.strings.timeline
+      title: bootstrap.timelinePage?.title || bootstrap.strings.timeline,
     },
     "report-list": {
       eyebrow: bootstrap.strings.overview,
-      title: bootstrap.strings.reports
+      title: bootstrap.strings.reports,
     },
     "report-detail": {
       eyebrow: bootstrap.reportDetail?.category || bootstrap.strings.reports,
-      title: bootstrap.reportDetail?.title || bootstrap.strings.reports
-    }
+      title: bootstrap.reportDetail?.title || bootstrap.strings.reports,
+    },
+    welcome: {
+      eyebrow: bootstrap.strings.welcome,
+      title: bootstrap.strings.welcomeTitle || bootstrap.strings.welcome,
+    },
+    message: {
+      eyebrow: bootstrap.messagePage?.kicker || bootstrap.strings.overview,
+      title: bootstrap.messagePage?.title || bootstrap.strings.overview,
+    },
+    "device-access": {
+      eyebrow: bootstrap.strings.settings,
+      title: bootstrap.strings.addDevice,
+    },
+    "auth-form": {
+      eyebrow: bootstrap.formPage?.kicker || bootstrap.strings.welcome,
+      title: bootstrap.formPage?.title || bootstrap.strings.login,
+    },
   }[bootstrap.pageType] || {
     eyebrow: bootstrap.strings.dashboard,
-    title: bootstrap.strings.dashboard
+    title: bootstrap.strings.dashboard,
   };
+
+  if (isAuthLayout) {
+    return (
+      <div className="ant-auth-shell">
+        <div className="ant-auth-brand">
+          <img
+            src="/static/babybuddy/logo/icon-brand.png"
+            alt=""
+            width="72"
+            height="72"
+          />
+          <span>Baby Buddy</span>
+        </div>
+        <div className="ant-auth-content">
+          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+            {(bootstrap.messages || []).map((message, index) => (
+              <Alert
+                key={`${message.type}-${index}`}
+                type={message.type || "info"}
+                showIcon
+                message={message.message}
+              />
+            ))}
+            {children}
+          </Space>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Layout className="ant-shell">
@@ -353,7 +408,19 @@ function AppShell({ bootstrap, children }) {
             </div>
           </Space>
         </Header>
-        <Content className="ant-shell-content">{children}</Content>
+        <Content className="ant-shell-content">
+          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+            {(bootstrap.messages || []).map((message, index) => (
+              <Alert
+                key={`${message.type}-${index}`}
+                type={message.type || "info"}
+                showIcon
+                message={message.message}
+              />
+            ))}
+            {children}
+          </Space>
+        </Content>
       </Layout>
     </Layout>
   );
@@ -368,6 +435,9 @@ function renderListCell(cell) {
   }
   if (typeof cell === "object" && cell.type === "image") {
     return <Avatar src={cell.src} shape="circle" size={40} />;
+  }
+  if (typeof cell === "object" && cell.type === "status") {
+    return <Tag color={cell.status || "default"}>{cell.label}</Tag>;
   }
   if (typeof cell === "object" && cell.type === "actions") {
     return (
@@ -394,12 +464,12 @@ function ListPage({ bootstrap }) {
     title: column.title,
     dataIndex: column.key,
     key: column.key,
-    render: (value) => renderListCell(value)
+    render: (value) => renderListCell(value),
   }));
 
   const dataSource = bootstrap.listPage.rows.map((row) => ({
     key: row.key,
-    ...row.cells
+    ...row.cells,
   }));
 
   function handlePageChange(page) {
@@ -444,7 +514,9 @@ function ListPage({ bootstrap }) {
           scroll={{ x: 860 }}
         />
         {pagination ? (
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
+          <div
+            style={{ display: "flex", justifyContent: "center", marginTop: 20 }}
+          >
             <Pagination
               current={pagination.page}
               pageSize={pagination.pageSize}
@@ -462,7 +534,8 @@ function ListPage({ bootstrap }) {
 function buildInitialFormState(fieldsets) {
   return fieldsets.reduce((result, fieldset) => {
     fieldset.fields.forEach((field) => {
-      result[field.name] = field.type === "checkbox" ? Boolean(field.value) : field.value ?? "";
+      result[field.name] =
+        field.type === "checkbox" ? Boolean(field.value) : (field.value ?? "");
     });
     return result;
   }, {});
@@ -507,7 +580,13 @@ function formatHiddenValue(fieldType, value) {
 
 function AntFieldControl({ field, value, onChange }) {
   if (field.type === "textarea") {
-    return <Input.TextArea rows={5} value={value} onChange={(event) => onChange(event.target.value)} />;
+    return (
+      <Input.TextArea
+        rows={5}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    );
   }
 
   if (field.type === "select") {
@@ -528,7 +607,10 @@ function AntFieldControl({ field, value, onChange }) {
       >
         <Space wrap>
           {field.choices.map((choice) => (
-            <Radio.Button key={`${field.name}-${choice.value}`} value={choice.value}>
+            <Radio.Button
+              key={`${field.name}-${choice.value}`}
+              value={choice.value}
+            >
               {choice.label}
             </Radio.Button>
           ))}
@@ -538,7 +620,12 @@ function AntFieldControl({ field, value, onChange }) {
   }
 
   if (field.type === "checkbox") {
-    return <Checkbox checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} />;
+    return (
+      <Checkbox
+        checked={Boolean(value)}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+    );
   }
 
   if (field.type === "date") {
@@ -546,7 +633,9 @@ function AntFieldControl({ field, value, onChange }) {
       <DatePicker
         style={{ width: "100%" }}
         value={parsePickerValue("date", value)}
-        onChange={(nextValue) => onChange(nextValue ? nextValue.format("YYYY-MM-DD") : "")}
+        onChange={(nextValue) =>
+          onChange(nextValue ? nextValue.format("YYYY-MM-DD") : "")
+        }
       />
     );
   }
@@ -556,7 +645,9 @@ function AntFieldControl({ field, value, onChange }) {
       <TimePicker
         style={{ width: "100%" }}
         value={parsePickerValue("time", value)}
-        onChange={(nextValue) => onChange(nextValue ? nextValue.format("HH:mm:ss") : "")}
+        onChange={(nextValue) =>
+          onChange(nextValue ? nextValue.format("HH:mm:ss") : "")
+        }
       />
     );
   }
@@ -594,12 +685,18 @@ function HiddenFieldInput({ field, value }) {
   if (field.type === "checkbox") {
     return value ? <input type="hidden" name={field.name} value="on" /> : null;
   }
-  return <input type="hidden" name={field.name} value={formatHiddenValue(field.type, value)} />;
+  return (
+    <input
+      type="hidden"
+      name={field.name}
+      value={formatHiddenValue(field.type, value)}
+    />
+  );
 }
 
 function AntFormPage({ bootstrap, deleteMode = false }) {
   const [values, setValues] = useState(() =>
-    buildInitialFormState(bootstrap.formPage.fieldsets || [])
+    buildInitialFormState(bootstrap.formPage.fieldsets || []),
   );
 
   useEffect(() => {
@@ -618,11 +715,33 @@ function AntFormPage({ bootstrap, deleteMode = false }) {
           <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
             {bootstrap.formPage.title}
           </Title>
+          {!deleteMode && bootstrap.formPage.description ? (
+            <Text style={{ color: "#cbd5e1" }}>
+              {bootstrap.formPage.description}
+            </Text>
+          ) : null}
           {deleteMode && bootstrap.formPage.dangerText ? (
-            <Text style={{ color: "#fca5a5" }}>{bootstrap.formPage.dangerText}</Text>
+            <Text style={{ color: "#fca5a5" }}>
+              {bootstrap.formPage.dangerText}
+            </Text>
           ) : null}
         </Space>
       </Card>
+
+      {bootstrap.messageBanner ? (
+        <Alert
+          type={bootstrap.messageBanner.type || "warning"}
+          showIcon
+          message={bootstrap.messageBanner.message}
+          action={
+            bootstrap.messageBanner.action ? (
+              <Button href={bootstrap.messageBanner.action.href} size="small">
+                {bootstrap.messageBanner.action.label}
+              </Button>
+            ) : null
+          }
+        />
+      ) : null}
 
       <form
         action={bootstrap.urls.self}
@@ -630,7 +749,19 @@ function AntFormPage({ bootstrap, deleteMode = false }) {
         encType={bootstrap.formPage.enctype}
         className="ant-managed-form"
       >
-        <input type="hidden" name="csrfmiddlewaretoken" value={bootstrap.csrfToken} />
+        <input
+          type="hidden"
+          name="csrfmiddlewaretoken"
+          value={bootstrap.csrfToken}
+        />
+        {(bootstrap.formPage.hiddenInputs || []).map((field) => (
+          <input
+            key={field.name}
+            type="hidden"
+            name={field.name}
+            value={field.value}
+          />
+        ))}
         {(bootstrap.formPage.fieldsets || []).map((fieldset) => (
           <Card
             key={fieldset.key}
@@ -648,15 +779,22 @@ function AntFormPage({ bootstrap, deleteMode = false }) {
                     <div className="ant-form-field__label">
                       <Text strong>{field.label}</Text>
                       <Text type="secondary">
-                        {field.required ? bootstrap.strings.required : bootstrap.strings.optional}
+                        {field.required
+                          ? bootstrap.strings.required
+                          : bootstrap.strings.optional}
                       </Text>
                     </div>
                     <AntFieldControl
                       field={field}
                       value={values[field.name]}
-                      onChange={(nextValue) => updateValue(field.name, nextValue)}
+                      onChange={(nextValue) =>
+                        updateValue(field.name, nextValue)
+                      }
                     />
-                    <HiddenFieldInput field={field} value={values[field.name]} />
+                    <HiddenFieldInput
+                      field={field}
+                      value={values[field.name]}
+                    />
                     {field.helpText ? (
                       <Text type="secondary" className="ant-form-field__help">
                         {field.helpText}
@@ -677,7 +815,12 @@ function AntFormPage({ bootstrap, deleteMode = false }) {
           </Card>
         ))}
         <Space style={{ marginTop: 20 }} wrap>
-          <Button type={deleteMode ? "primary" : "primary"} danger={deleteMode} htmlType="submit" size="large">
+          <Button
+            type={deleteMode ? "primary" : "primary"}
+            danger={deleteMode}
+            htmlType="submit"
+            size="large"
+          >
             {bootstrap.formPage.submitLabel}
           </Button>
           <Button href={bootstrap.urls.cancel} size="large">
@@ -689,10 +832,161 @@ function AntFormPage({ bootstrap, deleteMode = false }) {
   );
 }
 
+function MessagePage({ bootstrap }) {
+  const message = bootstrap.messagePage;
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Space direction="vertical" size={10} style={{ width: "100%" }}>
+          <Text type="secondary">{message.kicker}</Text>
+          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+            {message.title}
+          </Title>
+          {(message.body || []).map((paragraph, index) => (
+            <Text
+              key={`${message.title}-${index}`}
+              style={{ color: "#cbd5e1" }}
+            >
+              {paragraph}
+            </Text>
+          ))}
+          {message.actions?.length ? (
+            <Space wrap style={{ marginTop: 12 }}>
+              {message.actions.map((action) => (
+                <Button key={action.href} href={action.href} type="primary">
+                  {action.label}
+                </Button>
+              ))}
+            </Space>
+          ) : null}
+        </Space>
+      </Card>
+    </Space>
+  );
+}
+
+function WelcomePage({ bootstrap }) {
+  const featureItems = [
+    bootstrap.strings.diaperChanges,
+    bootstrap.strings.feedings,
+    bootstrap.strings.sleep,
+    bootstrap.strings.tummyTime,
+  ];
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Space direction="vertical" size={12}>
+          <Text type="secondary">{bootstrap.strings.welcome}</Text>
+          <Title level={1} style={{ margin: 0, color: "#f8fafc" }}>
+            {bootstrap.strings.welcomeTitle}
+          </Title>
+          <Text style={{ color: "#cbd5e1" }}>
+            {bootstrap.strings.welcomeIntro}
+          </Text>
+          <Text style={{ color: "#cbd5e1" }}>
+            {bootstrap.strings.welcomeBody}
+          </Text>
+          <Space wrap style={{ marginTop: 8 }}>
+            {featureItems.map((item) => (
+              <Tag key={item} color="blue">
+                {item}
+              </Tag>
+            ))}
+          </Space>
+          {bootstrap.urls.addChild ? (
+            <div style={{ marginTop: 12 }}>
+              <Button
+                type="primary"
+                href={bootstrap.urls.addChild}
+                size="large"
+              >
+                {bootstrap.strings.addChild}
+              </Button>
+            </div>
+          ) : null}
+        </Space>
+      </Card>
+    </Space>
+  );
+}
+
+function DeviceAccessPage({ bootstrap }) {
+  const deviceAccess = bootstrap.deviceAccess;
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Space direction="vertical" size={10} style={{ width: "100%" }}>
+          <Text type="secondary">
+            {bootstrap.strings.authenticationMethods}
+          </Text>
+          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+            {bootstrap.strings.addDevice}
+          </Title>
+          <Text style={{ color: "#cbd5e1" }}>
+            {bootstrap.strings.deviceAccessDescription}
+          </Text>
+        </Space>
+      </Card>
+
+      {bootstrap.messageBanner ? (
+        <Alert
+          type={bootstrap.messageBanner.type || "success"}
+          showIcon
+          message={bootstrap.messageBanner.message}
+        />
+      ) : null}
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} xl={12}>
+          <Card className="ant-section-card" title={bootstrap.strings.key}>
+            <Space direction="vertical" size={16} style={{ width: "100%" }}>
+              <Input value={deviceAccess.apiKey} readOnly />
+              <form action={bootstrap.urls.self} method="post">
+                <input
+                  type="hidden"
+                  name="csrfmiddlewaretoken"
+                  value={bootstrap.csrfToken}
+                />
+                <Button
+                  htmlType="submit"
+                  danger
+                  name="api_key_regenerate"
+                  value="1"
+                >
+                  {deviceAccess.regenerateLabel}
+                </Button>
+              </form>
+            </Space>
+          </Card>
+        </Col>
+        <Col xs={24} xl={12}>
+          <Card
+            className="ant-section-card"
+            title={bootstrap.strings.loginQrCode}
+          >
+            <div
+              className="ant-device-qr"
+              dangerouslySetInnerHTML={{ __html: deviceAccess.qrMarkup }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Space wrap>
+        <Button href={bootstrap.urls.settings}>{deviceAccess.backLabel}</Button>
+      </Space>
+    </Space>
+  );
+}
+
 function ChildDetailPage({ bootstrap }) {
   const child = bootstrap.childDetail;
   const timelineItems = (child.timeline || []).map((entry) => ({
-    color: entry.type === "start" ? "green" : entry.type === "end" ? "red" : "blue",
+    color:
+      entry.type === "start" ? "green" : entry.type === "end" ? "red" : "blue",
     children: (
       <div className="ant-timeline-event-card">
         <Space direction="vertical" size={8} style={{ width: "100%" }}>
@@ -713,7 +1007,10 @@ function ChildDetailPage({ bootstrap }) {
           {entry.tags.length ? (
             <Space wrap>
               {entry.tags.map((tag) => (
-                <Tag key={`${entry.key}-${tag.name}`} color={tag.color || "default"}>
+                <Tag
+                  key={`${entry.key}-${tag.name}`}
+                  color={tag.color || "default"}
+                >
                   {tag.name}
                 </Tag>
               ))}
@@ -721,7 +1018,9 @@ function ChildDetailPage({ bootstrap }) {
           ) : null}
           <Space wrap>
             {entry.duration ? (
-              <Tag>{bootstrap.strings.duration}: {entry.duration}</Tag>
+              <Tag>
+                {bootstrap.strings.duration}: {entry.duration}
+              </Tag>
             ) : null}
             {entry.timeSincePrev ? (
               <Tag color="cyan">
@@ -729,14 +1028,18 @@ function ChildDetailPage({ bootstrap }) {
               </Tag>
             ) : null}
             {entry.editLink ? (
-              <Button size="small" href={entry.editLink} icon={<EditOutlined />}>
+              <Button
+                size="small"
+                href={entry.editLink}
+                icon={<EditOutlined />}
+              >
                 {bootstrap.strings.edit}
               </Button>
             ) : null}
           </Space>
         </Space>
       </div>
-    )
+    ),
   }));
 
   return (
@@ -745,7 +1048,12 @@ function ChildDetailPage({ bootstrap }) {
         <Row gutter={[24, 24]} align="middle">
           <Col xs={24} md={8} lg={6}>
             <div className="ant-child-detail-photo-wrap">
-              <Image preview={false} src={child.photoUrl} alt="" className="ant-child-detail-photo" />
+              <Image
+                preview={false}
+                src={child.photoUrl}
+                alt=""
+                className="ant-child-detail-photo"
+              />
             </div>
           </Col>
           <Col xs={24} md={16} lg={18}>
@@ -754,23 +1062,40 @@ function ChildDetailPage({ bootstrap }) {
                 {child.name}
               </Title>
               <Space wrap size="middle">
-                <Tag color="blue">{bootstrap.strings.born}: {child.birthLabel}</Tag>
-                <Tag color="geekblue">{bootstrap.strings.age}: {child.ageLabel}</Tag>
+                <Tag color="blue">
+                  {bootstrap.strings.born}: {child.birthLabel}
+                </Tag>
+                <Tag color="geekblue">
+                  {bootstrap.strings.age}: {child.ageLabel}
+                </Tag>
               </Space>
               <Space wrap>
-                <Button href={child.actions.dashboard} icon={<DashboardOutlined />}>
+                <Button
+                  href={child.actions.dashboard}
+                  icon={<DashboardOutlined />}
+                >
                   {bootstrap.strings.dashboard}
                 </Button>
-                <Button href={child.actions.timeline} icon={<CalendarOutlined />}>
+                <Button
+                  href={child.actions.timeline}
+                  icon={<CalendarOutlined />}
+                >
                   {bootstrap.strings.timeline}
                 </Button>
-                <Button href={child.actions.reports} icon={<LineChartOutlined />}>
+                <Button
+                  href={child.actions.reports}
+                  icon={<LineChartOutlined />}
+                >
                   {bootstrap.strings.reports}
                 </Button>
                 <Button href={child.actions.edit} icon={<EditOutlined />}>
                   {bootstrap.strings.edit}
                 </Button>
-                <Button href={child.actions.delete} danger icon={<DeleteOutlined />}>
+                <Button
+                  href={child.actions.delete}
+                  danger
+                  icon={<DeleteOutlined />}
+                >
                   {bootstrap.strings.delete}
                 </Button>
               </Space>
@@ -785,16 +1110,23 @@ function ChildDetailPage({ bootstrap }) {
         extra={
           <Space wrap>
             {child.previousUrl ? (
-              <Button href={child.previousUrl}>{bootstrap.strings.previous}</Button>
+              <Button href={child.previousUrl}>
+                {bootstrap.strings.previous}
+              </Button>
             ) : null}
-            {child.nextUrl ? <Button href={child.nextUrl}>{bootstrap.strings.next}</Button> : null}
+            {child.nextUrl ? (
+              <Button href={child.nextUrl}>{bootstrap.strings.next}</Button>
+            ) : null}
           </Space>
         }
       >
         {timelineItems.length ? (
           <AntTimeline items={timelineItems} />
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noEvents} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noEvents}
+          />
         )}
       </Card>
     </Space>
@@ -809,7 +1141,10 @@ function TagDetailPage({ bootstrap }) {
       <Card className="ant-hero-card">
         <Space direction="vertical" size={12} style={{ width: "100%" }}>
           <Space align="center" wrap>
-            <Tag color={tag.color || "blue"} style={{ fontSize: "1rem", padding: "6px 12px" }}>
+            <Tag
+              color={tag.color || "blue"}
+              style={{ fontSize: "1rem", padding: "6px 12px" }}
+            >
               {tag.name}
             </Tag>
             <Button href={tag.actions.edit} icon={<EditOutlined />}>
@@ -880,7 +1215,11 @@ function TimerDetailPage({ bootstrap }) {
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
       <Card className="ant-hero-card">
-        <Space direction="vertical" size={10} style={{ width: "100%", textAlign: "center" }}>
+        <Space
+          direction="vertical"
+          size={10}
+          style={{ width: "100%", textAlign: "center" }}
+        >
           <Title level={1} style={{ margin: 0, color: "#f8fafc" }}>
             {durationLabel}
           </Title>
@@ -922,7 +1261,8 @@ function TimerDetailPage({ bootstrap }) {
 function TimelinePage({ bootstrap }) {
   const timeline = bootstrap.timelinePage;
   const items = (timeline.items || []).map((entry) => ({
-    color: entry.type === "start" ? "green" : entry.type === "end" ? "red" : "blue",
+    color:
+      entry.type === "start" ? "green" : entry.type === "end" ? "red" : "blue",
     children: (
       <div className="ant-timeline-event-card">
         <Space direction="vertical" size={8} style={{ width: "100%" }}>
@@ -943,7 +1283,10 @@ function TimelinePage({ bootstrap }) {
           {entry.tags.length ? (
             <Space wrap>
               {entry.tags.map((tag) => (
-                <Tag key={`${entry.key}-${tag.name}`} color={tag.color || "default"}>
+                <Tag
+                  key={`${entry.key}-${tag.name}`}
+                  color={tag.color || "default"}
+                >
                   {tag.name}
                 </Tag>
               ))}
@@ -951,7 +1294,9 @@ function TimelinePage({ bootstrap }) {
           ) : null}
           <Space wrap>
             {entry.duration ? (
-              <Tag>{bootstrap.strings.duration}: {entry.duration}</Tag>
+              <Tag>
+                {bootstrap.strings.duration}: {entry.duration}
+              </Tag>
             ) : null}
             {entry.timeSincePrev ? (
               <Tag color="cyan">
@@ -959,14 +1304,18 @@ function TimelinePage({ bootstrap }) {
               </Tag>
             ) : null}
             {entry.editLink ? (
-              <Button size="small" href={entry.editLink} icon={<EditOutlined />}>
+              <Button
+                size="small"
+                href={entry.editLink}
+                icon={<EditOutlined />}
+              >
                 {bootstrap.strings.edit}
               </Button>
             ) : null}
           </Space>
         </Space>
       </div>
-    )
+    ),
   }));
 
   return (
@@ -976,16 +1325,23 @@ function TimelinePage({ bootstrap }) {
       extra={
         <Space wrap>
           {timeline.previousUrl ? (
-            <Button href={timeline.previousUrl}>{bootstrap.strings.previous}</Button>
+            <Button href={timeline.previousUrl}>
+              {bootstrap.strings.previous}
+            </Button>
           ) : null}
-          {timeline.nextUrl ? <Button href={timeline.nextUrl}>{bootstrap.strings.next}</Button> : null}
+          {timeline.nextUrl ? (
+            <Button href={timeline.nextUrl}>{bootstrap.strings.next}</Button>
+          ) : null}
         </Space>
       }
     >
       {items.length ? (
         <AntTimeline items={items} />
       ) : (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noEvents} />
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={bootstrap.strings.noEvents}
+        />
       )}
     </Card>
   );
@@ -1010,15 +1366,23 @@ function ReportListPage({ bootstrap }) {
               <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
                 {reportList.childName}
               </Title>
-              <Text style={{ color: "#cbd5e1" }}>{bootstrap.strings.reportSummary}</Text>
+              <Text style={{ color: "#cbd5e1" }}>
+                {bootstrap.strings.reportSummary}
+              </Text>
             </Space>
           </Col>
           <Col>
             <Space wrap>
-              <Button href={reportList.actions.dashboard} icon={<DashboardOutlined />}>
+              <Button
+                href={reportList.actions.dashboard}
+                icon={<DashboardOutlined />}
+              >
                 {bootstrap.strings.dashboard}
               </Button>
-              <Button href={reportList.actions.timeline} icon={<CalendarOutlined />}>
+              <Button
+                href={reportList.actions.timeline}
+                icon={<CalendarOutlined />}
+              >
                 {bootstrap.strings.timeline}
               </Button>
             </Space>
@@ -1111,13 +1475,22 @@ function ReportDetailPage({ bootstrap }) {
           </Col>
           <Col>
             <Space wrap>
-              <Button href={report.actions.dashboard} icon={<DashboardOutlined />}>
+              <Button
+                href={report.actions.dashboard}
+                icon={<DashboardOutlined />}
+              >
                 {bootstrap.strings.dashboard}
               </Button>
-              <Button href={report.actions.timeline} icon={<CalendarOutlined />}>
+              <Button
+                href={report.actions.timeline}
+                icon={<CalendarOutlined />}
+              >
                 {bootstrap.strings.timeline}
               </Button>
-              <Button href={report.actions.reports} icon={<LineChartOutlined />}>
+              <Button
+                href={report.actions.reports}
+                icon={<LineChartOutlined />}
+              >
                 {bootstrap.strings.reports}
               </Button>
             </Space>
@@ -1178,7 +1551,7 @@ function DashboardHomePage({ bootstrap }) {
                   icon={<DashboardOutlined />}
                 >
                   {bootstrap.strings.openDashboard}
-                </Button>
+                </Button>,
               ]}
             >
               <Card.Meta
@@ -1200,11 +1573,16 @@ function DashboardHomePage({ bootstrap }) {
   );
 }
 
-function SettingsCardPicker({ bootstrap, selectedItems, setSelectedItems, statusText }) {
+function SettingsCardPicker({
+  bootstrap,
+  selectedItems,
+  setSelectedItems,
+  statusText,
+}) {
   const [activeAvailable, setActiveAvailable] = useState(null);
   const [activeSelected, setActiveSelected] = useState(null);
   const availableItems = bootstrap.settings.dashboard.availableItems.filter(
-    (item) => !selectedItems.includes(item.value)
+    (item) => !selectedItems.includes(item.value),
   );
 
   function addItem(value) {
@@ -1233,14 +1611,18 @@ function SettingsCardPicker({ bootstrap, selectedItems, setSelectedItems, status
     if (swapIndex < 0 || swapIndex >= nextItems.length) {
       return;
     }
-    [nextItems[index], nextItems[swapIndex]] = [nextItems[swapIndex], nextItems[index]];
+    [nextItems[index], nextItems[swapIndex]] = [
+      nextItems[swapIndex],
+      nextItems[index],
+    ];
     setSelectedItems(nextItems);
   }
 
   function labelFor(value) {
     return (
-      bootstrap.settings.dashboard.availableItems.find((item) => item.value === value)?.label ||
-      value
+      bootstrap.settings.dashboard.availableItems.find(
+        (item) => item.value === value,
+      )?.label || value
     );
   }
 
@@ -1258,9 +1640,13 @@ function SettingsCardPicker({ bootstrap, selectedItems, setSelectedItems, status
               <List.Item
                 className={activeAvailable === item.value ? "is-active" : ""}
                 actions={[
-                  <Button type="link" key="add" onClick={() => addItem(item.value)}>
+                  <Button
+                    type="link"
+                    key="add"
+                    onClick={() => addItem(item.value)}
+                  >
                     +
-                  </Button>
+                  </Button>,
                 ]}
                 onClick={() => setActiveAvailable(item.value)}
               >
@@ -1274,7 +1660,11 @@ function SettingsCardPicker({ bootstrap, selectedItems, setSelectedItems, status
             direction="vertical"
             style={{ width: "100%", justifyContent: "center", height: "100%" }}
           >
-            <Button block onClick={() => addItem(activeAvailable)} disabled={!activeAvailable}>
+            <Button
+              block
+              onClick={() => addItem(activeAvailable)}
+              disabled={!activeAvailable}
+            >
               &gt;
             </Button>
             <Button
@@ -1283,7 +1673,7 @@ function SettingsCardPicker({ bootstrap, selectedItems, setSelectedItems, status
                 if (availableItems.length) {
                   setSelectedItems([
                     ...selectedItems,
-                    ...availableItems.map((item) => item.value)
+                    ...availableItems.map((item) => item.value),
                   ]);
                 }
               }}
@@ -1305,10 +1695,18 @@ function SettingsCardPicker({ bootstrap, selectedItems, setSelectedItems, status
             >
               &lt;
             </Button>
-            <Button block onClick={() => moveItem("up")} disabled={!activeSelected}>
+            <Button
+              block
+              onClick={() => moveItem("up")}
+              disabled={!activeSelected}
+            >
               {bootstrap.strings.moveUp}
             </Button>
-            <Button block onClick={() => moveItem("down")} disabled={!activeSelected}>
+            <Button
+              block
+              onClick={() => moveItem("down")}
+              disabled={!activeSelected}
+            >
               {bootstrap.strings.moveDown}
             </Button>
           </Space>
@@ -1324,9 +1722,13 @@ function SettingsCardPicker({ bootstrap, selectedItems, setSelectedItems, status
               <List.Item
                 className={activeSelected === value ? "is-active" : ""}
                 actions={[
-                  <Button type="link" key="remove" onClick={() => removeItem(value)}>
+                  <Button
+                    type="link"
+                    key="remove"
+                    onClick={() => removeItem(value)}
+                  >
                     −
-                  </Button>
+                  </Button>,
                 ]}
                 onClick={() => setActiveSelected(value)}
               >
@@ -1348,7 +1750,7 @@ function SettingsPage({ bootstrap }) {
   const api = useRef(createApiClient(bootstrap.csrfToken));
   const [form] = Form.useForm();
   const [selectedItems, setSelectedItems] = useState(
-    bootstrap.settings.dashboard.visibleItems
+    bootstrap.settings.dashboard.visibleItems,
   );
   const [statusText, setStatusText] = useState(bootstrap.strings.saved);
   const [apiKey, setApiKey] = useState(bootstrap.settings.apiKey);
@@ -1364,14 +1766,14 @@ function SettingsPage({ bootstrap }) {
       pagination_count: bootstrap.settings.preferences.paginationCount,
       dashboard_refresh_rate: bootstrap.settings.dashboard.refreshRate,
       dashboard_hide_empty: bootstrap.settings.dashboard.hideEmpty,
-      dashboard_hide_age: bootstrap.settings.dashboard.hideAge
+      dashboard_hide_age: bootstrap.settings.dashboard.hideAge,
     });
   }, [bootstrap, form]);
 
   function choiceOptions(key) {
     return bootstrap.settings.choices[key].map((choice) => ({
       value: choice.value,
-      label: choice.label
+      label: choice.label,
     }));
   }
 
@@ -1398,7 +1800,9 @@ function SettingsPage({ bootstrap }) {
     const data = await response.json();
     if (!response.ok || !data.saved) {
       const firstKey = Object.keys(data.errors || {})[0];
-      const firstError = firstKey ? data.errors[firstKey]?.[0]?.message : bootstrap.strings.saveFailed;
+      const firstError = firstKey
+        ? data.errors[firstKey]?.[0]?.message
+        : bootstrap.strings.saveFailed;
       setStatusText(bootstrap.strings.saveFailed);
       setErrorText(firstError || bootstrap.strings.saveFailed);
       return;
@@ -1424,45 +1828,49 @@ function SettingsPage({ bootstrap }) {
     {
       key: "apiBrowser",
       label: bootstrap.strings.apiBrowser,
-      href: bootstrap.settings.links.apiBrowser
+      href: bootstrap.settings.links.apiBrowser,
     },
     bootstrap.settings.links.siteSettings
       ? {
           key: "siteSettings",
           label: bootstrap.strings.siteSettings,
-          href: bootstrap.settings.links.siteSettings
+          href: bootstrap.settings.links.siteSettings,
         }
       : null,
     bootstrap.settings.links.tags
-      ? { key: "tags", label: bootstrap.strings.tags, href: bootstrap.settings.links.tags }
+      ? {
+          key: "tags",
+          label: bootstrap.strings.tags,
+          href: bootstrap.settings.links.tags,
+        }
       : null,
     bootstrap.settings.links.users
       ? {
           key: "users",
           label: bootstrap.strings.users,
-          href: bootstrap.settings.links.users
+          href: bootstrap.settings.links.users,
         }
       : null,
     bootstrap.settings.links.databaseAdmin
       ? {
           key: "databaseAdmin",
           label: bootstrap.strings.databaseAdmin,
-          href: bootstrap.settings.links.databaseAdmin
+          href: bootstrap.settings.links.databaseAdmin,
         }
-      : null
+      : null,
   ].filter(Boolean);
 
   const supportLinks = [
     {
       key: "sourceCode",
       label: bootstrap.strings.sourceCode,
-      href: bootstrap.settings.links.sourceCode
+      href: bootstrap.settings.links.sourceCode,
     },
     {
       key: "chatSupport",
       label: bootstrap.strings.chatSupport,
-      href: bootstrap.settings.links.chatSupport
-    }
+      href: bootstrap.settings.links.chatSupport,
+    },
   ];
 
   return (
@@ -1474,7 +1882,8 @@ function SettingsPage({ bootstrap }) {
             {bootstrap.strings.userSettings}
           </Title>
           <Text style={{ color: "#cbd5e1" }}>
-            Ant Design settings now replace the previous template-based profile panel.
+            Ant Design settings now replace the previous template-based profile
+            panel.
           </Text>
         </Space>
       </Card>
@@ -1484,7 +1893,10 @@ function SettingsPage({ bootstrap }) {
       <Form layout="vertical" form={form} onFinish={saveSettings}>
         <Row gutter={[16, 16]}>
           <Col xs={24} xl={12}>
-            <Card className="ant-section-card" title={bootstrap.strings.profile}>
+            <Card
+              className="ant-section-card"
+              title={bootstrap.strings.profile}
+            >
               <Form.Item name="first_name" label={bootstrap.strings.firstName}>
                 <Input />
               </Form.Item>
@@ -1497,7 +1909,10 @@ function SettingsPage({ bootstrap }) {
             </Card>
           </Col>
           <Col xs={24} xl={12}>
-            <Card className="ant-section-card" title={bootstrap.strings.preferences}>
+            <Card
+              className="ant-section-card"
+              title={bootstrap.strings.preferences}
+            >
               <Form.Item name="language" label={bootstrap.strings.language}>
                 <Select options={choiceOptions("language")} />
               </Form.Item>
@@ -1508,17 +1923,29 @@ function SettingsPage({ bootstrap }) {
                   optionFilterProp="label"
                 />
               </Form.Item>
-              <Form.Item name="pagination_count" label={bootstrap.strings.pagination}>
+              <Form.Item
+                name="pagination_count"
+                label={bootstrap.strings.pagination}
+              >
                 <Select options={choiceOptions("paginationCount")} />
               </Form.Item>
             </Card>
           </Col>
           <Col xs={24} xl={12}>
-            <Card className="ant-section-card" title={bootstrap.strings.dashboardPreferences}>
-              <Form.Item name="dashboard_refresh_rate" label={bootstrap.strings.refreshRate}>
+            <Card
+              className="ant-section-card"
+              title={bootstrap.strings.dashboardPreferences}
+            >
+              <Form.Item
+                name="dashboard_refresh_rate"
+                label={bootstrap.strings.refreshRate}
+              >
                 <Select options={choiceOptions("refreshRate")} />
               </Form.Item>
-              <Form.Item name="dashboard_hide_age" label={bootstrap.strings.hideAge}>
+              <Form.Item
+                name="dashboard_hide_age"
+                label={bootstrap.strings.hideAge}
+              >
                 <Select options={choiceOptions("hideAge")} />
               </Form.Item>
               <Form.Item
@@ -1549,7 +1976,10 @@ function SettingsPage({ bootstrap }) {
             />
           </Col>
           <Col xs={24}>
-            <Card className="ant-section-card" title={bootstrap.strings.siteSupport}>
+            <Card
+              className="ant-section-card"
+              title={bootstrap.strings.siteSupport}
+            >
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={12}>
                   <Text type="secondary">{bootstrap.strings.site}</Text>
@@ -1606,7 +2036,15 @@ function MiniTimeline({ items, locale }) {
 
   function barForHour(hour) {
     const now = new Date();
-    const slotStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0);
+    const slotStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hour,
+      0,
+      0,
+      0,
+    );
     const slotEnd = new Date(slotStart.getTime());
     slotEnd.setHours(hour + 1, 0, 0, 0);
 
@@ -1636,10 +2074,10 @@ function MiniTimeline({ items, locale }) {
         style={{ height: `${height}%` }}
         title={`${new Intl.DateTimeFormat(locale, {
           hour: "2-digit",
-          minute: "2-digit"
+          minute: "2-digit",
         }).format(new Date(best.start))} - ${new Intl.DateTimeFormat(locale, {
           hour: "2-digit",
-          minute: "2-digit"
+          minute: "2-digit",
         }).format(new Date(best.end))}`}
       />
     );
@@ -1666,13 +2104,19 @@ function MiniTimeline({ items, locale }) {
 function ChildDashboardPage({ bootstrap }) {
   const ant = AntApp.useApp();
   const api = useRef(createApiClient(bootstrap.csrfToken));
-  const [selectedChildId, setSelectedChildId] = useState(String(bootstrap.currentChild.id));
-  const [hiddenSections, setHiddenSections] = useState(bootstrap.dashboard.hiddenSections || []);
+  const [selectedChildId, setSelectedChildId] = useState(
+    String(bootstrap.currentChild.id),
+  );
+  const [hiddenSections, setHiddenSections] = useState(
+    bootstrap.dashboard.hiddenSections || [],
+  );
   const [loading, setLoading] = useState(true);
   const [cards, setCards] = useState({});
   const [diaperDate, setDiaperDate] = useState(dayjs());
   const [diaperTime, setDiaperTime] = useState(dayjs());
-  const child = bootstrap.children.find((item) => String(item.id) === String(selectedChildId));
+  const child = bootstrap.children.find(
+    (item) => String(item.id) === String(selectedChildId),
+  );
   const locale = bootstrap.locale || "en";
 
   useEffect(() => {
@@ -1682,7 +2126,10 @@ function ChildDashboardPage({ bootstrap }) {
   async function persistHidden(nextHidden) {
     const payload = new URLSearchParams();
     payload.set("action", "autosave_dashboard_layout");
-    payload.set("dashboard_section_order", bootstrap.dashboard.sectionOrder.join(","));
+    payload.set(
+      "dashboard_section_order",
+      bootstrap.dashboard.sectionOrder.join(","),
+    );
     payload.set("dashboard_hidden_sections", nextHidden.join(","));
 
     try {
@@ -1706,7 +2153,7 @@ function ChildDashboardPage({ bootstrap }) {
     }
     return new Intl.DateTimeFormat(locale, {
       dateStyle: "medium",
-      timeStyle: "short"
+      timeStyle: "short",
     }).format(new Date(value));
   }
 
@@ -1716,7 +2163,7 @@ function ChildDashboardPage({ bootstrap }) {
     }
     return new Intl.DateTimeFormat(locale, {
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     }).format(new Date(value));
   }
 
@@ -1742,18 +2189,25 @@ function ChildDashboardPage({ bootstrap }) {
     const query = `child=${encodeURIComponent(childId)}`;
 
     try {
-      const [changes, feedings, pumpings, sleeps, tummyTimes, timers, recommendations] =
-        await Promise.all([
-          api.current.get(`/api/changes/?${query}&limit=20`),
-          api.current.get(`/api/feedings/?${query}&limit=20`),
-          api.current.get(`/api/pumping/?${query}&limit=20`),
-          api.current.get(`/api/sleep/?${query}&limit=30`),
-          api.current.get(`/api/tummy-times/?${query}&limit=20`),
-          api.current.get(`/api/timers/?${query}&limit=5`),
-          api.current.get(
-            `/api/children/${encodeURIComponent(child.slug)}/sleep-recommendations/`
-          )
-        ]);
+      const [
+        changes,
+        feedings,
+        pumpings,
+        sleeps,
+        tummyTimes,
+        timers,
+        recommendations,
+      ] = await Promise.all([
+        api.current.get(`/api/changes/?${query}&limit=20`),
+        api.current.get(`/api/feedings/?${query}&limit=20`),
+        api.current.get(`/api/pumping/?${query}&limit=20`),
+        api.current.get(`/api/sleep/?${query}&limit=30`),
+        api.current.get(`/api/tummy-times/?${query}&limit=20`),
+        api.current.get(`/api/timers/?${query}&limit=5`),
+        api.current.get(
+          `/api/children/${encodeURIComponent(child.slug)}/sleep-recommendations/`,
+        ),
+      ]);
 
       const changeItems = asItems(changes);
       const feedingItems = asItems(feedings);
@@ -1767,26 +2221,36 @@ function ChildDashboardPage({ bootstrap }) {
       const lastPumping = pumpingItems[0];
       const lastSleep = sleepItems[0];
       const feedingsToday = feedingItems.filter((item) => isToday(item.start));
-      const napsToday = sleepItems.filter((item) => isToday(item.start) && item.nap);
+      const napsToday = sleepItems.filter(
+        (item) => isToday(item.start) && item.nap,
+      );
 
       const methodCounts = feedingItems.reduce((result, item) => {
         const key = item.method || "unknown";
         result[key] = (result[key] || 0) + 1;
         return result;
       }, {});
-      const topMethod = Object.entries(methodCounts).sort((a, b) => b[1] - a[1])[0];
+      const topMethod = Object.entries(methodCounts).sort(
+        (a, b) => b[1] - a[1],
+      )[0];
 
       setCards({
         "card.diaper.last": lastChange ? (
           <Space direction="vertical" size={4}>
-            <Statistic title="Last recorded" value={formatDateTime(lastChange.time)} />
+            <Statistic
+              title="Last recorded"
+              value={formatDateTime(lastChange.time)}
+            />
             <Space wrap>
               <Tag color={lastChange.wet ? "blue" : "default"}>Wet</Tag>
               <Tag color={lastChange.solid ? "gold" : "default"}>Solid</Tag>
             </Space>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.diaper.types": (
           <Space direction="vertical" size={6}>
@@ -1807,7 +2271,10 @@ function ChildDashboardPage({ bootstrap }) {
             <Text type="secondary">{formatDateTime(lastFeeding.start)}</Text>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.feedings.method": topMethod ? (
           <Space direction="vertical" size={4}>
@@ -1815,7 +2282,10 @@ function ChildDashboardPage({ bootstrap }) {
             <Text type="secondary">{topMethod[1]} recent entries</Text>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.feedings.recent": (
           <Space direction="vertical" size={4}>
@@ -1827,9 +2297,13 @@ function ChildDashboardPage({ bootstrap }) {
           <Space direction="vertical" size={4}>
             <Statistic
               title="Breastfeeding today"
-              value={feedingsToday.filter((item) =>
-                String(item.method || "").toLowerCase().includes("breast")
-              ).length}
+              value={
+                feedingsToday.filter((item) =>
+                  String(item.method || "")
+                    .toLowerCase()
+                    .includes("breast"),
+                ).length
+              }
             />
           </Space>
         ),
@@ -1843,13 +2317,18 @@ function ChildDashboardPage({ bootstrap }) {
             <Text type="secondary">{formatDateTime(lastPumping.start)}</Text>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.sleep.timers": (
           <Space direction="vertical" size={4}>
             <Statistic title="Timers" value={timerItems.length} />
             <Text type="secondary">
-              {timerItems[0] ? formatTime(timerItems[0].start) : bootstrap.strings.noData}
+              {timerItems[0]
+                ? formatTime(timerItems[0].start)
+                : bootstrap.strings.noData}
             </Text>
           </Space>
         ),
@@ -1867,11 +2346,15 @@ function ChildDashboardPage({ bootstrap }) {
               suffix="min"
             />
             <Text type="secondary">
-              {formatDateTime(lastSleep.start)} - {formatDateTime(lastSleep.end)}
+              {formatDateTime(lastSleep.start)} -{" "}
+              {formatDateTime(lastSleep.end)}
             </Text>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.sleep.recommendations": recommendations ? (
           <Space direction="vertical" size={8}>
@@ -1895,7 +2378,10 @@ function ChildDashboardPage({ bootstrap }) {
             </Card>
           </Space>
         ) : (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noData} />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.sleep.recent": (
           <Space direction="vertical" size={4}>
@@ -1903,14 +2389,20 @@ function ChildDashboardPage({ bootstrap }) {
               title="Sleep entries today"
               value={sleepItems.filter((item) => isToday(item.start)).length}
             />
-            <Text type="secondary">{sleepItems.length} recent sleep entries</Text>
+            <Text type="secondary">
+              {sleepItems.length} recent sleep entries
+            </Text>
           </Space>
         ),
         "card.sleep.naps_day": (
           <Space direction="vertical" size={4}>
             <Statistic title="Naps today" value={napsToday.length} />
             <Text type="secondary">
-              {napsToday.reduce((acc, item) => acc + durationMinutes(item.duration), 0)} min
+              {napsToday.reduce(
+                (acc, item) => acc + durationMinutes(item.duration),
+                0,
+              )}{" "}
+              min
             </Text>
           </Space>
         ),
@@ -1923,8 +2415,8 @@ function ChildDashboardPage({ bootstrap }) {
                   ? Math.round(
                       sleepItems.reduce(
                         (acc, item) => acc + durationMinutes(item.duration),
-                        0
-                      ) / sleepItems.length
+                        0,
+                      ) / sleepItems.length,
                     )
                   : 0
               }
@@ -1933,7 +2425,10 @@ function ChildDashboardPage({ bootstrap }) {
           </Space>
         ),
         "card.sleep.timeline_day": (
-          <MiniTimeline items={sleepItems.filter((item) => item.start && item.end)} locale={locale} />
+          <MiniTimeline
+            items={sleepItems.filter((item) => item.start && item.end)}
+            locale={locale}
+          />
         ),
         "card.tummytime.day": (
           <Space direction="vertical" size={4}>
@@ -1946,7 +2441,7 @@ function ChildDashboardPage({ bootstrap }) {
             />
             <Text type="secondary">{tummyItems.length} recent entries</Text>
           </Space>
-        )
+        ),
       });
     } catch (error) {
       ant.message.error(error.message);
@@ -1962,7 +2457,10 @@ function ChildDashboardPage({ bootstrap }) {
     payload.set("diaper_entry_time", diaperTime.format("HH:mm"));
     payload.set("diaper_entry_consistency", consistency);
 
-    const response = await api.current.postForm(bootstrap.urls.current, payload);
+    const response = await api.current.postForm(
+      bootstrap.urls.current,
+      payload,
+    );
     if (response.ok) {
       ant.message.success(bootstrap.strings.saved);
       loadDashboardData(selectedChildId);
@@ -1973,7 +2471,7 @@ function ChildDashboardPage({ bootstrap }) {
 
   function navigateToChild(nextChildId) {
     const nextChild = bootstrap.children.find(
-      (item) => String(item.id) === String(nextChildId)
+      (item) => String(item.id) === String(nextChildId),
     );
     if (!nextChild) {
       return;
@@ -1982,7 +2480,7 @@ function ChildDashboardPage({ bootstrap }) {
     if (nextChild.slug !== bootstrap.currentChild.slug) {
       const targetUrl = bootstrap.urls.childDashboardTemplate.replace(
         "__CHILD_SLUG__",
-        encodeURIComponent(nextChild.slug)
+        encodeURIComponent(nextChild.slug),
       );
       window.location.assign(targetUrl);
     }
@@ -2006,12 +2504,15 @@ function ChildDashboardPage({ bootstrap }) {
                 value={selectedChildId}
                 options={bootstrap.children.map((item) => ({
                   value: String(item.id),
-                  label: item.name
+                  label: item.name,
                 }))}
                 onChange={navigateToChild}
                 style={{ minWidth: 220 }}
               />
-              <Button icon={<ReloadOutlined />} onClick={() => loadDashboardData(selectedChildId)}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => loadDashboardData(selectedChildId)}
+              >
                 {bootstrap.strings.refresh}
               </Button>
             </Space>
@@ -2049,18 +2550,31 @@ function ChildDashboardPage({ bootstrap }) {
               {!hidden && (
                 <Row gutter={[16, 16]}>
                   {cardKeys.map((cardKey) => (
-                    <Col xs={24} lg={cardKey === "card.sleep.timeline_day" ? 24 : 12} key={cardKey}>
+                    <Col
+                      xs={24}
+                      lg={cardKey === "card.sleep.timeline_day" ? 24 : 12}
+                      key={cardKey}
+                    >
                       <SummaryCard
-                        title={DASHBOARD_CARD_TITLES[cardKey] || bootstrap.strings.migrationPending}
+                        title={
+                          DASHBOARD_CARD_TITLES[cardKey] ||
+                          bootstrap.strings.migrationPending
+                        }
                       >
                         {cardKey === "card.diaper.quick_entry" ? (
-                          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                          <Space
+                            direction="vertical"
+                            size={12}
+                            style={{ width: "100%" }}
+                          >
                             <Row gutter={8}>
                               <Col span={12}>
                                 <input
                                   type="date"
                                   value={diaperDate.format("YYYY-MM-DD")}
-                                  onChange={(event) => setDiaperDate(dayjs(event.target.value))}
+                                  onChange={(event) =>
+                                    setDiaperDate(dayjs(event.target.value))
+                                  }
                                   className="ant-native-input"
                                 />
                               </Col>
@@ -2069,7 +2583,9 @@ function ChildDashboardPage({ bootstrap }) {
                                   type="time"
                                   value={diaperTime.format("HH:mm")}
                                   onChange={(event) =>
-                                    setDiaperTime(dayjs(`2000-01-01T${event.target.value}`))
+                                    setDiaperTime(
+                                      dayjs(`2000-01-01T${event.target.value}`),
+                                    )
                                   }
                                   className="ant-native-input"
                                 />
@@ -2080,12 +2596,12 @@ function ChildDashboardPage({ bootstrap }) {
                               options={[
                                 {
                                   label: bootstrap.strings.liquid,
-                                  value: "liquid"
+                                  value: "liquid",
                                 },
                                 {
                                   label: bootstrap.strings.solid,
-                                  value: "solid"
-                                }
+                                  value: "solid",
+                                },
                               ]}
                               onChange={submitDiaperEntry}
                             />
@@ -2112,7 +2628,9 @@ function ChildDashboardPage({ bootstrap }) {
 }
 
 export function App({ bootstrap }) {
-  const antLocale = String(bootstrap.locale || "en").startsWith("de") ? deDE : enUS;
+  const antLocale = String(bootstrap.locale || "en").startsWith("de")
+    ? deDE
+    : enUS;
 
   useEffect(() => {
     if (String(bootstrap.locale || "en").startsWith("de")) {
@@ -2132,18 +2650,26 @@ export function App({ bootstrap }) {
           colorBgBase: "#020617",
           colorBgContainer: "#0f172a",
           colorBorder: "#1e3a5f",
-          borderRadius: 18
-        }
+          borderRadius: 18,
+        },
       }}
     >
       <AntApp>
         <AppShell bootstrap={bootstrap}>
           {bootstrap.pageType === "dashboard-home" ? (
             <DashboardHomePage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "welcome" ? (
+            <WelcomePage bootstrap={bootstrap} />
           ) : bootstrap.pageType === "settings" ? (
             <SettingsPage bootstrap={bootstrap} />
           ) : bootstrap.pageType === "list" ? (
             <ListPage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "message" ? (
+            <MessagePage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "device-access" ? (
+            <DeviceAccessPage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "auth-form" ? (
+            <AntFormPage bootstrap={bootstrap} />
           ) : bootstrap.pageType === "form" ? (
             <AntFormPage bootstrap={bootstrap} />
           ) : bootstrap.pageType === "confirm-delete" ? (

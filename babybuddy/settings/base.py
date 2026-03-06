@@ -293,7 +293,12 @@ if _secure_proxy:
         )
 
 # Often desirable behind Traefik/Nginx when Host is forwarded
-USE_X_FORWARDED_HOST = os.environ.get("USE_X_FORWARDED_HOST", "").lower() in ("1", "true", "yes", "on")
+USE_X_FORWARDED_HOST = os.environ.get("USE_X_FORWARDED_HOST", "").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
 
 # https://docs.djangoproject.com/en/5.0/topics/http/sessions/#settings
 SESSION_COOKIE_HTTPONLY = True
@@ -399,12 +404,8 @@ BABY_BUDDY = {
     "SETTINGS_ANT_ENABLED": bool(
         strtobool(os.environ.get("SETTINGS_ANT_ENABLED") or "True")
     ),
-    "LISTS_ANT_ENABLED": bool(
-        strtobool(os.environ.get("LISTS_ANT_ENABLED") or "True")
-    ),
-    "FORMS_ANT_ENABLED": bool(
-        strtobool(os.environ.get("FORMS_ANT_ENABLED") or "True")
-    ),
+    "LISTS_ANT_ENABLED": bool(strtobool(os.environ.get("LISTS_ANT_ENABLED") or "True")),
+    "FORMS_ANT_ENABLED": bool(strtobool(os.environ.get("FORMS_ANT_ENABLED") or "True")),
 }
 
 # Home assistant specific configuration
