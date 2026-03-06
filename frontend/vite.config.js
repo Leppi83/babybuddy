@@ -10,15 +10,23 @@ export default defineConfig({
   build: {
     outDir: "../babybuddy/static/babybuddy/ant",
     emptyOutDir: true,
-    lib: {
-      entry: resolve(__dirname, "src/main.jsx"),
-      name: "BabyBuddyAntApp",
-      formats: ["iife"],
-      fileName: () => "app.js",
-    },
     rollupOptions: {
+      input: resolve(__dirname, "src/main.jsx"),
       output: {
+        entryFileNames: "app.js",
+        chunkFileNames: "chunks/[name]-[hash].js",
         assetFileNames: "app.[ext]",
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            return "vendor";
+          }
+          if (id.includes("/src/pages/DashboardPages")) {
+            return "page-dashboard";
+          }
+          if (id.includes("/src/pages/GeneralPages")) {
+            return "page-general";
+          }
+        },
       },
     },
   },
