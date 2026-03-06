@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import include, path, reverse_lazy
+from django.urls import include, path, re_path, reverse_lazy
+from django.views.static import serve
 
 from . import views
 
@@ -57,5 +57,16 @@ urlpatterns = [
     path("", include("reports.urls", namespace="reports")),
 ]
 
-if settings.DEBUG or settings.SERVE_MEDIA:  # pragma: no cover
+if settings.DEBUG:  # pragma: no cover
+    from django.conf.urls.static import static
+
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+elif settings.SERVE_MEDIA:  # pragma: no cover
+    media_prefix = settings.MEDIA_URL.lstrip("/")
+    urlpatterns += [
+        re_path(
+            rf"^{media_prefix}(?P<path>.*)$",
+            serve,
+            {"document_root": settings.MEDIA_ROOT},
+        )
+    ]
