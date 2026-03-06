@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth import update_session_auth_hash
@@ -10,6 +11,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import BadRequest
 from django.forms import Form
 from django.http import HttpResponseForbidden
+from django.middleware.csrf import get_token
 from django.middleware.csrf import REASON_BAD_ORIGIN
 from django.shortcuts import redirect, render
 from django.template import loader
@@ -39,6 +41,7 @@ from axes.utils import reset
 from django_filters.views import FilterView
 
 from babybuddy import forms
+from babybuddy.models import Settings as UserSettingsModel
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin, StaffOnlyMixin
 from core.models import Child
 
@@ -90,6 +93,148 @@ class BabyBuddyFilterView(FilterView):
         if len(children) == 1:
             context["unique_child"] = True
         return context
+
+
+def _settings_ant_enabled():
+    return settings.BABY_BUDDY.get("SETTINGS_ANT_ENABLED", False)
+
+
+def _display_name(user):
+    return user.get_full_name() or user.username
+
+
+def _serialize_choice_value(field, value):
+    prepared = field.prepare_value(value)
+    if prepared in (None, "None"):
+        return ""
+    return str(prepared)
+
+
+def _serialize_field_choices(field):
+    return [
+        {"value": _serialize_choice_value(field, value), "label": str(label)}
+        for value, label in field.choices
+    ]
+
+
+def _build_settings_bootstrap(request, form_user, form_settings):
+    user_settings = request.user.settings
+    language_field = form_settings.fields["language"]
+    timezone_field = form_settings.fields["timezone"]
+    pagination_field = form_settings.fields["pagination_count"]
+    refresh_field = form_settings.fields["dashboard_refresh_rate"]
+    age_field = form_settings.fields["dashboard_hide_age"]
+
+    links = {
+        "apiBrowser": reverse("api:api-root"),
+        "sourceCode": "https://github.com/babybuddy/babybuddy",
+        "chatSupport": "https://gitter.im/babybuddy/Lobby",
+    }
+    if request.user.is_staff:
+        links["siteSettings"] = reverse("babybuddy:site_settings")
+        links["tags"] = reverse("core:tag-list")
+        links["users"] = reverse("babybuddy:user-list")
+        links["databaseAdmin"] = reverse("admin:index")
+
+    return {
+        "pageType": "settings",
+        "currentPath": request.path,
+        "locale": getattr(request, "LANGUAGE_CODE", "en"),
+        "csrfToken": get_token(request),
+        "user": {"displayName": _display_name(request.user)},
+        "urls": {
+            "dashboard": reverse("dashboard:dashboard"),
+            "timeline": reverse("core:timeline"),
+            "settings": reverse("babybuddy:user-settings"),
+            "logout": reverse("babybuddy:logout"),
+            "self": reverse("babybuddy:user-settings"),
+        },
+        "settings": {
+            "profile": {
+                "firstName": form_user.initial.get("first_name", ""),
+                "lastName": form_user.initial.get("last_name", ""),
+                "email": form_user.initial.get("email", ""),
+            },
+            "preferences": {
+                "language": _serialize_choice_value(
+                    language_field, user_settings.language
+                ),
+                "timezone": _serialize_choice_value(
+                    timezone_field, user_settings.timezone
+                ),
+                "paginationCount": _serialize_choice_value(
+                    pagination_field, user_settings.pagination_count
+                ),
+            },
+            "dashboard": {
+                "refreshRate": _serialize_choice_value(
+                    refresh_field, user_settings.dashboard_refresh_rate
+                ),
+                "hideEmpty": bool(user_settings.dashboard_hide_empty),
+                "hideAge": _serialize_choice_value(
+                    age_field, user_settings.dashboard_hide_age
+                ),
+                "visibleItems": user_settings.dashboard_selected_items(),
+                "availableItems": [
+                    {"value": key, "label": str(label)}
+                    for key, label in UserSettingsModel.DASHBOARD_ITEM_CHOICES
+                ],
+            },
+            "apiKey": str(user_settings.api_key()),
+            "choices": {
+                "language": _serialize_field_choices(language_field),
+                "timezone": _serialize_field_choices(timezone_field),
+                "paginationCount": _serialize_field_choices(pagination_field),
+                "refreshRate": _serialize_field_choices(refresh_field),
+                "hideAge": _serialize_field_choices(age_field),
+            },
+            "links": links,
+        },
+        "strings": {
+            "dashboard": _("Dashboard"),
+            "timeline": _("Timeline"),
+            "settings": _("Settings"),
+            "logout": _("Logout"),
+            "userSettings": _("User Settings"),
+            "profile": _("User Profile"),
+            "preferences": _("Preferences"),
+            "dashboardPreferences": _("Dashboard"),
+            "dashboardCards": _("Dashboard Sections & Cards"),
+            "api": _("API"),
+            "siteSupport": _("Site & Support"),
+            "site": _("Site"),
+            "support": _("Support"),
+            "firstName": _("First name"),
+            "lastName": _("Last name"),
+            "email": _("Email"),
+            "language": _("Language"),
+            "timezone": _("Timezone"),
+            "pagination": _("Items Per Page"),
+            "refreshRate": _("Refresh rate"),
+            "hideEmpty": _("Hide Empty Dashboard Cards"),
+            "hideAge": _("Hide data older than"),
+            "available": _("Available"),
+            "selected": _("Selected"),
+            "moveUp": _("Up"),
+            "moveDown": _("Down"),
+            "regenerate": _("Regenerate"),
+            "submit": _("Submit"),
+            "saving": _("Saving..."),
+            "saved": _("Saved"),
+            "saveFailed": _("Save failed"),
+            "apiBrowser": _("API Browser"),
+            "sourceCode": _("Source Code"),
+            "chatSupport": _("Chat / Support"),
+            "databaseAdmin": _("Database Admin"),
+            "tags": _("Tags"),
+            "users": _("Users"),
+            "siteSettings": _("Settings"),
+            "noItemsAvailable": _("No items available"),
+            "noItemsSelected": _("No items selected"),
+            "settingsSaved": _("Settings saved!"),
+            "apiKeyRegenerated": _("User API key regenerated."),
+        },
+    }
 
 
 class BabyBuddyPaginatedView(View):
@@ -232,19 +377,41 @@ class UserSettings(LoginRequiredMixin, View):
         return False, form_user, form_settings
 
     def get(self, request):
-        settings = request.user.settings
+        user_settings = request.user.settings
+        form_user = self.form_user_class(instance=request.user)
+        form_settings = self.form_settings_class(instance=user_settings)
+
+        if _settings_ant_enabled():
+            return render(
+                request,
+                "babybuddy/ant_app.html",
+                {
+                    "ant_page_title": _("User Settings"),
+                    "ant_bootstrap": _build_settings_bootstrap(
+                        request, form_user, form_settings
+                    ),
+                },
+            )
 
         return render(
             request,
             self.template_name,
             {
-                "form_user": self.form_user_class(instance=request.user),
-                "form_settings": self.form_settings_class(instance=settings),
+                "form_user": form_user,
+                "form_settings": form_settings,
             },
         )
 
     def post(self, request):
         if handle_api_regenerate_request(request):
+            if _settings_ant_enabled():
+                return JsonResponse(
+                    {
+                        "saved": True,
+                        "api_key": str(request.user.settings.api_key()),
+                        "message": str(_("User API key regenerated.")),
+                    }
+                )
             return redirect("babybuddy:user-settings")
         if request.POST.get("action") == "autosave_all_settings":
             ok, form_user, form_settings = self._save_forms(request)
@@ -319,7 +486,14 @@ class UserSettings(LoginRequiredMixin, View):
             translation.activate(request.user.settings.language)
             messages.success(request, _("Settings saved!"))
             translation.deactivate()
+            if _settings_ant_enabled():
+                return JsonResponse({"saved": True, "redirect": reverse("babybuddy:user-settings")})
             return set_language(request)
+        if _settings_ant_enabled():
+            errors = {}
+            errors.update(form_user.errors.get_json_data())
+            errors.update(form_settings.errors.get_json_data())
+            return JsonResponse({"saved": False, "errors": errors}, status=400)
         return render(
             request,
             self.template_name,

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   App as AntApp,
+  Alert,
   Badge,
   Button,
   Card,
@@ -8,9 +9,12 @@ import {
   ConfigProvider,
   Drawer,
   Empty,
+  Form,
   Grid,
   Image,
+  Input,
   Layout,
+  List,
   Menu,
   Row,
   Select,
@@ -18,6 +22,7 @@ import {
   Space,
   Spin,
   Statistic,
+  Switch,
   Tag,
   theme,
   Typography
@@ -189,6 +194,24 @@ function AppShell({ bootstrap, children }) {
     />
   );
 
+  const pageMeta = {
+    "dashboard-home": {
+      eyebrow: bootstrap.strings.overview,
+      title: bootstrap.strings.dashboard
+    },
+    "dashboard-child": {
+      eyebrow: bootstrap.strings.childDashboard,
+      title: bootstrap.currentChild?.name || bootstrap.strings.dashboard
+    },
+    settings: {
+      eyebrow: bootstrap.strings.settings,
+      title: bootstrap.strings.userSettings
+    }
+  }[bootstrap.pageType] || {
+    eyebrow: bootstrap.strings.dashboard,
+    title: bootstrap.strings.dashboard
+  };
+
   return (
     <Layout className="ant-shell">
       {isDesktop ? (
@@ -236,9 +259,9 @@ function AppShell({ bootstrap, children }) {
               />
             )}
             <div>
-              <Text type="secondary">{bootstrap.strings.childDashboard}</Text>
+              <Text type="secondary">{pageMeta.eyebrow}</Text>
               <Title level={3} style={{ margin: 0, color: "#f8fafc" }}>
-                {bootstrap.user.displayName}
+                {pageMeta.title}
               </Title>
             </div>
           </Space>
@@ -306,6 +329,395 @@ function DashboardHomePage({ bootstrap }) {
           </Col>
         ))}
       </Row>
+    </Space>
+  );
+}
+
+function SettingsCardPicker({ bootstrap, selectedItems, setSelectedItems, statusText }) {
+  const [activeAvailable, setActiveAvailable] = useState(null);
+  const [activeSelected, setActiveSelected] = useState(null);
+  const availableItems = bootstrap.settings.dashboard.availableItems.filter(
+    (item) => !selectedItems.includes(item.value)
+  );
+
+  function addItem(value) {
+    if (!value || selectedItems.includes(value)) {
+      return;
+    }
+    setSelectedItems([...selectedItems, value]);
+    setActiveAvailable(null);
+  }
+
+  function removeItem(value) {
+    setSelectedItems(selectedItems.filter((item) => item !== value));
+    setActiveSelected(null);
+  }
+
+  function moveItem(direction) {
+    if (!activeSelected) {
+      return;
+    }
+    const index = selectedItems.indexOf(activeSelected);
+    if (index === -1) {
+      return;
+    }
+    const nextItems = [...selectedItems];
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= nextItems.length) {
+      return;
+    }
+    [nextItems[index], nextItems[swapIndex]] = [nextItems[swapIndex], nextItems[index]];
+    setSelectedItems(nextItems);
+  }
+
+  function labelFor(value) {
+    return (
+      bootstrap.settings.dashboard.availableItems.find((item) => item.value === value)?.label ||
+      value
+    );
+  }
+
+  return (
+    <Card className="ant-section-card" title={bootstrap.strings.dashboardCards}>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={10}>
+          <Text type="secondary">{bootstrap.strings.available}</Text>
+          <List
+            className="ant-picker-list"
+            bordered
+            locale={{ emptyText: bootstrap.strings.noItemsAvailable }}
+            dataSource={availableItems}
+            renderItem={(item) => (
+              <List.Item
+                className={activeAvailable === item.value ? "is-active" : ""}
+                actions={[
+                  <Button type="link" key="add" onClick={() => addItem(item.value)}>
+                    +
+                  </Button>
+                ]}
+                onClick={() => setActiveAvailable(item.value)}
+              >
+                {item.label}
+              </List.Item>
+            )}
+          />
+        </Col>
+        <Col xs={24} lg={4}>
+          <Space
+            direction="vertical"
+            style={{ width: "100%", justifyContent: "center", height: "100%" }}
+          >
+            <Button block onClick={() => addItem(activeAvailable)} disabled={!activeAvailable}>
+              &gt;
+            </Button>
+            <Button
+              block
+              onClick={() => {
+                if (availableItems.length) {
+                  setSelectedItems([
+                    ...selectedItems,
+                    ...availableItems.map((item) => item.value)
+                  ]);
+                }
+              }}
+              disabled={!availableItems.length}
+            >
+              &gt;&gt;
+            </Button>
+            <Button
+              block
+              onClick={() => setSelectedItems([])}
+              disabled={!selectedItems.length}
+            >
+              &lt;&lt;
+            </Button>
+            <Button
+              block
+              onClick={() => removeItem(activeSelected)}
+              disabled={!activeSelected}
+            >
+              &lt;
+            </Button>
+            <Button block onClick={() => moveItem("up")} disabled={!activeSelected}>
+              {bootstrap.strings.moveUp}
+            </Button>
+            <Button block onClick={() => moveItem("down")} disabled={!activeSelected}>
+              {bootstrap.strings.moveDown}
+            </Button>
+          </Space>
+        </Col>
+        <Col xs={24} lg={10}>
+          <Text type="secondary">{bootstrap.strings.selected}</Text>
+          <List
+            className="ant-picker-list"
+            bordered
+            locale={{ emptyText: bootstrap.strings.noItemsSelected }}
+            dataSource={selectedItems}
+            renderItem={(value) => (
+              <List.Item
+                className={activeSelected === value ? "is-active" : ""}
+                actions={[
+                  <Button type="link" key="remove" onClick={() => removeItem(value)}>
+                    −
+                  </Button>
+                ]}
+                onClick={() => setActiveSelected(value)}
+              >
+                {labelFor(value)}
+              </List.Item>
+            )}
+          />
+        </Col>
+      </Row>
+      <Text type="secondary" style={{ display: "block", marginTop: 12 }}>
+        {statusText}
+      </Text>
+    </Card>
+  );
+}
+
+function SettingsPage({ bootstrap }) {
+  const ant = AntApp.useApp();
+  const api = useRef(createApiClient(bootstrap.csrfToken));
+  const [form] = Form.useForm();
+  const [selectedItems, setSelectedItems] = useState(
+    bootstrap.settings.dashboard.visibleItems
+  );
+  const [statusText, setStatusText] = useState(bootstrap.strings.saved);
+  const [apiKey, setApiKey] = useState(bootstrap.settings.apiKey);
+  const [errorText, setErrorText] = useState("");
+
+  useEffect(() => {
+    form.setFieldsValue({
+      first_name: bootstrap.settings.profile.firstName,
+      last_name: bootstrap.settings.profile.lastName,
+      email: bootstrap.settings.profile.email,
+      language: bootstrap.settings.preferences.language,
+      timezone: bootstrap.settings.preferences.timezone,
+      pagination_count: bootstrap.settings.preferences.paginationCount,
+      dashboard_refresh_rate: bootstrap.settings.dashboard.refreshRate,
+      dashboard_hide_empty: bootstrap.settings.dashboard.hideEmpty,
+      dashboard_hide_age: bootstrap.settings.dashboard.hideAge
+    });
+  }, [bootstrap, form]);
+
+  function choiceOptions(key) {
+    return bootstrap.settings.choices[key].map((choice) => ({
+      value: choice.value,
+      label: choice.label
+    }));
+  }
+
+  async function saveSettings(values) {
+    setStatusText(bootstrap.strings.saving);
+    setErrorText("");
+    const payload = new URLSearchParams();
+    payload.set("action", "autosave_all_settings");
+    payload.set("first_name", values.first_name || "");
+    payload.set("last_name", values.last_name || "");
+    payload.set("email", values.email || "");
+    payload.set("language", values.language || "");
+    payload.set("timezone", values.timezone || "");
+    payload.set("pagination_count", values.pagination_count || "");
+    payload.set("dashboard_refresh_rate", values.dashboard_refresh_rate || "");
+    payload.set("dashboard_hide_age", values.dashboard_hide_age || "");
+    payload.set("dashboard_visible_items", selectedItems.join(","));
+    if (values.dashboard_hide_empty) {
+      payload.set("dashboard_hide_empty", "on");
+    }
+    payload.set("next", bootstrap.urls.self);
+
+    const response = await api.current.postForm(bootstrap.urls.self, payload);
+    const data = await response.json();
+    if (!response.ok || !data.saved) {
+      const firstKey = Object.keys(data.errors || {})[0];
+      const firstError = firstKey ? data.errors[firstKey]?.[0]?.message : bootstrap.strings.saveFailed;
+      setStatusText(bootstrap.strings.saveFailed);
+      setErrorText(firstError || bootstrap.strings.saveFailed);
+      return;
+    }
+    setStatusText(bootstrap.strings.saved);
+    ant.message.success(bootstrap.strings.settingsSaved);
+  }
+
+  async function regenerateApiKey() {
+    const payload = new URLSearchParams();
+    payload.set("api_key_regenerate", "1");
+    const response = await api.current.postForm(bootstrap.urls.self, payload);
+    const data = await response.json();
+    if (response.ok && data.api_key) {
+      setApiKey(data.api_key);
+      ant.message.success(data.message || bootstrap.strings.apiKeyRegenerated);
+      return;
+    }
+    ant.message.error(bootstrap.strings.saveFailed);
+  }
+
+  const siteLinks = [
+    {
+      key: "apiBrowser",
+      label: bootstrap.strings.apiBrowser,
+      href: bootstrap.settings.links.apiBrowser
+    },
+    bootstrap.settings.links.siteSettings
+      ? {
+          key: "siteSettings",
+          label: bootstrap.strings.siteSettings,
+          href: bootstrap.settings.links.siteSettings
+        }
+      : null,
+    bootstrap.settings.links.tags
+      ? { key: "tags", label: bootstrap.strings.tags, href: bootstrap.settings.links.tags }
+      : null,
+    bootstrap.settings.links.users
+      ? {
+          key: "users",
+          label: bootstrap.strings.users,
+          href: bootstrap.settings.links.users
+        }
+      : null,
+    bootstrap.settings.links.databaseAdmin
+      ? {
+          key: "databaseAdmin",
+          label: bootstrap.strings.databaseAdmin,
+          href: bootstrap.settings.links.databaseAdmin
+        }
+      : null
+  ].filter(Boolean);
+
+  const supportLinks = [
+    {
+      key: "sourceCode",
+      label: bootstrap.strings.sourceCode,
+      href: bootstrap.settings.links.sourceCode
+    },
+    {
+      key: "chatSupport",
+      label: bootstrap.strings.chatSupport,
+      href: bootstrap.settings.links.chatSupport
+    }
+  ];
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Space direction="vertical" size={6}>
+          <Text type="secondary">{bootstrap.strings.settings}</Text>
+          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+            {bootstrap.strings.userSettings}
+          </Title>
+          <Text style={{ color: "#cbd5e1" }}>
+            Ant Design settings now replace the previous template-based profile panel.
+          </Text>
+        </Space>
+      </Card>
+
+      {errorText ? <Alert type="error" message={errorText} showIcon /> : null}
+
+      <Form layout="vertical" form={form} onFinish={saveSettings}>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} xl={12}>
+            <Card className="ant-section-card" title={bootstrap.strings.profile}>
+              <Form.Item name="first_name" label={bootstrap.strings.firstName}>
+                <Input />
+              </Form.Item>
+              <Form.Item name="last_name" label={bootstrap.strings.lastName}>
+                <Input />
+              </Form.Item>
+              <Form.Item name="email" label={bootstrap.strings.email}>
+                <Input type="email" />
+              </Form.Item>
+            </Card>
+          </Col>
+          <Col xs={24} xl={12}>
+            <Card className="ant-section-card" title={bootstrap.strings.preferences}>
+              <Form.Item name="language" label={bootstrap.strings.language}>
+                <Select options={choiceOptions("language")} />
+              </Form.Item>
+              <Form.Item name="timezone" label={bootstrap.strings.timezone}>
+                <Select
+                  showSearch
+                  options={choiceOptions("timezone")}
+                  optionFilterProp="label"
+                />
+              </Form.Item>
+              <Form.Item name="pagination_count" label={bootstrap.strings.pagination}>
+                <Select options={choiceOptions("paginationCount")} />
+              </Form.Item>
+            </Card>
+          </Col>
+          <Col xs={24} xl={12}>
+            <Card className="ant-section-card" title={bootstrap.strings.dashboardPreferences}>
+              <Form.Item name="dashboard_refresh_rate" label={bootstrap.strings.refreshRate}>
+                <Select options={choiceOptions("refreshRate")} />
+              </Form.Item>
+              <Form.Item name="dashboard_hide_age" label={bootstrap.strings.hideAge}>
+                <Select options={choiceOptions("hideAge")} />
+              </Form.Item>
+              <Form.Item
+                name="dashboard_hide_empty"
+                label={bootstrap.strings.hideEmpty}
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            </Card>
+          </Col>
+          <Col xs={24} xl={12}>
+            <Card className="ant-section-card" title={bootstrap.strings.api}>
+              <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                <Input value={apiKey} readOnly />
+                <Button danger onClick={regenerateApiKey}>
+                  {bootstrap.strings.regenerate}
+                </Button>
+              </Space>
+            </Card>
+          </Col>
+          <Col xs={24}>
+            <SettingsCardPicker
+              bootstrap={bootstrap}
+              selectedItems={selectedItems}
+              setSelectedItems={setSelectedItems}
+              statusText={statusText}
+            />
+          </Col>
+          <Col xs={24}>
+            <Card className="ant-section-card" title={bootstrap.strings.siteSupport}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={12}>
+                  <Text type="secondary">{bootstrap.strings.site}</Text>
+                  <List
+                    className="ant-link-list"
+                    dataSource={siteLinks}
+                    renderItem={(item) => (
+                      <List.Item>
+                        <a href={item.href}>{item.label}</a>
+                      </List.Item>
+                    )}
+                  />
+                </Col>
+                <Col xs={24} md={12}>
+                  <Text type="secondary">{bootstrap.strings.support}</Text>
+                  <List
+                    className="ant-link-list"
+                    dataSource={supportLinks}
+                    renderItem={(item) => (
+                      <List.Item>
+                        <a href={item.href}>{item.label}</a>
+                      </List.Item>
+                    )}
+                  />
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        </Row>
+        <div style={{ marginTop: 20 }}>
+          <Button type="primary" htmlType="submit" size="large">
+            {bootstrap.strings.submit}
+          </Button>
+        </div>
+      </Form>
     </Space>
   );
 }
@@ -861,6 +1273,8 @@ export function App({ bootstrap }) {
         <AppShell bootstrap={bootstrap}>
           {bootstrap.pageType === "dashboard-home" ? (
             <DashboardHomePage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "settings" ? (
+            <SettingsPage bootstrap={bootstrap} />
           ) : (
             <ChildDashboardPage bootstrap={bootstrap} />
           )}
