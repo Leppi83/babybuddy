@@ -24,14 +24,21 @@ export const SECTION_META = {
   tummytime: { color: "#5cdb8b" },
 };
 
+export const APP_DATE_FORMAT = "MM.DD.";
+export const APP_TIME_FORMAT = "HH:mm";
+export const APP_DATE_TIME_FORMAT = `${APP_DATE_FORMAT} ${APP_TIME_FORMAT}`;
+
 export const DASHBOARD_CARD_TITLES = {
   "card.diaper.quick_entry": "Quick Entry",
+  "card.feedings.quick_entry": "Quick Feeding",
+  "card.feedings.breast_quick_entry": "Quick Breastfeeding",
   "card.diaper.last": "Last Nappy Change",
   "card.diaper.types": "Nappy Changes",
   "card.feedings.last": "Last Feeding",
   "card.feedings.method": "Last Feeding Method",
   "card.feedings.recent": "Recent Feedings",
   "card.feedings.breastfeeding": "Breastfeeding",
+  "card.pumpings.quick_entry": "Quick Pumping",
   "card.pumpings.last": "Last Pumping",
   "card.sleep.timers": "Timers",
   "card.sleep.quick_timer": "Sleep Timer",
@@ -334,9 +341,64 @@ export function formatElapsedSeconds(totalSeconds) {
   const hours = Math.floor(safeSeconds / 3600);
   const minutes = Math.floor((safeSeconds % 3600) / 60);
   const seconds = safeSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
 
-  if (hours > 0) {
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+export function formatAppDate(value) {
+  return value ? dayjs(value).format(APP_DATE_FORMAT) : "n/a";
+}
+
+export function formatAppTime(value) {
+  return value ? dayjs(value).format(APP_TIME_FORMAT) : "n/a";
+}
+
+export function formatAppDateTime(value) {
+  return value ? dayjs(value).format(APP_DATE_TIME_FORMAT) : "n/a";
+}
+
+export function durationMinutesFromValue(value) {
+  if (value == null || value === "") {
+    return 0;
   }
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? Math.round(value / 60) : 0;
+  }
+
+  if (typeof value === "string") {
+    const raw = value.trim();
+    if (!raw) {
+      return 0;
+    }
+
+    if (!Number.isNaN(Number(raw))) {
+      return Math.round(Number(raw) / 60);
+    }
+
+    const match = raw.match(
+      /^(?:(?<days>\d+)\s+)?(?<hours>\d+):(?<minutes>\d+):(?<seconds>\d+)(?:\.\d+)?$/,
+    );
+    if (match?.groups) {
+      const days = Number(match.groups.days || 0);
+      const hours = Number(match.groups.hours || 0);
+      const minutes = Number(match.groups.minutes || 0);
+      const seconds = Number(match.groups.seconds || 0);
+      const totalSeconds =
+        days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60 + seconds;
+      return Math.round(totalSeconds / 60);
+    }
+  }
+
+  return 0;
+}
+
+export function formatDurationCompact(value) {
+  const minutes = durationMinutesFromValue(value);
+  if (minutes < 90) {
+    return `${minutes} min`;
+  }
+
+  const hours = minutes / 60;
+  const precision = Number.isInteger(hours) ? 0 : 1;
+  return `${hours.toFixed(precision)} h`;
 }

@@ -3,10 +3,12 @@ import dayjs from "dayjs";
 import {
   App as AntApp,
   Alert,
+  Avatar,
   Badge,
   Button,
   Card,
   Col,
+  DatePicker,
   Empty,
   Form,
   Input,
@@ -19,18 +21,29 @@ import {
   Statistic,
   Switch,
   Tag,
+  TimePicker,
   Typography,
 } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import {
   asItems,
+  APP_DATE_FORMAT,
+  APP_TIME_FORMAT,
   createApiClient,
   DASHBOARD_CARD_TITLES,
+  durationMinutesFromValue,
+  formatAppDateTime,
+  formatAppTime,
+  formatDurationCompact,
   formatElapsedSeconds,
   SECTION_META,
 } from "../lib/app-utils";
 
 const { Text, Title } = Typography;
+
+function formatMinuteValue(minutes) {
+  return Number.isFinite(minutes) ? minutes : 0;
+}
 
 function SettingsCardPicker({
   bootstrap,
@@ -545,17 +558,14 @@ function MiniTimeline({ items, locale, currentTime, strings }) {
     }
 
     const height = Math.max(10, Math.round((bestMinutes / 60) * 100));
+    const durationLabel = formatDurationCompact(
+      best.duration || bestMinutes * 60,
+    );
     return (
       <div
         className={`ant-timeline-bar ${best.nap ? "nap" : "sleep"}`}
         style={{ height: `${height}%` }}
-        title={`${new Intl.DateTimeFormat(locale, {
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(new Date(best.start))} - ${new Intl.DateTimeFormat(locale, {
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(new Date(best.end))}`}
+        title={`${formatAppTime(best.start)} - ${formatAppTime(best.end)} • ${durationLabel}`}
       />
     );
   }
@@ -573,7 +583,9 @@ function MiniTimeline({ items, locale, currentTime, strings }) {
         </span>
         <span className="ant-timeline-legend-item">
           <i className="ant-timeline-legend-dot now" />
-          <span>{strings.now}</span>
+          <span>
+            {strings.now} {formatAppTime(now)}
+          </span>
         </span>
       </div>
       <div className="ant-timeline-stage">
@@ -613,8 +625,27 @@ export function ChildDashboardPage({ bootstrap }) {
   const [diaperDate, setDiaperDate] = useState(dayjs());
   const [diaperTime, setDiaperTime] = useState(dayjs());
   const [diaperConsistency, setDiaperConsistency] = useState("liquid");
+  const [feedingStartDate, setFeedingStartDate] = useState(dayjs());
+  const [feedingStartTime, setFeedingStartTime] = useState(dayjs());
+  const [feedingEndDate, setFeedingEndDate] = useState(dayjs());
+  const [feedingEndTime, setFeedingEndTime] = useState(dayjs());
+  const [feedingType, setFeedingType] = useState("breast_milk");
+  const [breastfeedingStartDate, setBreastfeedingStartDate] = useState(dayjs());
+  const [breastfeedingStartTime, setBreastfeedingStartTime] = useState(dayjs());
+  const [breastfeedingEndDate, setBreastfeedingEndDate] = useState(dayjs());
+  const [breastfeedingEndTime, setBreastfeedingEndTime] = useState(dayjs());
+  const [breastfeedingSide, setBreastfeedingSide] = useState("left");
+  const [pumpingStartDate, setPumpingStartDate] = useState(dayjs());
+  const [pumpingStartTime, setPumpingStartTime] = useState(dayjs());
+  const [pumpingEndDate, setPumpingEndDate] = useState(dayjs());
+  const [pumpingEndTime, setPumpingEndTime] = useState(dayjs());
+  const [pumpingAmount, setPumpingAmount] = useState("");
+  const [pumpingSide, setPumpingSide] = useState("left");
   const [sleepTimer, setSleepTimer] = useState(bootstrap.sleepTimer || {});
   const [submittingDiaper, setSubmittingDiaper] = useState(false);
+  const [submittingFeeding, setSubmittingFeeding] = useState(false);
+  const [submittingBreastfeeding, setSubmittingBreastfeeding] = useState(false);
+  const [submittingPumping, setSubmittingPumping] = useState(false);
   const [submittingSleepTimer, setSubmittingSleepTimer] = useState(false);
   const [submittingSleepEntry, setSubmittingSleepEntry] = useState(false);
   const [sleepEntryStartDate, setSleepEntryStartDate] = useState(dayjs());
@@ -667,31 +698,8 @@ export function ChildDashboardPage({ bootstrap }) {
     persistHidden(nextHidden);
   }
 
-  function formatDateTime(value) {
-    if (!value) {
-      return "n/a";
-    }
-    return new Intl.DateTimeFormat(locale, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(value));
-  }
-
-  function formatTime(value) {
-    if (!value) {
-      return "n/a";
-    }
-    return new Intl.DateTimeFormat(locale, {
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(value));
-  }
-
   function durationMinutes(value) {
-    if (value == null) {
-      return 0;
-    }
-    return Math.round(Number(value) / 60);
+    return durationMinutesFromValue(value);
   }
 
   function isToday(value) {
@@ -748,6 +756,9 @@ export function ChildDashboardPage({ bootstrap }) {
       const napsToday = sleepItems.filter(
         (item) => isToday(item.start) && item.nap,
       );
+      const validSleepItems = sleepItems.filter(
+        (item) => durationMinutes(item.duration) > 0,
+      );
 
       const methodCounts = feedingItems.reduce((result, item) => {
         const key = item.method || "unknown";
@@ -763,7 +774,7 @@ export function ChildDashboardPage({ bootstrap }) {
           <Space direction="vertical" size={4}>
             <Statistic
               title="Last recorded"
-              value={formatDateTime(lastChange.time)}
+              value={formatAppDateTime(lastChange.time)}
             />
             <Space wrap>
               <Tag color={lastChange.wet ? "blue" : "default"}>Wet</Tag>
@@ -785,14 +796,16 @@ export function ChildDashboardPage({ bootstrap }) {
             <Text type="secondary">{changeItems.length} recent entries</Text>
           </Space>
         ),
+        "card.feedings.quick_entry": null,
+        "card.feedings.breast_quick_entry": null,
         "card.feedings.last": lastFeeding ? (
           <Space direction="vertical" size={4}>
             <Statistic
               title="Duration"
-              value={durationMinutes(lastFeeding.duration)}
+              value={formatMinuteValue(durationMinutes(lastFeeding.duration))}
               suffix="min"
             />
-            <Text type="secondary">{formatDateTime(lastFeeding.start)}</Text>
+            <Text type="secondary">{formatAppDateTime(lastFeeding.start)}</Text>
           </Space>
         ) : (
           <Empty
@@ -831,14 +844,16 @@ export function ChildDashboardPage({ bootstrap }) {
             />
           </Space>
         ),
+        "card.pumpings.quick_entry": null,
         "card.pumpings.last": lastPumping ? (
           <Space direction="vertical" size={4}>
             <Statistic
               title="Last pumping"
-              value={durationMinutes(lastPumping.duration)}
+              value={formatMinuteValue(durationMinutes(lastPumping.duration))}
               suffix="min"
             />
-            <Text type="secondary">{formatDateTime(lastPumping.start)}</Text>
+            <Text type="secondary">{formatAppDateTime(lastPumping.start)}</Text>
+            {lastPumping.side ? <Tag>{lastPumping.side}</Tag> : null}
           </Space>
         ) : (
           <Empty
@@ -851,7 +866,7 @@ export function ChildDashboardPage({ bootstrap }) {
             <Statistic title="Timers" value={timerItems.length} />
             <Text type="secondary">
               {timerItems[0]
-                ? formatTime(timerItems[0].start)
+                ? formatAppTime(timerItems[0].start)
                 : bootstrap.strings.noData}
             </Text>
           </Space>
@@ -861,12 +876,12 @@ export function ChildDashboardPage({ bootstrap }) {
           <Space direction="vertical" size={4}>
             <Statistic
               title={lastSleep.nap ? "Nap" : "Sleep"}
-              value={durationMinutes(lastSleep.duration)}
+              value={formatMinuteValue(durationMinutes(lastSleep.duration))}
               suffix="min"
             />
             <Text type="secondary">
-              {formatDateTime(lastSleep.start)} -{" "}
-              {formatDateTime(lastSleep.end)}
+              {formatAppDateTime(lastSleep.start)} -{" "}
+              {formatAppDateTime(lastSleep.end)}
             </Text>
           </Space>
         ) : (
@@ -882,7 +897,7 @@ export function ChildDashboardPage({ bootstrap }) {
               <br />
               <Text type="secondary">
                 {recommendations.nap?.ideal
-                  ? `Ideal ${formatTime(recommendations.nap.ideal)}`
+                  ? `Ideal ${formatAppTime(recommendations.nap.ideal)}`
                   : bootstrap.strings.noData}
               </Text>
             </Card>
@@ -891,7 +906,7 @@ export function ChildDashboardPage({ bootstrap }) {
               <br />
               <Text type="secondary">
                 {recommendations.bedtime?.target_bedtime
-                  ? `Target ${formatTime(recommendations.bedtime.target_bedtime)}`
+                  ? `Target ${formatAppTime(recommendations.bedtime.target_bedtime)}`
                   : bootstrap.strings.noData}
               </Text>
             </Card>
@@ -930,12 +945,12 @@ export function ChildDashboardPage({ bootstrap }) {
             <Statistic
               title="Average sleep"
               value={
-                sleepItems.length
+                validSleepItems.length
                   ? Math.round(
-                      sleepItems.reduce(
+                      validSleepItems.reduce(
                         (acc, item) => acc + durationMinutes(item.duration),
                         0,
-                      ) / sleepItems.length,
+                      ) / validSleepItems.length,
                     )
                   : 0
               }
@@ -1025,6 +1040,103 @@ export function ChildDashboardPage({ bootstrap }) {
     }
   }
 
+  async function submitFeedingEntry() {
+    const payload = new URLSearchParams();
+    payload.set("feeding_quick_entry_action", "create");
+    payload.set(
+      "feeding_entry_start_date",
+      feedingStartDate.format("YYYY-MM-DD"),
+    );
+    payload.set("feeding_entry_start_time", feedingStartTime.format("HH:mm"));
+    payload.set("feeding_entry_end_date", feedingEndDate.format("YYYY-MM-DD"));
+    payload.set("feeding_entry_end_time", feedingEndTime.format("HH:mm"));
+    payload.set("feeding_entry_type", feedingType);
+
+    setSubmittingFeeding(true);
+    try {
+      const response = await api.current.postForm(
+        bootstrap.urls.current,
+        payload,
+      );
+      if (response.ok) {
+        ant.message.success(bootstrap.strings.feedingSaved);
+        await loadDashboardData(selectedChildId);
+        return;
+      }
+      ant.message.error(bootstrap.strings.saveFailed);
+    } finally {
+      setSubmittingFeeding(false);
+    }
+  }
+
+  async function submitBreastfeedingEntry() {
+    const payload = new URLSearchParams();
+    payload.set("breastfeeding_quick_entry_action", "create");
+    payload.set(
+      "breastfeeding_entry_start_date",
+      breastfeedingStartDate.format("YYYY-MM-DD"),
+    );
+    payload.set(
+      "breastfeeding_entry_start_time",
+      breastfeedingStartTime.format("HH:mm"),
+    );
+    payload.set(
+      "breastfeeding_entry_end_date",
+      breastfeedingEndDate.format("YYYY-MM-DD"),
+    );
+    payload.set(
+      "breastfeeding_entry_end_time",
+      breastfeedingEndTime.format("HH:mm"),
+    );
+    payload.set("breastfeeding_entry_side", breastfeedingSide);
+
+    setSubmittingBreastfeeding(true);
+    try {
+      const response = await api.current.postForm(
+        bootstrap.urls.current,
+        payload,
+      );
+      if (response.ok) {
+        ant.message.success(bootstrap.strings.breastfeedingSaved);
+        await loadDashboardData(selectedChildId);
+        return;
+      }
+      ant.message.error(bootstrap.strings.saveFailed);
+    } finally {
+      setSubmittingBreastfeeding(false);
+    }
+  }
+
+  async function submitPumpingEntry() {
+    const payload = new URLSearchParams();
+    payload.set("pumping_quick_entry_action", "create");
+    payload.set(
+      "pumping_entry_start_date",
+      pumpingStartDate.format("YYYY-MM-DD"),
+    );
+    payload.set("pumping_entry_start_time", pumpingStartTime.format("HH:mm"));
+    payload.set("pumping_entry_end_date", pumpingEndDate.format("YYYY-MM-DD"));
+    payload.set("pumping_entry_end_time", pumpingEndTime.format("HH:mm"));
+    payload.set("pumping_entry_amount", pumpingAmount);
+    payload.set("pumping_entry_side", pumpingSide);
+
+    setSubmittingPumping(true);
+    try {
+      const response = await api.current.postForm(
+        bootstrap.urls.current,
+        payload,
+      );
+      if (response.ok) {
+        ant.message.success(bootstrap.strings.pumpingSaved);
+        await loadDashboardData(selectedChildId);
+        return;
+      }
+      ant.message.error(bootstrap.strings.saveFailed);
+    } finally {
+      setSubmittingPumping(false);
+    }
+  }
+
   async function submitSleepEntry() {
     const payload = new URLSearchParams();
     payload.set("sleep_manual_entry_action", "create");
@@ -1052,6 +1164,70 @@ export function ChildDashboardPage({ bootstrap }) {
     } finally {
       setSubmittingSleepEntry(false);
     }
+  }
+
+  function renderDateTimeInputs({
+    startDate,
+    setStartDate,
+    startTime,
+    setStartTime,
+    endDate,
+    setEndDate,
+    endTime,
+    setEndTime,
+  }) {
+    return (
+      <>
+        <Row gutter={8}>
+          <Col span={12}>
+            <label className="ant-dashboard-inline-label">
+              {bootstrap.strings.startDate}
+            </label>
+            <DatePicker
+              value={startDate}
+              format={APP_DATE_FORMAT}
+              onChange={(value) => value && setStartDate(value)}
+              className="ant-dashboard-picker"
+            />
+          </Col>
+          <Col span={12}>
+            <label className="ant-dashboard-inline-label">
+              {bootstrap.strings.startTime}
+            </label>
+            <TimePicker
+              value={startTime}
+              format={APP_TIME_FORMAT}
+              onChange={(value) => value && setStartTime(value)}
+              className="ant-dashboard-picker"
+            />
+          </Col>
+        </Row>
+        <Row gutter={8}>
+          <Col span={12}>
+            <label className="ant-dashboard-inline-label">
+              {bootstrap.strings.endDate}
+            </label>
+            <DatePicker
+              value={endDate}
+              format={APP_DATE_FORMAT}
+              onChange={(value) => value && setEndDate(value)}
+              className="ant-dashboard-picker"
+            />
+          </Col>
+          <Col span={12}>
+            <label className="ant-dashboard-inline-label">
+              {bootstrap.strings.endTime}
+            </label>
+            <TimePicker
+              value={endTime}
+              format={APP_TIME_FORMAT}
+              onChange={(value) => value && setEndTime(value)}
+              className="ant-dashboard-picker"
+            />
+          </Col>
+        </Row>
+      </>
+    );
   }
 
   function renderSleepTimerCard() {
@@ -1083,9 +1259,6 @@ export function ChildDashboardPage({ bootstrap }) {
               ? bootstrap.strings.running
               : bootstrap.strings.ready}
           </Tag>
-          {sleepTimer.running && (
-            <Text type="secondary">{bootstrap.strings.sleepTimerActive}</Text>
-          )}
         </Space>
         <Button
           type="primary"
@@ -1105,66 +1278,16 @@ export function ChildDashboardPage({ bootstrap }) {
           style={{ width: "100%" }}
         >
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            <Row gutter={8}>
-              <Col span={12}>
-                <label className="ant-dashboard-inline-label">
-                  {bootstrap.strings.startDate}
-                </label>
-                <input
-                  type="date"
-                  value={sleepEntryStartDate.format("YYYY-MM-DD")}
-                  onChange={(event) =>
-                    setSleepEntryStartDate(dayjs(event.target.value))
-                  }
-                  className="ant-native-input"
-                />
-              </Col>
-              <Col span={12}>
-                <label className="ant-dashboard-inline-label">
-                  {bootstrap.strings.startTime}
-                </label>
-                <input
-                  type="time"
-                  value={sleepEntryStartTime.format("HH:mm")}
-                  onChange={(event) =>
-                    setSleepEntryStartTime(
-                      dayjs(`2000-01-01T${event.target.value}`),
-                    )
-                  }
-                  className="ant-native-input"
-                />
-              </Col>
-            </Row>
-            <Row gutter={8}>
-              <Col span={12}>
-                <label className="ant-dashboard-inline-label">
-                  {bootstrap.strings.endDate}
-                </label>
-                <input
-                  type="date"
-                  value={sleepEntryEndDate.format("YYYY-MM-DD")}
-                  onChange={(event) =>
-                    setSleepEntryEndDate(dayjs(event.target.value))
-                  }
-                  className="ant-native-input"
-                />
-              </Col>
-              <Col span={12}>
-                <label className="ant-dashboard-inline-label">
-                  {bootstrap.strings.endTime}
-                </label>
-                <input
-                  type="time"
-                  value={sleepEntryEndTime.format("HH:mm")}
-                  onChange={(event) =>
-                    setSleepEntryEndTime(
-                      dayjs(`2000-01-01T${event.target.value}`),
-                    )
-                  }
-                  className="ant-native-input"
-                />
-              </Col>
-            </Row>
+            {renderDateTimeInputs({
+              startDate: sleepEntryStartDate,
+              setStartDate: setSleepEntryStartDate,
+              startTime: sleepEntryStartTime,
+              setStartTime: setSleepEntryStartTime,
+              endDate: sleepEntryEndDate,
+              setEndDate: setSleepEntryEndDate,
+              endTime: sleepEntryEndTime,
+              setEndTime: setSleepEntryEndTime,
+            })}
             <Segmented
               block
               value={sleepEntryType}
@@ -1185,6 +1308,130 @@ export function ChildDashboardPage({ bootstrap }) {
             </Button>
           </Space>
         </Card>
+      </Space>
+    );
+  }
+
+  function renderFeedingQuickCard() {
+    return (
+      <Space direction="vertical" size={12} style={{ width: "100%" }}>
+        {renderDateTimeInputs({
+          startDate: feedingStartDate,
+          setStartDate: setFeedingStartDate,
+          startTime: feedingStartTime,
+          setStartTime: setFeedingStartTime,
+          endDate: feedingEndDate,
+          setEndDate: setFeedingEndDate,
+          endTime: feedingEndTime,
+          setEndTime: setFeedingEndTime,
+        })}
+        <Segmented
+          block
+          value={feedingType}
+          options={[
+            { label: bootstrap.strings.solid, value: "solid" },
+            { label: bootstrap.strings.babyFood, value: "baby_food" },
+            { label: bootstrap.strings.breastMilk, value: "breast_milk" },
+          ]}
+          onChange={setFeedingType}
+        />
+        <Button
+          type="primary"
+          size="large"
+          loading={submittingFeeding}
+          onClick={submitFeedingEntry}
+          className="ant-diaper-save"
+        >
+          {bootstrap.strings.save}
+        </Button>
+      </Space>
+    );
+  }
+
+  function renderBreastfeedingQuickCard() {
+    return (
+      <Space direction="vertical" size={12} style={{ width: "100%" }}>
+        {renderDateTimeInputs({
+          startDate: breastfeedingStartDate,
+          setStartDate: setBreastfeedingStartDate,
+          startTime: breastfeedingStartTime,
+          setStartTime: setBreastfeedingStartTime,
+          endDate: breastfeedingEndDate,
+          setEndDate: setBreastfeedingEndDate,
+          endTime: breastfeedingEndTime,
+          setEndTime: setBreastfeedingEndTime,
+        })}
+        <Segmented
+          block
+          value={breastfeedingSide}
+          options={[
+            { label: bootstrap.strings.left, value: "left" },
+            { label: bootstrap.strings.right, value: "right" },
+          ]}
+          onChange={setBreastfeedingSide}
+        />
+        <Button
+          type="primary"
+          size="large"
+          loading={submittingBreastfeeding}
+          onClick={submitBreastfeedingEntry}
+          className="ant-diaper-save"
+        >
+          {bootstrap.strings.save}
+        </Button>
+      </Space>
+    );
+  }
+
+  function renderPumpingQuickCard() {
+    return (
+      <Space direction="vertical" size={12} style={{ width: "100%" }}>
+        {renderDateTimeInputs({
+          startDate: pumpingStartDate,
+          setStartDate: setPumpingStartDate,
+          startTime: pumpingStartTime,
+          setStartTime: setPumpingStartTime,
+          endDate: pumpingEndDate,
+          setEndDate: setPumpingEndDate,
+          endTime: pumpingEndTime,
+          setEndTime: setPumpingEndTime,
+        })}
+        <Row gutter={8}>
+          <Col span={12}>
+            <label className="ant-dashboard-inline-label">
+              {bootstrap.strings.amount}
+            </label>
+            <Input
+              value={pumpingAmount}
+              onChange={(event) => setPumpingAmount(event.target.value)}
+              className="ant-native-input"
+              inputMode="decimal"
+            />
+          </Col>
+          <Col span={12}>
+            <label className="ant-dashboard-inline-label">
+              {bootstrap.strings.side}
+            </label>
+            <Segmented
+              block
+              value={pumpingSide}
+              options={[
+                { label: bootstrap.strings.left, value: "left" },
+                { label: bootstrap.strings.right, value: "right" },
+              ]}
+              onChange={setPumpingSide}
+            />
+          </Col>
+        </Row>
+        <Button
+          type="primary"
+          size="large"
+          loading={submittingPumping}
+          onClick={submitPumpingEntry}
+          className="ant-diaper-save"
+        >
+          {bootstrap.strings.save}
+        </Button>
       </Space>
     );
   }
@@ -1224,11 +1471,20 @@ export function ChildDashboardPage({ bootstrap }) {
       <Card className="ant-hero-card">
         <Row gutter={[16, 16]} align="middle">
           <Col flex="auto">
-            <Space direction="vertical" size={4}>
-              <Text type="secondary">{bootstrap.strings.childDashboard}</Text>
-              <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-                {bootstrap.currentChild.name}
-              </Title>
+            <Space size={14} align="center">
+              <Avatar
+                src={child?.pictureUrl}
+                size={64}
+                className="ant-dashboard-child-avatar"
+              />
+              <Space direction="vertical" size={2}>
+                <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+                  {child?.name || bootstrap.currentChild.name}
+                </Title>
+                {child?.birthDateLabel ? (
+                  <Text type="secondary">{child.birthDateLabel}</Text>
+                ) : null}
+              </Space>
             </Space>
           </Col>
           <Col>
@@ -1248,6 +1504,11 @@ export function ChildDashboardPage({ bootstrap }) {
               >
                 {bootstrap.strings.refresh}
               </Button>
+              {bootstrap.urls.addChild ? (
+                <Button href={bootstrap.urls.addChild}>
+                  {bootstrap.strings.addChild}
+                </Button>
+              ) : null}
             </Space>
           </Col>
         </Row>
@@ -1302,25 +1563,23 @@ export function ChildDashboardPage({ bootstrap }) {
                           >
                             <Row gutter={8}>
                               <Col span={12}>
-                                <input
-                                  type="date"
-                                  value={diaperDate.format("YYYY-MM-DD")}
-                                  onChange={(event) =>
-                                    setDiaperDate(dayjs(event.target.value))
+                                <DatePicker
+                                  value={diaperDate}
+                                  format={APP_DATE_FORMAT}
+                                  onChange={(value) =>
+                                    value && setDiaperDate(value)
                                   }
-                                  className="ant-native-input"
+                                  className="ant-dashboard-picker"
                                 />
                               </Col>
                               <Col span={12}>
-                                <input
-                                  type="time"
-                                  value={diaperTime.format("HH:mm")}
-                                  onChange={(event) =>
-                                    setDiaperTime(
-                                      dayjs(`2000-01-01T${event.target.value}`),
-                                    )
+                                <TimePicker
+                                  value={diaperTime}
+                                  format={APP_TIME_FORMAT}
+                                  onChange={(value) =>
+                                    value && setDiaperTime(value)
                                   }
-                                  className="ant-native-input"
+                                  className="ant-dashboard-picker"
                                 />
                               </Col>
                             </Row>
@@ -1350,6 +1609,12 @@ export function ChildDashboardPage({ bootstrap }) {
                             </Button>
                           </Space>
                         ) : (
+                          (cardKey === "card.feedings.quick_entry" &&
+                            renderFeedingQuickCard()) ||
+                          (cardKey === "card.feedings.breast_quick_entry" &&
+                            renderBreastfeedingQuickCard()) ||
+                          (cardKey === "card.pumpings.quick_entry" &&
+                            renderPumpingQuickCard()) ||
                           (cardKey === "card.sleep.quick_timer" &&
                             renderSleepTimerCard()) ||
                           (cardKey === "card.sleep.timeline_day" &&

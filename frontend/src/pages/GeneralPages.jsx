@@ -941,6 +941,13 @@ export function DashboardHomePage({ bootstrap }) {
           <Text style={{ color: "#cbd5e1" }}>
             React + Ant Design is now the target UI path for Baby Buddy.
           </Text>
+          {bootstrap.urls.addChild ? (
+            <div>
+              <Button type="primary" href={bootstrap.urls.addChild}>
+                {bootstrap.strings.addChild}
+              </Button>
+            </div>
+          ) : null}
         </Space>
       </Card>
 

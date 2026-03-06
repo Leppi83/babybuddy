@@ -107,8 +107,8 @@ export function AppShell({ bootstrap, children }) {
       title: bootstrap.strings.dashboard,
     },
     "dashboard-child": {
-      eyebrow: bootstrap.strings.childDashboard,
-      title: bootstrap.currentChild?.name || bootstrap.strings.dashboard,
+      eyebrow: null,
+      title: null,
     },
     "child-detail": {
       eyebrow: bootstrap.strings.timeline,
@@ -246,12 +246,18 @@ export function AppShell({ bootstrap, children }) {
                 onClick={() => setMobileOpen(true)}
               />
             )}
-            <div>
-              <Text type="secondary">{pageMeta.eyebrow}</Text>
-              <Title level={3} style={{ margin: 0, color: "#f8fafc" }}>
-                {pageMeta.title}
-              </Title>
-            </div>
+            {(pageMeta.eyebrow || pageMeta.title) && (
+              <div>
+                {pageMeta.eyebrow && (
+                  <Text type="secondary">{pageMeta.eyebrow}</Text>
+                )}
+                {pageMeta.title && (
+                  <Title level={3} style={{ margin: 0, color: "#f8fafc" }}>
+                    {pageMeta.title}
+                  </Title>
+                )}
+              </div>
+            )}
           </Space>
         </Header>
         <Content className="ant-shell-content">
