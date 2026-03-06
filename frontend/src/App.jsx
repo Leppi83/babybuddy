@@ -235,6 +235,14 @@ function AppShell({ bootstrap, children }) {
     "confirm-delete": {
       eyebrow: bootstrap.strings.dangerZone,
       title: bootstrap.formPage?.title || bootstrap.strings.confirmDelete
+    },
+    "tag-detail": {
+      eyebrow: bootstrap.strings.overview,
+      title: bootstrap.tagDetail?.name || bootstrap.strings.overview
+    },
+    "timer-detail": {
+      eyebrow: bootstrap.strings.timeline,
+      title: bootstrap.timerDetail?.name || bootstrap.strings.timeline
     }
   }[bootstrap.pageType] || {
     eyebrow: bootstrap.strings.dashboard,
@@ -738,6 +746,124 @@ function ChildDetailPage({ bootstrap }) {
         ) : (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={bootstrap.strings.noEvents} />
         )}
+      </Card>
+    </Space>
+  );
+}
+
+function TagDetailPage({ bootstrap }) {
+  const tag = bootstrap.tagDetail;
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Space direction="vertical" size={12} style={{ width: "100%" }}>
+          <Space align="center" wrap>
+            <Tag color={tag.color || "blue"} style={{ fontSize: "1rem", padding: "6px 12px" }}>
+              {tag.name}
+            </Tag>
+            <Button href={tag.actions.edit} icon={<EditOutlined />}>
+              {bootstrap.strings.edit}
+            </Button>
+            <Button href={tag.actions.delete} danger icon={<DeleteOutlined />}>
+              {bootstrap.strings.delete}
+            </Button>
+          </Space>
+        </Space>
+      </Card>
+
+      <Row gutter={[16, 16]}>
+        {tag.sections.map((section) => (
+          <Col xs={24} xl={12} key={section.title}>
+            <Card className="ant-section-card" title={section.title}>
+              <List
+                className="ant-link-list"
+                dataSource={section.items}
+                renderItem={(item) => (
+                  <List.Item extra={<Tag>{item.count}</Tag>}>
+                    <a href={item.href}>{item.label}</a>
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    </Space>
+  );
+}
+
+function TimerDetailPage({ bootstrap }) {
+  const timer = bootstrap.timerDetail;
+  const [durationLabel, setDurationLabel] = useState("");
+
+  function formatDuration() {
+    const start = new Date(timer.start);
+    const diffMs = Math.max(0, Date.now() - start.getTime());
+    const hours = Math.floor(diffMs / 3600000);
+    const minutes = Math.floor((diffMs % 3600000) / 60000);
+    const seconds = Math.floor((diffMs % 60000) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  useEffect(() => {
+    setDurationLabel(formatDuration());
+    const interval = window.setInterval(() => {
+      setDurationLabel(formatDuration());
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [timer.start]);
+
+  function submitPost(url) {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = url;
+    const csrf = document.createElement("input");
+    csrf.type = "hidden";
+    csrf.name = "csrfmiddlewaretoken";
+    csrf.value = bootstrap.csrfToken;
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      <Card className="ant-hero-card">
+        <Space direction="vertical" size={10} style={{ width: "100%", textAlign: "center" }}>
+          <Title level={1} style={{ margin: 0, color: "#f8fafc" }}>
+            {durationLabel}
+          </Title>
+          <Text type="secondary">
+            {bootstrap.strings.started} {timer.start}
+          </Text>
+          <Text type="secondary">
+            {timer.name} {bootstrap.strings.createdBy} {timer.createdBy}
+          </Text>
+          {timer.child ? <Tag color="blue">{timer.child}</Tag> : null}
+        </Space>
+      </Card>
+
+      <Card className="ant-section-card" title={bootstrap.strings.actions}>
+        <Space wrap>
+          {timer.quickActions.map((action) => (
+            <Button key={action.href} type="primary" href={action.href}>
+              {action.label}
+            </Button>
+          ))}
+          <Button href={timer.actions.edit} icon={<EditOutlined />}>
+            {bootstrap.strings.edit}
+          </Button>
+          <Button danger href={timer.actions.delete} icon={<DeleteOutlined />}>
+            {bootstrap.strings.delete}
+          </Button>
+          <Button
+            onClick={() => submitPost(timer.actions.restart)}
+            icon={<ReloadOutlined />}
+          >
+            {bootstrap.strings.restartTimer}
+          </Button>
+        </Space>
       </Card>
     </Space>
   );
@@ -1754,6 +1880,10 @@ export function App({ bootstrap }) {
             <AntFormPage bootstrap={bootstrap} deleteMode />
           ) : bootstrap.pageType === "child-detail" ? (
             <ChildDetailPage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "tag-detail" ? (
+            <TagDetailPage bootstrap={bootstrap} />
+          ) : bootstrap.pageType === "timer-detail" ? (
+            <TimerDetailPage bootstrap={bootstrap} />
           ) : (
             <ChildDashboardPage bootstrap={bootstrap} />
           )}
