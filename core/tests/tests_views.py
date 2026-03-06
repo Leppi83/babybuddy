@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import json
+import re
+
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
@@ -8,6 +11,17 @@ from django.utils import timezone
 from faker import Faker
 
 from core import models
+
+
+def _bootstrap_payload(response):
+    match = re.search(
+        rb'<script id="ant-app-bootstrap" type="application/json">(.*?)</script>',
+        response.content,
+        re.DOTALL,
+    )
+    if not match:
+        return None
+    return json.loads(match.group(1).decode("utf-8"))
 
 
 class ViewsTestCase(TestCase):
@@ -57,6 +71,24 @@ class ViewsTestCase(TestCase):
             {"date": timezone.localdate() - timezone.timedelta(days=1)},
         )
         self.assertEqual(page.status_code, 200)
+        payload = _bootstrap_payload(page)
+        self.assertEqual(payload["pageType"], "child-detail")
+        self.assertIsNone(payload.get("childSwitcher"))
+
+        second_child = models.Child.objects.create(
+            first_name="Second", last_name="Child", birth_date="2000-01-01"
+        )
+        page = self.c.get("/children/{}/".format(entry.slug))
+        payload = _bootstrap_payload(page)
+        self.assertEqual(payload["childSwitcher"]["value"], entry.slug)
+        option_map = {
+            option["value"]: option["href"]
+            for option in payload["childSwitcher"]["options"]
+        }
+        self.assertIn(second_child.slug, option_map)
+        self.assertEqual(
+            option_map[second_child.slug], f"/children/{second_child.slug}/"
+        )
 
         page = self.c.get("/children/{}/edit/".format(entry.slug))
         self.assertEqual(page.status_code, 200)

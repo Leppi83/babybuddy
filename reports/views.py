@@ -32,12 +32,47 @@ def _plotly_locale(request):
     return "de" if language_code.startswith("de") else "en-US"
 
 
+def _with_current_querystring(request, url):
+    querystring = request.GET.urlencode()
+    if not querystring:
+        return url
+    return "{}?{}".format(url, querystring)
+
+
+def _build_child_switcher(request, *, current_child):
+    if models.Child.objects.count() <= 1:
+        return None
+    match = request.resolver_match
+    if not match or "slug" not in (match.kwargs or {}):
+        return None
+
+    options = []
+    for child in models.Child.objects.order_by("first_name", "last_name"):
+        kwargs = {**match.kwargs, "slug": child.slug}
+        options.append(
+            {
+                "value": child.slug,
+                "label": str(child),
+                "href": _with_current_querystring(
+                    request, reverse(match.view_name, kwargs=kwargs)
+                ),
+            }
+        )
+
+    return {
+        "label": str(_("Child")),
+        "value": current_child.slug,
+        "options": options,
+    }
+
+
 def _report_strings():
     return {
         "dashboard": _("Dashboard"),
         "timeline": _("Timeline"),
         "settings": _("Settings"),
         "logout": _("Logout"),
+        "child": _("Child"),
         "reports": _("Reports"),
         "overview": _("Overview"),
         "childActions": _("Child actions"),
@@ -232,6 +267,7 @@ def _build_ant_report_list_bootstrap(request, *, child):
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
         "urls": {**_nav_urls(), "self": request.get_full_path()},
+        "childSwitcher": _build_child_switcher(request, current_child=child),
         "strings": _report_strings(),
         "reportList": {
             "childName": str(child),
@@ -262,6 +298,7 @@ def _build_ant_report_detail_bootstrap(
             "self": request.get_full_path(),
             "graphJs": "/static/babybuddy/js/graph.js",
         },
+        "childSwitcher": _build_child_switcher(request, current_child=child),
         "strings": _report_strings(),
         "reportDetail": {
             "title": title,

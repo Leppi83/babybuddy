@@ -91,6 +91,40 @@ def _child_image_url(request, child):
     )
 
 
+def _with_current_querystring(request, url):
+    querystring = request.GET.urlencode()
+    if not querystring:
+        return url
+    return "{}?{}".format(url, querystring)
+
+
+def _build_child_switcher(request, *, current_child):
+    if models.Child.objects.count() <= 1:
+        return None
+    match = request.resolver_match
+    if not match or "slug" not in (match.kwargs or {}):
+        return None
+
+    options = []
+    for child in models.Child.objects.order_by(Lower("first_name"), Lower("last_name")):
+        kwargs = {**match.kwargs, "slug": child.slug}
+        options.append(
+            {
+                "value": child.slug,
+                "label": str(child),
+                "href": _with_current_querystring(
+                    request, reverse(match.view_name, kwargs=kwargs)
+                ),
+            }
+        )
+
+    return {
+        "label": str(_("Child")),
+        "value": current_child.slug,
+        "options": options,
+    }
+
+
 def _timeline_entry_payload(entry):
     event_time = timezone.localtime(entry["time"])
     return {
@@ -126,8 +160,10 @@ def _build_ant_child_detail_bootstrap(
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
         "urls": {**_nav_urls(), "self": request.get_full_path()},
+        "childSwitcher": _build_child_switcher(request, current_child=child),
         "strings": {
             **_list_strings(),
+            "child": _("Child"),
             "born": _("Born"),
             "age": _("Age"),
             "reports": _("Reports"),
@@ -188,6 +224,7 @@ def _build_ant_timeline_bootstrap(
         "urls": {**_nav_urls(), "self": request.get_full_path()},
         "strings": {
             **_list_strings(),
+            "child": _("Child"),
             "previous": _("Previous"),
             "next": _("Next"),
             "noEvents": _("No events"),

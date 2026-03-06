@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import json
+import re
+
 from django.test import TestCase
 from django.test import Client as HttpClient
 from django.contrib.auth import get_user_model
@@ -7,6 +10,17 @@ from django.core.management import call_command
 from faker import Faker
 
 from core import models
+
+
+def _bootstrap_payload(response):
+    match = re.search(
+        rb'<script id="ant-app-bootstrap" type="application/json">(.*?)</script>',
+        response.content,
+        re.DOTALL,
+    )
+    if not match:
+        return None
+    return json.loads(match.group(1).decode("utf-8"))
 
 
 class ViewsTestCase(TestCase):
@@ -37,10 +51,35 @@ class ViewsTestCase(TestCase):
         page = self.c.get(base_url)
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, "ant-app-bootstrap")
+        payload = _bootstrap_payload(page)
+        self.assertIsNone(payload.get("childSwitcher"))
+
+        second_child = models.Child.objects.create(
+            first_name="Second", last_name="Child", birth_date="2000-01-01"
+        )
+        page = self.c.get(base_url)
+        payload = _bootstrap_payload(page)
+        self.assertEqual(payload["childSwitcher"]["value"], child.slug)
+        option_map = {
+            option["value"]: option["href"]
+            for option in payload["childSwitcher"]["options"]
+        }
+        self.assertEqual(
+            option_map[second_child.slug], f"/children/{second_child.slug}/reports"
+        )
 
         page = self.c.get("{}/bmi/bmi/".format(base_url))
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, "ant-app-bootstrap")
+        payload = _bootstrap_payload(page)
+        option_map = {
+            option["value"]: option["href"]
+            for option in payload["childSwitcher"]["options"]
+        }
+        self.assertEqual(
+            option_map[second_child.slug],
+            f"/children/{second_child.slug}/reports/bmi/bmi/",
+        )
 
         page = self.c.get("{}/changes/amounts/".format(base_url))
         self.assertEqual(page.status_code, 200)

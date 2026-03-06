@@ -6,6 +6,7 @@ import {
   Grid,
   Layout,
   Menu,
+  Select,
   Space,
   Typography,
 } from "antd";
@@ -86,6 +87,14 @@ export function AppShell({ bootstrap, children }) {
             bootstrap.currentPath.startsWith(item.key),
         )?.key ||
         bootstrap.urls.dashboard;
+
+  const childSwitcher = bootstrap.childSwitcher;
+
+  function handleChildSwitch(targetHref) {
+    if (targetHref) {
+      window.location.assign(targetHref);
+    }
+  }
 
   const brand = (
     <div className="ant-shell-brand">
@@ -246,27 +255,57 @@ export function AppShell({ bootstrap, children }) {
       )}
       <Layout>
         <Header className="ant-shell-header">
-          <Space size="middle">
-            {!isDesktop && (
-              <Button
-                type="text"
-                icon={<MenuUnfoldOutlined />}
-                onClick={() => setMobileOpen(true)}
-              />
-            )}
-            {(pageMeta.eyebrow || pageMeta.title) && (
-              <div>
-                {pageMeta.eyebrow && (
-                  <Text type="secondary">{pageMeta.eyebrow}</Text>
-                )}
-                {pageMeta.title && (
-                  <Title level={3} style={{ margin: 0, color: "#f8fafc" }}>
-                    {pageMeta.title}
-                  </Title>
-                )}
-              </div>
-            )}
-          </Space>
+          <div
+            style={{
+              display: "flex",
+              gap: 16,
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+              flexWrap: "wrap",
+            }}
+          >
+            <Space size="middle">
+              {!isDesktop && (
+                <Button
+                  type="text"
+                  icon={<MenuUnfoldOutlined />}
+                  onClick={() => setMobileOpen(true)}
+                />
+              )}
+              {(pageMeta.eyebrow || pageMeta.title) && (
+                <div>
+                  {pageMeta.eyebrow && (
+                    <Text type="secondary">{pageMeta.eyebrow}</Text>
+                  )}
+                  {pageMeta.title && (
+                    <Title level={3} style={{ margin: 0, color: "#f8fafc" }}>
+                      {pageMeta.title}
+                    </Title>
+                  )}
+                </div>
+              )}
+            </Space>
+            {childSwitcher?.options?.length ? (
+              <Space size={8} wrap>
+                <Text type="secondary">{childSwitcher.label}</Text>
+                <Select
+                  value={childSwitcher.value}
+                  onChange={(value) =>
+                    handleChildSwitch(
+                      childSwitcher.options.find((item) => item.value === value)
+                        ?.href,
+                    )
+                  }
+                  options={childSwitcher.options.map((option) => ({
+                    value: option.value,
+                    label: option.label,
+                  }))}
+                  style={{ minWidth: isDesktop ? 220 : 180 }}
+                />
+              </Space>
+            ) : null}
+          </div>
         </Header>
         <Content className="ant-shell-content">
           <Space direction="vertical" size={16} style={{ width: "100%" }}>
