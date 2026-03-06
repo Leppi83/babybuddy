@@ -1,6 +1,6 @@
 {% extends "registration/base.html" %}
 {% load i18n static widget_tweaks %}
-{% block title %}Login{% endblock %}
+{% block title %}{% trans "Login" %}{% endblock %}
 {% block content %}
     <form class="login-form" method="post" action="{% url 'babybuddy:login' %}">
         {% csrf_token %}

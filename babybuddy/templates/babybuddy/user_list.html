@@ -7,7 +7,7 @@
     <li class="breadcrumb-item active" aria-current="page">{% trans "Users" %}</li>
 {% endblock %}
 {% block content %}
-    <h1>Users</h1>
+    <h1>{% trans "Users" %}</h1>
     {% include 'babybuddy/filter.html' %}
     <div class="table-responsive">
         <table class="table table-borderless table-striped table-hover align-middle">
@@ -38,7 +38,7 @@
                         {% user_is_locked object as is_locked %}
                         <td class="text-center">{{ is_locked|bool_icon }}</td>
                         <td class="text-center">
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Actions' %}">
                                 {% if perms.admin.change_user %}
                                     <a href="{% url 'babybuddy:user-update' object.id %}"
                                        class="btn btn-warning">

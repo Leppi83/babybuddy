@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Baby Buddy\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 12:27+0000\n"
+"POT-Creation-Date: 2026-03-06 12:36+0000\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -311,6 +311,10 @@ msgstr "Filter"
 msgid "Submit"
 msgstr "Senden"
 
+#: babybuddy/templates/babybuddy/messages.html:11
+msgid "Close"
+msgstr "Schließen"
+
 #: babybuddy/templates/babybuddy/messages.html:19
 #: babybuddy/templates/babybuddy/messages.html:24
 #: babybuddy/templates/babybuddy/shadcn_preview.html:390
@@ -385,6 +389,10 @@ msgstr "Notiz"
 #: core/templates/core/tummytime_list.html:14
 msgid "Tummy Time"
 msgstr "Bauchzeit"
+
+#: babybuddy/templates/babybuddy/nav-dropdown.html:101
+msgid "Toggle navigation"
+msgstr "Navigation umschalten"
 
 #: babybuddy/templates/babybuddy/nav-dropdown.html:115
 #: core/templates/timeline/timeline.html:4
@@ -616,6 +624,7 @@ msgstr "Tags"
 #: babybuddy/templates/babybuddy/user_form.html:12
 #: babybuddy/templates/babybuddy/user_list.html:4
 #: babybuddy/templates/babybuddy/user_list.html:7
+#: babybuddy/templates/babybuddy/user_list.html:10
 #: babybuddy/templates/babybuddy/user_settings_form.html:155
 msgid "Users"
 msgstr "Benutzer"
@@ -624,10 +633,16 @@ msgstr "Benutzer"
 msgid "Logout"
 msgstr "Logout"
 
+#: babybuddy/templates/babybuddy/paginator.html:3
+msgid "Page navigation"
+msgstr "Seitennavigation"
+
+#: babybuddy/templates/babybuddy/paginator.html:9
 #: babybuddy/templates/babybuddy/paginator.html:11
 msgid "First"
 msgstr "Erste"
 
+#: babybuddy/templates/babybuddy/paginator.html:16
 #: babybuddy/templates/babybuddy/paginator.html:18
 #: core/templates/core/diaperchange_list.html:38
 #: core/templates/core/feeding_list.html:44
@@ -643,6 +658,7 @@ msgstr "Erste"
 msgid "Previous"
 msgstr "Zurück"
 
+#: babybuddy/templates/babybuddy/paginator.html:33
 #: babybuddy/templates/babybuddy/paginator.html:35
 #: core/templates/timeline/_timeline.html:19
 #: core/templates/timeline/_timeline.html:21
@@ -653,6 +669,7 @@ msgstr "Zurück"
 msgid "Next"
 msgstr "Weiter"
 
+#: babybuddy/templates/babybuddy/paginator.html:41
 #: babybuddy/templates/babybuddy/paginator.html:43
 msgid "Last"
 msgstr "Letzte"
@@ -676,7 +693,8 @@ msgstr "ausgeblendet"
 #: babybuddy/templates/babybuddy/shadcn_preview.html:47
 #, python-format
 msgid "Signed in as %(name)s. This is the standalone dashboard preview."
-msgstr "Angemeldet als %(name)s. Dies ist die eigenstaendige Dashboard-Vorschau."
+msgstr ""
+"Angemeldet als %(name)s. Dies ist die eigenstaendige Dashboard-Vorschau."
 
 #: babybuddy/templates/babybuddy/shadcn_preview.html:51
 #, python-format
@@ -920,9 +938,19 @@ msgstr "Statistiken"
 msgid "Sleep Timeline (24h)"
 msgstr "Schlaf-Timeline (24h)"
 
+#: babybuddy/templates/babybuddy/shadcn_preview.html:277
+#: dashboard/templates/cards/sleep_timeline_day.html:12
+msgid "Previous day"
+msgstr "Vorheriger Tag"
+
 #: babybuddy/templates/babybuddy/shadcn_preview.html:280
 msgid "Select day"
 msgstr "Tag auswaehlen"
+
+#: babybuddy/templates/babybuddy/shadcn_preview.html:282
+#: dashboard/templates/cards/sleep_timeline_day.html:38
+msgid "Next day"
+msgstr "Nächster Tag"
 
 #: babybuddy/templates/babybuddy/shadcn_preview.html:312
 #: dashboard/templates/cards/tummytime_day.html:4
@@ -1031,7 +1059,9 @@ msgstr "Ungueltige Start- oder Endzeit."
 #: babybuddy/templates/babybuddy/shadcn_preview.html:351
 msgid ""
 "End must be after start. For overnight sleep choose next day in End date."
-msgstr "Das Ende muss nach dem Start liegen. Fuer Schlaf ueber Nacht bitte im Enddatum den naechsten Tag waehlen."
+msgstr ""
+"Das Ende muss nach dem Start liegen. Fuer Schlaf ueber Nacht bitte im "
+"Enddatum den naechsten Tag waehlen."
 
 #: babybuddy/templates/babybuddy/shadcn_preview.html:353
 msgid "Configured child not found"
@@ -1395,6 +1425,7 @@ msgid "Locked"
 msgstr "Gesperrt"
 
 #: babybuddy/templates/babybuddy/user_list.html:24
+#: babybuddy/templates/babybuddy/user_list.html:41
 #: core/templates/core/bmi_list.html:29 core/templates/core/bmi_list.html:44
 #: core/templates/core/child_list.html:29
 #: core/templates/core/child_list.html:53
@@ -1620,6 +1651,7 @@ msgstr "Zurück zu Baby Buddy"
 msgid "Too Many Login Attempts"
 msgstr "Zu viele Login-Versuche"
 
+#: babybuddy/templates/registration/login.html:3
 #: babybuddy/templates/registration/login.html:18
 msgid "Login"
 msgstr "Login"
@@ -2748,17 +2780,9 @@ msgstr "Fenster"
 msgid "Target"
 msgstr "Ziel"
 
-#: dashboard/templates/cards/sleep_timeline_day.html:12
-msgid "Previous day"
-msgstr "Vorheriger Tag"
-
 #: dashboard/templates/cards/sleep_timeline_day.html:27
 msgid "Choose date"
 msgstr "Datum auswählen"
-
-#: dashboard/templates/cards/sleep_timeline_day.html:38
-msgid "Next day"
-msgstr "Nächster Tag"
 
 #: dashboard/templates/cards/statistics.html:26
 msgid "Not enough data"
