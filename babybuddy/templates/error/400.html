@@ -1,8 +1,16 @@
-{% extends 'error/base.html' %}
-{% load i18n %}
-{% block title %}
-    400 {% trans "Bad Request" %}
+{% extends 'babybuddy/ant_base.html' %}
+{% load babybuddy i18n static %}
+{% trans "Request Error" as error_kicker %}
+{% trans "The request could not be processed." as error_body %}
+{% ant_error_bootstrap title="400 Bad Request" kicker=error_kicker body=error_body as ant_bootstrap %}
+{% block title %}400 {% trans "Bad Request" %}{% endblock %}
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}" />
 {% endblock %}
-{% block content %}
-    <h1>400 {% trans "Bad Request" %}</h1>
+{% block page %}
+    {{ ant_bootstrap|json_script:"ant-app-bootstrap" }}
+    <div id="ant-app-root"></div>
+{% endblock %}
+{% block javascript %}
+    <script src="{% static "babybuddy/ant/app.js" %}"></script>
 {% endblock %}
