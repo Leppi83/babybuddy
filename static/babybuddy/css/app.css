@@ -12460,6 +12460,18 @@ textarea.form-control-lg {
   background: rgba(15, 23, 42, 0.56);
 }
 
+.app-shell-logout-form {
+  width: 100%;
+  margin: 0;
+}
+
+.app-shell-logout-button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
 @media (max-width: 575.98px) {
   .sleep-timeline-chart .timeline-grid {
     gap: 0.2rem;

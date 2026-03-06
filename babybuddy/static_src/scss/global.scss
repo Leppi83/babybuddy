@@ -188,6 +188,18 @@
         border-top: 1px solid rgba(148, 163, 184, .22);
     }
 
+    .app-shell-logout-form {
+        width: 100%;
+        margin: 0;
+    }
+
+    .app-shell-logout-button {
+        width: 100%;
+        text-align: left;
+        font: inherit;
+        cursor: pointer;
+    }
+
     .app-shell-nav .navbar-toggler {
         display: none;
     }
