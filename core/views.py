@@ -329,6 +329,10 @@ def _serialize_bound_field(bound_field):
     elif choices:
         input_type = "select"
         value = "" if value in (None, "") else str(value)
+    elif input_type == "time":
+        # TimeInput widgets should keep their type as "time"
+        # and not be converted to string
+        pass
     elif value is not None and input_type not in ("checkbox", "file"):
         value = str(value)
 
