@@ -206,9 +206,11 @@ class Settings(models.Model):
         stored = [
             item for item in (self.dashboard_visible_items or []) if item in allowed
         ]
-        for item in self.dashboard_default_visible_items():
-            if item not in stored:
-                stored.append(item)
+        # If the user has never configured their dashboard, return all defaults.
+        # If they have saved a selection (even a subset), respect it exactly so
+        # that cards explicitly removed stay removed.
+        if not self.dashboard_visible_items:
+            return self.dashboard_default_visible_items()
         return stored
 
     def dashboard_selected_section_order(self):

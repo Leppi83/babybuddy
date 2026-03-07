@@ -127,7 +127,60 @@ function SettingsCardPicker({
             )}
           />
         </Col>
-        <Col xs={24} lg={4}>
+        <Col xs={24} lg={0}>
+          <Space wrap style={{ marginTop: 4, marginBottom: 4 }}>
+            <Button
+              size="small"
+              onClick={() => addItem(activeAvailable)}
+              disabled={!activeAvailable}
+            >
+              + {bootstrap.strings.add}
+            </Button>
+            <Button
+              size="small"
+              onClick={() => {
+                if (availableItems.length) {
+                  setSelectedItems([
+                    ...selectedItems,
+                    ...availableItems.map((item) => item.value),
+                  ]);
+                }
+              }}
+              disabled={!availableItems.length}
+            >
+              {bootstrap.strings.addAll}
+            </Button>
+            <Button
+              size="small"
+              onClick={() => setSelectedItems([])}
+              disabled={!selectedItems.length}
+            >
+              {bootstrap.strings.removeAll}
+            </Button>
+            <Button
+              size="small"
+              onClick={() => removeItem(activeSelected)}
+              disabled={!activeSelected}
+            >
+              − {bootstrap.strings.remove}
+            </Button>
+            <Button
+              size="small"
+              onClick={() => moveItem("up")}
+              disabled={!activeSelected}
+            >
+              {bootstrap.strings.moveUp}
+            </Button>
+            <Button
+              size="small"
+              onClick={() => moveItem("down")}
+              disabled={!activeSelected}
+            >
+              {bootstrap.strings.moveDown}
+            </Button>
+          </Space>
+        </Col>
+        <Col xs={0} lg={4}>
           <Space
             direction="vertical"
             style={{ width: "100%", justifyContent: "center", height: "100%" }}
@@ -602,7 +655,12 @@ function MiniTimeline({ items, locale, currentTime, strings }) {
         </div>
         <div className="ant-timeline-axis">
           {hours.map((hour) => (
-            <span key={hour}>{String(hour).padStart(2, "0")}</span>
+            <span
+              key={hour}
+              style={hour % 3 !== 0 ? { visibility: "hidden" } : undefined}
+            >
+              {String(hour).padStart(2, "0")}
+            </span>
           ))}
         </div>
       </div>
@@ -1188,6 +1246,7 @@ export function ChildDashboardPage({ bootstrap }) {
               format={APP_DATE_FORMAT}
               onChange={(value) => value && setStartDate(value)}
               className="ant-dashboard-picker ant-dashboard-picker--compact"
+              inputReadOnly
             />
           </Col>
           <Col span={12}>
@@ -1199,6 +1258,7 @@ export function ChildDashboardPage({ bootstrap }) {
               format={APP_TIME_FORMAT}
               onChange={(value) => value && setStartTime(value)}
               className="ant-dashboard-picker ant-dashboard-picker--compact"
+              inputReadOnly
             />
           </Col>
         </Row>
@@ -1212,6 +1272,7 @@ export function ChildDashboardPage({ bootstrap }) {
               format={APP_DATE_FORMAT}
               onChange={(value) => value && setEndDate(value)}
               className="ant-dashboard-picker ant-dashboard-picker--compact"
+              inputReadOnly
             />
           </Col>
           <Col span={12}>
@@ -1223,6 +1284,7 @@ export function ChildDashboardPage({ bootstrap }) {
               format={APP_TIME_FORMAT}
               onChange={(value) => value && setEndTime(value)}
               className="ant-dashboard-picker ant-dashboard-picker--compact"
+              inputReadOnly
             />
           </Col>
         </Row>
@@ -1415,7 +1477,9 @@ export function ChildDashboardPage({ bootstrap }) {
               addonAfter="ml"
             />
           </Col>
-          <Col span={12}>
+        </Row>
+        <Row gutter={[8, 0]}>
+          <Col span={24}>
             <label className="ant-dashboard-inline-label">
               {bootstrap.strings.side}
             </label>
@@ -1578,6 +1642,7 @@ export function ChildDashboardPage({ bootstrap }) {
                                     value && setDiaperDate(value)
                                   }
                                   className="ant-dashboard-picker"
+                                  inputReadOnly
                                 />
                               </Col>
                               <Col span={12}>
@@ -1588,6 +1653,7 @@ export function ChildDashboardPage({ bootstrap }) {
                                     value && setDiaperTime(value)
                                   }
                                   className="ant-dashboard-picker"
+                                  inputReadOnly
                                 />
                               </Col>
                             </Row>
