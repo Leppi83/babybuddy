@@ -668,7 +668,7 @@ class ChildList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
                                 ),
                             },
                             "last_name": child.last_name,
-                            "birth_date": str(child.birth_datetime),
+                            "birth_date": str(child.birth_datetime()),
                             "actions": {
                                 "type": "actions",
                                 "items": [
