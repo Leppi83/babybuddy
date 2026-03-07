@@ -1,5 +1,8 @@
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import React from "react";
+
+dayjs.extend(customParseFormat);
 import {
   Avatar,
   Button,
@@ -191,9 +194,18 @@ export function parsePickerValue(fieldType, value) {
     return dayjs(value, "YYYY-MM-DD");
   }
   if (fieldType === "time") {
-    return dayjs(value, "HH:mm:ss").isValid()
-      ? dayjs(value, "HH:mm:ss")
-      : dayjs(value, "HH:mm");
+    // Try multiple formats to handle different time string formats from Django
+    const timeFormats = ["HH:mm:ss", "HH:mm", "H:mm", "HH:mm:ss.SSS"];
+    let parsed = null;
+    for (const format of timeFormats) {
+      parsed = dayjs(value, format);
+      if (parsed.isValid()) {
+        return parsed;
+      }
+    }
+    // Fallback: try parsing without format (let dayjs auto-detect)
+    parsed = dayjs(value);
+    return parsed.isValid() ? parsed : null;
   }
   if (fieldType === "datetime-local") {
     return dayjs(value);
