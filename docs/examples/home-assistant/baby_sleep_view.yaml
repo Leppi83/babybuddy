@@ -1,0 +1,58 @@
+title: Baby Sleep
+path: baby-sleep
+icon: mdi:sleep
+cards:
+  - type: markdown
+    content: >-
+      {% set baby = states('input_text.bb_sleep_child_name') %}
+      <ha-chip icon="mdi:baby-face-outline">{{ baby if baby not in ['unknown', 'unavailable', ''] else 'Baby' }}</ha-chip>
+
+  - type: button
+    name: >-
+      {% if states('sensor.bb_sleep_timer_label') == 'Start' %}
+      Start
+      {% else %}
+      {{ states('sensor.bb_sleep_timer_label') }}
+      {% endif %}
+    icon: mdi:sleep
+    show_state: false
+    tap_action:
+      action: call-service
+      service: script.bb_sleep_toggle_timer
+
+  - type: markdown
+    title: Naps / Schlaf (Heute)
+    content: |-
+      | Tag | Start | Ende | Dauer | ID |
+      |---|---|---|---|---|
+      {{ state_attr('sensor.bb_sleep_today_table_markdown', 'table') }}
+
+  - type: entities
+    title: Manueller Eintrag (+)
+    show_header_toggle: false
+    entities:
+      - entity: input_datetime.bb_sleep_manual_start
+        name: Start
+      - entity: input_datetime.bb_sleep_manual_end
+        name: Ende
+      - type: button
+        name: + Eintrag hinzufuegen
+        icon: mdi:plus
+        action_name: Hinzufuegen
+        tap_action:
+          action: call-service
+          service: script.bb_sleep_add_manual
+
+  - type: entities
+    title: Eintrag loeschen (-)
+    show_header_toggle: false
+    entities:
+      - entity: input_number.bb_sleep_delete_id
+        name: ID aus Tabelle
+      - type: button
+        name: "Eintrag loeschen"
+        icon: mdi:minus
+        action_name: Loeschen
+        tap_action:
+          action: call-service
+          service: script.bb_sleep_delete_by_id
