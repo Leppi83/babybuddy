@@ -2,18 +2,13 @@ import all from "gulp-all";
 import child_process from "child_process";
 import concat from "gulp-concat";
 import config from "./gulpfile.config.js";
-import * as dartSass from "sass";
 import { deleteAsync } from "del";
 import flatten from "gulp-flatten";
 import fontello from "gulp-fontello";
-import gStylelintEsm from "gulp-stylelint-esm";
 import gulp from "gulp";
-import gulpSass from "gulp-sass";
 import minify from "gulp-minify";
-import sassGlob from "gulp-sass-glob";
 
 const es = child_process.execSync;
-const sass = gulpSass(dartSass);
 const spawn = child_process.spawn;
 
 /**
@@ -176,102 +171,30 @@ function format() {
 }
 
 /**
- * Runs linting on Python and SASS code.
+ * Runs linting on Python code.
  */
 function lint() {
   return all(
     _runInPipenv(["black", ".", "--check", "--diff", "--color"]),
     _runInPipenv(["djlint", "--check", "."]),
     _runCommand("npx", ["prettier", ".", "--check"]),
-    gulp.src(config.watchConfig.stylesGlob).pipe(
-      gStylelintEsm({
-        reporters: [{ formatter: "string", console: true }],
-      }),
-    ),
   );
 }
 
 /**
- * Builds and copies JavaScript static files to configured paths.
+ * Builds and copies the plotly graph bundle to configured paths.
  */
 function scripts() {
-  const streams = [];
-  const types = ["vendor", "graph", "app", "tags_editor"];
-  types.forEach((type) => {
-    streams.push(
-      gulp
-        .src(config.scriptsConfig[type])
-        .pipe(concat(`${type}.js`))
-        .pipe(
-          minify({
-            ext: { min: ".js" },
-            noSource: true,
-          }),
-        )
-        .pipe(gulp.dest(config.scriptsConfig.dest)),
-    );
-  });
-  return all(streams);
-}
-
-/**
- * Builds and copies CSS static files to configured paths.
- */
-function styles() {
-  // Silence Dart Sass deprecations until bootstrap is updated to support the changes.
-  // @see https://github.com/twbs/bootstrap/issues/40962
-  const silenceDeprecations = [
-    "color-functions",
-    "global-builtin",
-    "import",
-    "mixed-decls",
-  ];
   return gulp
-    .src(config.stylesConfig.app)
-    .pipe(sassGlob({ ignorePaths: config.stylesConfig.ignore }))
-    .pipe(sass.sync({ silenceDeprecations }).on("error", sass.logError))
-    .pipe(concat("app.css"))
-    .pipe(gulp.dest(config.stylesConfig.dest));
-}
-
-/**
- * Runs all tests _not_ tagged "isolate".
- *
- * @param cb
- */
-function test(cb) {
-  let command = [
-    "run",
-    "python",
-    "-Wa",
-    "manage.py",
-    "test",
-    "--settings=babybuddy.settings.test",
-    "--parallel",
-    "--exclude-tag",
-    "isolate",
-  ];
-  command = command.concat(process.argv.splice(3));
-  spawn("pipenv", command, { stdio: "inherit" }).on("exit", function (code) {
-    if (code === 0) {
-      // Run isolated tests.
-      config.testsConfig.isolated.forEach(function (test_name) {
-        try {
-          es(
-            "pipenv run python manage.py test --settings=babybuddy.settings.test " +
-              test_name,
-            { stdio: "inherit" },
-          );
-        } catch (error) {
-          console.error(error);
-          cb();
-          process.exit(1);
-        }
-      });
-    }
-    cb();
-    process.exit(code);
-  });
+    .src(config.scriptsConfig.graph)
+    .pipe(concat("graph.js"))
+    .pipe(
+      minify({
+        ext: { min: ".js" },
+        noSource: true,
+      }),
+    )
+    .pipe(gulp.dest(config.scriptsConfig.dest));
 }
 
 /**
@@ -282,14 +205,6 @@ function updateGlyphs() {
     .src(config.glyphFontConfig.configFile, { encoding: false })
     .pipe(fontello({ assetsOnly: false }))
     .pipe(gulp.dest(config.glyphFontConfig.dest));
-}
-
-/**
- * Watches for changes in configured files.
- */
-function watch() {
-  gulp.watch(config.watchConfig.scriptsGlob, scripts);
-  gulp.watch(config.watchConfig.stylesGlob, styles);
 }
 
 /**
@@ -402,23 +317,52 @@ gulp.task("lint", lint);
 
 gulp.task("scripts", scripts);
 
-gulp.task("styles", styles);
-
-gulp.task("test", test);
+gulp.task("test", function test(cb) {
+  let command = [
+    "run",
+    "python",
+    "-Wa",
+    "manage.py",
+    "test",
+    "--settings=babybuddy.settings.test",
+    "--parallel",
+    "--exclude-tag",
+    "isolate",
+  ];
+  command = command.concat(process.argv.splice(3));
+  spawn("pipenv", command, { stdio: "inherit" }).on("exit", function (code) {
+    if (code === 0) {
+      // Run isolated tests.
+      config.testsConfig.isolated.forEach(function (test_name) {
+        try {
+          es(
+            "pipenv run python manage.py test --settings=babybuddy.settings.test " +
+              test_name,
+            { stdio: "inherit" },
+          );
+        } catch (error) {
+          console.error(error);
+          cb();
+          process.exit(1);
+        }
+      });
+    }
+    cb();
+    process.exit(code);
+  });
+});
 
 gulp.task("updateglyphs", updateGlyphs);
-
-gulp.task("watch", watch);
 
 /**
  * Gulp compound commands.
  */
 
-gulp.task("build", gulp.parallel("extras", "scripts", "styles"));
+gulp.task("build", gulp.parallel("extras", "scripts"));
 
 gulp.task(
   "updatestatic",
   gulp.series("lint", "clean", "build", "collectstatic"),
 );
 
-gulp.task("default", gulp.series("build", gulp.parallel("watch", "runserver")));
+gulp.task("default", gulp.series("build", "runserver"));
