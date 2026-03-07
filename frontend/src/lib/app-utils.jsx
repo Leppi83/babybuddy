@@ -221,7 +221,14 @@ export function formatHiddenValue(fieldType, value) {
     return dayjs(value).format("YYYY-MM-DD");
   }
   if (fieldType === "time") {
-    return dayjs(value).format("HH:mm:ss");
+    const timeFormats = ["HH:mm:ss", "HH:mm", "H:mm", "HH:mm:ss.SSS"];
+    for (const fmt of timeFormats) {
+      const parsed = dayjs(value, fmt, true);
+      if (parsed.isValid()) {
+        return parsed.format("HH:mm:ss");
+      }
+    }
+    return "";
   }
   if (fieldType === "datetime-local") {
     return dayjs(value).format("YYYY-MM-DDTHH:mm:ss");
@@ -290,6 +297,7 @@ export function AntFieldControl({ field, value, onChange }) {
         onChange={(nextValue) =>
           onChange(nextValue ? nextValue.format("YYYY-MM-DD") : "")
         }
+        inputReadOnly
       />
     );
   }
@@ -302,6 +310,7 @@ export function AntFieldControl({ field, value, onChange }) {
         onChange={(nextValue) =>
           onChange(nextValue ? nextValue.format("HH:mm:ss") : "")
         }
+        inputReadOnly
       />
     );
   }
@@ -315,6 +324,7 @@ export function AntFieldControl({ field, value, onChange }) {
         onChange={(nextValue) =>
           onChange(nextValue ? nextValue.format("YYYY-MM-DDTHH:mm:ss") : "")
         }
+        inputReadOnly
       />
     );
   }
