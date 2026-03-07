@@ -224,6 +224,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "card.sleep.naps_day",
             "card.sleep.statistics",
             "card.sleep.timeline_day",
+            "card.sleep.week_chart",
         ],
         "tummytime": [
             "card.tummytime.day",

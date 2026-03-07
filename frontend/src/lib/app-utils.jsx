@@ -51,6 +51,7 @@ export const DASHBOARD_CARD_TITLES = {
   "card.sleep.naps_day": "Today's Naps",
   "card.sleep.statistics": "Statistics",
   "card.sleep.timeline_day": "Sleep Timeline (24h)",
+  "card.sleep.week_chart": "Sleep This Week",
   "card.tummytime.day": "Today's Tummy Time",
 };
 

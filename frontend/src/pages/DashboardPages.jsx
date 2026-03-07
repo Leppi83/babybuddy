@@ -668,6 +668,154 @@ function MiniTimeline({ items, locale, currentTime, strings }) {
   );
 }
 
+function SleepWeekChart({ sleepItems }) {
+  const N = 7;
+  const days = Array.from({ length: N }, (_, i) => {
+    const day = dayjs().subtract(N - 1 - i, "day");
+    return {
+      date: day.format("YYYY-MM-DD"),
+      label: day.format("ddd"),
+      minutes: 0,
+    };
+  });
+
+  sleepItems.forEach((item) => {
+    if (!item.start) return;
+    const itemDate = dayjs(item.start).format("YYYY-MM-DD");
+    const bucket = days.find((d) => d.date === itemDate);
+    if (bucket) {
+      bucket.minutes += durationMinutesFromValue(item.duration);
+    }
+  });
+
+  const maxMinutes = Math.max(60, ...days.map((d) => d.minutes));
+  const yMax = Math.ceil(maxMinutes / 60) * 60;
+
+  // SVG layout constants
+  const VW = 620;
+  const VH = 150;
+  const PAD_L = 38;
+  const PAD_R = 10;
+  const PAD_T = 24;
+  const PAD_B = 22;
+  const CW = VW - PAD_L - PAD_R;
+  const CH = VH - PAD_T - PAD_B;
+
+  const pts = days.map((d, i) => ({
+    ...d,
+    x: PAD_L + (i / (N - 1)) * CW,
+    y: PAD_T + CH * (1 - d.minutes / yMax),
+  }));
+
+  // Catmull-Rom → cubic Bézier for smooth line
+  const ALPHA = 1 / 6;
+  let linePath = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const cp1x = p1.x + (p2.x - p0.x) * ALPHA;
+    const cp1y = p1.y + (p2.y - p0.y) * ALPHA;
+    const cp2x = p2.x - (p3.x - p1.x) * ALPHA;
+    const cp2y = p2.y - (p3.y - p1.y) * ALPHA;
+    linePath += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)},${cp2x.toFixed(2)} ${cp2y.toFixed(2)},${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  }
+  const areaPath = `${linePath} L ${pts[N - 1].x.toFixed(2)} ${(PAD_T + CH).toFixed(2)} L ${pts[0].x.toFixed(2)} ${(PAD_T + CH).toFixed(2)} Z`;
+
+  const maxH = yMax / 60;
+  const yGridLines = Array.from({ length: maxH + 1 }, (_, h) => ({
+    y: PAD_T + CH * (1 - h / maxH),
+    label: `${h}h`,
+  }));
+
+  return (
+    <svg
+      viewBox={`0 0 ${VW} ${VH}`}
+      style={{ width: "100%", height: "auto", display: "block" }}
+    >
+      <defs>
+        <linearGradient id="sleepWeekGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffd666" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#ffd666" stopOpacity="0.02" />
+        </linearGradient>
+        <clipPath id="sleepWeekClip">
+          <rect x={PAD_L} y={PAD_T} width={CW} height={CH} />
+        </clipPath>
+      </defs>
+
+      {/* Horizontal grid lines + Y-axis hour labels */}
+      {yGridLines.map(({ y, label }) => (
+        <g key={label}>
+          <line
+            x1={PAD_L}
+            y1={y}
+            x2={PAD_L + CW}
+            y2={y}
+            stroke="rgba(255,255,255,0.07)"
+            strokeWidth="1"
+          />
+          <text
+            x={PAD_L - 5}
+            y={y + 4}
+            textAnchor="end"
+            fontSize="13"
+            fill="rgba(255,255,255,0.35)"
+          >
+            {label}
+          </text>
+        </g>
+      ))}
+
+      {/* Filled area under the curve */}
+      <path
+        d={areaPath}
+        fill="url(#sleepWeekGrad)"
+        clipPath="url(#sleepWeekClip)"
+      />
+
+      {/* Smooth line */}
+      <path
+        d={linePath}
+        fill="none"
+        stroke="#ffd666"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        clipPath="url(#sleepWeekClip)"
+      />
+
+      {/* Dots + value labels + day labels */}
+      {pts.map((pt, i) => (
+        <g key={i}>
+          <circle cx={pt.x} cy={pt.y} r="4.5" fill="#ffd666" />
+          {pt.minutes > 0 && (
+            <text
+              x={pt.x}
+              y={pt.y - 10}
+              textAnchor="middle"
+              fontSize="12"
+              fontWeight="600"
+              fill="#ffd666"
+            >
+              {formatDurationCompact(pt.minutes * 60)}
+            </text>
+          )}
+          <text
+            x={pt.x}
+            y={VH - 4}
+            textAnchor="middle"
+            fontSize="13"
+            fill="rgba(255,255,255,0.55)"
+          >
+            {pt.label}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 export function ChildDashboardPage({ bootstrap }) {
   const ant = AntApp.useApp();
   const api = useRef(createApiClient(bootstrap.csrfToken));
@@ -679,7 +827,10 @@ export function ChildDashboardPage({ bootstrap }) {
   );
   const [loading, setLoading] = useState(true);
   const [cards, setCards] = useState({});
-  const [dashboardData, setDashboardData] = useState({ sleepItems: [] });
+  const [dashboardData, setDashboardData] = useState({
+    sleepItems: [],
+    weekSleepItems: [],
+  });
   const [diaperDate, setDiaperDate] = useState(dayjs());
   const [diaperTime, setDiaperTime] = useState(dayjs());
   const [diaperConsistency, setDiaperConsistency] = useState("liquid");
@@ -778,6 +929,10 @@ export function ChildDashboardPage({ bootstrap }) {
     const query = `child=${encodeURIComponent(childId)}`;
 
     try {
+      const sevenDaysAgo = dayjs()
+        .subtract(7, "day")
+        .startOf("day")
+        .toISOString();
       const [
         changes,
         feedings,
@@ -786,6 +941,7 @@ export function ChildDashboardPage({ bootstrap }) {
         tummyTimes,
         timers,
         recommendations,
+        weekSleeps,
       ] = await Promise.all([
         api.current.get(`/api/changes/?${query}&limit=20`),
         api.current.get(`/api/feedings/?${query}&limit=20`),
@@ -796,6 +952,9 @@ export function ChildDashboardPage({ bootstrap }) {
         api.current.get(
           `/api/children/${encodeURIComponent(child.slug)}/sleep-recommendations/`,
         ),
+        api.current.get(
+          `/api/sleep/?${query}&start_min=${encodeURIComponent(sevenDaysAgo)}&limit=200`,
+        ),
       ]);
 
       const changeItems = asItems(changes);
@@ -804,7 +963,8 @@ export function ChildDashboardPage({ bootstrap }) {
       const sleepItems = asItems(sleeps);
       const tummyItems = asItems(tummyTimes);
       const timerItems = asItems(timers);
-      setDashboardData({ sleepItems });
+      const weekSleepItems = asItems(weekSleeps);
+      setDashboardData({ sleepItems, weekSleepItems });
 
       const lastChange = changeItems[0];
       const lastFeeding = feedingItems[0];
@@ -1618,7 +1778,12 @@ export function ChildDashboardPage({ bootstrap }) {
                   {cardKeys.map((cardKey) => (
                     <Col
                       xs={24}
-                      lg={cardKey === "card.sleep.timeline_day" ? 24 : 12}
+                      lg={
+                        cardKey === "card.sleep.timeline_day" ||
+                        cardKey === "card.sleep.week_chart"
+                          ? 24
+                          : 12
+                      }
                       key={cardKey}
                     >
                       <SummaryCard
@@ -1693,6 +1858,11 @@ export function ChildDashboardPage({ bootstrap }) {
                             renderSleepTimerCard()) ||
                           (cardKey === "card.sleep.timeline_day" &&
                             renderSleepTimelineCard()) ||
+                          (cardKey === "card.sleep.week_chart" && (
+                            <SleepWeekChart
+                              sleepItems={dashboardData.weekSleepItems}
+                            />
+                          )) ||
                           cards[cardKey] || (
                             <Empty
                               image={Empty.PRESENTED_IMAGE_SIMPLE}
