@@ -2277,53 +2277,52 @@ export function ChildDashboardPage({ bootstrap }) {
             >
               {!hidden && (
                 <Row gutter={[16, 16]}>
-                  {cardKeys.map((cardKey) => (
-                    <Col
-                      xs={24}
-                      lg={
-                        cardKey === "card.sleep.timeline_day" ||
-                        cardKey === "card.sleep.week_chart" ||
-                        cardKey === "card.quick_entry.consolidated" ||
-                        cardKey === "card.diaper.quick_entry" ||
-                        cardKey === "card.feedings.quick_entry" ||
-                        cardKey === "card.feedings.breast_quick_entry" ||
-                        cardKey === "card.pumpings.quick_entry" ||
-                        cardKey === "card.sleep.quick_timer"
-                          ? 24
-                          : 12
-                      }
-                      key={cardKey}
-                    >
-                      <SummaryCard
-                        title={
-                          DASHBOARD_CARD_TITLES[cardKey] ||
-                          bootstrap.strings.migrationPending
+                  {cardKeys
+                    .filter(
+                      (cardKey) =>
+                        cardKey !== "card.diaper.quick_entry" &&
+                        cardKey !== "card.feedings.quick_entry" &&
+                        cardKey !== "card.feedings.breast_quick_entry" &&
+                        cardKey !== "card.pumpings.quick_entry" &&
+                        cardKey !== "card.sleep.quick_timer",
+                    )
+                    .map((cardKey) => (
+                      <Col
+                        xs={24}
+                        lg={
+                          cardKey === "card.sleep.timeline_day" ||
+                          cardKey === "card.sleep.week_chart" ||
+                          cardKey === "card.quick_entry.consolidated"
+                            ? 24
+                            : 12
                         }
+                        key={cardKey}
                       >
-                        {cardKey === "card.quick_entry.consolidated" ||
-                        cardKey === "card.diaper.quick_entry" ||
-                        cardKey === "card.feedings.quick_entry" ||
-                        cardKey === "card.feedings.breast_quick_entry" ||
-                        cardKey === "card.pumpings.quick_entry" ||
-                        cardKey === "card.sleep.quick_timer" ? (
-                          renderQuickEntryCard()
-                        ) : cardKey === "card.sleep.timeline_day" ? (
-                          renderSleepTimelineCard()
-                        ) : cardKey === "card.sleep.week_chart" ? (
-                          <SleepWeekChart
-                            sleepItems={dashboardData.weekSleepItems}
-                          />
-                        ) : (
-                          cards[cardKey] || (
-                            <Empty
-                              image={Empty.PRESENTED_IMAGE_SIMPLE}
-                              description={bootstrap.strings.migrationPending}
+                        <SummaryCard
+                          title={
+                            DASHBOARD_CARD_TITLES[cardKey] ||
+                            bootstrap.strings.migrationPending
+                          }
+                        >
+                          {cardKey === "card.quick_entry.consolidated" ? (
+                            renderQuickEntryCard()
+                          ) : cardKey === "card.sleep.timeline_day" ? (
+                            renderSleepTimelineCard()
+                          ) : cardKey === "card.sleep.week_chart" ? (
+                            <SleepWeekChart
+                              sleepItems={dashboardData.weekSleepItems}
                             />
-                          )
-                        )}
-                      </SummaryCard>
-                    </Col>
-                  ))}
+                          ) : (
+                            cards[cardKey] || (
+                              <Empty
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                description={bootstrap.strings.migrationPending}
+                              />
+                            )
+                          )}
+                        </SummaryCard>
+                      </Col>
+                    ))}
                 </Row>
               )}
             </Card>
