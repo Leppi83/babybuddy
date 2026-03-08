@@ -27,7 +27,8 @@ export const SECTION_META = {
   tummytime: { color: "#5cdb8b" },
 };
 
-export const APP_DATE_FORMAT = "MM.DD.";
+export const APP_DATE_FORMAT = "DD.MM.";
+export const APP_DATE_FORMAT_FULL = "DD.MM.YYYY";
 export const APP_TIME_FORMAT = "HH:mm";
 export const APP_DATE_TIME_FORMAT = `${APP_DATE_FORMAT} ${APP_TIME_FORMAT}`;
 
