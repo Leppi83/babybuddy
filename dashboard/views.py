@@ -103,6 +103,7 @@ def _build_ant_strings():
         "endDate": _("End date"),
         "endTime": _("End time"),
         "diaperChanges": _("Diaper changes"),
+        "quick_entry": _("Quick Entry"),
         "diaper": _("Diaper changes"),
         "feedings": _("Feedings"),
         "pumpings": _("Pumpings"),
