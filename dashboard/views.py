@@ -656,6 +656,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             context["ant_bootstrap"] = {
                 "pageType": "dashboard-child",
                 "currentPath": self.request.path,
+                "activeNavKey": reverse("dashboard:dashboard"),
                 "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
                 "csrfToken": get_token(self.request),
                 "user": {"displayName": _display_name(self.request.user)},
