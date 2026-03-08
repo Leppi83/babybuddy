@@ -1703,10 +1703,10 @@ export function ChildDashboardPage({ bootstrap }) {
     };
 
     const segments = [
-      { label: bootstrap.strings.diaperChanges, value: "diaper" },
       { label: bootstrap.strings.sleep, value: "sleep" },
+      { label: "Diaper", value: "diaper" },
       { label: bootstrap.strings.feedings, value: "feeding" },
-      { label: bootstrap.strings.breastFeeding, value: "breastfeeding" },
+      { label: "Breastfeeding", value: "breastfeeding" },
       { label: bootstrap.strings.pumpings, value: "pumping" },
     ];
 
@@ -1737,6 +1737,97 @@ export function ChildDashboardPage({ bootstrap }) {
           onChange={setSelectedQuickEntrySegment}
           style={{ width: "100%" }}
         />
+        {selectedQuickEntrySegment === "sleep" && (
+          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                  {renderDateTimeInputs({
+                    startDate: sleepEntryStartDate,
+                    setStartDate: setSleepEntryStartDate,
+                    startTime: sleepEntryStartTime,
+                    setStartTime: setSleepEntryStartTime,
+                    endDate: sleepEntryEndDate,
+                    setEndDate: setSleepEntryEndDate,
+                    endTime: sleepEntryEndTime,
+                    setEndTime: setSleepEntryEndTime,
+                  })}
+                  <Segmented
+                    block
+                    value={sleepEntryType}
+                    options={[
+                      {
+                        label: bootstrap.strings.sleep,
+                        value: "sleep",
+                      },
+                      {
+                        label: bootstrap.strings.nap,
+                        value: "nap",
+                      },
+                    ]}
+                    onChange={setSleepEntryType}
+                  />
+                  <Button
+                    type="primary"
+                    size="large"
+                    loading={submittingSleepEntry}
+                    onClick={submitSleepEntry}
+                    className="ant-diaper-save"
+                  >
+                    {bootstrap.strings.save}
+                  </Button>
+                </Space>
+              </Col>
+              <Col xs={24} md={12}>
+                <Space
+                  direction="vertical"
+                  size={16}
+                  className="ant-sleep-timer-card"
+                  style={{ width: "100%" }}
+                >
+                  <Statistic
+                    title={bootstrap.strings.sleepTimer}
+                    value={formatElapsedSeconds(
+                      sleepTimer.running
+                        ? Math.max(
+                            Number(sleepTimer.elapsedSeconds) || 0,
+                            Math.floor(
+                              (currentTime -
+                                new Date(
+                                  sleepTimer.startIso || currentTime,
+                                ).getTime()) /
+                                1000,
+                            ),
+                          )
+                        : Number(sleepTimer.elapsedSeconds) || 0,
+                    )}
+                  />
+                  <Space wrap>
+                    <Tag color={sleepTimer.running ? "gold" : "default"}>
+                      {sleepTimer.running
+                        ? bootstrap.strings.running
+                        : bootstrap.strings.ready}
+                    </Tag>
+                  </Space>
+                  <Button
+                    type="primary"
+                    size="large"
+                    loading={submittingSleepTimer}
+                    onClick={() =>
+                      submitSleepTimerAction(
+                        sleepTimer.running ? "stop" : "start",
+                      )
+                    }
+                  >
+                    {sleepTimer.running
+                      ? bootstrap.strings.stop
+                      : bootstrap.strings.start}
+                  </Button>
+                </Space>
+              </Col>
+            </Row>
+          </Space>
+        )}
         {selectedQuickEntrySegment === "diaper" && (
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
             <Row gutter={8}>
@@ -1785,119 +1876,28 @@ export function ChildDashboardPage({ bootstrap }) {
             </Button>
           </Space>
         )}
-        {selectedQuickEntrySegment === "sleep" && (
-          <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            <Row gutter={[16, 16]} className="ant-sleep-timer-layout">
-              <Col xs={24} md={12}>
-                <Space
-                  direction="vertical"
-                  size={16}
-                  className="ant-sleep-timer-card"
-                  style={{ width: "100%" }}
-                >
-                  <Statistic
-                    title={bootstrap.strings.sleepTimer}
-                    value={formatElapsedSeconds(
-                      sleepTimer.running
-                        ? Math.max(
-                            Number(sleepTimer.elapsedSeconds) || 0,
-                            Math.floor(
-                              (currentTime -
-                                new Date(
-                                  sleepTimer.startIso || currentTime,
-                                ).getTime()) /
-                                1000,
-                            ),
-                          )
-                        : Number(sleepTimer.elapsedSeconds) || 0,
-                    )}
-                  />
-                  <Space wrap>
-                    <Tag color={sleepTimer.running ? "gold" : "default"}>
-                      {sleepTimer.running
-                        ? bootstrap.strings.running
-                        : bootstrap.strings.ready}
-                    </Tag>
-                  </Space>
-                  <Button
-                    type="primary"
-                    size="large"
-                    loading={submittingSleepTimer}
-                    onClick={() =>
-                      submitSleepTimerAction(
-                        sleepTimer.running ? "stop" : "start",
-                      )
-                    }
-                  >
-                    {sleepTimer.running
-                      ? bootstrap.strings.stop
-                      : bootstrap.strings.start}
-                  </Button>
-                </Space>
-              </Col>
-              <Col xs={24} md={12}>
-                <Card
-                  size="small"
-                  title={bootstrap.strings.manualEntry}
-                  style={{ width: "100%" }}
-                >
-                  <Space
-                    direction="vertical"
-                    size={12}
-                    style={{ width: "100%" }}
-                  >
-                    {renderDateTimeInputs({
-                      startDate: sleepEntryStartDate,
-                      setStartDate: setSleepEntryStartDate,
-                      startTime: sleepEntryStartTime,
-                      setStartTime: setSleepEntryStartTime,
-                      endDate: sleepEntryEndDate,
-                      setEndDate: setSleepEntryEndDate,
-                      endTime: sleepEntryEndTime,
-                      setEndTime: setSleepEntryEndTime,
-                    })}
-                    <Segmented
-                      block
-                      value={sleepEntryType}
-                      options={[
-                        {
-                          label: bootstrap.strings.sleep,
-                          value: "sleep",
-                        },
-                        {
-                          label: bootstrap.strings.nap,
-                          value: "nap",
-                        },
-                      ]}
-                      onChange={setSleepEntryType}
-                    />
-                    <Button
-                      type="primary"
-                      size="large"
-                      loading={submittingSleepEntry}
-                      onClick={submitSleepEntry}
-                      className="ant-diaper-save"
-                    >
-                      {bootstrap.strings.save}
-                    </Button>
-                  </Space>
-                </Card>
-              </Col>
-            </Row>
-          </Space>
-        )}
         {selectedQuickEntrySegment === "feeding" && (
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            {renderDateTimeInputs({
-              startDate: feedingStartDate,
-              setStartDate: setFeedingStartDate,
-              startTime: feedingStartTime,
-              setStartTime: setFeedingStartTime,
-              endDate: feedingEndDate,
-              setEndDate: setFeedingEndDate,
-              endTime: feedingEndTime,
-              setEndTime: setFeedingEndTime,
-            })}
+            <Row gutter={8}>
+              <Col span={12}>
+                <DatePicker
+                  value={feedingStartDate}
+                  format={APP_DATE_FORMAT}
+                  onChange={(value) => value && setFeedingStartDate(value)}
+                  className="ant-dashboard-picker"
+                  inputReadOnly
+                />
+              </Col>
+              <Col span={12}>
+                <TimePicker
+                  value={feedingStartTime}
+                  format={APP_TIME_FORMAT}
+                  onChange={(value) => value && setFeedingStartTime(value)}
+                  className="ant-dashboard-picker"
+                  inputReadOnly
+                />
+              </Col>
+            </Row>
             <Segmented
               block
               value={feedingType}
@@ -1927,16 +1927,28 @@ export function ChildDashboardPage({ bootstrap }) {
         )}
         {selectedQuickEntrySegment === "breastfeeding" && (
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            {renderDateTimeInputs({
-              startDate: breastfeedingStartDate,
-              setStartDate: setBreastfeedingStartDate,
-              startTime: breastfeedingStartTime,
-              setStartTime: setBreastfeedingStartTime,
-              endDate: breastfeedingEndDate,
-              setEndDate: setBreastfeedingEndDate,
-              endTime: breastfeedingEndTime,
-              setEndTime: setBreastfeedingEndTime,
-            })}
+            <Row gutter={8}>
+              <Col span={12}>
+                <DatePicker
+                  value={breastfeedingStartDate}
+                  format={APP_DATE_FORMAT}
+                  onChange={(value) =>
+                    value && setBreastfeedingStartDate(value)
+                  }
+                  className="ant-dashboard-picker"
+                  inputReadOnly
+                />
+              </Col>
+              <Col span={12}>
+                <TimePicker
+                  value={breastfeedingEndTime}
+                  format={APP_TIME_FORMAT}
+                  onChange={(value) => value && setBreastfeedingEndTime(value)}
+                  className="ant-dashboard-picker"
+                  inputReadOnly
+                />
+              </Col>
+            </Row>
             <Segmented
               block
               value={breastfeedingSide}
@@ -1959,16 +1971,26 @@ export function ChildDashboardPage({ bootstrap }) {
         )}
         {selectedQuickEntrySegment === "pumping" && (
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            {renderDateTimeInputs({
-              startDate: pumpingStartDate,
-              setStartDate: setPumpingStartDate,
-              startTime: pumpingStartTime,
-              setStartTime: setPumpingStartTime,
-              endDate: pumpingEndDate,
-              setEndDate: setPumpingEndDate,
-              endTime: pumpingEndTime,
-              setEndTime: setPumpingEndTime,
-            })}
+            <Row gutter={8}>
+              <Col span={12}>
+                <DatePicker
+                  value={pumpingStartDate}
+                  format={APP_DATE_FORMAT}
+                  onChange={(value) => value && setPumpingStartDate(value)}
+                  className="ant-dashboard-picker"
+                  inputReadOnly
+                />
+              </Col>
+              <Col span={12}>
+                <TimePicker
+                  value={pumpingEndTime}
+                  format={APP_TIME_FORMAT}
+                  onChange={(value) => value && setPumpingEndTime(value)}
+                  className="ant-dashboard-picker"
+                  inputReadOnly
+                />
+              </Col>
+            </Row>
             <Row gutter={8}>
               <Col span={12}>
                 <label className="ant-dashboard-inline-label">
@@ -1983,32 +2005,28 @@ export function ChildDashboardPage({ bootstrap }) {
                 />
               </Col>
             </Row>
-            <Row gutter={[8, 0]}>
-              <Col span={24}>
-                <label className="ant-dashboard-inline-label">
-                  {bootstrap.strings.side}
-                </label>
-                <Segmented
-                  block
-                  value={pumpingSide}
-                  options={[
-                    {
-                      label: bootstrap.strings.left,
-                      value: "left",
-                    },
-                    {
-                      label: bootstrap.strings.right,
-                      value: "right",
-                    },
-                    {
-                      label: bootstrap.strings.both,
-                      value: "both",
-                    },
-                  ]}
-                  onChange={setPumpingSide}
-                />
-              </Col>
-            </Row>
+            <label className="ant-dashboard-inline-label">
+              {bootstrap.strings.side}
+            </label>
+            <Segmented
+              block
+              value={pumpingSide}
+              options={[
+                {
+                  label: bootstrap.strings.left,
+                  value: "left",
+                },
+                {
+                  label: bootstrap.strings.right,
+                  value: "right",
+                },
+                {
+                  label: bootstrap.strings.both,
+                  value: "both",
+                },
+              ]}
+              onChange={setPumpingSide}
+            />
             <Button
               type="primary"
               size="large"
