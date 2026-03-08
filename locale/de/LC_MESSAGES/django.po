@@ -148,6 +148,18 @@ msgstr "Schlaf - Statistiken"
 msgid "sleep - Sleep Timeline (24h)"
 msgstr "Schlaf - Schlaf-Timeline (24h)"
 
+#: babybuddy/models.py:45
+msgid "sleep - Sleep This Week"
+msgstr "Schlaf - Schlaf diese Woche"
+
+#: dashboard/views.py
+msgid "{} months"
+msgstr "{} Monate"
+
+#: dashboard/views.py
+msgid "{} years"
+msgstr "{} Jahre"
+
 #: babybuddy/models.py:42
 msgid "tummy time - Today's Tummy Time"
 msgstr "Bauchzeit - Heutige Bauchzeit"

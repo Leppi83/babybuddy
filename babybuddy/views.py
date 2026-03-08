@@ -476,6 +476,7 @@ def _build_settings_bootstrap(request, form_user, form_settings):
             "settings": reverse("babybuddy:user-settings"),
             "logout": reverse("babybuddy:logout"),
             "self": reverse("babybuddy:user-settings"),
+            "addChild": reverse("core:child-add"),
         },
         "messages": _serialize_messages(request),
         "settings": {

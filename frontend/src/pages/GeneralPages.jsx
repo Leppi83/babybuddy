@@ -938,9 +938,6 @@ export function DashboardHomePage({ bootstrap }) {
           <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
             {bootstrap.strings.dashboard}
           </Title>
-          <Text style={{ color: "#cbd5e1" }}>
-            React + Ant Design is now the target UI path for Baby Buddy.
-          </Text>
           {bootstrap.urls.addChild ? (
             <div>
               <Button type="primary" href={bootstrap.urls.addChild}>
@@ -958,14 +955,14 @@ export function DashboardHomePage({ bootstrap }) {
               hoverable
               className="ant-dashboard-card"
               cover={
-                <div className="ant-child-image-wrap">
+                <a href={child.dashboardUrl} className="ant-child-image-wrap">
                   <Image
                     preview={false}
                     src={child.pictureUrl}
                     alt=""
                     className="ant-child-image"
                   />
-                </div>
+                </a>
               }
               actions={[
                 <Button
@@ -973,6 +970,7 @@ export function DashboardHomePage({ bootstrap }) {
                   key="open"
                   href={child.dashboardUrl}
                   icon={<DashboardOutlined />}
+                  style={{ gap: 8 }}
                 >
                   {bootstrap.strings.openDashboard}
                 </Button>,
@@ -985,6 +983,7 @@ export function DashboardHomePage({ bootstrap }) {
                   <Space direction="vertical" size={4}>
                     <Text style={{ color: "#cbd5e1" }}>
                       {bootstrap.strings.born}: {child.birthDateLabel}
+                      {child.ageLabel ? ` (${child.ageLabel})` : ""}
                     </Text>
                   </Space>
                 }
