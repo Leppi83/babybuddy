@@ -2374,17 +2374,26 @@ export function ChildDashboardPage({ bootstrap }) {
                       return (
                         <Col xs={24} key={cardKey}>
                           <SummaryCard title={title}>
-                            {renderCardContent(cardKey)}
-                            {secondaryKey && (
-                              <>
+                            {secondaryKey ? (
+                              <Row wrap={false} align="top">
+                                <Col flex="1 1 0" style={{ minWidth: 0 }}>
+                                  {renderCardContent(cardKey)}
+                                </Col>
                                 <Divider
+                                  type="vertical"
                                   style={{
+                                    height: "auto",
+                                    alignSelf: "stretch",
                                     borderColor: "rgba(77,182,255,0.15)",
-                                    margin: "12px 0",
+                                    margin: "0 12px",
                                   }}
                                 />
-                                {renderCardContent(secondaryKey)}
-                              </>
+                                <Col flex="1 1 0" style={{ minWidth: 0 }}>
+                                  {renderCardContent(secondaryKey)}
+                                </Col>
+                              </Row>
+                            ) : (
+                              renderCardContent(cardKey)
                             )}
                           </SummaryCard>
                         </Col>
