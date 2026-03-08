@@ -44,18 +44,28 @@ export function AppShell({ bootstrap, children }) {
     },
     bootstrap.urls.childrenList
       ? {
-          key: bootstrap.urls.childrenList,
+          key: "children-menu",
           icon: <TeamOutlined />,
           label: bootstrap.strings.children,
-          children: bootstrap.urls.addChild
-            ? [
-                {
-                  key: bootstrap.urls.addChild,
-                  icon: <PlusOutlined />,
-                  label: bootstrap.strings.addChild,
-                },
-              ]
-            : undefined,
+          children: [
+            ...(bootstrap.urls.childrenList
+              ? [
+                  {
+                    key: bootstrap.urls.childrenList,
+                    label: "Overview",
+                  },
+                ]
+              : []),
+            ...(bootstrap.urls.addChild
+              ? [
+                  {
+                    key: bootstrap.urls.addChild,
+                    icon: <PlusOutlined />,
+                    label: bootstrap.strings.addChild,
+                  },
+                ]
+              : []),
+          ],
         }
       : null,
     {

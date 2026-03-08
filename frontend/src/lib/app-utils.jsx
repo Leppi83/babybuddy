@@ -34,7 +34,7 @@ export const APP_TIME_FORMAT = "HH:mm";
 export const APP_DATE_TIME_FORMAT = `${APP_DATE_FORMAT} ${APP_TIME_FORMAT}`;
 
 export const DASHBOARD_CARD_TITLES = {
-  "card.quick_entry.consolidated": "Add values quickly",
+  "card.quick_entry.consolidated": "",
   "card.diaper.quick_entry": "Quick Entry",
   "card.feedings.quick_entry": "Quick Feeding",
   "card.feedings.breast_quick_entry": "Quick Breastfeeding",
