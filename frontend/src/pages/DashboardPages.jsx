@@ -874,6 +874,9 @@ export function ChildDashboardPage({ bootstrap }) {
   const [pumpingAmount, setPumpingAmount] = useState("");
   const [pumpingSide, setPumpingSide] = useState("left");
   const [sleepTimer, setSleepTimer] = useState(bootstrap.sleepTimer || {});
+  const [sleepTimerPaused, setSleepTimerPaused] = useState(false);
+  const [sleepTimerPauseStart, setSleepTimerPauseStart] = useState(null);
+  const [sleepTimerBreaks, setSleepTimerBreaks] = useState([]);
   const [submittingDiaper, setSubmittingDiaper] = useState(false);
   const [submittingFeeding, setSubmittingFeeding] = useState(false);
   const [submittingBreastfeeding, setSubmittingBreastfeeding] = useState(false);
@@ -1245,12 +1248,31 @@ export function ChildDashboardPage({ bootstrap }) {
           startIso: new Date().toISOString(),
           elapsedSeconds: 0,
         });
+        setSleepTimerPaused(false);
+        setSleepTimerBreaks([]);
+      } else if (action === "pause") {
+        setSleepTimerPaused(true);
+        setSleepTimerPauseStart(Date.now());
+      } else if (action === "resume") {
+        if (sleepTimerPauseStart) {
+          const pauseDuration = Math.floor(
+            (Date.now() - sleepTimerPauseStart) / 1000,
+          );
+          setSleepTimerBreaks([
+            ...sleepTimerBreaks,
+            { duration: pauseDuration },
+          ]);
+        }
+        setSleepTimerPaused(false);
+        setSleepTimerPauseStart(null);
       } else {
         setSleepTimer({
           running: false,
           startIso: null,
           elapsedSeconds: 0,
         });
+        setSleepTimerPaused(false);
+        setSleepTimerPauseStart(null);
         ant.message.success(bootstrap.strings.sleepEntrySaved);
         await loadDashboardData(selectedChildId, { background: true });
       }
@@ -1696,8 +1718,8 @@ export function ChildDashboardPage({ bootstrap }) {
   function renderQuickEntryCard() {
     const segmentColors = {
       diaper: "#ff4d4f",
-      sleep: "#1890ff",
-      feeding: "#faad14",
+      sleep: "#fa8c16",
+      feeding: "#1890ff",
       breastfeeding: "#722ed1",
       pumping: "#13c2c2",
     };
@@ -1785,44 +1807,100 @@ export function ChildDashboardPage({ bootstrap }) {
                   className="ant-sleep-timer-card"
                   style={{ width: "100%" }}
                 >
-                  <Statistic
-                    title={bootstrap.strings.sleepTimer}
-                    value={formatElapsedSeconds(
-                      sleepTimer.running
-                        ? Math.max(
-                            Number(sleepTimer.elapsedSeconds) || 0,
-                            Math.floor(
-                              (currentTime -
-                                new Date(
-                                  sleepTimer.startIso || currentTime,
-                                ).getTime()) /
-                                1000,
+                  {sleepTimer.running && sleepTimerPaused ? (
+                    <Row gutter={16}>
+                      <Col xs={12}>
+                        <Statistic
+                          title={bootstrap.strings.sleepTimer}
+                          value={formatElapsedSeconds(
+                            Math.max(
+                              Number(sleepTimer.elapsedSeconds) || 0,
+                              Math.floor(
+                                (currentTime -
+                                  new Date(
+                                    sleepTimer.startIso || currentTime,
+                                  ).getTime()) /
+                                  1000,
+                              ),
                             ),
-                          )
-                        : Number(sleepTimer.elapsedSeconds) || 0,
-                    )}
-                  />
+                          )}
+                        />
+                      </Col>
+                      <Col xs={12}>
+                        <Statistic
+                          title="Pause"
+                          value={formatElapsedSeconds(
+                            sleepTimerPauseStart
+                              ? Math.floor(
+                                  (currentTime - sleepTimerPauseStart) / 1000,
+                                )
+                              : 0,
+                          )}
+                        />
+                      </Col>
+                    </Row>
+                  ) : (
+                    <Statistic
+                      title={bootstrap.strings.sleepTimer}
+                      value={formatElapsedSeconds(
+                        sleepTimer.running
+                          ? Math.max(
+                              Number(sleepTimer.elapsedSeconds) || 0,
+                              Math.floor(
+                                (currentTime -
+                                  new Date(
+                                    sleepTimer.startIso || currentTime,
+                                  ).getTime()) /
+                                  1000,
+                              ),
+                            )
+                          : Number(sleepTimer.elapsedSeconds) || 0,
+                      )}
+                    />
+                  )}
                   <Space wrap>
                     <Tag color={sleepTimer.running ? "gold" : "default"}>
                       {sleepTimer.running
-                        ? bootstrap.strings.running
+                        ? sleepTimerPaused
+                          ? "Paused"
+                          : bootstrap.strings.running
                         : bootstrap.strings.ready}
                     </Tag>
                   </Space>
-                  <Button
-                    type="primary"
-                    size="large"
-                    loading={submittingSleepTimer}
-                    onClick={() =>
-                      submitSleepTimerAction(
-                        sleepTimer.running ? "stop" : "start",
-                      )
-                    }
-                  >
-                    {sleepTimer.running
-                      ? bootstrap.strings.stop
-                      : bootstrap.strings.start}
-                  </Button>
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    <Button
+                      type="primary"
+                      size="large"
+                      loading={submittingSleepTimer}
+                      onClick={() => {
+                        if (!sleepTimer.running) {
+                          submitSleepTimerAction("start");
+                        } else if (sleepTimerPaused) {
+                          submitSleepTimerAction("resume");
+                        } else {
+                          submitSleepTimerAction("pause");
+                        }
+                      }}
+                      style={{ width: "100%" }}
+                    >
+                      {!sleepTimer.running
+                        ? bootstrap.strings.start
+                        : sleepTimerPaused
+                          ? "Resume"
+                          : "Pause"}
+                    </Button>
+                    {sleepTimer.running && (
+                      <Button
+                        type="primary"
+                        size="large"
+                        loading={submittingSleepTimer}
+                        onClick={() => submitSleepTimerAction("save")}
+                        style={{ width: "100%" }}
+                      >
+                        {bootstrap.strings.save}
+                      </Button>
+                    )}
+                  </Space>
                 </Space>
               </Col>
             </Row>
@@ -2154,7 +2232,12 @@ export function ChildDashboardPage({ bootstrap }) {
                       xs={24}
                       lg={
                         cardKey === "card.sleep.timeline_day" ||
-                        cardKey === "card.sleep.week_chart"
+                        cardKey === "card.sleep.week_chart" ||
+                        cardKey === "card.sleep.quick_timer" ||
+                        cardKey === "card.diaper.quick_entry" ||
+                        cardKey === "card.feedings.quick_entry" ||
+                        cardKey === "card.feedings.breast_quick_entry" ||
+                        cardKey === "card.pumpings.quick_entry"
                           ? 24
                           : 12
                       }
