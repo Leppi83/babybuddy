@@ -27,7 +27,11 @@ def _child_picture_url(child):
 
 
 def _format_short_date(value):
-    return value.strftime("%m.%d.") if value else ""
+    return value.strftime("%d.%m.") if value else ""
+
+
+def _format_full_date(value):
+    return value.strftime("%d.%m.%Y") if value else ""
 
 
 def _format_child_age(birth_date):
@@ -148,7 +152,7 @@ def _serialize_children(request, children):
             "slug": child.slug,
             "name": str(child),
             "birthDate": child.birth_date.isoformat() if child.birth_date else None,
-            "birthDateLabel": _format_short_date(child.birth_date),
+            "birthDateLabel": _format_full_date(child.birth_date),
             "ageLabel": _format_child_age(child.birth_date),
             "pictureUrl": request.build_absolute_uri(_child_picture_url(child)),
             "dashboardUrl": reverse(
@@ -618,7 +622,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     "id": self.object.id,
                     "slug": self.object.slug,
                     "name": str(self.object),
-                    "birthDateLabel": _format_short_date(self.object.birth_date),
+                    "birthDateLabel": _format_full_date(self.object.birth_date),
                     "pictureUrl": self.request.build_absolute_uri(
                         _child_picture_url(self.object)
                     ),
