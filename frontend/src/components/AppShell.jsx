@@ -42,24 +42,22 @@ export function AppShell({ bootstrap, children }) {
       icon: <SwapOutlined />,
       label: bootstrap.strings.timeline,
     },
-    {
-      key: "kids-menu",
-      icon: <TeamOutlined />,
-      label: bootstrap.strings.kids,
-      children: [
-        {
+    bootstrap.urls.childrenList
+      ? {
           key: bootstrap.urls.childrenList,
+          icon: <TeamOutlined />,
           label: bootstrap.strings.children,
-        },
-        bootstrap.urls.addChild
-          ? {
-              key: bootstrap.urls.addChild,
-              icon: <PlusOutlined />,
-              label: bootstrap.strings.addChild,
-            }
-          : null,
-      ].filter(Boolean),
-    },
+          children: bootstrap.urls.addChild
+            ? [
+                {
+                  key: bootstrap.urls.addChild,
+                  icon: <PlusOutlined />,
+                  label: bootstrap.strings.addChild,
+                },
+              ]
+            : undefined,
+        }
+      : null,
     {
       key: bootstrap.urls.settings,
       icon: <SettingOutlined />,
