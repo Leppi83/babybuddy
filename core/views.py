@@ -644,8 +644,8 @@ class ChildList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
             context["ant_page_title"] = _("Children")
             context["ant_bootstrap"] = _build_ant_list_bootstrap(
                 self.request,
-                title=str(_("Children")),
-                kicker=str(_("Overview")),
+                title="",
+                kicker="",
                 columns=[
                     {"key": "photo", "title": ""},
                     {"key": "first_name", "title": str(_("First Name"))},
@@ -735,8 +735,8 @@ class ChildAdd(AntFormMixin, CoreAddView):
     form_class = forms.ChildForm
     success_url = reverse_lazy("core:child-list")
     success_message = _("%(first_name)s %(last_name)s added!")
-    ant_title = _("Add a Child")
-    ant_kicker = _("Entry Form")
+    ant_title = ""
+    ant_kicker = ""
 
 
 class ChildDetail(PermissionRequiredMixin, DetailView):
