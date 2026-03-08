@@ -16,7 +16,7 @@ from rest_framework.authtoken.models import Token
 
 class Settings(models.Model):
     DASHBOARD_SECTION_CHOICES = [
-        ("quick_entry", _("Quick Entry")),
+        ("quick_entry", _("Add values quickly")),
         ("diaper", _("Diaper")),
         ("feedings", _("Feedings")),
         ("pumpings", _("Pumpings")),
@@ -24,23 +24,23 @@ class Settings(models.Model):
         ("tummytime", _("Tummy")),
     ]
     DASHBOARD_ITEM_CHOICES = [
-        ("card.quick_entry.consolidated", _("Quick Entry")),
-        ("card.diaper.last", _("diaper changes - Last nappy change")),
-        ("card.diaper.types", _("diaper changes - Nappy changes")),
-        ("card.feedings.last", _("feedings - Last feeding")),
-        ("card.feedings.method", _("feedings - Last Feeding Method")),
-        ("card.feedings.recent", _("feedings - Recent Feedings")),
-        ("card.feedings.breastfeeding", _("feedings - Breastfeeding")),
-        ("card.pumpings.last", _("pumpings - Last Pumping")),
-        ("card.sleep.timers", _("sleep - Timers")),
-        ("card.sleep.last", _("sleep - Last Sleep")),
-        ("card.sleep.recommendations", _("sleep - Sleep Recommendations")),
-        ("card.sleep.recent", _("sleep - Recent Sleep")),
-        ("card.sleep.naps_day", _("sleep - Today's Naps")),
-        ("card.sleep.statistics", _("sleep - Statistics")),
-        ("card.sleep.timeline_day", _("sleep - Sleep Timeline (24h)")),
-        ("card.sleep.week_chart", _("sleep - Sleep This Week")),
-        ("card.tummytime.day", _("tummy time - Today's Tummy Time")),
+        ("card.quick_entry.consolidated", _("Add values quickly")),
+        ("card.diaper.last", _("Diaper - Last nappy change")),
+        ("card.diaper.types", _("Diaper - Nappy changes")),
+        ("card.feedings.last", _("Feedings - Last feeding")),
+        ("card.feedings.method", _("Feedings - Last Feeding Method")),
+        ("card.feedings.recent", _("Feedings - Recent Feedings")),
+        ("card.feedings.breastfeeding", _("Feedings - Breastfeeding")),
+        ("card.pumpings.last", _("Pumpings - Last Pumping")),
+        ("card.sleep.timers", _("Sleep - Timers")),
+        ("card.sleep.last", _("Sleep - Last Sleep")),
+        ("card.sleep.recommendations", _("Sleep - Sleep Recommendations")),
+        ("card.sleep.recent", _("Sleep - Recent Sleep")),
+        ("card.sleep.naps_day", _("Sleep - Today's Naps")),
+        ("card.sleep.statistics", _("Sleep - Statistics")),
+        ("card.sleep.timeline_day", _("Sleep - Sleep Timeline (24h)")),
+        ("card.sleep.week_chart", _("Sleep - Sleep This Week")),
+        ("card.tummytime.day", _("Tummy - Today's Tummy Time")),
     ]
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

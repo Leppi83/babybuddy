@@ -2329,17 +2329,7 @@ export function ChildDashboardPage({ bootstrap }) {
                         cardKey !== "card.sleep.quick_timer",
                     )
                     .map((cardKey) => (
-                      <Col
-                        xs={24}
-                        lg={
-                          cardKey === "card.sleep.timeline_day" ||
-                          cardKey === "card.sleep.week_chart" ||
-                          cardKey === "card.quick_entry.consolidated"
-                            ? 24
-                            : 12
-                        }
-                        key={cardKey}
-                      >
+                      <Col xs={24} key={cardKey}>
                         <SummaryCard
                           title={
                             DASHBOARD_CARD_TITLES[cardKey] ||
