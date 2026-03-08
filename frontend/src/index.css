@@ -160,7 +160,7 @@ body {
 .ant-timeline {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
   max-width: 760px;
   width: 100%;
   margin: 0 auto;
@@ -205,23 +205,24 @@ body {
 
 .ant-timeline-now-line {
   position: absolute;
-  top: -6px;
-  bottom: 40px;
+  top: 0;
+  bottom: 0;
   width: 2px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ff7875, #ff4d4f);
-  box-shadow: 0 0 16px rgba(255, 77, 79, 0.45);
+  border-left: 2px dotted #ff4d4f;
+  background: none;
+  box-shadow: none;
   pointer-events: none;
   z-index: 2;
+  margin-left: -1px;
 }
 
 .ant-timeline-now-line::before {
   content: "";
   position: absolute;
-  top: -8px;
+  top: -6px;
   left: 50%;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: #ff4d4f;
   transform: translateX(-50%);
