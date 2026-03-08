@@ -19,6 +19,7 @@ import {
   SettingOutlined,
   SwapOutlined,
   TeamOutlined,
+  UnorderedListOutlined,
 } from "@ant-design/icons";
 
 const { Header, Content, Sider } = Layout;
@@ -52,6 +53,7 @@ export function AppShell({ bootstrap, children }) {
               ? [
                   {
                     key: bootstrap.urls.childrenList,
+                    icon: <UnorderedListOutlined />,
                     label: "Overview",
                   },
                 ]
