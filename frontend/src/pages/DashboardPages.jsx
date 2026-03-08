@@ -1282,6 +1282,32 @@ export function ChildDashboardPage({ bootstrap }) {
         setSleepTimerPaused(false);
         setSleepTimerPauseStart(null);
         setSleepTimerFrozenSeconds(0);
+      } else if (action === "save") {
+        // Determine sleep type based on elapsed time (< 90 min = nap, >= 90 min = sleep)
+        const durationMinutes = sleepTimerFrozenSeconds / 60;
+        const sleepType = durationMinutes < 90 ? "nap" : "sleep";
+        payload.set("sleep_timer_type", sleepType);
+
+        const response2 = await api.current.postForm(
+          bootstrap.urls.current,
+          payload,
+        );
+        if (!response2.ok) {
+          ant.message.error(bootstrap.strings.saveFailed);
+          setSubmittingSleepTimer(false);
+          return;
+        }
+
+        setSleepTimer({
+          running: false,
+          startIso: null,
+          elapsedSeconds: 0,
+        });
+        setSleepTimerPaused(false);
+        setSleepTimerPauseStart(null);
+        setSleepTimerFrozenSeconds(0);
+        ant.message.success(bootstrap.strings.sleepEntrySaved);
+        await loadDashboardData(selectedChildId, { background: true });
       } else {
         setSleepTimer({
           running: false,
@@ -1421,6 +1447,17 @@ export function ChildDashboardPage({ bootstrap }) {
   }
 
   async function submitSleepEntry() {
+    const durationMinutes = sleepEntryEndDate
+      .hours(sleepEntryEndTime.hours())
+      .minutes(sleepEntryEndTime.minutes())
+      .diff(
+        sleepEntryStartDate
+          .hours(sleepEntryStartTime.hours())
+          .minutes(sleepEntryStartTime.minutes()),
+        "minutes",
+      );
+    const autoType = durationMinutes < 90 ? "nap" : "sleep";
+
     const payload = new URLSearchParams();
     payload.set("sleep_manual_entry_action", "create");
     payload.set(
@@ -1430,7 +1467,7 @@ export function ChildDashboardPage({ bootstrap }) {
     payload.set("sleep_entry_start_time", sleepEntryStartTime.format("HH:mm"));
     payload.set("sleep_entry_end_date", sleepEntryEndDate.format("YYYY-MM-DD"));
     payload.set("sleep_entry_end_time", sleepEntryEndTime.format("HH:mm"));
-    payload.set("sleep_entry_type", sleepEntryType);
+    payload.set("sleep_entry_type", autoType);
 
     setSubmittingSleepEntry(true);
     try {
@@ -1779,8 +1816,8 @@ export function ChildDashboardPage({ bootstrap }) {
         />
         {selectedQuickEntrySegment === "sleep" && (
           <Space direction="vertical" size={16} style={{ width: "100%" }}>
-            <Row gutter={16}>
-              <Col xs={24} md={12}>
+            <Row gutter={24}>
+              <Col xs={24} md={11}>
                 <Space direction="vertical" size={12} style={{ width: "100%" }}>
                   {renderDateTimeInputs({
                     startDate: sleepEntryStartDate,
@@ -1792,31 +1829,19 @@ export function ChildDashboardPage({ bootstrap }) {
                     endTime: sleepEntryEndTime,
                     setEndTime: setSleepEntryEndTime,
                   })}
-                  <Segmented
-                    block
-                    value={sleepEntryType}
-                    options={[
-                      {
-                        label: bootstrap.strings.sleep,
-                        value: "sleep",
-                      },
-                      {
-                        label: bootstrap.strings.nap,
-                        value: "nap",
-                      },
-                    ]}
-                    onChange={setSleepEntryType}
-                  />
-                  <Button
-                    type="primary"
-                    size="large"
-                    loading={submittingSleepEntry}
-                    onClick={submitSleepEntry}
-                    className="ant-diaper-save"
-                  >
-                    {bootstrap.strings.save}
-                  </Button>
+                  <Text type="secondary" style={{ fontSize: "12px" }}>
+                    Duration &lt; 90 min is saved as nap, ≥ 90 min as sleep
+                  </Text>
                 </Space>
+              </Col>
+              <Col xs={1} md={1}>
+                <div
+                  style={{
+                    width: "1px",
+                    height: "100%",
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  }}
+                />
               </Col>
               <Col xs={24} md={12}>
                 <Space
@@ -1874,40 +1899,56 @@ export function ChildDashboardPage({ bootstrap }) {
                         : bootstrap.strings.ready}
                     </Tag>
                   </Space>
-                  <Space direction="vertical" style={{ width: "100%" }}>
+                </Space>
+              </Col>
+            </Row>
+            <Row gutter={24}>
+              <Col xs={24} md={11}>
+                <Button
+                  type="primary"
+                  size="large"
+                  loading={submittingSleepEntry}
+                  onClick={submitSleepEntry}
+                  style={{ width: "100%" }}
+                >
+                  {bootstrap.strings.save}
+                </Button>
+              </Col>
+              <Col xs={1} md={1} />
+              <Col xs={24} md={12}>
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  <Button
+                    type="primary"
+                    size="large"
+                    loading={submittingSleepTimer}
+                    onClick={() => {
+                      if (!sleepTimer.running) {
+                        submitSleepTimerAction("start");
+                      } else if (sleepTimerPaused) {
+                        submitSleepTimerAction("resume");
+                      } else {
+                        submitSleepTimerAction("pause");
+                      }
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    {!sleepTimer.running
+                      ? bootstrap.strings.start
+                      : sleepTimerPaused
+                        ? "Resume"
+                        : "Pause"}
+                  </Button>
+                  {sleepTimer.running && (
                     <Button
                       type="primary"
                       size="large"
                       loading={submittingSleepTimer}
-                      onClick={() => {
-                        if (!sleepTimer.running) {
-                          submitSleepTimerAction("start");
-                        } else if (sleepTimerPaused) {
-                          submitSleepTimerAction("resume");
-                        } else {
-                          submitSleepTimerAction("pause");
-                        }
-                      }}
+                      onClick={() => submitSleepTimerAction("save")}
                       style={{ width: "100%" }}
                     >
-                      {!sleepTimer.running
-                        ? bootstrap.strings.start
-                        : sleepTimerPaused
-                          ? "Resume"
-                          : "Pause"}
+                      {bootstrap.strings.save}
                     </Button>
-                    {sleepTimer.running && (
-                      <Button
-                        type="primary"
-                        size="large"
-                        loading={submittingSleepTimer}
-                        onClick={() => submitSleepTimerAction("save")}
-                        style={{ width: "100%" }}
-                      >
-                        {bootstrap.strings.save}
-                      </Button>
-                    )}
-                  </Space>
+                  )}
                 </Space>
               </Col>
             </Row>
