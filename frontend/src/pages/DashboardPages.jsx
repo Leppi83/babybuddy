@@ -9,6 +9,7 @@ import {
   Card,
   Col,
   DatePicker,
+  Divider,
   Empty,
   Form,
   Grid,
@@ -41,6 +42,24 @@ import {
 } from "../lib/app-utils";
 
 const { Text, Title } = Typography;
+
+const COMBINED_PAIRS = {
+  "card.diaper.last": "card.diaper.types",
+  "card.feedings.last": "card.feedings.method",
+  "card.feedings.recent": "card.feedings.breastfeeding",
+  "card.sleep.recent": "card.sleep.naps_day",
+  "card.sleep.timeline_day": "card.sleep.statistics",
+};
+
+const COMBINED_TITLES = {
+  "card.diaper.last": "Nappy Changes",
+  "card.feedings.last": "Last Feeding",
+  "card.feedings.recent": "Recent Feedings",
+  "card.sleep.recent": "Today's Sleeps",
+  "card.sleep.timeline_day": "Sleep Statistics",
+};
+
+const COMBINED_SECONDARY_KEYS = new Set(Object.values(COMBINED_PAIRS));
 
 function formatMinuteValue(minutes) {
   return Number.isFinite(minutes) ? minutes : 0;
@@ -2212,6 +2231,22 @@ export function ChildDashboardPage({ bootstrap }) {
     );
   }
 
+  function renderCardContent(cardKey) {
+    if (cardKey === "card.quick_entry.consolidated")
+      return renderQuickEntryCard();
+    if (cardKey === "card.sleep.timeline_day") return renderSleepTimelineCard();
+    if (cardKey === "card.sleep.week_chart")
+      return <SleepWeekChart sleepItems={dashboardData.weekSleepItems} />;
+    return (
+      cards[cardKey] || (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={bootstrap.strings.migrationPending}
+        />
+      )
+    );
+  }
+
   function renderSleepTimelineCard() {
     return (
       <MiniTimeline
@@ -2254,6 +2289,7 @@ export function ChildDashboardPage({ bootstrap }) {
                 className="ant-dashboard-child-avatar"
               />
               <Space direction="vertical" size={2}>
+                <Text type="secondary">Dashboard</Text>
                 <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
                   {child?.name || bootstrap.currentChild.name}
                 </Title>
@@ -2326,35 +2362,34 @@ export function ChildDashboardPage({ bootstrap }) {
                         cardKey !== "card.feedings.quick_entry" &&
                         cardKey !== "card.feedings.breast_quick_entry" &&
                         cardKey !== "card.pumpings.quick_entry" &&
-                        cardKey !== "card.sleep.quick_timer",
+                        cardKey !== "card.sleep.quick_timer" &&
+                        !COMBINED_SECONDARY_KEYS.has(cardKey),
                     )
-                    .map((cardKey) => (
-                      <Col xs={24} key={cardKey}>
-                        <SummaryCard
-                          title={
-                            DASHBOARD_CARD_TITLES[cardKey] ||
-                            bootstrap.strings.migrationPending
-                          }
-                        >
-                          {cardKey === "card.quick_entry.consolidated" ? (
-                            renderQuickEntryCard()
-                          ) : cardKey === "card.sleep.timeline_day" ? (
-                            renderSleepTimelineCard()
-                          ) : cardKey === "card.sleep.week_chart" ? (
-                            <SleepWeekChart
-                              sleepItems={dashboardData.weekSleepItems}
-                            />
-                          ) : (
-                            cards[cardKey] || (
-                              <Empty
-                                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                description={bootstrap.strings.migrationPending}
-                              />
-                            )
-                          )}
-                        </SummaryCard>
-                      </Col>
-                    ))}
+                    .map((cardKey) => {
+                      const secondaryKey = COMBINED_PAIRS[cardKey];
+                      const title =
+                        COMBINED_TITLES[cardKey] ||
+                        DASHBOARD_CARD_TITLES[cardKey] ||
+                        bootstrap.strings.migrationPending;
+                      return (
+                        <Col xs={24} key={cardKey}>
+                          <SummaryCard title={title}>
+                            {renderCardContent(cardKey)}
+                            {secondaryKey && (
+                              <>
+                                <Divider
+                                  style={{
+                                    borderColor: "rgba(77,182,255,0.15)",
+                                    margin: "12px 0",
+                                  }}
+                                />
+                                {renderCardContent(secondaryKey)}
+                              </>
+                            )}
+                          </SummaryCard>
+                        </Col>
+                      );
+                    })}
                 </Row>
               )}
             </Card>
