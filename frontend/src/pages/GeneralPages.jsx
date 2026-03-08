@@ -970,7 +970,11 @@ export function DashboardHomePage({ bootstrap }) {
                   key="open"
                   href={child.dashboardUrl}
                   icon={<DashboardOutlined />}
-                  style={{ gap: 8 }}
+                  style={{
+                    gap: 12,
+                    display: "inline-flex",
+                    alignItems: "center",
+                  }}
                 >
                   {bootstrap.strings.openDashboard}
                 </Button>,
