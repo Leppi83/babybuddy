@@ -16,6 +16,7 @@ from rest_framework.authtoken.models import Token
 
 class Settings(models.Model):
     DASHBOARD_SECTION_CHOICES = [
+        ("quick_entry", _("Quick Entry")),
         ("diaper", _("Diaper changes")),
         ("feedings", _("Feedings")),
         ("pumpings", _("Pumpings")),
@@ -23,6 +24,7 @@ class Settings(models.Model):
         ("tummytime", _("Tummy time")),
     ]
     DASHBOARD_ITEM_CHOICES = [
+        ("card.quick_entry.consolidated", _("Quick Entry")),
         ("card.diaper.quick_entry", _("diaper changes - Quick Entry")),
         ("card.diaper.last", _("diaper changes - Last nappy change")),
         ("card.diaper.types", _("diaper changes - Nappy changes")),
