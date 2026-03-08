@@ -114,6 +114,7 @@ def _nav_urls():
     return {
         "dashboard": reverse("dashboard:dashboard"),
         "timeline": reverse("core:timeline"),
+        "childrenList": reverse("core:child-list"),
         "settings": reverse("babybuddy:user-settings"),
         "logout": reverse("babybuddy:logout"),
     }
@@ -141,6 +142,8 @@ def _base_strings():
     return {
         "dashboard": _("Dashboard"),
         "timeline": _("Timeline"),
+        "kids": _("Kids"),
+        "children": _("Children"),
         "settings": _("Settings"),
         "logout": _("Logout"),
         "overview": _("Overview"),
