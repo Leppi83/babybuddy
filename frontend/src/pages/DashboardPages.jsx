@@ -727,7 +727,7 @@ function SleepWeekChart({ sleepItems }) {
   const yGridLines = Array.from({ length: maxH + 1 }, (_, h) => ({
     y: PAD_T + CH * (1 - h / maxH),
     label: `${h}h`,
-  }));
+  })).filter((_, h) => maxH <= 4 || h % 2 === 0);
 
   return (
     <svg
@@ -759,7 +759,7 @@ function SleepWeekChart({ sleepItems }) {
             x={PAD_L - 5}
             y={y + 4}
             textAnchor="end"
-            fontSize="13"
+            fontSize="10"
             fill="rgba(255,255,255,0.35)"
           >
             {label}
@@ -794,7 +794,7 @@ function SleepWeekChart({ sleepItems }) {
               x={pt.x}
               y={pt.y - 10}
               textAnchor="middle"
-              fontSize="12"
+              fontSize="10"
               fontWeight="600"
               fill="#ffd666"
             >
@@ -805,7 +805,7 @@ function SleepWeekChart({ sleepItems }) {
             x={pt.x}
             y={VH - 4}
             textAnchor="middle"
-            fontSize="13"
+            fontSize="11"
             fill="rgba(255,255,255,0.55)"
           >
             {pt.label}

@@ -120,8 +120,8 @@ export function AppShell({ bootstrap, children }) {
 
   const pageMeta = {
     "dashboard-home": {
-      eyebrow: bootstrap.strings.overview,
-      title: bootstrap.strings.dashboard,
+      eyebrow: null,
+      title: null,
     },
     "dashboard-child": {
       eyebrow: null,
@@ -132,8 +132,8 @@ export function AppShell({ bootstrap, children }) {
       title: bootstrap.childDetail?.name || bootstrap.strings.timeline,
     },
     settings: {
-      eyebrow: bootstrap.strings.settings,
-      title: bootstrap.strings.userSettings,
+      eyebrow: null,
+      title: null,
     },
     list: {
       eyebrow: bootstrap.listPage?.kicker || bootstrap.strings.list,

@@ -30,6 +30,19 @@ def _format_short_date(value):
     return value.strftime("%m.%d.") if value else ""
 
 
+def _format_child_age(birth_date):
+    if not birth_date:
+        return None
+    today = datetime.date.today()
+    delta_days = (today - birth_date).days
+    months = delta_days / 30.44
+    if months < 24:
+        months_int = round(months)
+        return _("{} months").format(months_int)
+    years = round(delta_days / 365.25, 1)
+    return _("{} years").format(years)
+
+
 def _display_name(user):
     return user.get_full_name() or user.username
 
@@ -136,6 +149,7 @@ def _serialize_children(request, children):
             "name": str(child),
             "birthDate": child.birth_date.isoformat() if child.birth_date else None,
             "birthDateLabel": _format_short_date(child.birth_date),
+            "ageLabel": _format_child_age(child.birth_date),
             "pictureUrl": request.build_absolute_uri(_child_picture_url(child)),
             "dashboardUrl": reverse(
                 "dashboard:dashboard-child", kwargs={"slug": child.slug}
