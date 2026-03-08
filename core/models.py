@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import JSONField
 from django.db.models.functions import Lower
 from django.urls import reverse
 from django.utils import formats, timezone
@@ -566,6 +567,9 @@ class Sleep(models.Model):
     nap = models.BooleanField(null=False, blank=True, verbose_name=_("Nap"))
     duration = models.DurationField(
         editable=False, null=True, verbose_name=_("Duration")
+    )
+    breaks = JSONField(
+        default=list, blank=True, null=False, verbose_name=_("Sleep breaks")
     )
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)

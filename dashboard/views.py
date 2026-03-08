@@ -526,26 +526,55 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
 
         action = request.POST.get("sleep_timer_action")
         key = self._timer_session_key(self.object.id)
+        breaks_key = f"{key}_breaks"
 
         if action == "start":
             request.session[key] = timezone.now().isoformat()
+            request.session[breaks_key] = []
             request.session.modified = True
-        elif action == "stop":
+        elif action == "pause":
+            request.session.setdefault(breaks_key, [])
+            request.session[f"{breaks_key}_pause_start"] = timezone.now().isoformat()
+            request.session.modified = True
+        elif action == "resume":
+            pause_start_raw = request.session.get(f"{breaks_key}_pause_start")
+            if pause_start_raw:
+                try:
+                    pause_start = timezone.datetime.fromisoformat(pause_start_raw)
+                    pause_end = timezone.now()
+                    breaks_list = request.session.setdefault(breaks_key, [])
+                    breaks_list.append(
+                        {
+                            "start": pause_start.isoformat(),
+                            "end": pause_end.isoformat(),
+                        }
+                    )
+                    del request.session[f"{breaks_key}_pause_start"]
+                    request.session.modified = True
+                except (TypeError, ValueError) as exc:
+                    messages.error(request, f"Unable to record break: {exc}")
+        elif action in ("stop", "save"):
             start_raw = request.session.get(key)
             if start_raw:
                 try:
                     start_dt = timezone.datetime.fromisoformat(start_raw)
                     end_dt = timezone.now()
-                    duration = end_dt - start_dt
+                    breaks_list = request.session.get(breaks_key, [])
+
                     sleep = Sleep(
                         child=self.object,
                         start=start_dt,
                         end=end_dt,
-                        nap=duration < timezone.timedelta(hours=2),
+                        nap=(end_dt - start_dt) < timezone.timedelta(hours=2),
+                        breaks=breaks_list,
                     )
                     sleep.full_clean()
                     sleep.save()
                     del request.session[key]
+                    if breaks_key in request.session:
+                        del request.session[breaks_key]
+                    if f"{breaks_key}_pause_start" in request.session:
+                        del request.session[f"{breaks_key}_pause_start"]
                     request.session.modified = True
                 except (TypeError, ValueError, ValidationError) as exc:
                     messages.error(request, f"Unable to create sleep entry: {exc}")
