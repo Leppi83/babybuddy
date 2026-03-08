@@ -561,11 +561,21 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     end_dt = timezone.now()
                     breaks_list = request.session.get(breaks_key, [])
 
+                    # Use sleep_timer_type if provided (from frontend), otherwise calculate
+                    sleep_type = request.POST.get("sleep_timer_type")
+                    if sleep_type == "nap":
+                        nap = True
+                    elif sleep_type == "sleep":
+                        nap = False
+                    else:
+                        # Fallback: < 90 min is nap, >= 90 min is sleep
+                        nap = (end_dt - start_dt) < timezone.timedelta(minutes=90)
+
                     sleep = Sleep(
                         child=self.object,
                         start=start_dt,
                         end=end_dt,
-                        nap=(end_dt - start_dt) < timezone.timedelta(hours=2),
+                        nap=nap,
                         breaks=breaks_list,
                     )
                     sleep.full_clean()
