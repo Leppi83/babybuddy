@@ -1116,6 +1116,11 @@ export function ChildDashboardPage({ bootstrap }) {
           </Space>
         ),
         "card.quick_entry.consolidated": null,
+        "card.diaper.quick_entry": null,
+        "card.feedings.quick_entry": null,
+        "card.feedings.breast_quick_entry": null,
+        "card.pumpings.quick_entry": null,
+        "card.sleep.quick_timer": null,
         "card.sleep.last": lastSleep ? (
           <Space direction="vertical" size={4}>
             <Statistic
@@ -2278,7 +2283,12 @@ export function ChildDashboardPage({ bootstrap }) {
                       lg={
                         cardKey === "card.sleep.timeline_day" ||
                         cardKey === "card.sleep.week_chart" ||
-                        cardKey === "card.quick_entry.consolidated"
+                        cardKey === "card.quick_entry.consolidated" ||
+                        cardKey === "card.diaper.quick_entry" ||
+                        cardKey === "card.feedings.quick_entry" ||
+                        cardKey === "card.feedings.breast_quick_entry" ||
+                        cardKey === "card.pumpings.quick_entry" ||
+                        cardKey === "card.sleep.quick_timer"
                           ? 24
                           : 12
                       }
@@ -2290,7 +2300,12 @@ export function ChildDashboardPage({ bootstrap }) {
                           bootstrap.strings.migrationPending
                         }
                       >
-                        {cardKey === "card.quick_entry.consolidated" ? (
+                        {cardKey === "card.quick_entry.consolidated" ||
+                        cardKey === "card.diaper.quick_entry" ||
+                        cardKey === "card.feedings.quick_entry" ||
+                        cardKey === "card.feedings.breast_quick_entry" ||
+                        cardKey === "card.pumpings.quick_entry" ||
+                        cardKey === "card.sleep.quick_timer" ? (
                           renderQuickEntryCard()
                         ) : cardKey === "card.sleep.timeline_day" ? (
                           renderSleepTimelineCard()

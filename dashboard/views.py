@@ -221,20 +221,25 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "card.quick_entry.consolidated",
         ],
         "diaper": [
+            "card.diaper.quick_entry",
             "card.diaper.last",
             "card.diaper.types",
         ],
         "feedings": [
+            "card.feedings.quick_entry",
+            "card.feedings.breast_quick_entry",
             "card.feedings.last",
             "card.feedings.method",
             "card.feedings.recent",
             "card.feedings.breastfeeding",
         ],
         "pumpings": [
+            "card.pumpings.quick_entry",
             "card.pumpings.last",
         ],
         "sleep": [
             "card.sleep.timers",
+            "card.sleep.quick_timer",
             "card.sleep.last",
             "card.sleep.recommendations",
             "card.sleep.recent",
