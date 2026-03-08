@@ -113,7 +113,7 @@ export function AppShell({ bootstrap, children }) {
                   child.key !== "__logout__" &&
                   bootstrap.currentPath.startsWith(child.key)
                 ) {
-                  return item.key;
+                  return child.key;
                 }
               }
             } else if (
