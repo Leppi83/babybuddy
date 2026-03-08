@@ -66,6 +66,7 @@ def _list_strings():
         "timeline": _("Timeline"),
         "settings": _("Settings"),
         "logout": _("Logout"),
+        "children": _("Children"),
         "addChild": _("Add Child"),
         "overview": _("Overview"),
         "list": _("List"),
