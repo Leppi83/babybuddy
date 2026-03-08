@@ -217,26 +217,24 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     template_name = "babybuddy/ant_app.html"
 
     SECTION_CARD_MAP = {
+        "quick_entry": [
+            "card.quick_entry.consolidated",
+        ],
         "diaper": [
-            "card.diaper.quick_entry",
             "card.diaper.last",
             "card.diaper.types",
         ],
         "feedings": [
-            "card.feedings.quick_entry",
-            "card.feedings.breast_quick_entry",
             "card.feedings.last",
             "card.feedings.method",
             "card.feedings.recent",
             "card.feedings.breastfeeding",
         ],
         "pumpings": [
-            "card.pumpings.quick_entry",
             "card.pumpings.last",
         ],
         "sleep": [
             "card.sleep.timers",
-            "card.sleep.quick_timer",
             "card.sleep.last",
             "card.sleep.recommendations",
             "card.sleep.recent",
@@ -249,7 +247,14 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "card.tummytime.day",
         ],
     }
-    SECTION_ORDER = ["diaper", "feedings", "pumpings", "sleep", "tummytime"]
+    SECTION_ORDER = [
+        "quick_entry",
+        "diaper",
+        "feedings",
+        "pumpings",
+        "sleep",
+        "tummytime",
+    ]
 
     @staticmethod
     def _timer_session_key(child_id):

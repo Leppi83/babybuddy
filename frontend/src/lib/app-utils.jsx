@@ -20,6 +20,7 @@ import {
 const { Text } = Typography;
 
 export const SECTION_META = {
+  quick_entry: { color: "#1890ff" },
   diaper: { color: "#ff7875" },
   feedings: { color: "#69b1ff" },
   pumpings: { color: "#b37feb" },
@@ -33,19 +34,15 @@ export const APP_TIME_FORMAT = "HH:mm";
 export const APP_DATE_TIME_FORMAT = `${APP_DATE_FORMAT} ${APP_TIME_FORMAT}`;
 
 export const DASHBOARD_CARD_TITLES = {
-  "card.diaper.quick_entry": "Quick Entry",
-  "card.feedings.quick_entry": "Quick Feeding",
-  "card.feedings.breast_quick_entry": "Quick Breastfeeding",
+  "card.quick_entry.consolidated": "Quick Entry",
   "card.diaper.last": "Last Nappy Change",
   "card.diaper.types": "Nappy Changes",
   "card.feedings.last": "Last Feeding",
   "card.feedings.method": "Last Feeding Method",
   "card.feedings.recent": "Recent Feedings",
   "card.feedings.breastfeeding": "Breastfeeding",
-  "card.pumpings.quick_entry": "Quick Pumping",
   "card.pumpings.last": "Last Pumping",
   "card.sleep.timers": "Timers",
-  "card.sleep.quick_timer": "Sleep Timer",
   "card.sleep.last": "Last Sleep",
   "card.sleep.recommendations": "Sleep Recommendations",
   "card.sleep.recent": "Recent Sleep",
