@@ -18,6 +18,7 @@ import {
   MenuUnfoldOutlined,
   SettingOutlined,
   SwapOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 
 const { Header, Content, Sider } = Layout;
@@ -42,17 +43,28 @@ export function AppShell({ bootstrap, children }) {
       label: bootstrap.strings.timeline,
     },
     {
+      key: "kids-menu",
+      icon: <TeamOutlined />,
+      label: bootstrap.strings.kids,
+      children: [
+        {
+          key: bootstrap.urls.childrenList,
+          label: bootstrap.strings.children,
+        },
+        bootstrap.urls.addChild
+          ? {
+              key: bootstrap.urls.addChild,
+              icon: <PlusOutlined />,
+              label: bootstrap.strings.addChild,
+            }
+          : null,
+      ].filter(Boolean),
+    },
+    {
       key: bootstrap.urls.settings,
       icon: <SettingOutlined />,
       label: bootstrap.strings.settings,
     },
-    bootstrap.urls.addChild
-      ? {
-          key: bootstrap.urls.addChild,
-          icon: <PlusOutlined />,
-          label: bootstrap.strings.addChild,
-        }
-      : null,
     {
       key: "__logout__",
       icon: <LogoutOutlined />,
@@ -74,19 +86,35 @@ export function AppShell({ bootstrap, children }) {
       form.submit();
       return;
     }
-    window.location.assign(key);
+    if (key.startsWith("/")) {
+      window.location.assign(key);
+    }
   }
 
   const selectedKey =
     bootstrap.activeNavKey === null
       ? null
       : bootstrap.activeNavKey ||
-        navItems.find(
-          (item) =>
-            item.key !== "__logout__" &&
-            bootstrap.currentPath.startsWith(item.key),
-        )?.key ||
-        bootstrap.urls.dashboard;
+        (() => {
+          for (const item of navItems) {
+            if (item.children) {
+              for (const child of item.children) {
+                if (
+                  child.key !== "__logout__" &&
+                  bootstrap.currentPath.startsWith(child.key)
+                ) {
+                  return item.key;
+                }
+              }
+            } else if (
+              item.key !== "__logout__" &&
+              bootstrap.currentPath.startsWith(item.key)
+            ) {
+              return item.key;
+            }
+          }
+          return bootstrap.urls.dashboard;
+        })();
 
   const childSwitcher = bootstrap.childSwitcher;
 
