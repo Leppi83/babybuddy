@@ -25,19 +25,14 @@ class Settings(models.Model):
     ]
     DASHBOARD_ITEM_CHOICES = [
         ("card.quick_entry.consolidated", _("Quick Entry")),
-        ("card.diaper.quick_entry", _("diaper changes - Quick Entry")),
         ("card.diaper.last", _("diaper changes - Last nappy change")),
         ("card.diaper.types", _("diaper changes - Nappy changes")),
-        ("card.feedings.quick_entry", _("feedings - Quick Entry")),
-        ("card.feedings.breast_quick_entry", _("feedings - Breastfeeding Quick Entry")),
         ("card.feedings.last", _("feedings - Last feeding")),
         ("card.feedings.method", _("feedings - Last Feeding Method")),
         ("card.feedings.recent", _("feedings - Recent Feedings")),
         ("card.feedings.breastfeeding", _("feedings - Breastfeeding")),
-        ("card.pumpings.quick_entry", _("pumpings - Quick Entry")),
         ("card.pumpings.last", _("pumpings - Last Pumping")),
         ("card.sleep.timers", _("sleep - Timers")),
-        ("card.sleep.quick_timer", _("sleep - Sleep Timer")),
         ("card.sleep.last", _("sleep - Last Sleep")),
         ("card.sleep.recommendations", _("sleep - Sleep Recommendations")),
         ("card.sleep.recent", _("sleep - Recent Sleep")),
@@ -217,16 +212,26 @@ class Settings(models.Model):
         return stored
 
     def dashboard_selected_section_order(self):
-        allowed = set(self.dashboard_default_section_order())
+        defaults = self.dashboard_default_section_order()
+        allowed = set(defaults)
         stored = [
             section
             for section in (self.dashboard_section_order or [])
             if section in allowed
         ]
-        for section in self.dashboard_default_section_order():
-            if section not in stored:
-                stored.append(section)
-        return stored
+        if not stored:
+            return defaults
+        # Insert any new sections (not in stored) at their default-order position
+        result = list(stored)
+        for i, section in enumerate(defaults):
+            if section not in result:
+                insert_after = -1
+                for j in range(i - 1, -1, -1):
+                    if defaults[j] in result:
+                        insert_after = result.index(defaults[j])
+                        break
+                result.insert(insert_after + 1, section)
+        return result
 
     def dashboard_selected_hidden_sections(self):
         allowed = set(self.dashboard_default_section_order())
