@@ -55,6 +55,7 @@ def _build_nav_urls(request):
     return {
         "dashboard": reverse("dashboard:dashboard"),
         "timeline": reverse("core:timeline"),
+        "childrenList": reverse("core:child-list"),
         "settings": reverse("babybuddy:user-settings"),
         "logout": reverse("babybuddy:logout"),
         "addChild": reverse("core:child-add"),

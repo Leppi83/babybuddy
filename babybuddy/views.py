@@ -473,10 +473,7 @@ def _build_settings_bootstrap(request, form_user, form_settings):
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
         "urls": {
-            "dashboard": reverse("dashboard:dashboard"),
-            "timeline": reverse("core:timeline"),
-            "settings": reverse("babybuddy:user-settings"),
-            "logout": reverse("babybuddy:logout"),
+            **_nav_urls(),
             "self": reverse("babybuddy:user-settings"),
             "addChild": reverse("core:child-add"),
         },
