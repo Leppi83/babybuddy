@@ -522,6 +522,7 @@ def _build_settings_bootstrap(request, form_user, form_settings):
         "strings": {
             "dashboard": _("Dashboard"),
             "timeline": _("Timeline"),
+            "children": _("Children"),
             "settings": _("Settings"),
             "logout": _("Logout"),
             "userSettings": _("User Settings"),
