@@ -17,11 +17,11 @@ from rest_framework.authtoken.models import Token
 class Settings(models.Model):
     DASHBOARD_SECTION_CHOICES = [
         ("quick_entry", _("Quick Entry")),
-        ("diaper", _("Diaper changes")),
+        ("diaper", _("Diaper")),
         ("feedings", _("Feedings")),
         ("pumpings", _("Pumpings")),
         ("sleep", _("Sleep")),
-        ("tummytime", _("Tummy time")),
+        ("tummytime", _("Tummy")),
     ]
     DASHBOARD_ITEM_CHOICES = [
         ("card.quick_entry.consolidated", _("Quick Entry")),

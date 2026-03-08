@@ -296,6 +296,48 @@ export function SettingsPage({ bootstrap }) {
     });
   }, [bootstrap, form]);
 
+  // Autosave dashboard visible items when selectedItems changes
+  useEffect(() => {
+    // Skip autosave on initial load
+    const isInitialLoad =
+      selectedItems.length ===
+        bootstrap.settings.dashboard.visibleItems.length &&
+      selectedItems.every((item) =>
+        bootstrap.settings.dashboard.visibleItems.includes(item),
+      );
+
+    if (isInitialLoad) return;
+
+    const timer = setTimeout(async () => {
+      const values = form.getFieldsValue();
+      const payload = new URLSearchParams();
+      payload.set("action", "autosave_all_settings");
+      payload.set("first_name", values.first_name || "");
+      payload.set("last_name", values.last_name || "");
+      payload.set("email", values.email || "");
+      payload.set("language", values.language || "");
+      payload.set("timezone", values.timezone || "");
+      payload.set("pagination_count", values.pagination_count || "");
+      payload.set(
+        "dashboard_refresh_rate",
+        values.dashboard_refresh_rate || "",
+      );
+      payload.set("dashboard_hide_age", values.dashboard_hide_age || "");
+      payload.set("dashboard_visible_items", selectedItems.join(","));
+      if (values.dashboard_hide_empty) {
+        payload.set("dashboard_hide_empty", "on");
+      }
+
+      try {
+        await api.current.postForm(bootstrap.urls.self, payload);
+      } catch (error) {
+        // Silent fail for autosave
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [selectedItems, bootstrap, form, api]);
+
   function choiceOptions(key) {
     return bootstrap.settings.choices[key].map((choice) => ({
       value: choice.value,
