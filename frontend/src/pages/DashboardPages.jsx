@@ -876,6 +876,7 @@ export function ChildDashboardPage({ bootstrap }) {
   const [sleepTimer, setSleepTimer] = useState(bootstrap.sleepTimer || {});
   const [sleepTimerPaused, setSleepTimerPaused] = useState(false);
   const [sleepTimerPauseStart, setSleepTimerPauseStart] = useState(null);
+  const [sleepTimerFrozenSeconds, setSleepTimerFrozenSeconds] = useState(0);
   const [sleepTimerBreaks, setSleepTimerBreaks] = useState([]);
   const [submittingDiaper, setSubmittingDiaper] = useState(false);
   const [submittingFeeding, setSubmittingFeeding] = useState(false);
@@ -1249,8 +1250,18 @@ export function ChildDashboardPage({ bootstrap }) {
           elapsedSeconds: 0,
         });
         setSleepTimerPaused(false);
+        setSleepTimerFrozenSeconds(0);
         setSleepTimerBreaks([]);
       } else if (action === "pause") {
+        const currentElapsed = Math.max(
+          Number(sleepTimer.elapsedSeconds) || 0,
+          Math.floor(
+            (currentTime -
+              new Date(sleepTimer.startIso || currentTime).getTime()) /
+              1000,
+          ),
+        );
+        setSleepTimerFrozenSeconds(currentElapsed);
         setSleepTimerPaused(true);
         setSleepTimerPauseStart(Date.now());
       } else if (action === "resume") {
@@ -1263,8 +1274,14 @@ export function ChildDashboardPage({ bootstrap }) {
             { duration: pauseDuration },
           ]);
         }
+        setSleepTimer({
+          running: true,
+          startIso: new Date().toISOString(),
+          elapsedSeconds: sleepTimerFrozenSeconds,
+        });
         setSleepTimerPaused(false);
         setSleepTimerPauseStart(null);
+        setSleepTimerFrozenSeconds(0);
       } else {
         setSleepTimer({
           running: false,
@@ -1273,6 +1290,7 @@ export function ChildDashboardPage({ bootstrap }) {
         });
         setSleepTimerPaused(false);
         setSleepTimerPauseStart(null);
+        setSleepTimerFrozenSeconds(0);
         ant.message.success(bootstrap.strings.sleepEntrySaved);
         await loadDashboardData(selectedChildId, { background: true });
       }
@@ -1812,18 +1830,7 @@ export function ChildDashboardPage({ bootstrap }) {
                       <Col xs={12}>
                         <Statistic
                           title={bootstrap.strings.sleepTimer}
-                          value={formatElapsedSeconds(
-                            Math.max(
-                              Number(sleepTimer.elapsedSeconds) || 0,
-                              Math.floor(
-                                (currentTime -
-                                  new Date(
-                                    sleepTimer.startIso || currentTime,
-                                  ).getTime()) /
-                                  1000,
-                              ),
-                            ),
-                          )}
+                          value={formatElapsedSeconds(sleepTimerFrozenSeconds)}
                         />
                       </Col>
                       <Col xs={12}>
