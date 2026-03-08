@@ -683,6 +683,9 @@ function MiniTimeline({ items, locale, currentTime, strings }) {
 }
 
 function SleepWeekChart({ sleepItems }) {
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
+
   const N = 7;
   const days = Array.from({ length: N }, (_, i) => {
     const day = dayjs().subtract(N - 1 - i, "day");
@@ -743,6 +746,12 @@ function SleepWeekChart({ sleepItems }) {
     label: `${h}h`,
   })).filter((_, h) => maxH <= 4 || h % 2 === 0);
 
+  // Responsive font sizes and line width
+  const yAxisFontSize = isMobile ? "12" : "9";
+  const valueLabelFontSize = isMobile ? "11" : "8";
+  const dayLabelFontSize = isMobile ? "12" : "10";
+  const lineWidth = isMobile ? "2" : "1.8";
+
   return (
     <svg
       viewBox={`0 0 ${VW} ${VH}`}
@@ -773,7 +782,7 @@ function SleepWeekChart({ sleepItems }) {
             x={PAD_L - 5}
             y={y + 4}
             textAnchor="end"
-            fontSize="10"
+            fontSize={yAxisFontSize}
             fill="rgba(255,255,255,0.35)"
           >
             {label}
@@ -793,7 +802,7 @@ function SleepWeekChart({ sleepItems }) {
         d={linePath}
         fill="none"
         stroke="#ffd666"
-        strokeWidth="2.5"
+        strokeWidth={lineWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
         clipPath="url(#sleepWeekClip)"
@@ -808,7 +817,7 @@ function SleepWeekChart({ sleepItems }) {
               x={pt.x}
               y={pt.y - 10}
               textAnchor="middle"
-              fontSize="10"
+              fontSize={valueLabelFontSize}
               fontWeight="600"
               fill="#ffd666"
             >
@@ -819,7 +828,7 @@ function SleepWeekChart({ sleepItems }) {
             x={pt.x}
             y={VH - 4}
             textAnchor="middle"
-            fontSize="11"
+            fontSize={dayLabelFontSize}
             fill="rgba(255,255,255,0.55)"
           >
             {pt.label}
