@@ -11,6 +11,7 @@ import {
   DatePicker,
   Empty,
   Form,
+  Grid,
   Input,
   List,
   Row,
@@ -553,6 +554,7 @@ function SummaryCard({ title, children }) {
 }
 
 function MiniTimeline({ items, locale, currentTime, strings }) {
+  const screens = Grid.useBreakpoint();
   const hours = Array.from({ length: 24 }, (_, index) => index);
   const now = currentTime ? new Date(currentTime) : new Date();
   const startOfDay = new Date(
@@ -570,6 +572,14 @@ function MiniTimeline({ items, locale, currentTime, strings }) {
     0,
     Math.min(100, (currentMinutes / (24 * 60)) * 100),
   );
+
+  // Determine hour label interval based on screen size
+  let hourLabelInterval = 3; // default for mobile (xs, sm)
+  if (screens.lg) {
+    hourLabelInterval = 1; // desktop: every hour
+  } else if (screens.md) {
+    hourLabelInterval = 2; // tablet: every 2nd hour
+  }
 
   function minutesBetween(start, end) {
     return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000));
@@ -657,7 +667,11 @@ function MiniTimeline({ items, locale, currentTime, strings }) {
           {hours.map((hour) => (
             <span
               key={hour}
-              style={hour % 3 !== 0 ? { visibility: "hidden" } : undefined}
+              style={
+                hour % hourLabelInterval !== 0
+                  ? { visibility: "hidden" }
+                  : undefined
+              }
             >
               {String(hour).padStart(2, "0")}
             </span>
