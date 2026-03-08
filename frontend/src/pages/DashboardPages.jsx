@@ -885,6 +885,8 @@ export function ChildDashboardPage({ bootstrap }) {
   const [sleepEntryEndDate, setSleepEntryEndDate] = useState(dayjs());
   const [sleepEntryEndTime, setSleepEntryEndTime] = useState(dayjs());
   const [sleepEntryType, setSleepEntryType] = useState("sleep");
+  const [selectedQuickEntrySegment, setSelectedQuickEntrySegment] =
+    useState("sleep");
   const [currentTime, setCurrentTime] = useState(Date.now());
   const child = bootstrap.children.find(
     (item) => String(item.id) === String(selectedChildId),
@@ -1691,6 +1693,337 @@ export function ChildDashboardPage({ bootstrap }) {
     );
   }
 
+  function renderQuickEntryCard() {
+    const segmentColors = {
+      diaper: "#ff4d4f",
+      sleep: "#1890ff",
+      feeding: "#faad14",
+      breastfeeding: "#722ed1",
+      pumping: "#13c2c2",
+    };
+
+    const segments = [
+      { label: bootstrap.strings.diaperChanges, value: "diaper" },
+      { label: bootstrap.strings.sleep, value: "sleep" },
+      { label: bootstrap.strings.feedings, value: "feeding" },
+      { label: bootstrap.strings.breastFeeding, value: "breastfeeding" },
+      { label: bootstrap.strings.pumpings, value: "pumping" },
+    ];
+
+    const renderSegmentLabel = (segment) => (
+      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span
+          style={{
+            display: "inline-block",
+            width: 12,
+            height: 12,
+            borderRadius: "50%",
+            backgroundColor: segmentColors[segment.value],
+          }}
+        />
+        {segment.label}
+      </span>
+    );
+
+    return (
+      <Space direction="vertical" size={16} style={{ width: "100%" }}>
+        <Segmented
+          block
+          value={selectedQuickEntrySegment}
+          options={segments.map((segment) => ({
+            label: renderSegmentLabel(segment),
+            value: segment.value,
+          }))}
+          onChange={setSelectedQuickEntrySegment}
+          style={{ width: "100%" }}
+        />
+        {selectedQuickEntrySegment === "diaper" && (
+          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            <Row gutter={8}>
+              <Col span={12}>
+                <DatePicker
+                  value={diaperDate}
+                  format={APP_DATE_FORMAT}
+                  onChange={(value) => value && setDiaperDate(value)}
+                  className="ant-dashboard-picker"
+                  inputReadOnly
+                />
+              </Col>
+              <Col span={12}>
+                <TimePicker
+                  value={diaperTime}
+                  format={APP_TIME_FORMAT}
+                  onChange={(value) => value && setDiaperTime(value)}
+                  className="ant-dashboard-picker"
+                  inputReadOnly
+                />
+              </Col>
+            </Row>
+            <Segmented
+              block
+              value={diaperConsistency}
+              options={[
+                {
+                  label: bootstrap.strings.liquid,
+                  value: "liquid",
+                },
+                {
+                  label: bootstrap.strings.solid,
+                  value: "solid",
+                },
+              ]}
+              onChange={setDiaperConsistency}
+            />
+            <Button
+              type="primary"
+              size="large"
+              loading={submittingDiaper}
+              onClick={submitDiaperEntry}
+              className="ant-diaper-save"
+            >
+              {bootstrap.strings.save}
+            </Button>
+          </Space>
+        )}
+        {selectedQuickEntrySegment === "sleep" && (
+          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            <Row gutter={[16, 16]} className="ant-sleep-timer-layout">
+              <Col xs={24} md={12}>
+                <Space
+                  direction="vertical"
+                  size={16}
+                  className="ant-sleep-timer-card"
+                  style={{ width: "100%" }}
+                >
+                  <Statistic
+                    title={bootstrap.strings.sleepTimer}
+                    value={formatElapsedSeconds(
+                      sleepTimer.running
+                        ? Math.max(
+                            Number(sleepTimer.elapsedSeconds) || 0,
+                            Math.floor(
+                              (currentTime -
+                                new Date(
+                                  sleepTimer.startIso || currentTime,
+                                ).getTime()) /
+                                1000,
+                            ),
+                          )
+                        : Number(sleepTimer.elapsedSeconds) || 0,
+                    )}
+                  />
+                  <Space wrap>
+                    <Tag color={sleepTimer.running ? "gold" : "default"}>
+                      {sleepTimer.running
+                        ? bootstrap.strings.running
+                        : bootstrap.strings.ready}
+                    </Tag>
+                  </Space>
+                  <Button
+                    type="primary"
+                    size="large"
+                    loading={submittingSleepTimer}
+                    onClick={() =>
+                      submitSleepTimerAction(
+                        sleepTimer.running ? "stop" : "start",
+                      )
+                    }
+                  >
+                    {sleepTimer.running
+                      ? bootstrap.strings.stop
+                      : bootstrap.strings.start}
+                  </Button>
+                </Space>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card
+                  size="small"
+                  title={bootstrap.strings.manualEntry}
+                  style={{ width: "100%" }}
+                >
+                  <Space
+                    direction="vertical"
+                    size={12}
+                    style={{ width: "100%" }}
+                  >
+                    {renderDateTimeInputs({
+                      startDate: sleepEntryStartDate,
+                      setStartDate: setSleepEntryStartDate,
+                      startTime: sleepEntryStartTime,
+                      setStartTime: setSleepEntryStartTime,
+                      endDate: sleepEntryEndDate,
+                      setEndDate: setSleepEntryEndDate,
+                      endTime: sleepEntryEndTime,
+                      setEndTime: setSleepEntryEndTime,
+                    })}
+                    <Segmented
+                      block
+                      value={sleepEntryType}
+                      options={[
+                        {
+                          label: bootstrap.strings.sleep,
+                          value: "sleep",
+                        },
+                        {
+                          label: bootstrap.strings.nap,
+                          value: "nap",
+                        },
+                      ]}
+                      onChange={setSleepEntryType}
+                    />
+                    <Button
+                      type="primary"
+                      size="large"
+                      loading={submittingSleepEntry}
+                      onClick={submitSleepEntry}
+                      className="ant-diaper-save"
+                    >
+                      {bootstrap.strings.save}
+                    </Button>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+          </Space>
+        )}
+        {selectedQuickEntrySegment === "feeding" && (
+          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            {renderDateTimeInputs({
+              startDate: feedingStartDate,
+              setStartDate: setFeedingStartDate,
+              startTime: feedingStartTime,
+              setStartTime: setFeedingStartTime,
+              endDate: feedingEndDate,
+              setEndDate: setFeedingEndDate,
+              endTime: feedingEndTime,
+              setEndTime: setFeedingEndTime,
+            })}
+            <Segmented
+              block
+              value={feedingType}
+              options={[
+                { label: bootstrap.strings.solid, value: "solid" },
+                {
+                  label: bootstrap.strings.babyFood,
+                  value: "baby_food",
+                },
+                {
+                  label: bootstrap.strings.breastMilk,
+                  value: "breast_milk",
+                },
+              ]}
+              onChange={setFeedingType}
+            />
+            <Button
+              type="primary"
+              size="large"
+              loading={submittingFeeding}
+              onClick={submitFeedingEntry}
+              className="ant-diaper-save"
+            >
+              {bootstrap.strings.save}
+            </Button>
+          </Space>
+        )}
+        {selectedQuickEntrySegment === "breastfeeding" && (
+          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            {renderDateTimeInputs({
+              startDate: breastfeedingStartDate,
+              setStartDate: setBreastfeedingStartDate,
+              startTime: breastfeedingStartTime,
+              setStartTime: setBreastfeedingStartTime,
+              endDate: breastfeedingEndDate,
+              setEndDate: setBreastfeedingEndDate,
+              endTime: breastfeedingEndTime,
+              setEndTime: setBreastfeedingEndTime,
+            })}
+            <Segmented
+              block
+              value={breastfeedingSide}
+              options={[
+                { label: bootstrap.strings.left, value: "left" },
+                { label: bootstrap.strings.right, value: "right" },
+              ]}
+              onChange={setBreastfeedingSide}
+            />
+            <Button
+              type="primary"
+              size="large"
+              loading={submittingBreastfeeding}
+              onClick={submitBreastfeedingEntry}
+              className="ant-diaper-save"
+            >
+              {bootstrap.strings.save}
+            </Button>
+          </Space>
+        )}
+        {selectedQuickEntrySegment === "pumping" && (
+          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            {renderDateTimeInputs({
+              startDate: pumpingStartDate,
+              setStartDate: setPumpingStartDate,
+              startTime: pumpingStartTime,
+              setStartTime: setPumpingStartTime,
+              endDate: pumpingEndDate,
+              setEndDate: setPumpingEndDate,
+              endTime: pumpingEndTime,
+              setEndTime: setPumpingEndTime,
+            })}
+            <Row gutter={8}>
+              <Col span={12}>
+                <label className="ant-dashboard-inline-label">
+                  {bootstrap.strings.amount}
+                </label>
+                <Input
+                  value={pumpingAmount}
+                  onChange={(event) => setPumpingAmount(event.target.value)}
+                  className="ant-native-input"
+                  inputMode="decimal"
+                  addonAfter="ml"
+                />
+              </Col>
+            </Row>
+            <Row gutter={[8, 0]}>
+              <Col span={24}>
+                <label className="ant-dashboard-inline-label">
+                  {bootstrap.strings.side}
+                </label>
+                <Segmented
+                  block
+                  value={pumpingSide}
+                  options={[
+                    {
+                      label: bootstrap.strings.left,
+                      value: "left",
+                    },
+                    {
+                      label: bootstrap.strings.right,
+                      value: "right",
+                    },
+                    {
+                      label: bootstrap.strings.both,
+                      value: "both",
+                    },
+                  ]}
+                  onChange={setPumpingSide}
+                />
+              </Col>
+            </Row>
+            <Button
+              type="primary"
+              size="large"
+              loading={submittingPumping}
+              onClick={submitPumpingEntry}
+              className="ant-diaper-save"
+            >
+              {bootstrap.strings.save}
+            </Button>
+          </Space>
+        )}
+      </Space>
+    );
+  }
+
   function renderSleepTimelineCard() {
     return (
       <MiniTimeline
@@ -1815,77 +2148,19 @@ export function ChildDashboardPage({ bootstrap }) {
                           bootstrap.strings.migrationPending
                         }
                       >
-                        {cardKey === "card.diaper.quick_entry" ? (
-                          <Space
-                            direction="vertical"
-                            size={12}
-                            style={{ width: "100%" }}
-                          >
-                            <Row gutter={8}>
-                              <Col span={12}>
-                                <DatePicker
-                                  value={diaperDate}
-                                  format={APP_DATE_FORMAT}
-                                  onChange={(value) =>
-                                    value && setDiaperDate(value)
-                                  }
-                                  className="ant-dashboard-picker"
-                                  inputReadOnly
-                                />
-                              </Col>
-                              <Col span={12}>
-                                <TimePicker
-                                  value={diaperTime}
-                                  format={APP_TIME_FORMAT}
-                                  onChange={(value) =>
-                                    value && setDiaperTime(value)
-                                  }
-                                  className="ant-dashboard-picker"
-                                  inputReadOnly
-                                />
-                              </Col>
-                            </Row>
-                            <Segmented
-                              block
-                              value={diaperConsistency}
-                              options={[
-                                {
-                                  label: bootstrap.strings.liquid,
-                                  value: "liquid",
-                                },
-                                {
-                                  label: bootstrap.strings.solid,
-                                  value: "solid",
-                                },
-                              ]}
-                              onChange={setDiaperConsistency}
-                            />
-                            <Button
-                              type="primary"
-                              size="large"
-                              loading={submittingDiaper}
-                              onClick={submitDiaperEntry}
-                              className="ant-diaper-save"
-                            >
-                              {bootstrap.strings.save}
-                            </Button>
-                          </Space>
+                        {cardKey === "card.diaper.quick_entry" ||
+                        cardKey === "card.feedings.quick_entry" ||
+                        cardKey === "card.feedings.breast_quick_entry" ||
+                        cardKey === "card.pumpings.quick_entry" ||
+                        cardKey === "card.sleep.quick_timer" ? (
+                          renderQuickEntryCard()
+                        ) : cardKey === "card.sleep.timeline_day" ? (
+                          renderSleepTimelineCard()
+                        ) : cardKey === "card.sleep.week_chart" ? (
+                          <SleepWeekChart
+                            sleepItems={dashboardData.weekSleepItems}
+                          />
                         ) : (
-                          (cardKey === "card.feedings.quick_entry" &&
-                            renderFeedingQuickCard()) ||
-                          (cardKey === "card.feedings.breast_quick_entry" &&
-                            renderBreastfeedingQuickCard()) ||
-                          (cardKey === "card.pumpings.quick_entry" &&
-                            renderPumpingQuickCard()) ||
-                          (cardKey === "card.sleep.quick_timer" &&
-                            renderSleepTimerCard()) ||
-                          (cardKey === "card.sleep.timeline_day" &&
-                            renderSleepTimelineCard()) ||
-                          (cardKey === "card.sleep.week_chart" && (
-                            <SleepWeekChart
-                              sleepItems={dashboardData.weekSleepItems}
-                            />
-                          )) ||
                           cards[cardKey] || (
                             <Empty
                               image={Empty.PRESENTED_IMAGE_SIMPLE}
