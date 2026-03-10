@@ -136,6 +136,8 @@ def _build_ant_strings():
         "bedtimeWindow": _("Bedtime window"),
         "aiRecommendation": _("AI Recommendation"),
         "askingAi": _("Asking AI..."),
+        "aiError": _("Could not reach AI — tap to retry"),
+        "askAiAgain": _("Ask AI again"),
         "migrationPending": _("Migration pending"),
         "saveFailed": _("Save failed"),
         "saved": _("Saved"),
