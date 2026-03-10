@@ -945,6 +945,7 @@ export function ChildDashboardPage({ bootstrap }) {
   const [submittingSleepTimer, setSubmittingSleepTimer] = useState(false);
   const [submittingSleepEntry, setSubmittingSleepEntry] = useState(false);
   const [recommendations, setRecommendations] = useState(null);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [sleepEntryStartDate, setSleepEntryStartDate] = useState(dayjs());
   const [sleepEntryStartTime, setSleepEntryStartTime] = useState(dayjs());
   const [sleepEntryEndDate, setSleepEntryEndDate] = useState(dayjs());
@@ -1003,6 +1004,7 @@ export function ChildDashboardPage({ bootstrap }) {
   }
 
   async function fetchSleepRecommendations(childSlug) {
+    setLoadingRecommendations(true);
     try {
       const data = await api.current.get(
         `/api/children/${encodeURIComponent(childSlug)}/sleep-recommendations/`,
@@ -1010,6 +1012,8 @@ export function ChildDashboardPage({ bootstrap }) {
       setRecommendations(data);
     } catch (e) {
       // silently ignore — AI or network may be unavailable
+    } finally {
+      setLoadingRecommendations(false);
     }
   }
 
@@ -1502,12 +1506,12 @@ export function ChildDashboardPage({ bootstrap }) {
 
   async function submitSleepEntry() {
     const durationMinutes = sleepEntryEndDate
-      .hours(sleepEntryEndTime.hours())
-      .minutes(sleepEntryEndTime.minutes())
+      .hour(sleepEntryEndTime.hour())
+      .minute(sleepEntryEndTime.minute())
       .diff(
         sleepEntryStartDate
-          .hours(sleepEntryStartTime.hours())
-          .minutes(sleepEntryStartTime.minutes()),
+          .hour(sleepEntryStartTime.hour())
+          .minute(sleepEntryStartTime.minute()),
         "minutes",
       );
     const autoType = durationMinutes < 90 ? "nap" : "sleep";
@@ -2254,7 +2258,11 @@ export function ChildDashboardPage({ bootstrap }) {
               : bootstrap.strings.noData}
           </Text>
         </Card>
-        {recommendations.explanation ? (
+        {loadingRecommendations ? (
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            Asking AI...
+          </Text>
+        ) : recommendations.explanation ? (
           <Text
             type="secondary"
             style={{ fontSize: 12, lineHeight: 1.5, display: "block" }}
