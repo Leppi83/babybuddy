@@ -2412,59 +2412,28 @@ export function ChildDashboardPage({ bootstrap }) {
     const { RangePicker } = DatePicker;
     const s = bootstrap.strings;
 
+    // Build alternating color map by date (newest-first order)
+    const dateColorMap = {};
+    let colorFlip = 0;
+    let prevDate = null;
+    sleepListData.forEach((record) => {
+      const date = dayjs(record.start).format("YYYY-MM-DD");
+      if (date !== prevDate) {
+        prevDate = date;
+        colorFlip = colorFlip === 0 ? 1 : 0;
+      }
+      dateColorMap[record.id] = colorFlip;
+    });
+
     const columns = [
       {
-        title: s.startDate || "Start Date",
+        title: s.startDate || "Date",
         dataIndex: "start",
         key: "startDate",
-        render: (v, record) =>
-          sleepListEditingId === record.id ? (
-            <DatePicker
-              value={sleepListEditStart}
-              format={APP_DATE_FORMAT_FULL}
-              onChange={(d) =>
-                d &&
-                setSleepListEditStart((prev) =>
-                  prev
-                    ? prev.year(d.year()).month(d.month()).date(d.date())
-                    : d,
-                )
-              }
-              size="small"
-              style={{ width: "100%" }}
-              inputReadOnly
-            />
-          ) : (
-            dayjs(v).format(APP_DATE_FORMAT_FULL)
-          ),
+        render: (v) => dayjs(v).format(APP_DATE_FORMAT_FULL),
       },
       {
-        title: s.endDate || "End Date",
-        dataIndex: "end",
-        key: "endDate",
-        render: (v, record) =>
-          sleepListEditingId === record.id ? (
-            <DatePicker
-              value={sleepListEditEnd}
-              format={APP_DATE_FORMAT_FULL}
-              onChange={(d) =>
-                d &&
-                setSleepListEditEnd((prev) =>
-                  prev
-                    ? prev.year(d.year()).month(d.month()).date(d.date())
-                    : d,
-                )
-              }
-              size="small"
-              style={{ width: "100%" }}
-              inputReadOnly
-            />
-          ) : (
-            dayjs(v).format(APP_DATE_FORMAT_FULL)
-          ),
-      },
-      {
-        title: s.startTime || "Start Time",
+        title: s.startTime || "Start",
         dataIndex: "start",
         key: "startTime",
         render: (v, record) =>
@@ -2479,7 +2448,7 @@ export function ChildDashboardPage({ bootstrap }) {
                 )
               }
               size="small"
-              style={{ width: "100%" }}
+              style={{ width: 90 }}
               inputReadOnly
             />
           ) : (
@@ -2487,7 +2456,7 @@ export function ChildDashboardPage({ bootstrap }) {
           ),
       },
       {
-        title: s.endTime || "End Time",
+        title: s.endTime || "End",
         dataIndex: "end",
         key: "endTime",
         render: (v, record) =>
@@ -2502,7 +2471,7 @@ export function ChildDashboardPage({ bootstrap }) {
                 )
               }
               size="small"
-              style={{ width: "100%" }}
+              style={{ width: 90 }}
               inputReadOnly
             />
           ) : (
@@ -2534,7 +2503,7 @@ export function ChildDashboardPage({ bootstrap }) {
         },
       },
       {
-        title: "Actions",
+        title: "",
         key: "actions",
         render: (_, record) =>
           sleepListEditingId === record.id ? (
@@ -2561,6 +2530,9 @@ export function ChildDashboardPage({ bootstrap }) {
                       sleepListPage,
                       sleepListDateRange,
                     );
+                    await loadDashboardData(selectedChildId, {
+                      background: true,
+                    });
                     ant.message.success(s.saved);
                   } catch {
                     ant.message.error(s.saveFailed);
@@ -2595,6 +2567,9 @@ export function ChildDashboardPage({ bootstrap }) {
                       sleepListPage,
                       sleepListDateRange,
                     );
+                    await loadDashboardData(selectedChildId, {
+                      background: true,
+                    });
                     ant.message.success(s.saved);
                   } catch {
                     ant.message.error(s.saveFailed);
@@ -2631,6 +2606,11 @@ export function ChildDashboardPage({ bootstrap }) {
           dataSource={sleepListData}
           columns={columns}
           rowKey="id"
+          rowClassName={(record) =>
+            dateColorMap[record.id] === 0
+              ? "sleep-list-row-a"
+              : "sleep-list-row-b"
+          }
           pagination={{
             current: sleepListPage,
             pageSize: 10,
@@ -2640,7 +2620,6 @@ export function ChildDashboardPage({ bootstrap }) {
               fetchSleepList(selectedChildId, page, sleepListDateRange);
             },
             showSizeChanger: false,
-            simple: true,
           }}
           size="small"
           scroll={{ x: true }}
