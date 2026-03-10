@@ -944,6 +944,7 @@ export function ChildDashboardPage({ bootstrap }) {
   const [submittingPumping, setSubmittingPumping] = useState(false);
   const [submittingSleepTimer, setSubmittingSleepTimer] = useState(false);
   const [submittingSleepEntry, setSubmittingSleepEntry] = useState(false);
+  const [recommendations, setRecommendations] = useState(null);
   const [sleepEntryStartDate, setSleepEntryStartDate] = useState(dayjs());
   const [sleepEntryStartTime, setSleepEntryStartTime] = useState(dayjs());
   const [sleepEntryEndDate, setSleepEntryEndDate] = useState(dayjs());
@@ -958,7 +959,12 @@ export function ChildDashboardPage({ bootstrap }) {
   const locale = bootstrap.locale || "en";
 
   useEffect(() => {
+    const targetChild = bootstrap.children.find(
+      (item) => String(item.id) === String(selectedChildId),
+    );
+    const slug = targetChild?.slug || bootstrap.currentChild.slug;
     loadDashboardData(selectedChildId);
+    fetchSleepRecommendations(slug);
   }, [selectedChildId]);
 
   useEffect(() => {
@@ -996,6 +1002,17 @@ export function ChildDashboardPage({ bootstrap }) {
     persistHidden(nextHidden);
   }
 
+  async function fetchSleepRecommendations(childSlug) {
+    try {
+      const data = await api.current.get(
+        `/api/children/${encodeURIComponent(childSlug)}/sleep-recommendations/`,
+      );
+      setRecommendations(data);
+    } catch (e) {
+      // silently ignore — AI or network may be unavailable
+    }
+  }
+
   function durationMinutes(value) {
     return durationMinutesFromValue(value);
   }
@@ -1029,7 +1046,6 @@ export function ChildDashboardPage({ bootstrap }) {
         sleeps,
         tummyTimes,
         timers,
-        recommendations,
         weekSleeps,
       ] = await Promise.all([
         api.current.get(`/api/changes/?${query}&limit=20`),
@@ -1038,9 +1054,6 @@ export function ChildDashboardPage({ bootstrap }) {
         api.current.get(`/api/sleep/?${query}&limit=30`),
         api.current.get(`/api/tummy-times/?${query}&limit=20`),
         api.current.get(`/api/timers/?${query}&limit=5`),
-        api.current.get(
-          `/api/children/${encodeURIComponent(child.slug)}/sleep-recommendations/`,
-        ),
         api.current.get(
           `/api/sleep/?${query}&start_min=${encodeURIComponent(sevenDaysAgo)}&limit=200`,
         ),
@@ -1199,41 +1212,6 @@ export function ChildDashboardPage({ bootstrap }) {
             description={bootstrap.strings.noData}
           />
         ),
-        "card.sleep.recommendations": recommendations ? (
-          <Space direction="vertical" size={8}>
-            <Card size="small">
-              <Text strong>Nap</Text>
-              <br />
-              <Text type="secondary">
-                {recommendations.nap?.ideal
-                  ? `Ideal ${formatAppTime(recommendations.nap.ideal)}`
-                  : bootstrap.strings.noData}
-              </Text>
-            </Card>
-            <Card size="small">
-              <Text strong>Bedtime</Text>
-              <br />
-              <Text type="secondary">
-                {recommendations.bedtime?.target_bedtime
-                  ? `Target ${formatAppTime(recommendations.bedtime.target_bedtime)}`
-                  : bootstrap.strings.noData}
-              </Text>
-            </Card>
-            {recommendations.explanation ? (
-              <Text
-                type="secondary"
-                style={{ fontSize: 12, lineHeight: 1.5, display: "block" }}
-              >
-                {recommendations.explanation}
-              </Text>
-            ) : null}
-          </Space>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={bootstrap.strings.noData}
-          />
-        ),
         "card.sleep.recent": (
           <Space direction="vertical" size={4}>
             <Statistic
@@ -1378,6 +1356,9 @@ export function ChildDashboardPage({ bootstrap }) {
         setSleepTimerFrozenSeconds(0);
         ant.message.success(bootstrap.strings.sleepEntrySaved);
         await loadDashboardData(selectedChildId, { background: true });
+        await fetchSleepRecommendations(
+          child?.slug || bootstrap.currentChild.slug,
+        );
       } else {
         setSleepTimer({
           running: false,
@@ -1389,6 +1370,9 @@ export function ChildDashboardPage({ bootstrap }) {
         setSleepTimerFrozenSeconds(0);
         ant.message.success(bootstrap.strings.sleepEntrySaved);
         await loadDashboardData(selectedChildId, { background: true });
+        await fetchSleepRecommendations(
+          child?.slug || bootstrap.currentChild.slug,
+        );
       }
     } finally {
       setSubmittingSleepTimer(false);
@@ -1548,6 +1532,9 @@ export function ChildDashboardPage({ bootstrap }) {
       if (response.ok) {
         ant.message.success(bootstrap.strings.sleepEntrySaved);
         await loadDashboardData(selectedChildId);
+        await fetchSleepRecommendations(
+          child?.slug || bootstrap.currentChild.slug,
+        );
         return;
       }
       ant.message.error(bootstrap.strings.saveFailed);
@@ -2238,12 +2225,55 @@ export function ChildDashboardPage({ bootstrap }) {
     );
   }
 
+  function renderRecommendationsCard() {
+    if (!recommendations) {
+      return (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={bootstrap.strings.noData}
+        />
+      );
+    }
+    return (
+      <Space direction="vertical" size={8}>
+        <Card size="small">
+          <Text strong>Nap</Text>
+          <br />
+          <Text type="secondary">
+            {recommendations.nap?.ideal
+              ? `Ideal ${formatAppTime(recommendations.nap.ideal)}`
+              : bootstrap.strings.noData}
+          </Text>
+        </Card>
+        <Card size="small">
+          <Text strong>Bedtime</Text>
+          <br />
+          <Text type="secondary">
+            {recommendations.bedtime?.target_bedtime
+              ? `Target ${formatAppTime(recommendations.bedtime.target_bedtime)}`
+              : bootstrap.strings.noData}
+          </Text>
+        </Card>
+        {recommendations.explanation ? (
+          <Text
+            type="secondary"
+            style={{ fontSize: 12, lineHeight: 1.5, display: "block" }}
+          >
+            {recommendations.explanation}
+          </Text>
+        ) : null}
+      </Space>
+    );
+  }
+
   function renderCardContent(cardKey) {
     if (cardKey === "card.quick_entry.consolidated")
       return renderQuickEntryCard();
     if (cardKey === "card.sleep.timeline_day") return renderSleepTimelineCard();
     if (cardKey === "card.sleep.week_chart")
       return <SleepWeekChart sleepItems={dashboardData.weekSleepItems} />;
+    if (cardKey === "card.sleep.recommendations")
+      return renderRecommendationsCard();
     return (
       cards[cardKey] || (
         <Empty
