@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseRedirect
+from django.http import JsonResponse
+from django.utils.html import strip_tags
 from django.middleware.csrf import get_token
 from django.templatetags.static import static
 from django.urls import reverse
@@ -283,27 +283,31 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         naive_dt = datetime.datetime.combine(entry_date, entry_time)
         return timezone.make_aware(naive_dt, timezone.get_current_timezone())
 
+    @staticmethod
+    def _validation_error_text(exc):
+        """Extract the first plain-text message from a ValidationError."""
+        if hasattr(exc, "message_dict"):
+            for msgs in exc.message_dict.values():
+                if msgs:
+                    return strip_tags(str(msgs[0]))
+        if hasattr(exc, "messages") and exc.messages:
+            return strip_tags(str(exc.messages[0]))
+        return strip_tags(str(exc))
+
     def _handle_diaper_quick_entry(self, request):
         entry_date = (request.POST.get("diaper_entry_date") or "").strip()
         entry_time = (request.POST.get("diaper_entry_time") or "").strip()
         consistency = (request.POST.get("diaper_entry_consistency") or "").strip()
 
         if not entry_date or not entry_time or consistency not in {"liquid", "solid"}:
-            messages.error(
-                request,
-                _(
-                    "Unable to create diaper entry: date, time, and consistency are required."
-                ),
+            return False, _(
+                "Unable to create diaper entry: date, time, and consistency are required."
             )
-            return
 
         try:
             entry_dt = self._parse_local_datetime(entry_date, entry_time)
         except ValueError as exc:
-            messages.error(
-                request, _("Unable to create diaper entry: %(error)s") % {"error": exc}
-            )
-            return
+            return False, _("Unable to create diaper entry: %(error)s") % {"error": exc}
 
         change = DiaperChange(
             child=self.object,
@@ -314,11 +318,11 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         try:
             change.full_clean()
             change.save()
-            messages.success(request, _("Nappy change saved."))
+            return True, None
         except ValidationError as exc:
-            messages.error(
-                request, _("Unable to create diaper entry: %(error)s") % {"error": exc}
-            )
+            return False, _("Unable to create diaper entry: %(error)s") % {
+                "error": self._validation_error_text(exc)
+            }
 
     def _handle_sleep_manual_entry(self, request):
         start_date = (request.POST.get("sleep_entry_start_date") or "").strip()
@@ -328,28 +332,18 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         sleep_type = (request.POST.get("sleep_entry_type") or "").strip()
 
         if not start_date or not start_time or not end_date or not end_time:
-            messages.error(
-                request,
-                _(
-                    "Unable to create sleep entry: start and end date/time are required."
-                ),
+            return False, _(
+                "Unable to create sleep entry: start and end date/time are required."
             )
-            return
 
         if sleep_type not in {"sleep", "nap"}:
-            messages.error(
-                request, _("Unable to create sleep entry: type is required.")
-            )
-            return
+            return False, _("Unable to create sleep entry: type is required.")
 
         try:
             start_dt = self._parse_local_datetime(start_date, start_time)
             end_dt = self._parse_local_datetime(end_date, end_time)
         except ValueError as exc:
-            messages.error(
-                request, _("Unable to create sleep entry: %(error)s") % {"error": exc}
-            )
-            return
+            return False, _("Unable to create sleep entry: %(error)s") % {"error": exc}
 
         sleep = Sleep(
             child=self.object,
@@ -360,11 +354,11 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         try:
             sleep.full_clean()
             sleep.save()
-            messages.success(request, _("Sleep entry saved."))
+            return True, None
         except ValidationError as exc:
-            messages.error(
-                request, _("Unable to create sleep entry: %(error)s") % {"error": exc}
-            )
+            return False, _("Unable to create sleep entry: %(error)s") % {
+                "error": self._validation_error_text(exc)
+            }
 
     def _handle_feeding_quick_entry(self, request):
         start_date = (request.POST.get("feeding_entry_start_date") or "").strip()
@@ -386,20 +380,17 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             or not end_time
             or feeding_type not in type_map
         ):
-            messages.error(
-                request,
-                _("Unable to create feeding entry: start, end, and type are required."),
+            return False, _(
+                "Unable to create feeding entry: start, end, and type are required."
             )
-            return
 
         try:
             start_dt = self._parse_local_datetime(start_date, start_time)
             end_dt = self._parse_local_datetime(end_date, end_time)
         except ValueError as exc:
-            messages.error(
-                request, _("Unable to create feeding entry: %(error)s") % {"error": exc}
-            )
-            return
+            return False, _("Unable to create feeding entry: %(error)s") % {
+                "error": exc
+            }
 
         mapped_type, mapped_method = type_map[feeding_type]
         feeding = Feeding(
@@ -412,11 +403,11 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         try:
             feeding.full_clean()
             feeding.save()
-            messages.success(request, _("Feeding saved."))
+            return True, None
         except ValidationError as exc:
-            messages.error(
-                request, _("Unable to create feeding entry: %(error)s") % {"error": exc}
-            )
+            return False, _("Unable to create feeding entry: %(error)s") % {
+                "error": self._validation_error_text(exc)
+            }
 
     def _handle_breastfeeding_quick_entry(self, request):
         start_date = (request.POST.get("breastfeeding_entry_start_date") or "").strip()
@@ -437,23 +428,17 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             or not end_time
             or side not in side_map
         ):
-            messages.error(
-                request,
-                _(
-                    "Unable to create breastfeeding entry: start, end, and side are required."
-                ),
+            return False, _(
+                "Unable to create breastfeeding entry: start, end, and side are required."
             )
-            return
 
         try:
             start_dt = self._parse_local_datetime(start_date, start_time)
             end_dt = self._parse_local_datetime(end_date, end_time)
         except ValueError as exc:
-            messages.error(
-                request,
-                _("Unable to create breastfeeding entry: %(error)s") % {"error": exc},
-            )
-            return
+            return False, _("Unable to create breastfeeding entry: %(error)s") % {
+                "error": exc
+            }
 
         feeding = Feeding(
             child=self.object,
@@ -465,12 +450,11 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         try:
             feeding.full_clean()
             feeding.save()
-            messages.success(request, _("Breastfeeding entry saved."))
+            return True, None
         except ValidationError as exc:
-            messages.error(
-                request,
-                _("Unable to create breastfeeding entry: %(error)s") % {"error": exc},
-            )
+            return False, _("Unable to create breastfeeding entry: %(error)s") % {
+                "error": self._validation_error_text(exc)
+            }
 
     def _handle_pumping_quick_entry(self, request):
         start_date = (request.POST.get("pumping_entry_start_date") or "").strip()
@@ -488,23 +472,18 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             or not amount_raw
             or side not in {"left", "right", "both"}
         ):
-            messages.error(
-                request,
-                _(
-                    "Unable to create pumping entry: start, end, amount, and side are required."
-                ),
+            return False, _(
+                "Unable to create pumping entry: start, end, amount, and side are required."
             )
-            return
 
         try:
             start_dt = self._parse_local_datetime(start_date, start_time)
             end_dt = self._parse_local_datetime(end_date, end_time)
             amount = float(amount_raw)
         except (TypeError, ValueError) as exc:
-            messages.error(
-                request, _("Unable to create pumping entry: %(error)s") % {"error": exc}
-            )
-            return
+            return False, _("Unable to create pumping entry: %(error)s") % {
+                "error": exc
+            }
 
         pumping = Pumping(
             child=self.object,
@@ -516,11 +495,11 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         try:
             pumping.full_clean()
             pumping.save()
-            messages.success(request, _("Pumping entry saved."))
+            return True, None
         except ValidationError as exc:
-            messages.error(
-                request, _("Unable to create pumping entry: %(error)s") % {"error": exc}
-            )
+            return False, _("Unable to create pumping entry: %(error)s") % {
+                "error": self._validation_error_text(exc)
+            }
 
     def get_template_names(self):
         if _ant_dashboard_enabled():
@@ -530,20 +509,20 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if request.POST.get("diaper_quick_entry_action") == "create":
-            self._handle_diaper_quick_entry(request)
-            return HttpResponseRedirect(request.get_full_path())
+            ok, error = self._handle_diaper_quick_entry(request)
+            return JsonResponse({"ok": ok, "error": error})
         if request.POST.get("sleep_manual_entry_action") == "create":
-            self._handle_sleep_manual_entry(request)
-            return HttpResponseRedirect(request.get_full_path())
+            ok, error = self._handle_sleep_manual_entry(request)
+            return JsonResponse({"ok": ok, "error": error})
         if request.POST.get("feeding_quick_entry_action") == "create":
-            self._handle_feeding_quick_entry(request)
-            return HttpResponseRedirect(request.get_full_path())
+            ok, error = self._handle_feeding_quick_entry(request)
+            return JsonResponse({"ok": ok, "error": error})
         if request.POST.get("breastfeeding_quick_entry_action") == "create":
-            self._handle_breastfeeding_quick_entry(request)
-            return HttpResponseRedirect(request.get_full_path())
+            ok, error = self._handle_breastfeeding_quick_entry(request)
+            return JsonResponse({"ok": ok, "error": error})
         if request.POST.get("pumping_quick_entry_action") == "create":
-            self._handle_pumping_quick_entry(request)
-            return HttpResponseRedirect(request.get_full_path())
+            ok, error = self._handle_pumping_quick_entry(request)
+            return JsonResponse({"ok": ok, "error": error})
 
         action = request.POST.get("sleep_timer_action")
         key = self._timer_session_key(self.object.id)
@@ -573,7 +552,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     del request.session[f"{breaks_key}_pause_start"]
                     request.session.modified = True
                 except (TypeError, ValueError) as exc:
-                    messages.error(request, f"Unable to record break: {exc}")
+                    return JsonResponse(
+                        {"ok": False, "error": f"Unable to record break: {exc}"}
+                    )
         elif action in ("stop", "save"):
             start_raw = request.session.get(key)
             if start_raw:
@@ -608,9 +589,14 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                         del request.session[f"{breaks_key}_pause_start"]
                     request.session.modified = True
                 except (TypeError, ValueError, ValidationError) as exc:
-                    messages.error(request, f"Unable to create sleep entry: {exc}")
+                    return JsonResponse(
+                        {
+                            "ok": False,
+                            "error": f"Unable to create sleep entry: {self._validation_error_text(exc) if isinstance(exc, ValidationError) else exc}",
+                        }
+                    )
 
-        return HttpResponseRedirect(request.get_full_path())
+        return JsonResponse({"ok": True})
 
     def get_context_data(self, **kwargs):
         context = super(ChildDashboard, self).get_context_data(**kwargs)
