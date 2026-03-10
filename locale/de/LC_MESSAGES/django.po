@@ -68,6 +68,10 @@ msgstr "Abpumpvorgänge"
 msgid "Sleep"
 msgstr "Schlafen"
 
+#: babybuddy/models.py:19 babybuddy/models.py:27
+msgid "Quick Entry Card"
+msgstr "Schnelleingabe-Karte"
+
 #: babybuddy/models.py:23
 msgid "Tummy time"
 msgstr "Bauchzeit"

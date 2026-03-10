@@ -1306,8 +1306,9 @@ export function ChildDashboardPage({ bootstrap }) {
         bootstrap.urls.current,
         payload,
       );
-      if (!response.ok) {
-        ant.message.error(bootstrap.strings.saveFailed);
+      const timerData = await response.json();
+      if (!timerData.ok) {
+        ant.message.error(timerData.error || bootstrap.strings.saveFailed);
         return;
       }
 
@@ -1360,8 +1361,9 @@ export function ChildDashboardPage({ bootstrap }) {
           bootstrap.urls.current,
           payload,
         );
-        if (!response2.ok) {
-          ant.message.error(bootstrap.strings.saveFailed);
+        const saveData = await response2.json();
+        if (!saveData.ok) {
+          ant.message.error(saveData.error || bootstrap.strings.saveFailed);
           setSubmittingSleepTimer(false);
           return;
         }
@@ -1412,12 +1414,13 @@ export function ChildDashboardPage({ bootstrap }) {
         bootstrap.urls.current,
         payload,
       );
-      if (response.ok) {
+      const data = await response.json();
+      if (data.ok) {
         ant.message.success(bootstrap.strings.saved);
         await loadDashboardData(selectedChildId);
         return;
       }
-      ant.message.error(bootstrap.strings.saveFailed);
+      ant.message.error(data.error || bootstrap.strings.saveFailed);
     } finally {
       setSubmittingDiaper(false);
     }
@@ -1441,12 +1444,13 @@ export function ChildDashboardPage({ bootstrap }) {
         bootstrap.urls.current,
         payload,
       );
-      if (response.ok) {
+      const data = await response.json();
+      if (data.ok) {
         ant.message.success(bootstrap.strings.feedingSaved);
         await loadDashboardData(selectedChildId);
         return;
       }
-      ant.message.error(bootstrap.strings.saveFailed);
+      ant.message.error(data.error || bootstrap.strings.saveFailed);
     } finally {
       setSubmittingFeeding(false);
     }
@@ -1479,12 +1483,13 @@ export function ChildDashboardPage({ bootstrap }) {
         bootstrap.urls.current,
         payload,
       );
-      if (response.ok) {
+      const data = await response.json();
+      if (data.ok) {
         ant.message.success(bootstrap.strings.breastfeedingSaved);
         await loadDashboardData(selectedChildId);
         return;
       }
-      ant.message.error(bootstrap.strings.saveFailed);
+      ant.message.error(data.error || bootstrap.strings.saveFailed);
     } finally {
       setSubmittingBreastfeeding(false);
     }
@@ -1509,12 +1514,13 @@ export function ChildDashboardPage({ bootstrap }) {
         bootstrap.urls.current,
         payload,
       );
-      if (response.ok) {
+      const data = await response.json();
+      if (data.ok) {
         ant.message.success(bootstrap.strings.pumpingSaved);
         await loadDashboardData(selectedChildId);
         return;
       }
-      ant.message.error(bootstrap.strings.saveFailed);
+      ant.message.error(data.error || bootstrap.strings.saveFailed);
     } finally {
       setSubmittingPumping(false);
     }
@@ -1549,7 +1555,8 @@ export function ChildDashboardPage({ bootstrap }) {
         bootstrap.urls.current,
         payload,
       );
-      if (response.ok) {
+      const data = await response.json();
+      if (data.ok) {
         ant.message.success(bootstrap.strings.sleepEntrySaved);
         await loadDashboardData(selectedChildId);
         await fetchSleepRecommendations(
@@ -1557,7 +1564,7 @@ export function ChildDashboardPage({ bootstrap }) {
         );
         return;
       }
-      ant.message.error(bootstrap.strings.saveFailed);
+      ant.message.error(data.error || bootstrap.strings.saveFailed);
     } finally {
       setSubmittingSleepEntry(false);
     }
