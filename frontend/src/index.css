@@ -350,8 +350,9 @@ body {
 
 .ant-child-detail-photo {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .ant-timeline-event-card {
