@@ -24,6 +24,7 @@ import {
   Switch,
   Tag,
   TimePicker,
+  Tooltip,
   Typography,
 } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
@@ -685,11 +686,21 @@ function MiniTimeline({ items, locale, currentTime, strings }) {
       best.duration || bestMinutes * 60,
     );
     return (
-      <div
-        className={`ant-timeline-bar ${best.nap ? "nap" : "sleep"}`}
-        style={{ height: `${height}%` }}
-        title={`${formatAppTime(best.start)} - ${formatAppTime(best.end)} • ${durationLabel}`}
-      />
+      <Tooltip
+        title={
+          <span>
+            {formatAppTime(best.start)} – {formatAppTime(best.end)}
+            <br />
+            {durationLabel}
+          </span>
+        }
+        placement="top"
+      >
+        <div
+          className={`ant-timeline-bar ${best.nap ? "nap" : "sleep"}`}
+          style={{ height: `${height}%`, cursor: "default" }}
+        />
+      </Tooltip>
     );
   }
 
