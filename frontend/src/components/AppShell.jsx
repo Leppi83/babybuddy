@@ -163,7 +163,7 @@ export function AppShell({ bootstrap, children }) {
     },
     "dashboard-child": {
       eyebrow: null,
-      title: null,
+      title: bootstrap.strings.dashboard,
     },
     "child-detail": {
       eyebrow: bootstrap.strings.timeline,

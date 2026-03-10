@@ -65,16 +65,12 @@ export function ListPage({ bootstrap }) {
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
       <Card className="ant-hero-card">
-        <Row gutter={[16, 16]} align="middle">
-          <Col flex="auto">
-            <Space direction="vertical" size={6}>
-              <Text type="secondary">{bootstrap.listPage.kicker}</Text>
-              <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-                {bootstrap.listPage.title}
-              </Title>
-            </Space>
-          </Col>
-          <Col>
+        <Space direction="vertical" size={6}>
+          <Text type="secondary">{bootstrap.listPage.kicker}</Text>
+          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
+            {bootstrap.listPage.title}
+          </Title>
+          {(bootstrap.listPage.addActions || []).length > 0 ? (
             <Space wrap>
               {(bootstrap.listPage.addActions || []).map((action) => (
                 <Button key={action.href} type="primary" href={action.href}>
@@ -82,8 +78,8 @@ export function ListPage({ bootstrap }) {
                 </Button>
               ))}
             </Space>
-          </Col>
-        </Row>
+          ) : null}
+        </Space>
       </Card>
       <Card className="ant-section-card">
         <Table
@@ -934,68 +930,72 @@ export function DashboardHomePage({ bootstrap }) {
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
       <Card className="ant-hero-card">
         <Space direction="vertical" size={6}>
-          <Text type="secondary">{bootstrap.strings.overview}</Text>
           <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
             {bootstrap.strings.dashboard}
           </Title>
-          {bootstrap.urls.addChild ? (
-            <div>
-              <Button type="primary" href={bootstrap.urls.addChild}>
-                {bootstrap.strings.addChild}
-              </Button>
-            </div>
-          ) : null}
         </Space>
       </Card>
 
-      <Row gutter={[16, 16]}>
-        {bootstrap.children.map((child) => (
-          <Col xs={24} md={12} xl={8} key={child.id}>
-            <Card
-              hoverable
-              className="ant-dashboard-card"
-              cover={
-                <a href={child.dashboardUrl} className="ant-child-image-wrap">
-                  <Image
-                    preview={false}
-                    src={child.pictureUrl}
-                    alt=""
-                    className="ant-child-image"
-                  />
-                </a>
-              }
-              actions={[
-                <Button
-                  type="link"
-                  key="open"
-                  href={child.dashboardUrl}
-                  icon={<DashboardOutlined />}
-                  style={{
-                    gap: 12,
-                    display: "inline-flex",
-                    alignItems: "center",
-                  }}
-                >
-                  {bootstrap.strings.openDashboard}
-                </Button>,
-              ]}
-            >
-              <Card.Meta
-                avatar={<UserOutlined />}
-                title={child.name}
-                description={
-                  <Space direction="vertical" size={4}>
-                    <Text style={{ color: "#cbd5e1" }}>
-                      {bootstrap.strings.born}: {child.birthDateLabel}
-                      {child.ageLabel ? ` (${child.ageLabel})` : ""}
-                    </Text>
-                  </Space>
+      <Card
+        className="ant-section-card"
+        title={bootstrap.strings.selectDashboard}
+      >
+        {bootstrap.urls.addChild ? (
+          <div style={{ marginBottom: 16 }}>
+            <Button type="primary" href={bootstrap.urls.addChild}>
+              {bootstrap.strings.addChild}
+            </Button>
+          </div>
+        ) : null}
+        <Row gutter={[16, 16]}>
+          {bootstrap.children.map((child) => (
+            <Col xs={24} md={12} xl={8} key={child.id}>
+              <Card
+                hoverable
+                className="ant-dashboard-card"
+                cover={
+                  <a href={child.dashboardUrl} className="ant-child-image-wrap">
+                    <Image
+                      preview={false}
+                      src={child.pictureUrl}
+                      alt=""
+                      className="ant-child-image"
+                    />
+                  </a>
                 }
-              />
-            </Card>
-          </Col>
-        ))}
-      </Row>
+                actions={[
+                  <Button
+                    type="link"
+                    key="open"
+                    href={child.dashboardUrl}
+                    icon={<DashboardOutlined />}
+                    style={{
+                      gap: 12,
+                      display: "inline-flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {bootstrap.strings.openDashboard}
+                  </Button>,
+                ]}
+              >
+                <Card.Meta
+                  avatar={<UserOutlined />}
+                  title={child.name}
+                  description={
+                    <Space direction="vertical" size={4}>
+                      <Text style={{ color: "#cbd5e1" }}>
+                        {bootstrap.strings.born}: {child.birthDateLabel}
+                        {child.ageLabel ? ` (${child.ageLabel})` : ""}
+                      </Text>
+                    </Space>
+                  }
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Card>
     </Space>
   );
 }

@@ -469,8 +469,7 @@ export function SettingsPage({ bootstrap }) {
             {bootstrap.strings.userSettings}
           </Title>
           <Text style={{ color: "#cbd5e1" }}>
-            Ant Design settings now replace the previous template-based profile
-            panel.
+            {bootstrap.strings.settingsDescription}
           </Text>
         </Space>
       </Card>
@@ -1220,6 +1219,14 @@ export function ChildDashboardPage({ bootstrap }) {
                   : bootstrap.strings.noData}
               </Text>
             </Card>
+            {recommendations.explanation ? (
+              <Text
+                type="secondary"
+                style={{ fontSize: 12, lineHeight: 1.5, display: "block" }}
+              >
+                {recommendations.explanation}
+              </Text>
+            ) : null}
           </Space>
         ) : (
           <Empty
@@ -2279,7 +2286,10 @@ export function ChildDashboardPage({ bootstrap }) {
 
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
+      <Card
+        className="ant-hero-card"
+        title={`Overview for ${child?.name || bootstrap.currentChild.name}`}
+      >
         <Row gutter={[16, 16]} align="middle">
           <Col flex="auto">
             <Space size={14} align="center">
@@ -2288,15 +2298,9 @@ export function ChildDashboardPage({ bootstrap }) {
                 size={64}
                 className="ant-dashboard-child-avatar"
               />
-              <Space direction="vertical" size={2}>
-                <Text type="secondary">Dashboard</Text>
-                <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-                  {child?.name || bootstrap.currentChild.name}
-                </Title>
-                {child?.birthDateLabel ? (
-                  <Text type="secondary">{child.birthDateLabel}</Text>
-                ) : null}
-              </Space>
+              {child?.birthDateLabel ? (
+                <Text type="secondary">{child.birthDateLabel}</Text>
+              ) : null}
             </Space>
           </Col>
           <Col>

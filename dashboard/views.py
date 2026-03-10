@@ -75,6 +75,7 @@ def _build_ant_strings():
         "born": _("Born"),
         "age": _("Age"),
         "openDashboard": _("Open dashboard"),
+        "selectDashboard": _("Select dashboard"),
         "refresh": _("Refresh"),
         "hide": _("Hide"),
         "show": _("Show"),

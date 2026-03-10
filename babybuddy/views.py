@@ -567,6 +567,9 @@ def _build_settings_bootstrap(request, form_user, form_settings):
             "noItemsSelected": _("No items selected"),
             "settingsSaved": _("Settings saved!"),
             "apiKeyRegenerated": _("User API key regenerated."),
+            "settingsDescription": _(
+                "Manage your profile, preferences, dashboard layout, and API access."
+            ),
         },
     }
 
