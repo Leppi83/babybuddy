@@ -294,6 +294,14 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         return timezone.make_aware(naive_dt, timezone.get_current_timezone())
 
     @staticmethod
+    def _classify_sleep_nap(start_dt, net_duration_secs):
+        """Return True (nap) or False (sleep). Night = 17:00–07:00 → always sleep."""
+        local_start = timezone.localtime(start_dt)
+        hour = local_start.hour
+        is_night = hour >= 17 or hour < 7
+        return not is_night and net_duration_secs < 90 * 60
+
+    @staticmethod
     def _validation_error_text(exc):
         """Extract the first plain-text message from a ValidationError."""
         if hasattr(exc, "message_dict"):
@@ -535,76 +543,77 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             return JsonResponse({"ok": ok, "error": error})
 
         action = request.POST.get("sleep_timer_action")
-        key = self._timer_session_key(self.object.id)
-        breaks_key = f"{key}_breaks"
+        child_id = self.object.id
+        key = self._timer_session_key(child_id)  # overall start time
+        breaks_key = f"sleep_timer_breaks_{child_id}"  # completed pauses
+        pause_key = f"sleep_timer_pause_{child_id}"  # current pause start
 
         if action == "start":
-            request.session[key] = timezone.now().isoformat()
+            now_iso = timezone.now().isoformat()
+            request.session[key] = now_iso
             request.session[breaks_key] = []
+            if pause_key in request.session:
+                del request.session[pause_key]
             request.session.modified = True
+
         elif action == "pause":
-            request.session.setdefault(breaks_key, [])
-            request.session[f"{breaks_key}_pause_start"] = timezone.now().isoformat()
+            request.session[pause_key] = timezone.now().isoformat()
             request.session.modified = True
+
         elif action == "resume":
-            pause_start_raw = request.session.get(f"{breaks_key}_pause_start")
+            pause_start_raw = request.session.get(pause_key)
             if pause_start_raw:
                 try:
                     pause_start = timezone.datetime.fromisoformat(pause_start_raw)
                     pause_end = timezone.now()
-                    breaks_list = request.session.setdefault(breaks_key, [])
-                    breaks_list.append(
-                        {
-                            "start": pause_start.isoformat(),
-                            "end": pause_end.isoformat(),
-                        }
+                    breaks = request.session.setdefault(breaks_key, [])
+                    breaks.append(
+                        {"start": pause_start.isoformat(), "end": pause_end.isoformat()}
                     )
-                    del request.session[f"{breaks_key}_pause_start"]
+                    del request.session[pause_key]
                     request.session.modified = True
                 except (TypeError, ValueError) as exc:
                     return JsonResponse(
-                        {"ok": False, "error": f"Unable to record break: {exc}"}
+                        {"ok": False, "error": f"Unable to record pause: {exc}"}
                     )
+
         elif action in ("stop", "save"):
             start_raw = request.session.get(key)
             if start_raw:
                 try:
                     start_dt = timezone.datetime.fromisoformat(start_raw)
                     end_dt = timezone.now()
-                    breaks_list = request.session.get(breaks_key, [])
-
-                    # Use sleep_timer_type if provided (from frontend), otherwise calculate
-                    sleep_type = request.POST.get("sleep_timer_type")
-                    if sleep_type == "nap":
-                        nap = True
-                    elif sleep_type == "sleep":
-                        nap = False
-                    else:
-                        # Fallback: < 90 min is nap, >= 90 min is sleep
-                        nap = (end_dt - start_dt) < timezone.timedelta(minutes=90)
-
+                    breaks = request.session.get(breaks_key, [])
+                    total_break_secs = sum(
+                        int(
+                            (
+                                timezone.datetime.fromisoformat(b["end"])
+                                - timezone.datetime.fromisoformat(b["start"])
+                            ).total_seconds()
+                        )
+                        for b in breaks
+                        if "start" in b and "end" in b
+                    )
+                    net_secs = max(
+                        0, int((end_dt - start_dt).total_seconds()) - total_break_secs
+                    )
+                    nap = self._classify_sleep_nap(start_dt, net_secs)
                     sleep = Sleep(
-                        child=self.object,
-                        start=start_dt,
-                        end=end_dt,
-                        nap=nap,
-                        breaks=breaks_list,
+                        child=self.object, start=start_dt, end=end_dt, nap=nap
                     )
                     sleep.full_clean()
                     sleep.save()
-                    del request.session[key]
-                    if breaks_key in request.session:
-                        del request.session[breaks_key]
-                    if f"{breaks_key}_pause_start" in request.session:
-                        del request.session[f"{breaks_key}_pause_start"]
-                    request.session.modified = True
                 except (TypeError, ValueError, ValidationError) as exc:
                     return JsonResponse(
                         {
                             "ok": False,
-                            "error": f"Unable to create sleep entry: {self._validation_error_text(exc) if isinstance(exc, ValidationError) else exc}",
+                            "error": f"Unable to save sleep entry: {self._validation_error_text(exc) if isinstance(exc, ValidationError) else exc}",
                         }
                     )
+            for k in [key, breaks_key, pause_key]:
+                if k in request.session:
+                    del request.session[k]
+            request.session.modified = True
 
         return JsonResponse({"ok": True})
 
@@ -640,9 +649,10 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         context["dashboard_section_order"] = visible_sections
         context["dashboard_hidden_sections"] = hidden_sections
         children = Child.objects.all().order_by("last_name", "first_name", "id")
-        key = self._timer_session_key(self.object.id)
-        breaks_key = f"{key}_breaks"
-        pause_key = f"{breaks_key}_pause_start"
+        child_id = self.object.id
+        key = self._timer_session_key(child_id)
+        breaks_key = f"sleep_timer_breaks_{child_id}"
+        pause_key = f"sleep_timer_pause_{child_id}"
         start_raw = self.request.session.get(key)
         timer_payload = {
             "running": False,
@@ -656,15 +666,15 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             try:
                 start_dt = timezone.datetime.fromisoformat(start_raw)
                 now = timezone.now()
-                breaks_list = self.request.session.get(breaks_key, [])
-                break_seconds = sum(
+                breaks = self.request.session.get(breaks_key, [])
+                total_break_secs = sum(
                     int(
                         (
                             timezone.datetime.fromisoformat(b["end"])
                             - timezone.datetime.fromisoformat(b["start"])
                         ).total_seconds()
                     )
-                    for b in breaks_list
+                    for b in breaks
                     if "start" in b and "end" in b
                 )
                 pause_raw = self.request.session.get(pause_key)
@@ -673,20 +683,20 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     frozen = max(
                         0,
                         int((pause_start_dt - start_dt).total_seconds())
-                        - break_seconds,
+                        - total_break_secs,
                     )
                     timer_payload = {
                         "running": True,
                         "startIso": start_dt.isoformat(),
                         "elapsedSeconds": frozen,
                         "paused": True,
-                        "pauseStartIso": pause_start_dt.isoformat(),
+                        "pauseStartIso": pause_raw,
                         "frozenSeconds": frozen,
                     }
                 else:
                     elapsed = max(
                         0,
-                        int((now - start_dt).total_seconds()) - break_seconds,
+                        int((now - start_dt).total_seconds()) - total_break_secs,
                     )
                     timer_payload = {
                         "running": True,
