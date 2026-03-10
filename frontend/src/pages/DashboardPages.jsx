@@ -956,13 +956,21 @@ export function ChildDashboardPage({ bootstrap }) {
   const [sleepTimerPaused, setSleepTimerPaused] = useState(
     bootstrap.sleepTimer?.paused ?? false,
   );
-  const [sleepTimerPauseStart, setSleepTimerPauseStart] = useState(
-    bootstrap.sleepTimer?.pauseStartIso
-      ? new Date(bootstrap.sleepTimer.pauseStartIso).getTime()
+  // ms timestamp of the last resume (or start) — null when paused
+  const [sleepTimerResumeMs, setSleepTimerResumeMs] = useState(
+    bootstrap.sleepTimer?.running && !bootstrap.sleepTimer?.paused
+      ? Date.now()
       : null,
   );
+  // elapsed seconds at the moment of the last pause
   const [sleepTimerFrozenSeconds, setSleepTimerFrozenSeconds] = useState(
     bootstrap.sleepTimer?.frozenSeconds ?? 0,
+  );
+  // ms timestamp when the current pause started
+  const [sleepTimerPauseStartMs, setSleepTimerPauseStartMs] = useState(
+    bootstrap.sleepTimer?.paused && bootstrap.sleepTimer?.pauseStartIso
+      ? new Date(bootstrap.sleepTimer.pauseStartIso).getTime()
+      : null,
   );
   const [sleepListDateRange, setSleepListDateRange] = useState([
     dayjs().subtract(3, "day").startOf("day"),
@@ -1012,10 +1020,11 @@ export function ChildDashboardPage({ bootstrap }) {
     const t = bootstrap.sleepTimer || {};
     setSleepTimer(t);
     setSleepTimerPaused(t.paused ?? false);
-    setSleepTimerPauseStart(
-      t.pauseStartIso ? new Date(t.pauseStartIso).getTime() : null,
-    );
     setSleepTimerFrozenSeconds(t.frozenSeconds ?? 0);
+    setSleepTimerResumeMs(t.running && !t.paused ? Date.now() : null);
+    setSleepTimerPauseStartMs(
+      t.paused && t.pauseStartIso ? new Date(t.pauseStartIso).getTime() : null,
+    );
   }, [bootstrap.currentChild.id, bootstrap.sleepTimer]);
 
   useEffect(() => {
@@ -1326,25 +1335,18 @@ export function ChildDashboardPage({ bootstrap }) {
     }
   }
 
+  function currentTimerElapsed() {
+    if (!sleepTimer.running) return 0;
+    if (sleepTimerPaused || !sleepTimerResumeMs) return sleepTimerFrozenSeconds;
+    return (
+      sleepTimerFrozenSeconds +
+      Math.floor((currentTime - sleepTimerResumeMs) / 1000)
+    );
+  }
+
   async function submitSleepTimerAction(action) {
     const payload = new URLSearchParams();
     payload.set("sleep_timer_action", action);
-
-    // For save/stop: include type in the single request
-    if (action === "save" || action === "stop") {
-      const totalElapsed = sleepTimerPaused
-        ? sleepTimerFrozenSeconds
-        : Math.max(
-            Number(sleepTimer.elapsedSeconds) || 0,
-            Math.floor(
-              (Date.now() -
-                new Date(sleepTimer.startIso || Date.now()).getTime()) /
-                1000,
-            ),
-          );
-      const sleepType = totalElapsed < 90 * 60 ? "nap" : "sleep";
-      payload.set("sleep_timer_type", sleepType);
-    }
 
     setSubmittingSleepTimer(true);
     try {
@@ -1368,29 +1370,20 @@ export function ChildDashboardPage({ bootstrap }) {
           frozenSeconds: 0,
         });
         setSleepTimerPaused(false);
-        setSleepTimerPauseStart(null);
         setSleepTimerFrozenSeconds(0);
+        setSleepTimerResumeMs(Date.now());
+        setSleepTimerPauseStartMs(null);
       } else if (action === "pause") {
-        const currentElapsed = Math.max(
-          Number(sleepTimer.elapsedSeconds) || 0,
-          Math.floor(
-            (currentTime -
-              new Date(sleepTimer.startIso || currentTime).getTime()) /
-              1000,
-          ),
-        );
-        setSleepTimerFrozenSeconds(currentElapsed);
+        const frozen = currentTimerElapsed();
+        setSleepTimerFrozenSeconds(frozen);
+        setSleepTimerResumeMs(null);
         setSleepTimerPaused(true);
-        setSleepTimerPauseStart(Date.now());
+        setSleepTimerPauseStartMs(Date.now());
       } else if (action === "resume") {
-        setSleepTimer((prev) => ({
-          ...prev,
-          paused: false,
-          pauseStartIso: null,
-        }));
+        // frozen stays; timer continues counting from frozen base
+        setSleepTimerResumeMs(Date.now());
         setSleepTimerPaused(false);
-        setSleepTimerPauseStart(null);
-        // frozenSeconds stays as the elapsed display base; timer continues counting
+        setSleepTimerPauseStartMs(null);
       } else if (action === "save" || action === "stop") {
         setSleepTimer({
           running: false,
@@ -1401,8 +1394,9 @@ export function ChildDashboardPage({ bootstrap }) {
           frozenSeconds: 0,
         });
         setSleepTimerPaused(false);
-        setSleepTimerPauseStart(null);
         setSleepTimerFrozenSeconds(0);
+        setSleepTimerResumeMs(null);
+        setSleepTimerPauseStartMs(null);
         ant.message.success(bootstrap.strings.sleepEntrySaved);
         await loadDashboardData(selectedChildId, { background: true });
         await fetchSleepRecommendations(
@@ -1681,18 +1675,11 @@ export function ChildDashboardPage({ bootstrap }) {
   }
 
   function renderSleepTimerCard() {
-    const timerElapsedSeconds = sleepTimerPaused
-      ? sleepTimerFrozenSeconds
-      : sleepTimer.running
-        ? Math.max(
-            Number(sleepTimer.elapsedSeconds) || 0,
-            Math.floor(
-              (currentTime -
-                new Date(sleepTimer.startIso || currentTime).getTime()) /
-                1000,
-            ),
-          )
-        : Number(sleepTimer.elapsedSeconds) || 0;
+    const timerElapsedSeconds =
+      sleepTimerPaused || !sleepTimerResumeMs
+        ? sleepTimerFrozenSeconds
+        : sleepTimerFrozenSeconds +
+          Math.floor((currentTime - sleepTimerResumeMs) / 1000);
 
     return (
       <Row gutter={[16, 16]} className="ant-sleep-timer-layout">
@@ -1978,51 +1965,40 @@ export function ChildDashboardPage({ bootstrap }) {
                   className="ant-sleep-timer-card"
                   style={{ width: "100%" }}
                 >
-                  {sleepTimer.running && sleepTimerPaused ? (
-                    <Row gutter={16}>
+                  <Row gutter={16}>
+                    <Col xs={sleepTimer.running && sleepTimerPaused ? 12 : 24}>
+                      <Statistic
+                        title={bootstrap.strings.sleepTimer}
+                        value={formatElapsedSeconds(
+                          sleepTimerPaused || !sleepTimerResumeMs
+                            ? sleepTimerFrozenSeconds
+                            : sleepTimerFrozenSeconds +
+                                Math.floor(
+                                  (currentTime - sleepTimerResumeMs) / 1000,
+                                ),
+                        )}
+                      />
+                    </Col>
+                    {sleepTimer.running && sleepTimerPaused && (
                       <Col xs={12}>
                         <Statistic
-                          title={bootstrap.strings.sleepTimer}
-                          value={formatElapsedSeconds(sleepTimerFrozenSeconds)}
-                        />
-                      </Col>
-                      <Col xs={12}>
-                        <Statistic
-                          title="Pause"
+                          title={bootstrap.strings.pause || "Pause"}
                           value={formatElapsedSeconds(
-                            sleepTimerPauseStart
+                            sleepTimerPauseStartMs
                               ? Math.floor(
-                                  (currentTime - sleepTimerPauseStart) / 1000,
+                                  (currentTime - sleepTimerPauseStartMs) / 1000,
                                 )
                               : 0,
                           )}
                         />
                       </Col>
-                    </Row>
-                  ) : (
-                    <Statistic
-                      title={bootstrap.strings.sleepTimer}
-                      value={formatElapsedSeconds(
-                        sleepTimer.running
-                          ? Math.max(
-                              Number(sleepTimer.elapsedSeconds) || 0,
-                              Math.floor(
-                                (currentTime -
-                                  new Date(
-                                    sleepTimer.startIso || currentTime,
-                                  ).getTime()) /
-                                  1000,
-                              ),
-                            )
-                          : Number(sleepTimer.elapsedSeconds) || 0,
-                      )}
-                    />
-                  )}
+                    )}
+                  </Row>
                   <Space wrap>
                     <Tag color={sleepTimer.running ? "gold" : "default"}>
                       {sleepTimer.running
                         ? sleepTimerPaused
-                          ? "Paused"
+                          ? bootstrap.strings.paused
                           : bootstrap.strings.running
                         : bootstrap.strings.ready}
                     </Tag>
@@ -2063,8 +2039,8 @@ export function ChildDashboardPage({ bootstrap }) {
                     {!sleepTimer.running
                       ? bootstrap.strings.start
                       : sleepTimerPaused
-                        ? "Resume"
-                        : "Pause"}
+                        ? bootstrap.strings.resume
+                        : bootstrap.strings.pause}
                   </Button>
                   {sleepTimer.running && (
                     <Button
@@ -2483,12 +2459,17 @@ export function ChildDashboardPage({ bootstrap }) {
         key: "type",
         render: (_, record) => {
           if (sleepListEditingId === record.id) {
-            const durationMins =
-              sleepListEditEnd && sleepListEditStart
-                ? sleepListEditEnd.diff(sleepListEditStart, "minute")
-                : null;
-            const isNap =
-              durationMins !== null ? durationMins < 90 : record.nap;
+            let isNap = record.nap;
+            if (sleepListEditEnd && sleepListEditStart) {
+              let durationMins = sleepListEditEnd.diff(
+                sleepListEditStart,
+                "minute",
+              );
+              if (durationMins < 0) durationMins += 24 * 60; // overnight
+              const startHour = sleepListEditStart.hour();
+              const isNight = startHour >= 17 || startHour < 7;
+              isNap = !isNight && durationMins < 90;
+            }
             return (
               <Tag color={isNap ? "blue" : "gold"}>
                 {isNap ? s.nap : s.sleep}
@@ -2513,11 +2494,14 @@ export function ChildDashboardPage({ bootstrap }) {
                 type="primary"
                 onClick={async () => {
                   if (!sleepListEditStart || !sleepListEditEnd) return;
-                  const durationMins = sleepListEditEnd.diff(
+                  let durationMins = sleepListEditEnd.diff(
                     sleepListEditStart,
                     "minute",
                   );
-                  const isNap = durationMins < 90;
+                  if (durationMins < 0) durationMins += 24 * 60; // overnight
+                  const startHour = sleepListEditStart.hour();
+                  const isNight = startHour >= 17 || startHour < 7;
+                  const isNap = !isNight && durationMins < 90;
                   try {
                     await api.current.patch(`/api/sleep/${record.id}/`, {
                       start: sleepListEditStart.toISOString(),
