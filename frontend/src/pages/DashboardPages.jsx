@@ -2238,39 +2238,60 @@ export function ChildDashboardPage({ bootstrap }) {
         />
       );
     }
+
+    const napWindow =
+      recommendations.nap?.earliest && recommendations.nap?.latest
+        ? `${formatAppTime(recommendations.nap.earliest)} – ${formatAppTime(recommendations.nap.latest)}`
+        : bootstrap.strings.noData;
+
+    const bedtimeWindow =
+      recommendations.bedtime?.earliest && recommendations.bedtime?.latest
+        ? `${formatAppTime(recommendations.bedtime.earliest)} – ${formatAppTime(recommendations.bedtime.latest)}`
+        : bootstrap.strings.noData;
+
     return (
-      <Space direction="vertical" size={8}>
-        <Card size="small">
-          <Text strong>Nap</Text>
-          <br />
-          <Text type="secondary">
-            {recommendations.nap?.ideal
-              ? `Ideal ${formatAppTime(recommendations.nap.ideal)}`
-              : bootstrap.strings.noData}
-          </Text>
-        </Card>
-        <Card size="small">
-          <Text strong>Bedtime</Text>
-          <br />
-          <Text type="secondary">
-            {recommendations.bedtime?.target_bedtime
-              ? `Target ${formatAppTime(recommendations.bedtime.target_bedtime)}`
-              : bootstrap.strings.noData}
-          </Text>
-        </Card>
-        {loadingRecommendations ? (
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Asking AI...
-          </Text>
-        ) : recommendations.explanation ? (
-          <Text
-            type="secondary"
-            style={{ fontSize: 12, lineHeight: 1.5, display: "block" }}
-          >
-            {recommendations.explanation}
-          </Text>
-        ) : null}
-      </Space>
+      <Row gutter={[12, 12]}>
+        <Col xs={24} sm={8}>
+          <Card size="small" style={{ height: "100%" }}>
+            <Text strong>Nap</Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {napWindow}
+            </Text>
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card size="small" style={{ height: "100%" }}>
+            <Text strong>Bedtime</Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {bedtimeWindow}
+            </Text>
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card size="small" style={{ height: "100%" }}>
+            <Text strong>AI</Text>
+            <br />
+            {loadingRecommendations ? (
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Asking AI...
+              </Text>
+            ) : recommendations.explanation ? (
+              <Text
+                type="secondary"
+                style={{ fontSize: 12, lineHeight: 1.5, display: "block" }}
+              >
+                {recommendations.explanation}
+              </Text>
+            ) : (
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {bootstrap.strings.noData}
+              </Text>
+            )}
+          </Card>
+        </Col>
+      </Row>
     );
   }
 
