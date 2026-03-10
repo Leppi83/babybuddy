@@ -28,38 +28,37 @@ def _truncate_to_three_sentences(text):
     return " ".join(chunks[:3]).strip() or None
 
 
-def _build_prompt(bundle):
-    nap = bundle.get("nap", {})
-    bedtime = bundle.get("bedtime", {})
-    age_days = bundle.get("age_days")
-    if age_days is not None:
-        weeks = age_days // 7
-        days = age_days % 7
-        age_str = f"{age_days} days ({weeks} weeks, {days} days)"
-    else:
-        age_str = "unknown"
+def _format_time_only(value):
+    if not value:
+        return "-"
+    return timezone.localtime(value).strftime("%H:%M")
 
-    return (
-        "You are assisting with baby sleep logs. "
-        "Write at most 3 short sentences explaining the existing recommendation. "
-        "Do not change any times, do not give medical advice.\n\n"
-        f"Baby age: {age_str}\n\n"
-        "Nap recommendation:\n"
-        f"- status: {nap.get('status')}\n"
-        f"- earliest: {_format_dt(nap.get('earliest'))}\n"
-        f"- ideal: {_format_dt(nap.get('ideal'))}\n"
-        f"- latest: {_format_dt(nap.get('latest'))}\n"
-        f"- wake window: {nap.get('wake_window_min_minutes')}-{nap.get('wake_window_max_minutes')} min\n"
-        f"- source: {nap.get('source')}\n\n"
-        "Bedtime recommendation:\n"
-        f"- status: {bedtime.get('status')}\n"
-        f"- target: {_format_dt(bedtime.get('target_bedtime'))}\n"
-        f"- earliest: {_format_dt(bedtime.get('earliest'))}\n"
-        f"- ideal: {_format_dt(bedtime.get('ideal'))}\n"
-        f"- latest: {_format_dt(bedtime.get('latest'))}\n"
-        f"- source: {bedtime.get('source')}\n"
-        f"- reason: {bedtime.get('reason')}\n"
-    )
+
+def _build_prompt(bundle):
+    child_name = bundle.get("child", {}).get("name", "Baby")
+    as_of = bundle.get("as_of")
+    local_hour = timezone.localtime(as_of).hour if as_of else timezone.localtime().hour
+
+    if local_hour < 16:
+        nap = bundle.get("nap", {})
+        return (
+            f"You are helping parents of {child_name} know when to put the baby down for a nap. "
+            "Write 2 short sentences. Describe the nap window as a range from earliest to latest. "
+            "Do not mention exact times, only ranges. Do not give medical advice.\n\n"
+            f"Nap window: {_format_time_only(nap.get('earliest'))} – {_format_time_only(nap.get('latest'))}\n"
+            f"Status: {nap.get('status')}\n"
+            f"Wake window: {nap.get('wake_window_min_minutes')}–{nap.get('wake_window_max_minutes')} min\n"
+        )
+    else:
+        bedtime = bundle.get("bedtime", {})
+        return (
+            f"You are helping parents of {child_name} know when to put the baby to bed for the night. "
+            "Write 2 short sentences. Describe the bedtime window as a range from earliest to latest. "
+            "Do not mention exact times, only ranges. Do not give medical advice.\n\n"
+            f"Bedtime window: {_format_time_only(bedtime.get('earliest'))} – {_format_time_only(bedtime.get('latest'))}\n"
+            f"Status: {bedtime.get('status')}\n"
+            f"Reason: {bedtime.get('reason')}\n"
+        )
 
 
 def _call_openai_compat(bundle):
@@ -75,8 +74,8 @@ def _call_openai_compat(bundle):
             {
                 "role": "system",
                 "content": (
-                    "You are a baby sleep advisor helping parents understand sleep "
-                    "recommendations. Be concise, warm, and practical. "
+                    "You are a baby sleep advisor. Be concise, warm, and practical. "
+                    "Always describe time as ranges (e.g. 'between X and Y'), never as exact times. "
                     "Never give medical advice."
                 ),
             },
