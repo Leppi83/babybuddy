@@ -341,6 +341,7 @@ def recommend_sleep_bundle(child, now=None):
     return {
         "as_of": now,
         "child": {"id": child.id, "slug": child.slug, "name": child.name()},
+        "age_days": _age_days(child, now),
         "nap": recommend_nap(child=child, now=now),
         "bedtime": recommend_bedtime(child=child, now=now),
     }
