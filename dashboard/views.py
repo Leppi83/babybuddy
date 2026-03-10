@@ -599,7 +599,12 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     )
                     nap = self._classify_sleep_nap(start_dt, net_secs)
                     sleep = Sleep(
-                        child=self.object, start=start_dt, end=end_dt, nap=nap
+                        child=self.object,
+                        start=start_dt,
+                        end=end_dt,
+                        nap=nap,
+                        net_duration=datetime.timedelta(seconds=net_secs),
+                        breaks=breaks,
                     )
                     sleep.full_clean()
                     sleep.save()
