@@ -1022,7 +1022,7 @@ export function ChildDashboardPage({ bootstrap }) {
       );
       setRecommendations(data);
     } catch (e) {
-      // silently ignore — AI or network may be unavailable
+      setRecommendations({});
     } finally {
       setLoadingRecommendations(false);
     }
@@ -2241,6 +2241,13 @@ export function ChildDashboardPage({ bootstrap }) {
   }
 
   function renderRecommendationsCard() {
+    if (loadingRecommendations && !recommendations) {
+      return (
+        <div style={{ textAlign: "center", padding: "24px 0" }}>
+          <Spin />
+        </div>
+      );
+    }
     if (!recommendations) {
       return (
         <Empty
@@ -2250,43 +2257,56 @@ export function ChildDashboardPage({ bootstrap }) {
       );
     }
 
-    const napWindow =
-      recommendations.nap?.earliest && recommendations.nap?.latest
-        ? `${formatAppTime(recommendations.nap.earliest)} – ${formatAppTime(recommendations.nap.latest)}`
-        : bootstrap.strings.noData;
+    const s = bootstrap.strings;
+    const nap = recommendations.nap || {};
+    const bedtime = recommendations.bedtime || {};
 
-    const bedtimeWindow =
-      recommendations.bedtime?.earliest && recommendations.bedtime?.latest
-        ? `${formatAppTime(recommendations.bedtime.earliest)} – ${formatAppTime(recommendations.bedtime.latest)}`
-        : bootstrap.strings.noData;
+    function napStatusText() {
+      if (nap.earliest && nap.latest)
+        return `${formatAppTime(nap.earliest)} – ${formatAppTime(nap.latest)}`;
+      if (nap.status === "nighttime") return s.napWindowOver;
+      if (nap.status === "no_data") return s.noSleepData;
+      if (nap.status === "overtired_risk") return s.overtiredRisk;
+      return s.noData;
+    }
+
+    function bedtimeStatusText() {
+      if (bedtime.earliest && bedtime.latest)
+        return `${formatAppTime(bedtime.earliest)} – ${formatAppTime(bedtime.latest)}`;
+      if (bedtime.status === "no_data") return s.noSleepData;
+      if (bedtime.status === "overtired_risk") return s.overtiredRisk;
+      return s.noData;
+    }
 
     return (
-      <Row gutter={[12, 12]}>
-        <Col xs={24} sm={8}>
-          <Card size="small" style={{ height: "100%" }}>
-            <Text strong>Nap</Text>
+      <Row gutter={[12, 12]} style={{ height: "100%" }}>
+        <Col
+          xs={24}
+          sm={12}
+          style={{ display: "flex", flexDirection: "column", gap: 12 }}
+        >
+          <Card size="small" style={{ flex: 1 }}>
+            <Text strong>{s.napWindow}</Text>
             <br />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              {napWindow}
+              {napStatusText()}
+            </Text>
+          </Card>
+          <Card size="small" style={{ flex: 1 }}>
+            <Text strong>{s.bedtimeWindow}</Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {bedtimeStatusText()}
             </Text>
           </Card>
         </Col>
-        <Col xs={24} sm={8}>
+        <Col xs={24} sm={12}>
           <Card size="small" style={{ height: "100%" }}>
-            <Text strong>Bedtime</Text>
-            <br />
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              {bedtimeWindow}
-            </Text>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card size="small" style={{ height: "100%" }}>
-            <Text strong>AI</Text>
+            <Text strong>{s.aiRecommendation}</Text>
             <br />
             {loadingRecommendations ? (
               <Text type="secondary" style={{ fontSize: 12 }}>
-                Asking AI...
+                {s.askingAi}
               </Text>
             ) : recommendations.explanation ? (
               <Text

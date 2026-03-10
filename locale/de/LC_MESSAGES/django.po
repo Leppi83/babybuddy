@@ -2293,6 +2293,34 @@ msgid "No data available yet."
 msgstr "Noch keine Daten verfügbar."
 
 #: dashboard/views.py:88
+msgid "Nap time is over for today"
+msgstr "Schlafenszeit für heute vorbei"
+
+#: dashboard/views.py:89
+msgid "No sleep data yet"
+msgstr "Noch keine Schlafdaten vorhanden"
+
+#: dashboard/views.py:90
+msgid "Overtired risk — put to sleep now"
+msgstr "Übermüdungsrisiko – jetzt schlafen legen"
+
+#: dashboard/views.py:91
+msgid "Nap window"
+msgstr "Schlaffenster (Nickerchen)"
+
+#: dashboard/views.py:92
+msgid "Bedtime window"
+msgstr "Schlaffenster (Nacht)"
+
+#: dashboard/views.py:93
+msgid "AI Recommendation"
+msgstr "KI-Empfehlung"
+
+#: dashboard/views.py:94
+msgid "Asking AI..."
+msgstr "KI wird befragt..."
+
+#: dashboard/views.py:93
 msgid "Migration pending"
 msgstr "Migration ausstehend"
 
