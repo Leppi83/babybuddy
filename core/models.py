@@ -568,6 +568,12 @@ class Sleep(models.Model):
     duration = models.DurationField(
         editable=False, null=True, verbose_name=_("Duration")
     )
+    net_duration = models.DurationField(
+        editable=False,
+        null=True,
+        blank=True,
+        verbose_name=_("Net duration"),
+    )
     breaks = JSONField(
         default=list, blank=True, null=False, verbose_name=_("Sleep breaks")
     )
