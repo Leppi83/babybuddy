@@ -55,6 +55,7 @@ export const DASHBOARD_CARD_TITLES = {
   "card.sleep.statistics": "Sleep Statistics",
   "card.sleep.timeline_day": "Sleep Timeline (24h)",
   "card.sleep.week_chart": "Sleep This Week",
+  "card.sleep.list": "Sleep List",
   "card.tummytime.day": "Today's Tummy Time",
 };
 
@@ -97,6 +98,22 @@ export function createApiClient(csrfToken) {
 
   return {
     get: (url) => request(url, { method: "GET" }),
+    patch: (url, data) =>
+      request(url, { method: "PATCH", body: JSON.stringify(data) }),
+    delete: async (url) => {
+      const response = await fetch(url, {
+        method: "DELETE",
+        credentials: "same-origin",
+        headers: {
+          "X-CSRFToken": csrfToken,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Request failed (${response.status})`);
+      }
+      return null;
+    },
     postForm: async (url, formData) =>
       fetch(url, {
         method: "POST",
