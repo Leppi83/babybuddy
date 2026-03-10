@@ -89,6 +89,7 @@ class PumpingFilter(StartEndFieldFilter):
 class SleepFilter(StartEndFieldFilter, TagsFieldFilter):
     class Meta(StartEndFieldFilter.Meta):
         model = models.Sleep
+        fields = sorted(StartEndFieldFilter.Meta.fields + ["nap"])
 
 
 class TemperatureFilter(TimeFieldFilter, TagsFieldFilter):

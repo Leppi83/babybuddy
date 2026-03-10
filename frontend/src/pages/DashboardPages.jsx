@@ -15,6 +15,7 @@ import {
   Grid,
   Input,
   List,
+  Popconfirm,
   Row,
   Segmented,
   Select,
@@ -22,6 +23,7 @@ import {
   Spin,
   Statistic,
   Switch,
+  Table,
   Tag,
   TimePicker,
   Tooltip,
@@ -31,6 +33,7 @@ import { ReloadOutlined } from "@ant-design/icons";
 import {
   asItems,
   APP_DATE_FORMAT,
+  APP_DATE_FORMAT_FULL,
   APP_TIME_FORMAT,
   createApiClient,
   DASHBOARD_CARD_TITLES,
@@ -950,9 +953,28 @@ export function ChildDashboardPage({ bootstrap }) {
   const [pumpingAmount, setPumpingAmount] = useState("");
   const [pumpingSide, setPumpingSide] = useState("left");
   const [sleepTimer, setSleepTimer] = useState(bootstrap.sleepTimer || {});
-  const [sleepTimerPaused, setSleepTimerPaused] = useState(false);
-  const [sleepTimerPauseStart, setSleepTimerPauseStart] = useState(null);
-  const [sleepTimerFrozenSeconds, setSleepTimerFrozenSeconds] = useState(0);
+  const [sleepTimerPaused, setSleepTimerPaused] = useState(
+    bootstrap.sleepTimer?.paused ?? false,
+  );
+  const [sleepTimerPauseStart, setSleepTimerPauseStart] = useState(
+    bootstrap.sleepTimer?.pauseStartIso
+      ? new Date(bootstrap.sleepTimer.pauseStartIso).getTime()
+      : null,
+  );
+  const [sleepTimerFrozenSeconds, setSleepTimerFrozenSeconds] = useState(
+    bootstrap.sleepTimer?.frozenSeconds ?? 0,
+  );
+  const [sleepListDateRange, setSleepListDateRange] = useState([
+    dayjs().subtract(3, "day").startOf("day"),
+    dayjs().endOf("day"),
+  ]);
+  const [sleepListData, setSleepListData] = useState([]);
+  const [sleepListLoading, setSleepListLoading] = useState(false);
+  const [sleepListPage, setSleepListPage] = useState(1);
+  const [sleepListTotal, setSleepListTotal] = useState(0);
+  const [sleepListEditingId, setSleepListEditingId] = useState(null);
+  const [sleepListEditStart, setSleepListEditStart] = useState(null);
+  const [sleepListEditEnd, setSleepListEditEnd] = useState(null);
   const [sleepTimerBreaks, setSleepTimerBreaks] = useState([]);
   const [submittingDiaper, setSubmittingDiaper] = useState(false);
   const [submittingFeeding, setSubmittingFeeding] = useState(false);
@@ -982,10 +1004,18 @@ export function ChildDashboardPage({ bootstrap }) {
     const slug = targetChild?.slug || bootstrap.currentChild.slug;
     loadDashboardData(selectedChildId);
     fetchSleepRecommendations(slug);
+    setSleepListPage(1);
+    fetchSleepList(selectedChildId, 1, sleepListDateRange);
   }, [selectedChildId]);
 
   useEffect(() => {
-    setSleepTimer(bootstrap.sleepTimer || {});
+    const t = bootstrap.sleepTimer || {};
+    setSleepTimer(t);
+    setSleepTimerPaused(t.paused ?? false);
+    setSleepTimerPauseStart(
+      t.pauseStartIso ? new Date(t.pauseStartIso).getTime() : null,
+    );
+    setSleepTimerFrozenSeconds(t.frozenSeconds ?? 0);
   }, [bootstrap.currentChild.id, bootstrap.sleepTimer]);
 
   useEffect(() => {
@@ -1300,6 +1330,22 @@ export function ChildDashboardPage({ bootstrap }) {
     const payload = new URLSearchParams();
     payload.set("sleep_timer_action", action);
 
+    // For save/stop: include type in the single request
+    if (action === "save" || action === "stop") {
+      const totalElapsed = sleepTimerPaused
+        ? sleepTimerFrozenSeconds
+        : Math.max(
+            Number(sleepTimer.elapsedSeconds) || 0,
+            Math.floor(
+              (Date.now() -
+                new Date(sleepTimer.startIso || Date.now()).getTime()) /
+                1000,
+            ),
+          );
+      const sleepType = totalElapsed < 90 * 60 ? "nap" : "sleep";
+      payload.set("sleep_timer_type", sleepType);
+    }
+
     setSubmittingSleepTimer(true);
     try {
       const response = await api.current.postForm(
@@ -1317,10 +1363,13 @@ export function ChildDashboardPage({ bootstrap }) {
           running: true,
           startIso: new Date().toISOString(),
           elapsedSeconds: 0,
+          paused: false,
+          pauseStartIso: null,
+          frozenSeconds: 0,
         });
         setSleepTimerPaused(false);
+        setSleepTimerPauseStart(null);
         setSleepTimerFrozenSeconds(0);
-        setSleepTimerBreaks([]);
       } else if (action === "pause") {
         const currentElapsed = Math.max(
           Number(sleepTimer.elapsedSeconds) || 0,
@@ -1334,44 +1383,22 @@ export function ChildDashboardPage({ bootstrap }) {
         setSleepTimerPaused(true);
         setSleepTimerPauseStart(Date.now());
       } else if (action === "resume") {
-        if (sleepTimerPauseStart) {
-          const pauseDuration = Math.floor(
-            (Date.now() - sleepTimerPauseStart) / 1000,
-          );
-          setSleepTimerBreaks([
-            ...sleepTimerBreaks,
-            { duration: pauseDuration },
-          ]);
-        }
-        setSleepTimer({
-          running: true,
-          startIso: new Date().toISOString(),
-          elapsedSeconds: sleepTimerFrozenSeconds,
-        });
+        setSleepTimer((prev) => ({
+          ...prev,
+          paused: false,
+          pauseStartIso: null,
+        }));
         setSleepTimerPaused(false);
         setSleepTimerPauseStart(null);
-        setSleepTimerFrozenSeconds(0);
-      } else if (action === "save") {
-        // Determine sleep type based on elapsed time (< 90 min = nap, >= 90 min = sleep)
-        const durationMinutes = sleepTimerFrozenSeconds / 60;
-        const sleepType = durationMinutes < 90 ? "nap" : "sleep";
-        payload.set("sleep_timer_type", sleepType);
-
-        const response2 = await api.current.postForm(
-          bootstrap.urls.current,
-          payload,
-        );
-        const saveData = await response2.json();
-        if (!saveData.ok) {
-          ant.message.error(saveData.error || bootstrap.strings.saveFailed);
-          setSubmittingSleepTimer(false);
-          return;
-        }
-
+        // frozenSeconds stays as the elapsed display base; timer continues counting
+      } else if (action === "save" || action === "stop") {
         setSleepTimer({
           running: false,
           startIso: null,
           elapsedSeconds: 0,
+          paused: false,
+          pauseStartIso: null,
+          frozenSeconds: 0,
         });
         setSleepTimerPaused(false);
         setSleepTimerPauseStart(null);
@@ -1381,23 +1408,38 @@ export function ChildDashboardPage({ bootstrap }) {
         await fetchSleepRecommendations(
           child?.slug || bootstrap.currentChild.slug,
         );
-      } else {
-        setSleepTimer({
-          running: false,
-          startIso: null,
-          elapsedSeconds: 0,
-        });
-        setSleepTimerPaused(false);
-        setSleepTimerPauseStart(null);
-        setSleepTimerFrozenSeconds(0);
-        ant.message.success(bootstrap.strings.sleepEntrySaved);
-        await loadDashboardData(selectedChildId, { background: true });
-        await fetchSleepRecommendations(
-          child?.slug || bootstrap.currentChild.slug,
-        );
+        fetchSleepList(selectedChildId, sleepListPage, sleepListDateRange);
       }
     } finally {
       setSubmittingSleepTimer(false);
+    }
+  }
+
+  async function fetchSleepList(
+    childId = selectedChildId,
+    page = 1,
+    dateRange = sleepListDateRange,
+  ) {
+    if (!childId) return;
+    setSleepListLoading(true);
+    const pageSize = 10;
+    const offset = (page - 1) * pageSize;
+    const startMin = encodeURIComponent(
+      dateRange[0].startOf("day").toISOString(),
+    );
+    const startMax = encodeURIComponent(
+      dateRange[1].endOf("day").toISOString(),
+    );
+    try {
+      const data = await api.current.get(
+        `/api/sleep/?child=${childId}&start_min=${startMin}&start_max=${startMax}&ordering=-start&limit=${pageSize}&offset=${offset}`,
+      );
+      setSleepListData(asItems(data));
+      setSleepListTotal(data?.count ?? 0);
+    } catch {
+      ant.message.error(bootstrap.strings.saveFailed);
+    } finally {
+      setSleepListLoading(false);
     }
   }
 
@@ -1639,16 +1681,18 @@ export function ChildDashboardPage({ bootstrap }) {
   }
 
   function renderSleepTimerCard() {
-    const timerElapsedSeconds = sleepTimer.running
-      ? Math.max(
-          Number(sleepTimer.elapsedSeconds) || 0,
-          Math.floor(
-            (currentTime -
-              new Date(sleepTimer.startIso || currentTime).getTime()) /
-              1000,
-          ),
-        )
-      : Number(sleepTimer.elapsedSeconds) || 0;
+    const timerElapsedSeconds = sleepTimerPaused
+      ? sleepTimerFrozenSeconds
+      : sleepTimer.running
+        ? Math.max(
+            Number(sleepTimer.elapsedSeconds) || 0,
+            Math.floor(
+              (currentTime -
+                new Date(sleepTimer.startIso || currentTime).getTime()) /
+                1000,
+            ),
+          )
+        : Number(sleepTimer.elapsedSeconds) || 0;
 
     return (
       <Row gutter={[16, 16]} className="ant-sleep-timer-layout">
@@ -2364,6 +2408,247 @@ export function ChildDashboardPage({ bootstrap }) {
     );
   }
 
+  function renderSleepListCard() {
+    const { RangePicker } = DatePicker;
+    const s = bootstrap.strings;
+
+    const columns = [
+      {
+        title: s.startDate || "Start Date",
+        dataIndex: "start",
+        key: "startDate",
+        render: (v, record) =>
+          sleepListEditingId === record.id ? (
+            <DatePicker
+              value={sleepListEditStart}
+              format={APP_DATE_FORMAT_FULL}
+              onChange={(d) =>
+                d &&
+                setSleepListEditStart((prev) =>
+                  prev
+                    ? prev.year(d.year()).month(d.month()).date(d.date())
+                    : d,
+                )
+              }
+              size="small"
+              style={{ width: "100%" }}
+              inputReadOnly
+            />
+          ) : (
+            dayjs(v).format(APP_DATE_FORMAT_FULL)
+          ),
+      },
+      {
+        title: s.endDate || "End Date",
+        dataIndex: "end",
+        key: "endDate",
+        render: (v, record) =>
+          sleepListEditingId === record.id ? (
+            <DatePicker
+              value={sleepListEditEnd}
+              format={APP_DATE_FORMAT_FULL}
+              onChange={(d) =>
+                d &&
+                setSleepListEditEnd((prev) =>
+                  prev
+                    ? prev.year(d.year()).month(d.month()).date(d.date())
+                    : d,
+                )
+              }
+              size="small"
+              style={{ width: "100%" }}
+              inputReadOnly
+            />
+          ) : (
+            dayjs(v).format(APP_DATE_FORMAT_FULL)
+          ),
+      },
+      {
+        title: s.startTime || "Start Time",
+        dataIndex: "start",
+        key: "startTime",
+        render: (v, record) =>
+          sleepListEditingId === record.id ? (
+            <TimePicker
+              value={sleepListEditStart}
+              format={APP_TIME_FORMAT}
+              onChange={(d) =>
+                d &&
+                setSleepListEditStart((prev) =>
+                  prev ? prev.hour(d.hour()).minute(d.minute()).second(0) : d,
+                )
+              }
+              size="small"
+              style={{ width: "100%" }}
+              inputReadOnly
+            />
+          ) : (
+            dayjs(v).format(APP_TIME_FORMAT)
+          ),
+      },
+      {
+        title: s.endTime || "End Time",
+        dataIndex: "end",
+        key: "endTime",
+        render: (v, record) =>
+          sleepListEditingId === record.id ? (
+            <TimePicker
+              value={sleepListEditEnd}
+              format={APP_TIME_FORMAT}
+              onChange={(d) =>
+                d &&
+                setSleepListEditEnd((prev) =>
+                  prev ? prev.hour(d.hour()).minute(d.minute()).second(0) : d,
+                )
+              }
+              size="small"
+              style={{ width: "100%" }}
+              inputReadOnly
+            />
+          ) : (
+            dayjs(v).format(APP_TIME_FORMAT)
+          ),
+      },
+      {
+        title: s.type || "Type",
+        key: "type",
+        render: (_, record) => {
+          if (sleepListEditingId === record.id) {
+            const durationMins =
+              sleepListEditEnd && sleepListEditStart
+                ? sleepListEditEnd.diff(sleepListEditStart, "minute")
+                : null;
+            const isNap =
+              durationMins !== null ? durationMins < 90 : record.nap;
+            return (
+              <Tag color={isNap ? "blue" : "gold"}>
+                {isNap ? s.nap : s.sleep}
+              </Tag>
+            );
+          }
+          return (
+            <Tag color={record.nap ? "blue" : "gold"}>
+              {record.nap ? s.nap : s.sleep}
+            </Tag>
+          );
+        },
+      },
+      {
+        title: "Actions",
+        key: "actions",
+        render: (_, record) =>
+          sleepListEditingId === record.id ? (
+            <Space size="small">
+              <Button
+                size="small"
+                type="primary"
+                onClick={async () => {
+                  if (!sleepListEditStart || !sleepListEditEnd) return;
+                  const durationMins = sleepListEditEnd.diff(
+                    sleepListEditStart,
+                    "minute",
+                  );
+                  const isNap = durationMins < 90;
+                  try {
+                    await api.current.patch(`/api/sleep/${record.id}/`, {
+                      start: sleepListEditStart.toISOString(),
+                      end: sleepListEditEnd.toISOString(),
+                      nap: isNap,
+                    });
+                    setSleepListEditingId(null);
+                    fetchSleepList(
+                      selectedChildId,
+                      sleepListPage,
+                      sleepListDateRange,
+                    );
+                    ant.message.success(s.saved);
+                  } catch {
+                    ant.message.error(s.saveFailed);
+                  }
+                }}
+              >
+                {s.save}
+              </Button>
+              <Button size="small" onClick={() => setSleepListEditingId(null)}>
+                {s.cancel}
+              </Button>
+            </Space>
+          ) : (
+            <Space size="small">
+              <Button
+                size="small"
+                onClick={() => {
+                  setSleepListEditingId(record.id);
+                  setSleepListEditStart(dayjs(record.start));
+                  setSleepListEditEnd(dayjs(record.end));
+                }}
+              >
+                {s.edit}
+              </Button>
+              <Popconfirm
+                title={s.confirmDelete}
+                onConfirm={async () => {
+                  try {
+                    await api.current.delete(`/api/sleep/${record.id}/`);
+                    fetchSleepList(
+                      selectedChildId,
+                      sleepListPage,
+                      sleepListDateRange,
+                    );
+                    ant.message.success(s.saved);
+                  } catch {
+                    ant.message.error(s.saveFailed);
+                  }
+                }}
+                okText={s.delete}
+                cancelText={s.cancel}
+              >
+                <Button size="small" danger>
+                  {s.delete}
+                </Button>
+              </Popconfirm>
+            </Space>
+          ),
+      },
+    ];
+
+    return (
+      <Space direction="vertical" size={12} style={{ width: "100%" }}>
+        <RangePicker
+          value={sleepListDateRange}
+          format={APP_DATE_FORMAT_FULL}
+          onChange={(range) => {
+            if (range) {
+              setSleepListDateRange(range);
+              setSleepListPage(1);
+              fetchSleepList(selectedChildId, 1, range);
+            }
+          }}
+          inputReadOnly
+        />
+        <Table
+          loading={sleepListLoading}
+          dataSource={sleepListData}
+          columns={columns}
+          rowKey="id"
+          pagination={{
+            current: sleepListPage,
+            pageSize: 10,
+            total: sleepListTotal,
+            onChange: (page) => {
+              setSleepListPage(page);
+              fetchSleepList(selectedChildId, page, sleepListDateRange);
+            },
+            showSizeChanger: false,
+            simple: true,
+          }}
+          size="small"
+          scroll={{ x: true }}
+        />
+      </Space>
+    );
+  }
+
   function renderCardContent(cardKey) {
     if (cardKey === "card.quick_entry.consolidated")
       return renderQuickEntryCard();
@@ -2372,6 +2657,7 @@ export function ChildDashboardPage({ bootstrap }) {
       return <SleepWeekChart sleepItems={dashboardData.weekSleepItems} />;
     if (cardKey === "card.sleep.recommendations")
       return renderRecommendationsCard();
+    if (cardKey === "card.sleep.list") return renderSleepListCard();
     return (
       cards[cardKey] || (
         <Empty

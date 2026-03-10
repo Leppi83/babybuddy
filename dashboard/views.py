@@ -154,6 +154,15 @@ def _build_ant_strings():
         "feedingSaved": _("Feeding saved."),
         "breastfeedingSaved": _("Breastfeeding entry saved."),
         "pumpingSaved": _("Pumping entry saved."),
+        "sleepList": _("Sleep List"),
+        "pause": _("Pause"),
+        "resume": _("Resume"),
+        "paused": _("Paused"),
+        "type": _("Type"),
+        "edit": _("Edit"),
+        "delete": _("Delete"),
+        "cancel": _("Cancel"),
+        "confirmDelete": _("Confirm delete"),
     }
 
 
@@ -258,6 +267,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "card.sleep.statistics",
             "card.sleep.timeline_day",
             "card.sleep.week_chart",
+            "card.sleep.list",
         ],
         "tummytime": [
             "card.tummytime.day",
@@ -630,23 +640,64 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         context["dashboard_section_order"] = visible_sections
         context["dashboard_hidden_sections"] = hidden_sections
         children = Child.objects.all().order_by("last_name", "first_name", "id")
-        start_raw = self.request.session.get(self._timer_session_key(self.object.id))
+        key = self._timer_session_key(self.object.id)
+        breaks_key = f"{key}_breaks"
+        pause_key = f"{breaks_key}_pause_start"
+        start_raw = self.request.session.get(key)
         timer_payload = {
             "running": False,
             "startIso": None,
             "elapsedSeconds": 0,
+            "paused": False,
+            "pauseStartIso": None,
+            "frozenSeconds": 0,
         }
         if start_raw:
             try:
                 start_dt = timezone.datetime.fromisoformat(start_raw)
-                elapsed = max(0, int((timezone.now() - start_dt).total_seconds()))
-                timer_payload = {
-                    "running": True,
-                    "startIso": start_dt.isoformat(),
-                    "elapsedSeconds": elapsed,
-                }
+                now = timezone.now()
+                breaks_list = self.request.session.get(breaks_key, [])
+                break_seconds = sum(
+                    int(
+                        (
+                            timezone.datetime.fromisoformat(b["end"])
+                            - timezone.datetime.fromisoformat(b["start"])
+                        ).total_seconds()
+                    )
+                    for b in breaks_list
+                    if "start" in b and "end" in b
+                )
+                pause_raw = self.request.session.get(pause_key)
+                if pause_raw:
+                    pause_start_dt = timezone.datetime.fromisoformat(pause_raw)
+                    frozen = max(
+                        0,
+                        int((pause_start_dt - start_dt).total_seconds())
+                        - break_seconds,
+                    )
+                    timer_payload = {
+                        "running": True,
+                        "startIso": start_dt.isoformat(),
+                        "elapsedSeconds": frozen,
+                        "paused": True,
+                        "pauseStartIso": pause_start_dt.isoformat(),
+                        "frozenSeconds": frozen,
+                    }
+                else:
+                    elapsed = max(
+                        0,
+                        int((now - start_dt).total_seconds()) - break_seconds,
+                    )
+                    timer_payload = {
+                        "running": True,
+                        "startIso": start_dt.isoformat(),
+                        "elapsedSeconds": elapsed,
+                        "paused": False,
+                        "pauseStartIso": None,
+                        "frozenSeconds": 0,
+                    }
             except (TypeError, ValueError):
-                del self.request.session[self._timer_session_key(self.object.id)]
+                del self.request.session[key]
                 self.request.session.modified = True
         if _ant_dashboard_enabled():
             context["ant_page_title"] = _("Dashboard")

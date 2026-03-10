@@ -72,6 +72,10 @@ msgstr "Schlafen"
 msgid "Quick Entry Card"
 msgstr "Schnelleingabe-Karte"
 
+#: babybuddy/models.py:43
+msgid "Sleep - Sleep List"
+msgstr "Schlafen - Schlafliste"
+
 #: babybuddy/models.py:23
 msgid "Tummy time"
 msgstr "Bauchzeit"
@@ -2391,6 +2395,33 @@ msgstr "Still-Eintrag gespeichert."
 #: dashboard/views.py:118
 msgid "Pumping entry saved."
 msgstr "Abpump-Eintrag gespeichert."
+
+msgid "Sleep List"
+msgstr "Schlafliste"
+
+msgid "Pause"
+msgstr "Pause"
+
+msgid "Resume"
+msgstr "Weiter"
+
+msgid "Paused"
+msgstr "Pausiert"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Edit"
+msgstr "Bearbeiten"
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Confirm delete"
+msgstr "Löschen bestätigen"
 
 #: dashboard/views.py:223
 msgid ""
