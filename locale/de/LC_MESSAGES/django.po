@@ -2320,7 +2320,15 @@ msgstr "KI-Empfehlung"
 msgid "Asking AI..."
 msgstr "KI wird befragt..."
 
-#: dashboard/views.py:93
+#: dashboard/views.py:95
+msgid "Could not reach AI — tap to retry"
+msgstr "KI nicht erreichbar – zum Wiederholen tippen"
+
+#: dashboard/views.py:96
+msgid "Ask AI again"
+msgstr "KI erneut fragen"
+
+#: dashboard/views.py:97
 msgid "Migration pending"
 msgstr "Migration ausstehend"
 

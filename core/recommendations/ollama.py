@@ -12,6 +12,10 @@ def _env_enabled():
     )
 
 
+def ai_enabled():
+    return _env_enabled()
+
+
 def _use_openai_compat():
     return os.environ.get("AI_ENABLED") == "1"
 

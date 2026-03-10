@@ -768,11 +768,16 @@ function SleepWeekChart({ sleepItems }) {
   });
 
   sleepItems.forEach((item) => {
-    if (!item.start) return;
-    const itemDate = dayjs(item.start).format("YYYY-MM-DD");
-    const bucket = days.find((d) => d.date === itemDate);
-    if (bucket) {
-      bucket.minutes += durationMinutesFromValue(item.duration);
+    if (!item.start || !item.end) return;
+    let cursor = dayjs(item.start);
+    const end = dayjs(item.end);
+    while (cursor.isBefore(end)) {
+      const midnight = cursor.endOf("day");
+      const segEnd = midnight.isBefore(end) ? midnight : end;
+      const segMinutes = segEnd.diff(cursor, "minute");
+      const bucket = days.find((d) => d.date === cursor.format("YYYY-MM-DD"));
+      if (bucket) bucket.minutes += segMinutes;
+      cursor = midnight.add(1, "millisecond");
     }
   });
 
@@ -2301,7 +2306,29 @@ export function ChildDashboardPage({ bootstrap }) {
           </Card>
         </Col>
         <Col xs={24} sm={12}>
-          <Card size="small" style={{ height: "100%" }}>
+          <Card
+            size="small"
+            style={{ height: "100%" }}
+            extra={
+              !loadingRecommendations && (
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<ReloadOutlined />}
+                  onClick={() => {
+                    const targetChild = bootstrap.children.find(
+                      (item) => String(item.id) === String(selectedChildId),
+                    );
+                    const slug =
+                      targetChild?.slug || bootstrap.currentChild.slug;
+                    fetchSleepRecommendations(slug);
+                  }}
+                >
+                  {s.askAiAgain}
+                </Button>
+              )
+            }
+          >
             <Text strong>{s.aiRecommendation}</Text>
             <br />
             {loadingRecommendations ? (
@@ -2314,6 +2341,10 @@ export function ChildDashboardPage({ bootstrap }) {
                 style={{ fontSize: 12, lineHeight: 1.5, display: "block" }}
               >
                 {recommendations.explanation}
+              </Text>
+            ) : recommendations.explanation_status === "error" ? (
+              <Text type="danger" style={{ fontSize: 12 }}>
+                {s.aiError}
               </Text>
             ) : (
               <Text type="secondary" style={{ fontSize: 12 }}>

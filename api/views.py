@@ -8,7 +8,7 @@ from rest_framework.schemas.openapi import AutoSchema
 
 from core import models
 from core.recommendations import recommend_sleep_bundle
-from core.recommendations.ollama import explain_sleep_recommendations
+from core.recommendations.ollama import ai_enabled, explain_sleep_recommendations
 from babybuddy import models as babybuddy_models
 
 from . import serializers, filters
@@ -50,7 +50,14 @@ class ChildViewSet(viewsets.ModelViewSet):
     def sleep_recommendations(self, request, slug=None):
         child = self.get_object()
         bundle = recommend_sleep_bundle(child)
-        bundle["explanation"] = explain_sleep_recommendations(bundle)
+        explanation = explain_sleep_recommendations(bundle)
+        bundle["explanation"] = explanation
+        if explanation:
+            bundle["explanation_status"] = "ok"
+        elif not ai_enabled():
+            bundle["explanation_status"] = "disabled"
+        else:
+            bundle["explanation_status"] = "error"
         return Response(bundle)
 
 
