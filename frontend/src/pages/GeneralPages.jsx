@@ -461,8 +461,7 @@ export function ChildDetailPage({ bootstrap }) {
         <Row gutter={[24, 24]} align="middle">
           <Col xs={24} md={8} lg={6}>
             <div className="ant-child-detail-photo-wrap">
-              <Image
-                preview={false}
+              <img
                 src={child.photoUrl}
                 alt=""
                 className="ant-child-detail-photo"
@@ -955,8 +954,7 @@ export function DashboardHomePage({ bootstrap }) {
                 className="ant-dashboard-card"
                 cover={
                   <a href={child.dashboardUrl} className="ant-child-image-wrap">
-                    <Image
-                      preview={false}
+                    <img
                       src={child.pictureUrl}
                       alt=""
                       className="ant-child-image"
