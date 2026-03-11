@@ -1008,6 +1008,7 @@ export function ChildDashboardPage({ bootstrap }) {
   );
   const locale = bootstrap.locale || "en";
   const s = bootstrap.strings;
+  const screens = Grid.useBreakpoint();
 
   useEffect(() => {
     const targetChild = bootstrap.children.find(
@@ -1932,95 +1933,45 @@ export function ChildDashboardPage({ bootstrap }) {
 
     return (
       <Space direction="vertical" size={16} style={{ width: "100%" }}>
-        <Segmented
-          block
-          value={selectedQuickEntrySegment}
-          options={segments.map((segment) => ({
-            label: renderSegmentLabel(segment),
-            value: segment.value,
-          }))}
-          onChange={setSelectedQuickEntrySegment}
-          style={{ width: "100%" }}
-        />
+        {screens.md ? (
+          <Segmented
+            block
+            value={selectedQuickEntrySegment}
+            options={segments.map((segment) => ({
+              label: renderSegmentLabel(segment),
+              value: segment.value,
+            }))}
+            onChange={setSelectedQuickEntrySegment}
+            style={{ width: "100%" }}
+          />
+        ) : (
+          <Select
+            value={selectedQuickEntrySegment}
+            onChange={setSelectedQuickEntrySegment}
+            style={{ width: "100%" }}
+            options={segments.map((segment) => ({
+              value: segment.value,
+              label: renderSegmentLabel(segment),
+            }))}
+          />
+        )}
         {selectedQuickEntrySegment === "sleep" && (
-          <Space direction="vertical" size={16} style={{ width: "100%" }}>
-            <Row gutter={24}>
-              <Col xs={24} md={11}>
-                <Space direction="vertical" size={12} style={{ width: "100%" }}>
-                  {renderDateTimeInputs({
-                    startDate: sleepEntryStartDate,
-                    setStartDate: setSleepEntryStartDate,
-                    startTime: sleepEntryStartTime,
-                    setStartTime: setSleepEntryStartTime,
-                    endDate: sleepEntryEndDate,
-                    setEndDate: setSleepEntryEndDate,
-                    endTime: sleepEntryEndTime,
-                    setEndTime: setSleepEntryEndTime,
-                  })}
-                  <Text type="secondary" style={{ fontSize: "12px" }}>
-                    {s.napDurationHint}
-                  </Text>
-                </Space>
-              </Col>
-              <Col xs={1} md={1}>
-                <div
-                  style={{
-                    width: "1px",
-                    height: "100%",
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  }}
-                />
-              </Col>
-              <Col xs={24} md={12}>
-                <Space
-                  direction="vertical"
-                  size={16}
-                  className="ant-sleep-timer-card"
-                  style={{ width: "100%" }}
-                >
-                  <Row gutter={16}>
-                    <Col xs={sleepTimer.running && sleepTimerPaused ? 12 : 24}>
-                      <Statistic
-                        title={bootstrap.strings.sleepTimer}
-                        value={formatElapsedSeconds(
-                          sleepTimerPaused || !sleepTimerResumeMs
-                            ? sleepTimerFrozenSeconds
-                            : sleepTimerFrozenSeconds +
-                                Math.floor(
-                                  (currentTime - sleepTimerResumeMs) / 1000,
-                                ),
-                        )}
-                      />
-                    </Col>
-                    {sleepTimer.running && sleepTimerPaused && (
-                      <Col xs={12}>
-                        <Statistic
-                          title={s.pause}
-                          value={formatElapsedSeconds(
-                            sleepTimerPauseStartMs
-                              ? Math.floor(
-                                  (currentTime - sleepTimerPauseStartMs) / 1000,
-                                )
-                              : 0,
-                          )}
-                        />
-                      </Col>
-                    )}
-                  </Row>
-                  <Space wrap>
-                    <Tag color={sleepTimer.running ? "gold" : "default"}>
-                      {sleepTimer.running
-                        ? sleepTimerPaused
-                          ? bootstrap.strings.paused
-                          : bootstrap.strings.running
-                        : bootstrap.strings.ready}
-                    </Tag>
-                  </Space>
-                </Space>
-              </Col>
-            </Row>
-            <Row gutter={24}>
-              <Col xs={24} md={11}>
+          <Row gutter={[24, 16]}>
+            <Col xs={24} md={11}>
+              <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                {renderDateTimeInputs({
+                  startDate: sleepEntryStartDate,
+                  setStartDate: setSleepEntryStartDate,
+                  startTime: sleepEntryStartTime,
+                  setStartTime: setSleepEntryStartTime,
+                  endDate: sleepEntryEndDate,
+                  setEndDate: setSleepEntryEndDate,
+                  endTime: sleepEntryEndTime,
+                  setEndTime: setSleepEntryEndTime,
+                })}
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  {s.napDurationHint}
+                </Text>
                 <Button
                   type="primary"
                   size="large"
@@ -2030,46 +1981,100 @@ export function ChildDashboardPage({ bootstrap }) {
                 >
                   {bootstrap.strings.save}
                 </Button>
-              </Col>
-              <Col xs={1} md={1} />
-              <Col xs={24} md={12}>
-                <Space direction="vertical" style={{ width: "100%" }}>
+              </Space>
+            </Col>
+            <Col xs={0} md={1}>
+              <div
+                style={{
+                  width: "1px",
+                  height: "100%",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                }}
+              />
+            </Col>
+            <Col xs={24} md={0}>
+              <Divider style={{ margin: "0" }} />
+            </Col>
+            <Col xs={24} md={12}>
+              <Space
+                direction="vertical"
+                size={12}
+                className="ant-sleep-timer-card"
+                style={{ width: "100%" }}
+              >
+                <Row gutter={16}>
+                  <Col xs={sleepTimer.running && sleepTimerPaused ? 12 : 24}>
+                    <Statistic
+                      title={bootstrap.strings.sleepTimer}
+                      value={formatElapsedSeconds(
+                        sleepTimerPaused || !sleepTimerResumeMs
+                          ? sleepTimerFrozenSeconds
+                          : sleepTimerFrozenSeconds +
+                              Math.floor(
+                                (currentTime - sleepTimerResumeMs) / 1000,
+                              ),
+                      )}
+                    />
+                  </Col>
+                  {sleepTimer.running && sleepTimerPaused && (
+                    <Col xs={12}>
+                      <Statistic
+                        title={s.pause}
+                        value={formatElapsedSeconds(
+                          sleepTimerPauseStartMs
+                            ? Math.floor(
+                                (currentTime - sleepTimerPauseStartMs) / 1000,
+                              )
+                            : 0,
+                        )}
+                      />
+                    </Col>
+                  )}
+                </Row>
+                <Space wrap>
+                  <Tag color={sleepTimer.running ? "gold" : "default"}>
+                    {sleepTimer.running
+                      ? sleepTimerPaused
+                        ? bootstrap.strings.paused
+                        : bootstrap.strings.running
+                      : bootstrap.strings.ready}
+                  </Tag>
+                </Space>
+                <Button
+                  type="primary"
+                  size="large"
+                  loading={submittingSleepTimer}
+                  onClick={() => {
+                    if (!sleepTimer.running) {
+                      submitSleepTimerAction("start");
+                    } else if (sleepTimerPaused) {
+                      submitSleepTimerAction("resume");
+                    } else {
+                      submitSleepTimerAction("pause");
+                    }
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  {!sleepTimer.running
+                    ? bootstrap.strings.start
+                    : sleepTimerPaused
+                      ? bootstrap.strings.resume
+                      : bootstrap.strings.pause}
+                </Button>
+                {sleepTimer.running && (
                   <Button
-                    type="primary"
+                    type="default"
                     size="large"
                     loading={submittingSleepTimer}
-                    onClick={() => {
-                      if (!sleepTimer.running) {
-                        submitSleepTimerAction("start");
-                      } else if (sleepTimerPaused) {
-                        submitSleepTimerAction("resume");
-                      } else {
-                        submitSleepTimerAction("pause");
-                      }
-                    }}
+                    onClick={() => submitSleepTimerAction("save")}
                     style={{ width: "100%" }}
                   >
-                    {!sleepTimer.running
-                      ? bootstrap.strings.start
-                      : sleepTimerPaused
-                        ? bootstrap.strings.resume
-                        : bootstrap.strings.pause}
+                    {s.saveTimer}
                   </Button>
-                  {sleepTimer.running && (
-                    <Button
-                      type="primary"
-                      size="large"
-                      loading={submittingSleepTimer}
-                      onClick={() => submitSleepTimerAction("save")}
-                      style={{ width: "100%" }}
-                    >
-                      {bootstrap.strings.save}
-                    </Button>
-                  )}
-                </Space>
-              </Col>
-            </Row>
-          </Space>
+                )}
+              </Space>
+            </Col>
+          </Row>
         )}
         {selectedQuickEntrySegment === "diaper" && (
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
@@ -2113,7 +2118,7 @@ export function ChildDashboardPage({ bootstrap }) {
               size="large"
               loading={submittingDiaper}
               onClick={submitDiaperEntry}
-              className="ant-diaper-save"
+              style={{ width: "100%" }}
             >
               {bootstrap.strings.save}
             </Button>
@@ -2162,7 +2167,7 @@ export function ChildDashboardPage({ bootstrap }) {
               size="large"
               loading={submittingFeeding}
               onClick={submitFeedingEntry}
-              className="ant-diaper-save"
+              style={{ width: "100%" }}
             >
               {bootstrap.strings.save}
             </Button>
@@ -2194,7 +2199,7 @@ export function ChildDashboardPage({ bootstrap }) {
               size="large"
               loading={submittingBreastfeeding}
               onClick={submitBreastfeedingEntry}
-              className="ant-diaper-save"
+              style={{ width: "100%" }}
             >
               {bootstrap.strings.save}
             </Button>
@@ -2253,7 +2258,7 @@ export function ChildDashboardPage({ bootstrap }) {
               size="large"
               loading={submittingPumping}
               onClick={submitPumpingEntry}
-              className="ant-diaper-save"
+              style={{ width: "100%" }}
             >
               {bootstrap.strings.save}
             </Button>
