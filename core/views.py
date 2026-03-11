@@ -20,6 +20,7 @@ from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from babybuddy.views import BabyBuddyFilterView, BabyBuddyPaginatedView
 from core import filters, forms, models, timeline
 from core.templatetags.duration import child_age_string
+from core.widgets import TagsEditor
 
 
 def _prepare_timeline_context_data(context, date, child=None):
@@ -30,7 +31,6 @@ def _prepare_timeline_context_data(context, date, child=None):
     context["date_previous"] = date - timezone.timedelta(days=1)
     if date.date() < timezone.localdate():
         context["date_next"] = date + timezone.timedelta(days=1)
-    pass
 
 
 def _lists_ant_enabled():
@@ -310,7 +310,7 @@ def _serialize_bound_field(bound_field):
             if choice_value not in ("", None)
         ]
 
-    if widget.__class__.__name__ == "TagsEditor":
+    if isinstance(widget, TagsEditor):
         input_type = "tags"
         value = (
             ", ".join(tag.name for tag in bound_field.form.instance.tags.all())

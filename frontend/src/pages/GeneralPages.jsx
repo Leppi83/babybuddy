@@ -858,7 +858,11 @@ export function ReportDetailPage({ bootstrap }) {
 
       const scriptContent = extractScriptContent(report.js).trim();
       if (scriptContent) {
-        new Function(scriptContent)();
+        try {
+          new Function(scriptContent)();
+        } catch (e) {
+          console.error("Report script error:", e);
+        }
       }
     }
 
