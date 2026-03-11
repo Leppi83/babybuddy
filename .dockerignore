@@ -1,0 +1,40 @@
+# Python virtual environment
+.venv
+
+# Node dependencies (reinstalled by npm ci in Dockerfile)
+node_modules
+frontend/node_modules
+
+# Git metadata
+.git
+
+# Local environment files with secrets
+.env
+.env.prod
+.env.local
+.env.*.local
+
+# Development databases
+data/db.sqlite3
+
+# Built static assets (rebuilt by Dockerfile)
+# Patterns: */static matches core/static, babybuddy/static, etc.
+babybuddy/static
+core/static
+dashboard/static
+reports/static
+
+# Coverage and test artifacts
+.coverage
+htmlcov
+
+# IDE / OS files
+.idea
+.vscode
+.DS_Store
+
+# Documentation build output
+site
+
+# Claude / AI session files
+.claude
