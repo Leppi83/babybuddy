@@ -173,6 +173,25 @@ def _build_ant_strings():
         "napsToday": _("Naps today"),
         "averageSleep": _("Average sleep"),
         "recentSleepEntries": _("recent sleep entries"),
+        # Diaper card labels
+        "lastRecorded": _("Last recorded"),
+        "wet": _("Wet"),
+        "changesToday": _("Changes today"),
+        "recentEntries": _("recent entries"),
+        # Feeding card labels
+        "duration": _("Duration"),
+        "dominantMethod": _("Dominant method"),
+        "feedingsToday": _("Feedings today"),
+        "recentFeedingsLabel": _("recent feedings"),
+        "breastfeedingToday": _("Breastfeeding today"),
+        # Pumping card labels
+        "lastPumpingDuration": _("Last pumping"),
+        # Tummy time card labels
+        "tummyTimeToday": _("Tummy time today"),
+        # Quick entry hint
+        "napDurationHint": _("Duration < 90 min is saved as nap, ≥ 90 min as sleep"),
+        # Hero card
+        "overviewFor": _("Overview for"),
     }
 
 
