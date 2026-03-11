@@ -22,6 +22,19 @@
               color="#37abe9" />
         <link rel="shortcut icon"
               href="{% static "babybuddy/root/favicon.ico" %}?v=20260306" />
+        <script>
+            (function () {
+                try {
+                    const key = "babybuddy.theme.mode";
+                    const mode = window.localStorage.getItem(key) || "system";
+                    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                    const effective = mode === "system" ? (prefersDark ? "dark" : "light") : mode;
+                    document.documentElement.setAttribute("data-theme", effective);
+                } catch (error) {
+                    document.documentElement.setAttribute("data-theme", "dark");
+                }
+            })();
+        </script>
         {% block extra_head %}{% endblock %}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Baby Buddy" />
