@@ -1007,6 +1007,7 @@ export function ChildDashboardPage({ bootstrap }) {
     (item) => String(item.id) === String(selectedChildId),
   );
   const locale = bootstrap.locale || "en";
+  const s = bootstrap.strings;
 
   useEffect(() => {
     const targetChild = bootstrap.children.find(
@@ -2279,7 +2280,6 @@ export function ChildDashboardPage({ bootstrap }) {
       );
     }
 
-    const s = bootstrap.strings;
     const nap = recommendations.nap || {};
     const bedtime = recommendations.bedtime || {};
 
@@ -2376,7 +2376,6 @@ export function ChildDashboardPage({ bootstrap }) {
 
   function renderSleepListCard() {
     const { RangePicker } = DatePicker;
-    const s = bootstrap.strings;
 
     // Build alternating color map by date (newest-first order)
     const dateColorMap = {};
