@@ -152,7 +152,7 @@ WSGI_APPLICATION = "babybuddy.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/topics/auth/default/
 
 AUTHENTICATION_BACKENDS = [
-    "axes.backends.AxesBackend",
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
