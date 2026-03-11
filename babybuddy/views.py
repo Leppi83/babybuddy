@@ -117,6 +117,7 @@ def _nav_urls():
         "childrenList": reverse("core:child-list"),
         "settings": reverse("babybuddy:user-settings"),
         "logout": reverse("babybuddy:logout"),
+        "addChild": reverse("core:child-add"),
     }
 
 

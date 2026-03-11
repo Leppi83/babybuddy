@@ -217,6 +217,7 @@ class SleepSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
             "nap",
             "notes",
             "tags",
+            "breaks",
         )
 
 

@@ -10,7 +10,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic.base import TemplateView
-from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from core.models import Child, DiaperChange, Feeding, Pumping, Sleep
@@ -221,6 +220,7 @@ class Dashboard(LoginRequiredMixin, TemplateView):
             context["ant_bootstrap"] = {
                 "pageType": "dashboard-home",
                 "currentPath": self.request.path,
+                "activeNavKey": reverse("dashboard:dashboard"),
                 "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
                 "csrfToken": get_token(self.request),
                 "user": {"displayName": _display_name(self.request.user)},

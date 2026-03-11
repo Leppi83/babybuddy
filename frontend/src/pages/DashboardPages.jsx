@@ -354,7 +354,7 @@ export function SettingsPage({ bootstrap }) {
       try {
         await api.current.postForm(bootstrap.urls.self, payload);
       } catch (error) {
-        // Silent fail for autosave
+        ant.message.error(bootstrap.strings.saveFailed || "Save failed");
       }
     }, 500);
 
@@ -1014,7 +1014,7 @@ export function ChildDashboardPage({ bootstrap }) {
     fetchSleepRecommendations(slug);
     setSleepListPage(1);
     fetchSleepList(selectedChildId, 1, sleepListDateRange);
-  }, [selectedChildId]);
+  }, [selectedChildId, sleepListDateRange]);
 
   useEffect(() => {
     const t = bootstrap.sleepTimer || {};
@@ -1563,16 +1563,17 @@ export function ChildDashboardPage({ bootstrap }) {
   }
 
   async function submitSleepEntry() {
-    const durationMinutes = sleepEntryEndDate
+    const startDt = sleepEntryStartDate
+      .hour(sleepEntryStartTime.hour())
+      .minute(sleepEntryStartTime.minute());
+    const endDt = sleepEntryEndDate
       .hour(sleepEntryEndTime.hour())
-      .minute(sleepEntryEndTime.minute())
-      .diff(
-        sleepEntryStartDate
-          .hour(sleepEntryStartTime.hour())
-          .minute(sleepEntryStartTime.minute()),
-        "minutes",
-      );
-    const autoType = durationMinutes < 90 ? "nap" : "sleep";
+      .minute(sleepEntryEndTime.minute());
+    let durationMinutes = endDt.diff(startDt, "minutes");
+    if (durationMinutes < 0) durationMinutes += 24 * 60;
+    const startHour = startDt.hour();
+    const isNight = startHour >= 17 || startHour < 7;
+    const autoType = !isNight && durationMinutes < 90 ? "nap" : "sleep";
 
     const payload = new URLSearchParams();
     payload.set("sleep_manual_entry_action", "create");
@@ -1896,9 +1897,9 @@ export function ChildDashboardPage({ bootstrap }) {
 
     const segments = [
       { label: bootstrap.strings.sleep, value: "sleep" },
-      { label: "Diaper", value: "diaper" },
+      { label: bootstrap.strings.diaper, value: "diaper" },
       { label: bootstrap.strings.feedings, value: "feeding" },
-      { label: "Breastfeeding", value: "breastfeeding" },
+      { label: bootstrap.strings.breastfeeding, value: "breastfeeding" },
       { label: bootstrap.strings.pumpings, value: "pumping" },
     ];
 
@@ -2157,28 +2158,16 @@ export function ChildDashboardPage({ bootstrap }) {
         )}
         {selectedQuickEntrySegment === "breastfeeding" && (
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            <Row gutter={8}>
-              <Col span={12}>
-                <DatePicker
-                  value={breastfeedingStartDate}
-                  format={APP_DATE_FORMAT}
-                  onChange={(value) =>
-                    value && setBreastfeedingStartDate(value)
-                  }
-                  className="ant-dashboard-picker"
-                  inputReadOnly
-                />
-              </Col>
-              <Col span={12}>
-                <TimePicker
-                  value={breastfeedingEndTime}
-                  format={APP_TIME_FORMAT}
-                  onChange={(value) => value && setBreastfeedingEndTime(value)}
-                  className="ant-dashboard-picker"
-                  inputReadOnly
-                />
-              </Col>
-            </Row>
+            {renderDateTimeInputs({
+              startDate: breastfeedingStartDate,
+              setStartDate: setBreastfeedingStartDate,
+              startTime: breastfeedingStartTime,
+              setStartTime: setBreastfeedingStartTime,
+              endDate: breastfeedingEndDate,
+              setEndDate: setBreastfeedingEndDate,
+              endTime: breastfeedingEndTime,
+              setEndTime: setBreastfeedingEndTime,
+            })}
             <Segmented
               block
               value={breastfeedingSide}
@@ -2201,26 +2190,16 @@ export function ChildDashboardPage({ bootstrap }) {
         )}
         {selectedQuickEntrySegment === "pumping" && (
           <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            <Row gutter={8}>
-              <Col span={12}>
-                <DatePicker
-                  value={pumpingStartDate}
-                  format={APP_DATE_FORMAT}
-                  onChange={(value) => value && setPumpingStartDate(value)}
-                  className="ant-dashboard-picker"
-                  inputReadOnly
-                />
-              </Col>
-              <Col span={12}>
-                <TimePicker
-                  value={pumpingEndTime}
-                  format={APP_TIME_FORMAT}
-                  onChange={(value) => value && setPumpingEndTime(value)}
-                  className="ant-dashboard-picker"
-                  inputReadOnly
-                />
-              </Col>
-            </Row>
+            {renderDateTimeInputs({
+              startDate: pumpingStartDate,
+              setStartDate: setPumpingStartDate,
+              startTime: pumpingStartTime,
+              setStartTime: setPumpingStartTime,
+              endDate: pumpingEndDate,
+              setEndDate: setPumpingEndDate,
+              endTime: pumpingEndTime,
+              setEndTime: setPumpingEndTime,
+            })}
             <Row gutter={8}>
               <Col span={12}>
                 <label className="ant-dashboard-inline-label">
