@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from "react";
+import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { App as AntApp, ConfigProvider, Spin, theme } from "antd";
 import deDE from "antd/locale/de_DE";
 import enUS from "antd/locale/en_US";
@@ -77,6 +77,18 @@ const ChildDashboardPage = lazy(() =>
   })),
 );
 
+const THEME_MODE_KEY = "babybuddy.theme.mode";
+
+function getStoredThemeMode() {
+  if (typeof window === "undefined") {
+    return "system";
+  }
+  const stored = window.localStorage.getItem(THEME_MODE_KEY);
+  return stored === "light" || stored === "dark" || stored === "system"
+    ? stored
+    : "system";
+}
+
 function PageFallback() {
   return (
     <div className="ant-loading-shell">
@@ -132,9 +144,22 @@ function RoutedPage({ bootstrap }) {
 }
 
 export function App({ bootstrap }) {
+  const [themeMode, setThemeMode] = useState(getStoredThemeMode);
+  const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
   const antLocale = String(bootstrap.locale || "en").startsWith("de")
     ? deDE
     : enUS;
+  const effectiveTheme = useMemo(() => {
+    if (themeMode === "system") {
+      return systemPrefersDark ? "dark" : "light";
+    }
+    return themeMode;
+  }, [themeMode, systemPrefersDark]);
 
   useEffect(() => {
     if (String(bootstrap.locale || "en").startsWith("de")) {
@@ -144,22 +169,48 @@ export function App({ bootstrap }) {
     }
   }, [bootstrap.locale]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleMediaChange = (event) => setSystemPrefersDark(event.matches);
+    media.addEventListener("change", handleMediaChange);
+    return () => media.removeEventListener("change", handleMediaChange);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.localStorage.setItem(THEME_MODE_KEY, themeMode);
+    document.documentElement.setAttribute("data-theme", effectiveTheme);
+  }, [effectiveTheme, themeMode]);
+
+  const themeAlgorithm =
+    effectiveTheme === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm;
+
   return (
     <ConfigProvider
       locale={antLocale}
       theme={{
-        algorithm: theme.darkAlgorithm,
+        algorithm: themeAlgorithm,
         token: {
           colorPrimary: "#4db6ff",
-          colorBgBase: "#020617",
-          colorBgContainer: "#0f172a",
-          colorBorder: "#1e3a5f",
+          colorBgBase: effectiveTheme === "dark" ? "#020617" : "#f5f9ff",
+          colorBgContainer: effectiveTheme === "dark" ? "#0f172a" : "#ffffff",
+          colorBorder: effectiveTheme === "dark" ? "#1e3a5f" : "#d0dbe9",
           borderRadius: 18,
         },
       }}
     >
       <AntApp>
-        <AppShell bootstrap={bootstrap}>
+        <AppShell
+          bootstrap={bootstrap}
+          themeMode={themeMode}
+          effectiveTheme={effectiveTheme}
+          onThemeModeChange={setThemeMode}
+        >
           <Suspense fallback={<PageFallback />}>
             <RoutedPage bootstrap={bootstrap} />
           </Suspense>
