@@ -1,9 +1,17 @@
-// BabyBuddy Service Worker v1
+// BabyBuddy Service Worker v2
 // Enables PWA install prompt and basic offline support.
 
-const CACHE = "babybuddy-v1";
+const CACHE = "babybuddy-v2";
 
-self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("install", (event) => {
+  // Pre-cache the login page so there's always an offline fallback
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then((cache) => cache.add("/login/").catch(() => {}))
+      .then(() => self.skipWaiting())
+  );
+});
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
@@ -55,7 +63,19 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(request))
+        .catch(async () => {
+          // Return cached version of this page if available
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          // Fall back to cached login page
+          const login = await caches.match("/login/");
+          if (login) return login;
+          // Last resort: plain offline message
+          return new Response("App is offline. Please connect to the internet.", {
+            status: 503,
+            headers: { "Content-Type": "text/plain; charset=utf-8" },
+          });
+        })
     );
   }
 });
