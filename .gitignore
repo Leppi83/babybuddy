@@ -21,8 +21,16 @@
 # Python files.
 *.pyc
 
-# App static file directories.
-/*/static
+# App static file directories (build outputs only; root/ is source and is tracked).
+/babybuddy/static/babybuddy/ant
+/babybuddy/static/babybuddy/css
+/babybuddy/static/babybuddy/font
+/babybuddy/static/babybuddy/img
+/babybuddy/static/babybuddy/js
+/babybuddy/static/babybuddy/logo
+/core/static
+/dashboard/static
+/reports/static
 
 # Django media root directory.
 /media
