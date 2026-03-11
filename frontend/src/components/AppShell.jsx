@@ -13,10 +13,13 @@ import {
 import {
   PlusOutlined,
   DashboardOutlined,
+  DesktopOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  MoonOutlined,
   SettingOutlined,
+  SunOutlined,
   SwapOutlined,
   TeamOutlined,
   UnorderedListOutlined,
@@ -26,7 +29,37 @@ const { Header, Content, Sider } = Layout;
 const { Text, Title } = Typography;
 const { useBreakpoint } = Grid;
 
-export function AppShell({ bootstrap, children }) {
+function ThemeSwitcher({ themeMode, onThemeModeChange, compact = false }) {
+  const modes = [
+    { key: "light", icon: <SunOutlined />, label: "Light theme" },
+    { key: "dark", icon: <MoonOutlined />, label: "Dark theme" },
+    { key: "system", icon: <DesktopOutlined />, label: "System theme" },
+  ];
+
+  return (
+    <div className={`ant-theme-switcher ${compact ? "is-compact" : ""}`}>
+      {modes.map((mode) => (
+        <Button
+          key={mode.key}
+          type={themeMode === mode.key ? "primary" : "text"}
+          icon={mode.icon}
+          aria-label={mode.label}
+          title={mode.label}
+          onClick={() => onThemeModeChange(mode.key)}
+          className="ant-theme-switcher-btn"
+        />
+      ))}
+    </div>
+  );
+}
+
+export function AppShell({
+  bootstrap,
+  children,
+  themeMode,
+  effectiveTheme,
+  onThemeModeChange,
+}) {
   const screens = useBreakpoint();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -256,7 +289,7 @@ export function AppShell({ bootstrap, children }) {
   }
 
   return (
-    <Layout className="ant-shell">
+    <Layout className="ant-shell" data-effective-theme={effectiveTheme}>
       {isDesktop ? (
         <Sider
           width={280}
@@ -277,6 +310,11 @@ export function AppShell({ bootstrap, children }) {
               onClick={() => setCollapsed((value) => !value)}
             />
             {menu}
+            <ThemeSwitcher
+              themeMode={themeMode}
+              onThemeModeChange={onThemeModeChange}
+              compact={collapsed}
+            />
           </div>
         </Sider>
       ) : (
@@ -289,6 +327,10 @@ export function AppShell({ bootstrap, children }) {
         >
           {brand}
           {menu}
+          <ThemeSwitcher
+            themeMode={themeMode}
+            onThemeModeChange={onThemeModeChange}
+          />
         </Drawer>
       )}
       <Layout>
@@ -317,7 +359,11 @@ export function AppShell({ bootstrap, children }) {
                     <Text type="secondary">{pageMeta.eyebrow}</Text>
                   )}
                   {pageMeta.title && (
-                    <Title level={3} style={{ margin: 0, color: "#f8fafc" }}>
+                    <Title
+                      level={3}
+                      className="ant-shell-title"
+                      style={{ margin: 0 }}
+                    >
                       {pageMeta.title}
                     </Title>
                   )}
