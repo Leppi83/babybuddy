@@ -50,6 +50,7 @@ class ChildViewSet(viewsets.ModelViewSet):
     def sleep_recommendations(self, request, slug=None):
         child = self.get_object()
         bundle = recommend_sleep_bundle(child)
+        bundle["locale"] = getattr(request, "LANGUAGE_CODE", "en")
         explanation = explain_sleep_recommendations(bundle)
         bundle["explanation"] = explanation
         if explanation:

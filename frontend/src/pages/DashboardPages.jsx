@@ -36,7 +36,7 @@ import {
   APP_DATE_FORMAT_FULL,
   APP_TIME_FORMAT,
   createApiClient,
-  DASHBOARD_CARD_TITLES,
+  getDashboardCardTitle,
   durationMinutesFromValue,
   formatAppDateTime,
   formatAppTime,
@@ -55,13 +55,16 @@ const COMBINED_PAIRS = {
   "card.sleep.timeline_day": "card.sleep.statistics",
 };
 
-const COMBINED_TITLES = {
-  "card.diaper.last": "Nappy Changes",
-  "card.feedings.last": "Last Feeding",
-  "card.feedings.recent": "Recent Feedings",
-  "card.sleep.recent": "Today's Sleeps",
-  "card.sleep.timeline_day": "Sleep Statistics",
-};
+function getCombinedTitle(key, strings) {
+  const map = {
+    "card.diaper.last": strings.nappyChanges,
+    "card.feedings.last": strings.lastFeeding,
+    "card.feedings.recent": strings.recentFeedings,
+    "card.sleep.recent": strings.todaysSleeps,
+    "card.sleep.timeline_day": strings.sleepStatistics,
+  };
+  return map[key] || null;
+}
 
 const COMBINED_SECONDARY_KEYS = new Set(Object.values(COMBINED_PAIRS));
 
@@ -1274,17 +1277,17 @@ export function ChildDashboardPage({ bootstrap }) {
         "card.sleep.recent": (
           <Space direction="vertical" size={4}>
             <Statistic
-              title="Sleep entries today"
+              title={s.sleepEntriesToday}
               value={sleepItems.filter((item) => isToday(item.start)).length}
             />
             <Text type="secondary">
-              {sleepItems.length} recent sleep entries
+              {sleepItems.length} {s.recentSleepEntries}
             </Text>
           </Space>
         ),
         "card.sleep.naps_day": (
           <Space direction="vertical" size={4}>
-            <Statistic title="Naps today" value={napsToday.length} />
+            <Statistic title={s.napsToday} value={napsToday.length} />
             <Text type="secondary">
               {napsToday.reduce(
                 (acc, item) => acc + durationMinutes(item.duration),
@@ -1297,7 +1300,7 @@ export function ChildDashboardPage({ bootstrap }) {
         "card.sleep.statistics": (
           <Space direction="vertical" size={4}>
             <Statistic
-              title="Average sleep"
+              title={s.averageSleep}
               value={
                 validSleepItems.length
                   ? Math.round(
@@ -2728,9 +2731,8 @@ export function ChildDashboardPage({ bootstrap }) {
                     .map((cardKey) => {
                       const secondaryKey = COMBINED_PAIRS[cardKey];
                       const title =
-                        COMBINED_TITLES[cardKey] ||
-                        DASHBOARD_CARD_TITLES[cardKey] ||
-                        bootstrap.strings.migrationPending;
+                        getCombinedTitle(cardKey, bootstrap.strings) ||
+                        getDashboardCardTitle(cardKey, bootstrap.strings);
                       return (
                         <Col xs={24} key={cardKey}>
                           <SummaryCard title={title}>
