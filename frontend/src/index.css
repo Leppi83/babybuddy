@@ -196,8 +196,17 @@ body {
   padding: 6px 0;
 }
 
-.ant-timeline-bar {
+.ant-timeline-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
   width: 70%;
+  height: 100%;
+}
+
+.ant-timeline-bar {
+  width: 100%;
   border-radius: 999px;
   box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
 }
@@ -296,7 +305,11 @@ body {
 }
 
 .ant-diaper-save {
-  width: 100%;
+  width: min(220px, 100%);
+}
+
+.ant-dashboard-action-btn {
+  width: min(220px, 100%);
 }
 
 .ant-dashboard-inline-label {
@@ -426,6 +439,14 @@ body {
 
   .ant-dashboard-picker--compact.ant-picker {
     max-width: 100%;
+  }
+
+  .ant-dashboard-action-btn {
+    width: 100%;
+  }
+
+  .ant-diaper-save {
+    width: 100%;
   }
 
   .ant-hero-card .ant-space,

@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import {
   App as AntApp,
   Alert,
-  Avatar,
   Badge,
   Button,
   Card,
@@ -665,48 +664,68 @@ function MiniTimeline({ items, locale, currentTime, strings }) {
     const slotEnd = new Date(slotStart.getTime());
     slotEnd.setHours(hour + 1, 0, 0, 0);
 
-    let best = null;
-    let bestMinutes = 0;
+    const segments = [];
 
     items.forEach((entry) => {
       const start = new Date(entry.start);
       const end = new Date(entry.end);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return;
+      }
       if (end <= startOfDay || start >= dayEnd) {
         return;
       }
       const overlapStart = start > slotStart ? start : slotStart;
       const overlapEnd = end < slotEnd ? end : slotEnd;
-      const overlap = minutesBetween(overlapStart, overlapEnd);
-      if (overlap > bestMinutes) {
-        bestMinutes = overlap;
-        best = entry;
+      const minutes = minutesBetween(overlapStart, overlapEnd);
+      if (minutes > 0) {
+        segments.push({
+          id: entry.id,
+          nap: !!entry.nap,
+          overlapStart,
+          overlapEnd,
+          minutes,
+        });
       }
     });
 
-    if (!best || bestMinutes === 0) {
+    if (!segments.length) {
       return null;
     }
 
-    const height = Math.max(10, Math.round((bestMinutes / 60) * 100));
-    const durationLabel = formatDurationCompact(
-      best.duration || bestMinutes * 60,
+    segments.sort((a, b) => a.overlapStart - b.overlapStart);
+    const totalMinutes = segments.reduce(
+      (sum, segment) => sum + segment.minutes,
+      0,
     );
+    const normalization = totalMinutes > 60 ? 60 / totalMinutes : 1;
+
     return (
-      <Tooltip
-        title={
-          <span>
-            {formatAppTime(best.start)} – {formatAppTime(best.end)}
-            <br />
-            {durationLabel}
-          </span>
-        }
-        placement="top"
-      >
-        <div
-          className={`ant-timeline-bar ${best.nap ? "nap" : "sleep"}`}
-          style={{ height: `${height}%`, cursor: "default" }}
-        />
-      </Tooltip>
+      <div className="ant-timeline-stack">
+        {segments.map((segment, index) => {
+          const visualMinutes = segment.minutes * normalization;
+          const height = Math.max(0, (visualMinutes / 60) * 100);
+          return (
+            <Tooltip
+              key={`${segment.id || "sleep"}-${index}`}
+              title={
+                <span>
+                  {formatAppTime(segment.overlapStart)} -{" "}
+                  {formatAppTime(segment.overlapEnd)}
+                  <br />
+                  {formatDurationCompact(segment.minutes * 60)}
+                </span>
+              }
+              placement="top"
+            >
+              <div
+                className={`ant-timeline-bar ${segment.nap ? "nap" : "sleep"}`}
+                style={{ height: `${height}%`, cursor: "default" }}
+              />
+            </Tooltip>
+          );
+        })}
+      </div>
     );
   }
 
@@ -829,10 +848,10 @@ function SleepWeekChart({ sleepItems }) {
   })).filter((_, h) => maxH <= 4 || h % 2 === 0);
 
   // Responsive font sizes and line width
-  const yAxisFontSize = isMobile ? "12" : "9";
-  const valueLabelFontSize = isMobile ? "11" : "8";
-  const dayLabelFontSize = isMobile ? "12" : "10";
-  const lineWidth = isMobile ? "2" : "1.8";
+  const yAxisFontSize = isMobile ? "10" : "8";
+  const valueLabelFontSize = isMobile ? "9" : "7";
+  const dayLabelFontSize = isMobile ? "9" : "8";
+  const lineWidth = isMobile ? "1.6" : "1.2";
 
   return (
     <svg
@@ -893,11 +912,11 @@ function SleepWeekChart({ sleepItems }) {
       {/* Dots + value labels + day labels */}
       {pts.map((pt, i) => (
         <g key={i}>
-          <circle cx={pt.x} cy={pt.y} r="4.5" fill="#ffd666" />
+          <circle cx={pt.x} cy={pt.y} r="3.2" fill="#ffd666" />
           {pt.minutes > 0 && (
             <text
               x={pt.x}
-              y={pt.y - 10}
+              y={pt.y - 8}
               textAnchor="middle"
               fontSize={valueLabelFontSize}
               fontWeight="600"
@@ -1977,7 +1996,7 @@ export function ChildDashboardPage({ bootstrap }) {
                   size="large"
                   loading={submittingSleepEntry}
                   onClick={submitSleepEntry}
-                  style={{ width: "100%" }}
+                  className="ant-dashboard-action-btn"
                 >
                   {bootstrap.strings.save}
                 </Button>
@@ -2053,7 +2072,7 @@ export function ChildDashboardPage({ bootstrap }) {
                       submitSleepTimerAction("pause");
                     }
                   }}
-                  style={{ width: "100%" }}
+                  className="ant-dashboard-action-btn"
                 >
                   {!sleepTimer.running
                     ? bootstrap.strings.start
@@ -2067,7 +2086,7 @@ export function ChildDashboardPage({ bootstrap }) {
                     size="large"
                     loading={submittingSleepTimer}
                     onClick={() => submitSleepTimerAction("save")}
-                    style={{ width: "100%" }}
+                    className="ant-dashboard-action-btn"
                   >
                     {s.saveTimer}
                   </Button>
@@ -2118,7 +2137,7 @@ export function ChildDashboardPage({ bootstrap }) {
               size="large"
               loading={submittingDiaper}
               onClick={submitDiaperEntry}
-              style={{ width: "100%" }}
+              className="ant-dashboard-action-btn"
             >
               {bootstrap.strings.save}
             </Button>
@@ -2167,7 +2186,7 @@ export function ChildDashboardPage({ bootstrap }) {
               size="large"
               loading={submittingFeeding}
               onClick={submitFeedingEntry}
-              style={{ width: "100%" }}
+              className="ant-dashboard-action-btn"
             >
               {bootstrap.strings.save}
             </Button>
@@ -2199,7 +2218,7 @@ export function ChildDashboardPage({ bootstrap }) {
               size="large"
               loading={submittingBreastfeeding}
               onClick={submitBreastfeedingEntry}
-              style={{ width: "100%" }}
+              className="ant-dashboard-action-btn"
             >
               {bootstrap.strings.save}
             </Button>
@@ -2258,7 +2277,7 @@ export function ChildDashboardPage({ bootstrap }) {
               size="large"
               loading={submittingPumping}
               onClick={submitPumpingEntry}
-              style={{ width: "100%" }}
+              className="ant-dashboard-action-btn"
             >
               {bootstrap.strings.save}
             </Button>
@@ -2661,42 +2680,25 @@ export function ChildDashboardPage({ bootstrap }) {
         className="ant-hero-card"
         title={`${s.overviewFor} ${child?.name || bootstrap.currentChild.name}`}
       >
-        <Row gutter={[16, 16]} align="middle">
+        <Row gutter={[16, 12]} align="middle">
           <Col flex="auto">
-            <Space size={14} align="center">
-              <Avatar
-                src={child?.pictureUrl}
-                size={64}
-                className="ant-dashboard-child-avatar"
-              />
-              {child?.birthDateLabel ? (
-                <Text type="secondary">{child.birthDateLabel}</Text>
-              ) : null}
-            </Space>
+            <Select
+              value={selectedChildId}
+              options={bootstrap.children.map((item) => ({
+                value: String(item.id),
+                label: item.name,
+              }))}
+              onChange={navigateToChild}
+              style={{ minWidth: 220, maxWidth: 320, width: "100%" }}
+            />
           </Col>
           <Col>
-            <Space wrap>
-              <Select
-                value={selectedChildId}
-                options={bootstrap.children.map((item) => ({
-                  value: String(item.id),
-                  label: item.name,
-                }))}
-                onChange={navigateToChild}
-                style={{ minWidth: 220 }}
-              />
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={() => loadDashboardData(selectedChildId)}
-              >
-                {bootstrap.strings.refresh}
-              </Button>
-              {bootstrap.urls.addChild ? (
-                <Button href={bootstrap.urls.addChild}>
-                  {bootstrap.strings.addChild}
-                </Button>
-              ) : null}
-            </Space>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => loadDashboardData(selectedChildId)}
+            >
+              {bootstrap.strings.refresh}
+            </Button>
           </Col>
         </Row>
       </Card>
