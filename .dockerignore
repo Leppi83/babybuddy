@@ -17,9 +17,13 @@ frontend/node_modules
 # Development databases
 data/db.sqlite3
 
-# Built static assets (rebuilt by Dockerfile)
-# Patterns: */static matches core/static, babybuddy/static, etc.
-babybuddy/static
+# Built static assets (rebuilt by Dockerfile); root/ is source and must be included.
+babybuddy/static/babybuddy/ant
+babybuddy/static/babybuddy/css
+babybuddy/static/babybuddy/font
+babybuddy/static/babybuddy/img
+babybuddy/static/babybuddy/js
+babybuddy/static/babybuddy/logo
 core/static
 dashboard/static
 reports/static
