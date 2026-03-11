@@ -876,7 +876,7 @@ function SleepWeekChart({ sleepItems }) {
             y1={y}
             x2={PAD_L + CW}
             y2={y}
-            stroke="rgba(255,255,255,0.07)"
+            stroke="var(--sleep-week-grid-color)"
             strokeWidth="1"
           />
           <text
@@ -884,7 +884,7 @@ function SleepWeekChart({ sleepItems }) {
             y={y + 4}
             textAnchor="end"
             fontSize={yAxisFontSize}
-            fill="rgba(255,255,255,0.35)"
+            fill="var(--sleep-week-axis-color)"
           >
             {label}
           </text>
@@ -930,7 +930,7 @@ function SleepWeekChart({ sleepItems }) {
             y={VH - 4}
             textAnchor="middle"
             fontSize={dayLabelFontSize}
-            fill="rgba(255,255,255,0.55)"
+            fill="var(--sleep-week-day-color)"
           >
             {pt.label}
           </text>

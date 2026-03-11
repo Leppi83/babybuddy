@@ -29,6 +29,9 @@
   --app-row-a: rgba(255, 255, 255, 0.02);
   --app-row-b: rgba(77, 182, 255, 0.04);
   --app-row-hover: rgba(255, 255, 255, 0.07);
+  --sleep-week-grid-color: rgba(255, 255, 255, 0.12);
+  --sleep-week-axis-color: rgba(255, 255, 255, 0.72);
+  --sleep-week-day-color: rgba(255, 255, 255, 0.82);
 }
 
 :root[data-theme="light"] {
@@ -61,6 +64,9 @@
   --app-row-a: rgba(148, 163, 184, 0.07);
   --app-row-b: rgba(59, 130, 246, 0.08);
   --app-row-hover: rgba(148, 163, 184, 0.16);
+  --sleep-week-grid-color: rgba(100, 116, 139, 0.26);
+  --sleep-week-axis-color: rgba(30, 41, 59, 0.78);
+  --sleep-week-day-color: rgba(15, 23, 42, 0.9);
 }
 
 html,
