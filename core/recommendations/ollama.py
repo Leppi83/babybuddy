@@ -38,17 +38,49 @@ def _format_time_only(value):
     return timezone.localtime(value).strftime("%H:%M")
 
 
+_LOCALE_TO_LANGUAGE = {
+    "de": "German",
+    "fr": "French",
+    "es": "Spanish",
+    "it": "Italian",
+    "nl": "Dutch",
+    "pt": "Portuguese",
+    "pt-br": "Portuguese",
+    "pl": "Polish",
+    "ru": "Russian",
+    "sv": "Swedish",
+    "nb": "Norwegian",
+    "da": "Danish",
+    "fi": "Finnish",
+    "tr": "Turkish",
+    "uk": "Ukrainian",
+    "ja": "Japanese",
+    "zh": "Chinese",
+    "he": "Hebrew",
+    "hu": "Hungarian",
+    "hr": "Croatian",
+    "ca": "Catalan",
+    "cs": "Czech",
+    "sr": "Serbian",
+}
+
+
 def _build_prompt(bundle):
     child_name = bundle.get("child", {}).get("name", "Baby")
     as_of = bundle.get("as_of")
     local_hour = timezone.localtime(as_of).hour if as_of else timezone.localtime().hour
+    locale = bundle.get("locale", "en").lower().replace("_", "-")
+    language = _LOCALE_TO_LANGUAGE.get(
+        locale, _LOCALE_TO_LANGUAGE.get(locale.split("-")[0])
+    )
+    lang_instruction = f" Respond in {language}." if language else ""
 
     if local_hour < 16:
         nap = bundle.get("nap", {})
         return (
             f"You are helping parents of {child_name} know when to put the baby down for a nap. "
-            "Write 2 short sentences. Describe the nap window as a range from earliest to latest. "
-            "Do not mention exact times, only ranges. Do not give medical advice.\n\n"
+            f"Write 2 short sentences. Describe the nap window as a range from earliest to latest. "
+            f"Do not mention exact times, only ranges. Do not give medical advice.{lang_instruction}\n\n"
             f"Nap window: {_format_time_only(nap.get('earliest'))} – {_format_time_only(nap.get('latest'))}\n"
             f"Status: {nap.get('status')}\n"
             f"Wake window: {nap.get('wake_window_min_minutes')}–{nap.get('wake_window_max_minutes')} min\n"
@@ -57,8 +89,8 @@ def _build_prompt(bundle):
         bedtime = bundle.get("bedtime", {})
         return (
             f"You are helping parents of {child_name} know when to put the baby to bed for the night. "
-            "Write 2 short sentences. Describe the bedtime window as a range from earliest to latest. "
-            "Do not mention exact times, only ranges. Do not give medical advice.\n\n"
+            f"Write 2 short sentences. Describe the bedtime window as a range from earliest to latest. "
+            f"Do not mention exact times, only ranges. Do not give medical advice.{lang_instruction}\n\n"
             f"Bedtime window: {_format_time_only(bedtime.get('earliest'))} – {_format_time_only(bedtime.get('latest'))}\n"
             f"Status: {bedtime.get('status')}\n"
             f"Reason: {bedtime.get('reason')}\n"

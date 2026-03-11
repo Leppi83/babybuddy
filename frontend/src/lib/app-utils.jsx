@@ -33,31 +33,37 @@ export const APP_DATE_FORMAT_FULL = "DD.MM.YYYY";
 export const APP_TIME_FORMAT = "HH:mm";
 export const APP_DATE_TIME_FORMAT = `${APP_DATE_FORMAT} ${APP_TIME_FORMAT}`;
 
-export const DASHBOARD_CARD_TITLES = {
-  "card.quick_entry.consolidated": "Quickly add baby actions",
-  "card.diaper.quick_entry": "Quick Entry",
-  "card.feedings.quick_entry": "Quick Feeding",
-  "card.feedings.breast_quick_entry": "Quick Breastfeeding",
-  "card.diaper.last": "Last Nappy Change",
-  "card.diaper.types": "Nappy Changes",
-  "card.feedings.last": "Last Feeding",
-  "card.feedings.method": "Last Feeding Method",
-  "card.feedings.recent": "Recent Feedings",
-  "card.feedings.breastfeeding": "Breastfeeding",
-  "card.pumpings.quick_entry": "Quick Pumping",
-  "card.pumpings.last": "Last Pumping",
-  "card.sleep.timers": "Timers",
-  "card.sleep.quick_timer": "Sleep Timer",
-  "card.sleep.last": "Last Sleep",
-  "card.sleep.recommendations": "Sleep Recommendations",
-  "card.sleep.recent": "Today's Sleeps",
-  "card.sleep.naps_day": "Today's Naps",
-  "card.sleep.statistics": "Sleep Statistics",
-  "card.sleep.timeline_day": "Sleep Timeline (24h)",
-  "card.sleep.week_chart": "Sleep This Week",
-  "card.sleep.list": "Sleep List",
-  "card.tummytime.day": "Today's Tummy Time",
-};
+export function getDashboardCardTitle(key, strings) {
+  const map = {
+    "card.quick_entry.consolidated": strings.quicklyAddBabyActions,
+    "card.diaper.quick_entry": strings.quickEntry,
+    "card.feedings.quick_entry": strings.quickFeeding,
+    "card.feedings.breast_quick_entry": strings.quickBreastfeeding,
+    "card.diaper.last": strings.lastNappyChange,
+    "card.diaper.types": strings.nappyChanges,
+    "card.feedings.last": strings.lastFeeding,
+    "card.feedings.method": strings.lastFeedingMethod,
+    "card.feedings.recent": strings.recentFeedings,
+    "card.feedings.breastfeeding": strings.breastfeeding,
+    "card.pumpings.quick_entry": strings.quickPumping,
+    "card.pumpings.last": strings.lastPumping,
+    "card.sleep.timers": strings.timers,
+    "card.sleep.quick_timer": strings.sleepTimer,
+    "card.sleep.last": strings.lastSleep,
+    "card.sleep.recommendations": strings.sleepRecommendations,
+    "card.sleep.recent": strings.todaysSleeps,
+    "card.sleep.naps_day": strings.todaysNaps,
+    "card.sleep.statistics": strings.sleepStatistics,
+    "card.sleep.timeline_day": strings.sleepTimeline,
+    "card.sleep.week_chart": strings.sleepWeekChart,
+    "card.sleep.list": strings.sleepList,
+    "card.tummytime.day": strings.todaysTummyTime,
+  };
+  return map[key] || strings.migrationPending;
+}
+
+// Legacy constant kept for any external references — prefer getDashboardCardTitle
+export const DASHBOARD_CARD_TITLES = {};
 
 export function asItems(payload) {
   if (!payload) {

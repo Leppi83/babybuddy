@@ -2423,6 +2423,30 @@ msgstr "Abbrechen"
 msgid "Confirm delete"
 msgstr "Löschen bestätigen"
 
+msgid "Today's Sleeps"
+msgstr "Heutiger Schlaf"
+
+msgid "Sleep Statistics"
+msgstr "Schlafstatistiken"
+
+msgid "Sleep This Week"
+msgstr "Schlaf diese Woche"
+
+msgid "Quickly add baby actions"
+msgstr "Baby-Aktionen schnell hinzufügen"
+
+msgid "Sleep entries today"
+msgstr "Schlafeinträge heute"
+
+msgid "Naps today"
+msgstr "Nickerchen heute"
+
+msgid "Average sleep"
+msgstr "Durchschnittlicher Schlaf"
+
+msgid "recent sleep entries"
+msgstr "kürzliche Schlafeinträge"
+
 #: dashboard/views.py:223
 msgid ""
 "Unable to create diaper entry: date, time, and consistency are required."

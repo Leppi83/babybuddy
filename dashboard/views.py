@@ -163,6 +163,16 @@ def _build_ant_strings():
         "delete": _("Delete"),
         "cancel": _("Cancel"),
         "confirmDelete": _("Confirm delete"),
+        # Card titles
+        "todaysSleeps": _("Today's Sleeps"),
+        "sleepStatistics": _("Sleep Statistics"),
+        "sleepWeekChart": _("Sleep This Week"),
+        "quicklyAddBabyActions": _("Quickly add baby actions"),
+        # Sleep card internal labels
+        "sleepEntriesToday": _("Sleep entries today"),
+        "napsToday": _("Naps today"),
+        "averageSleep": _("Average sleep"),
+        "recentSleepEntries": _("recent sleep entries"),
     }
 
 
