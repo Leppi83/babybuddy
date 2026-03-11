@@ -2465,6 +2465,9 @@ msgstr "Bauchlage heute"
 msgid "Duration < 90 min is saved as nap, ≥ 90 min as sleep"
 msgstr "Unter 90 Min. wird als Nickerchen gespeichert, ab 90 Min. als Schlaf"
 
+msgid "Save timer"
+msgstr "Timer speichern"
+
 msgid "Overview for"
 msgstr "Übersicht für"
 
