@@ -2408,18 +2408,6 @@ msgstr "Weiter"
 msgid "Paused"
 msgstr "Pausiert"
 
-msgid "Type"
-msgstr "Typ"
-
-msgid "Edit"
-msgstr "Bearbeiten"
-
-msgid "Delete"
-msgstr "Löschen"
-
-msgid "Cancel"
-msgstr "Abbrechen"
-
 msgid "Confirm delete"
 msgstr "Löschen bestätigen"
 
@@ -2446,6 +2434,39 @@ msgstr "Durchschnittlicher Schlaf"
 
 msgid "recent sleep entries"
 msgstr "kürzliche Schlafeinträge"
+
+msgid "Last recorded"
+msgstr "Zuletzt erfasst"
+
+msgid "Changes today"
+msgstr "Wechsel heute"
+
+msgid "recent entries"
+msgstr "kürzliche Einträge"
+
+msgid "Dominant method"
+msgstr "Häufigste Methode"
+
+msgid "Feedings today"
+msgstr "Mahlzeiten heute"
+
+msgid "recent feedings"
+msgstr "kürzliche Mahlzeiten"
+
+msgid "Breastfeeding today"
+msgstr "Stillen heute"
+
+msgid "Last pumping"
+msgstr "Letzte Abpumpeinheit"
+
+msgid "Tummy time today"
+msgstr "Bauchlage heute"
+
+msgid "Duration < 90 min is saved as nap, ≥ 90 min as sleep"
+msgstr "Unter 90 Min. wird als Nickerchen gespeichert, ab 90 Min. als Schlaf"
+
+msgid "Overview for"
+msgstr "Übersicht für"
 
 #: dashboard/views.py:223
 msgid ""

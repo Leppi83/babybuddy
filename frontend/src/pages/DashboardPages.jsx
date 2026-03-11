@@ -1155,12 +1155,12 @@ export function ChildDashboardPage({ bootstrap }) {
         "card.diaper.last": lastChange ? (
           <Space direction="vertical" size={4}>
             <Statistic
-              title="Last recorded"
+              title={s.lastRecorded}
               value={formatAppDateTime(lastChange.time)}
             />
             <Space wrap>
-              <Tag color={lastChange.wet ? "blue" : "default"}>Wet</Tag>
-              <Tag color={lastChange.solid ? "gold" : "default"}>Solid</Tag>
+              <Tag color={lastChange.wet ? "blue" : "default"}>{s.wet}</Tag>
+              <Tag color={lastChange.solid ? "gold" : "default"}>{s.solid}</Tag>
             </Space>
           </Space>
         ) : (
@@ -1172,16 +1172,18 @@ export function ChildDashboardPage({ bootstrap }) {
         "card.diaper.types": (
           <Space direction="vertical" size={6}>
             <Statistic
-              title="Changes today"
+              title={s.changesToday}
               value={changeItems.filter((item) => isToday(item.time)).length}
             />
-            <Text type="secondary">{changeItems.length} recent entries</Text>
+            <Text type="secondary">
+              {changeItems.length} {s.recentEntries}
+            </Text>
           </Space>
         ),
         "card.feedings.last": lastFeeding ? (
           <Space direction="vertical" size={4}>
             <Statistic
-              title="Duration"
+              title={s.duration}
               value={formatMinuteValue(durationMinutes(lastFeeding.duration))}
               suffix="min"
             />
@@ -1195,8 +1197,10 @@ export function ChildDashboardPage({ bootstrap }) {
         ),
         "card.feedings.method": topMethod ? (
           <Space direction="vertical" size={4}>
-            <Statistic title="Dominant method" value={topMethod[0]} />
-            <Text type="secondary">{topMethod[1]} recent entries</Text>
+            <Statistic title={s.dominantMethod} value={topMethod[0]} />
+            <Text type="secondary">
+              {topMethod[1]} {s.recentEntries}
+            </Text>
           </Space>
         ) : (
           <Empty
@@ -1206,14 +1210,16 @@ export function ChildDashboardPage({ bootstrap }) {
         ),
         "card.feedings.recent": (
           <Space direction="vertical" size={4}>
-            <Statistic title="Feedings today" value={feedingsToday.length} />
-            <Text type="secondary">{feedingItems.length} recent feedings</Text>
+            <Statistic title={s.feedingsToday} value={feedingsToday.length} />
+            <Text type="secondary">
+              {feedingItems.length} {s.recentFeedingsLabel}
+            </Text>
           </Space>
         ),
         "card.feedings.breastfeeding": (
           <Space direction="vertical" size={4}>
             <Statistic
-              title="Breastfeeding today"
+              title={s.breastfeedingToday}
               value={
                 feedingsToday.filter((item) =>
                   String(item.method || "")
@@ -1227,7 +1233,7 @@ export function ChildDashboardPage({ bootstrap }) {
         "card.pumpings.last": lastPumping ? (
           <Space direction="vertical" size={4}>
             <Statistic
-              title="Last pumping"
+              title={s.lastPumpingDuration}
               value={formatMinuteValue(durationMinutes(lastPumping.duration))}
               suffix="min"
             />
@@ -1242,7 +1248,7 @@ export function ChildDashboardPage({ bootstrap }) {
         ),
         "card.sleep.timers": (
           <Space direction="vertical" size={4}>
-            <Statistic title="Timers" value={timerItems.length} />
+            <Statistic title={s.timers} value={timerItems.length} />
             <Text type="secondary">
               {timerItems[0]
                 ? formatAppTime(timerItems[0].start)
@@ -1259,7 +1265,7 @@ export function ChildDashboardPage({ bootstrap }) {
         "card.sleep.last": lastSleep ? (
           <Space direction="vertical" size={4}>
             <Statistic
-              title={lastSleep.nap ? "Nap" : "Sleep"}
+              title={lastSleep.nap ? s.nap : s.sleep}
               value={formatMinuteValue(durationMinutes(lastSleep.duration))}
               suffix="min"
             />
@@ -1319,13 +1325,15 @@ export function ChildDashboardPage({ bootstrap }) {
         "card.tummytime.day": (
           <Space direction="vertical" size={4}>
             <Statistic
-              title="Tummy time today"
+              title={s.tummyTimeToday}
               value={tummyItems
                 .filter((item) => isToday(item.start))
                 .reduce((acc, item) => acc + durationMinutes(item.duration), 0)}
               suffix="min"
             />
-            <Text type="secondary">{tummyItems.length} recent entries</Text>
+            <Text type="secondary">
+              {tummyItems.length} {s.recentEntries}
+            </Text>
           </Space>
         ),
       });
@@ -1949,7 +1957,7 @@ export function ChildDashboardPage({ bootstrap }) {
                     setEndTime: setSleepEntryEndTime,
                   })}
                   <Text type="secondary" style={{ fontSize: "12px" }}>
-                    Duration &lt; 90 min is saved as nap, ≥ 90 min as sleep
+                    {s.napDurationHint}
                   </Text>
                 </Space>
               </Col>
@@ -1986,7 +1994,7 @@ export function ChildDashboardPage({ bootstrap }) {
                     {sleepTimer.running && sleepTimerPaused && (
                       <Col xs={12}>
                         <Statistic
-                          title={bootstrap.strings.pause || "Pause"}
+                          title={s.pause}
                           value={formatElapsedSeconds(
                             sleepTimerPauseStartMs
                               ? Math.floor(
@@ -2647,7 +2655,7 @@ export function ChildDashboardPage({ bootstrap }) {
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
       <Card
         className="ant-hero-card"
-        title={`Overview for ${child?.name || bootstrap.currentChild.name}`}
+        title={`${s.overviewFor} ${child?.name || bootstrap.currentChild.name}`}
       >
         <Row gutter={[16, 16]} align="middle">
           <Col flex="auto">
