@@ -6,10 +6,10 @@ from django.utils import timezone
 
 def set_sleep_nap_values(apps, schema_editor):
     # The model must be imported to ensure its overridden `save` method is run.
-    # Defer net_duration so this migration works before migration 0040 adds the column.
+    # Defer fields added in later migrations so this migration works on a fresh DB.
     from core.models import Sleep
 
-    for sleep in Sleep.objects.defer("net_duration"):
+    for sleep in Sleep.objects.defer("net_duration", "breaks"):
         sleep.nap = (
             Sleep.settings.nap_start_min
             <= timezone.localtime(sleep.start).time()
