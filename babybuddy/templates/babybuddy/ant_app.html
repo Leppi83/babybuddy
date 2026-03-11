@@ -2,12 +2,12 @@
 {% load static i18n %}
 {% block title %}{{ ant_page_title }}{% endblock %}
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}?v=20260311" />
+    <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}?v=20260311_2" />
 {% endblock %}
 {% block page %}
     {{ ant_bootstrap|json_script:"ant-app-bootstrap" }}
     <div id="ant-app-root"></div>
 {% endblock %}
 {% block javascript %}
-    <script type="module" src="{% static "babybuddy/ant/app.js" %}?v=20260311"></script>
+    <script type="module" src="{% static "babybuddy/ant/app.js" %}?v=20260311_2"></script>
 {% endblock %}
