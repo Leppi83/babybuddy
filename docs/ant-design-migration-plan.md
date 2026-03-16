@@ -74,7 +74,7 @@ Remove old UI code only after the Ant route for that area is in production-ready
 
 ## Current Status
 
-- Branch created: `ant_design_migration`
+- Ant Design work has been consolidated into `master`
 - Ant Design frontend dependencies added
 - React app shell created
 - Dashboard overview migrated to Ant Design
