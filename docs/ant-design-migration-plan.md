@@ -81,6 +81,7 @@ Remove old UI code only after the Ant route for that area is in production-ready
 - Child dashboard migrated to Ant Design
 - Dashboard routes can render through the Ant app shell
 - Dockerfile updated to build the React bundle
+- Night sleep circle dashboard card added and documented in [night-sleep-circle-card.md](/Users/hennigchristian/Projects/Codex/babybuddy/docs/night-sleep-circle-card.md)
 
 ## Next Steps
 
