@@ -28,13 +28,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import {
-  CoffeeOutlined,
-  EyeOutlined,
-  MoonFilled,
-  ReloadOutlined,
-  SkinOutlined,
-} from "@ant-design/icons";
+import { EyeOutlined, ReloadOutlined } from "@ant-design/icons";
 import {
   asItems,
   APP_DATE_FORMAT,
@@ -961,6 +955,50 @@ function describeArcPath(cx, cy, radius, startAngle, endAngle) {
   return `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`;
 }
 
+function FeedingBottleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M10 3h4v2.2l1.8 1.8v2.2c0 .5-.2 1-.6 1.4l-.2.2v7.8a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-7.8l-.2-.2a2 2 0 0 1-.6-1.4V7l1.8-1.8V3Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 13h6M9 16h4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function DiaperIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M6 6h12c0 4.8-1.3 8-4 9.8l-2-1.8-2 1.8C7.3 14 6 10.8 6 6Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.2 10.2c1 .7 2.3 1 3.8 1s2.8-.3 3.8-1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function NightSleepCircleCard({
   sleepItems,
   feedingItems,
@@ -1100,13 +1138,74 @@ function NightSleepCircleCard({
     ));
   }
 
+  function renderTimeScale() {
+    const nodes = [];
+    const tickStepMinutes = isMobile ? 60 : 30;
+    const labelStepHours = isMobile ? 2 : 1;
+
+    for (
+      let minutes = 0;
+      minutes <= totalWindowMinutes;
+      minutes += tickStepMinutes
+    ) {
+      const value = nightStart.add(minutes, "minute");
+      const isMajor = minutes % 60 === 0;
+      const angle = angleForTime(value);
+      const tickInner = polarToCartesian(
+        center,
+        center,
+        ringRadius + ringWidth * 0.74,
+        angle,
+      );
+      const tickOuter = polarToCartesian(
+        center,
+        center,
+        ringRadius + ringWidth * 0.74 + (isMajor ? 10 : 5),
+        angle,
+      );
+      nodes.push(
+        <line
+          key={`tick-${minutes}`}
+          x1={tickInner.x}
+          y1={tickInner.y}
+          x2={tickOuter.x}
+          y2={tickOuter.y}
+          className={`ant-night-sleep-tick ${isMajor ? "major" : "minor"}`}
+        />,
+      );
+
+      if (isMajor && (minutes / 60) % labelStepHours === 0) {
+        const labelPoint = polarToCartesian(
+          center,
+          center,
+          ringRadius + ringWidth * 0.74 + 24,
+          angle,
+        );
+        nodes.push(
+          <text
+            key={`tick-label-${minutes}`}
+            x={labelPoint.x}
+            y={labelPoint.y}
+            className="ant-night-sleep-tick-label"
+            textAnchor="middle"
+            dominantBaseline="central"
+          >
+            {value.format("HH")}
+          </text>,
+        );
+      }
+    }
+
+    return nodes;
+  }
+
   const markerMeta = {
     feeding: {
-      icon: <CoffeeOutlined />,
+      icon: <FeedingBottleIcon />,
       className: "feeding",
     },
     diaper: {
-      icon: <SkinOutlined />,
+      icon: <DiaperIcon />,
       className: "diaper",
     },
   };
@@ -1161,6 +1260,7 @@ function NightSleepCircleCard({
             )}
             className="ant-night-sleep-track"
           />
+          {renderTimeScale()}
           {renderRingSegments(awakeSegments, "ant-night-sleep-segment awake")}
           {renderRingSegments(
             mergedSleepSegments,
@@ -1247,7 +1347,7 @@ function NightSleepCircleCard({
       <div className="ant-night-sleep-legend">
         <span className="ant-night-sleep-legend-item">
           <span className="ant-night-sleep-legend-icon sleep">
-            <MoonFilled />
+            <span className="ant-night-sleep-zzz-icon">zzz</span>
           </span>
           <span>
             {strings.sleep} · {formatDurationCompact(totalSleepMinutes * 60)}
@@ -1263,13 +1363,13 @@ function NightSleepCircleCard({
         </span>
         <span className="ant-night-sleep-legend-item">
           <span className="ant-night-sleep-legend-icon diaper">
-            <SkinOutlined />
+            <DiaperIcon />
           </span>
           <span>{strings.diaperChanges}</span>
         </span>
         <span className="ant-night-sleep-legend-item">
           <span className="ant-night-sleep-legend-icon feeding">
-            <CoffeeOutlined />
+            <FeedingBottleIcon />
           </span>
           <span>{strings.feedings}</span>
         </span>

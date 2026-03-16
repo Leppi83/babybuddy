@@ -32,13 +32,13 @@
   --sleep-week-grid-color: rgba(255, 255, 255, 0.12);
   --sleep-week-axis-color: rgba(255, 255, 255, 0.72);
   --sleep-week-day-color: rgba(255, 255, 255, 0.82);
-  --night-sleep-card-bg: radial-gradient(circle at 50% 28%, rgba(45, 27, 105, 0.24), rgba(15, 23, 42, 0) 46%), linear-gradient(180deg, rgba(12, 18, 38, 0.98), rgba(15, 23, 42, 0.96));
-  --night-sleep-track: rgba(107, 114, 255, 0.14);
-  --night-sleep-sleep: #ffd666;
-  --night-sleep-awake: rgba(167, 139, 250, 0.48);
-  --night-sleep-feeding: #7dd3fc;
-  --night-sleep-diaper: #f9a8d4;
-  --night-sleep-marker-shadow: rgba(2, 6, 23, 0.42);
+  --night-sleep-card-bg: linear-gradient(180deg, rgba(12, 18, 38, 0.96), rgba(15, 23, 42, 0.94));
+  --night-sleep-track: rgba(148, 163, 184, 0.18);
+  --night-sleep-sleep: #fbbf24;
+  --night-sleep-awake: rgba(148, 163, 184, 0.7);
+  --night-sleep-feeding: #38bdf8;
+  --night-sleep-diaper: #fb7185;
+  --night-sleep-marker-shadow: rgba(2, 6, 23, 0.2);
 }
 
 :root[data-theme="light"] {
@@ -74,13 +74,13 @@
   --sleep-week-grid-color: rgba(100, 116, 139, 0.26);
   --sleep-week-axis-color: rgba(30, 41, 59, 0.78);
   --sleep-week-day-color: rgba(15, 23, 42, 0.9);
-  --night-sleep-card-bg: radial-gradient(circle at 50% 28%, rgba(99, 102, 241, 0.16), rgba(255, 255, 255, 0) 42%), linear-gradient(180deg, #ffffff, #eef4ff);
-  --night-sleep-track: rgba(99, 102, 241, 0.12);
+  --night-sleep-card-bg: linear-gradient(180deg, #ffffff, #f8fbff);
+  --night-sleep-track: rgba(148, 163, 184, 0.2);
   --night-sleep-sleep: #f59e0b;
-  --night-sleep-awake: rgba(124, 58, 237, 0.28);
+  --night-sleep-awake: rgba(100, 116, 139, 0.46);
   --night-sleep-feeding: #0284c7;
-  --night-sleep-diaper: #db2777;
-  --night-sleep-marker-shadow: rgba(148, 163, 184, 0.34);
+  --night-sleep-diaper: #e11d48;
+  --night-sleep-marker-shadow: rgba(148, 163, 184, 0.14);
 }
 
 html,
@@ -504,11 +504,32 @@ body {
 
 .ant-night-sleep-segment.sleep {
   stroke: var(--night-sleep-sleep);
-  filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.28));
 }
 
 .ant-night-sleep-segment.awake {
   stroke: var(--night-sleep-awake);
+}
+
+.ant-night-sleep-tick {
+  stroke: var(--app-text-secondary);
+  stroke-linecap: round;
+}
+
+.ant-night-sleep-tick.major {
+  stroke-width: 1.8;
+  opacity: 0.8;
+}
+
+.ant-night-sleep-tick.minor {
+  stroke-width: 1;
+  opacity: 0.42;
+}
+
+.ant-night-sleep-tick-label {
+  fill: var(--app-text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .ant-night-sleep-center {
@@ -544,21 +565,27 @@ body {
 
 .ant-night-sleep-marker {
   position: absolute;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   transform: translate(-50%, -50%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(15, 23, 42, 0.9);
-  box-shadow: 0 10px 20px var(--night-sleep-marker-shadow);
+  border: 1px solid var(--app-border);
+  background: rgba(15, 23, 42, 0.94);
+  box-shadow: 0 6px 14px var(--night-sleep-marker-shadow);
   color: var(--app-text-primary);
 }
 
 :root[data-theme="light"] .ant-night-sleep-marker {
   background: rgba(255, 255, 255, 0.96);
+}
+
+.ant-night-sleep-marker svg,
+.ant-night-sleep-legend-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .ant-night-sleep-marker.feeding {
@@ -578,7 +605,7 @@ body {
 .ant-night-sleep-stat {
   border: 1px solid var(--app-border);
   border-radius: 16px;
-  background: var(--night-sleep-card-bg);
+  background: var(--app-list-bg);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
@@ -609,7 +636,7 @@ body {
   gap: 10px;
   padding: 8px 12px;
   border-radius: 999px;
-  background: var(--night-sleep-card-bg);
+  background: var(--app-list-bg);
   border: 1px solid var(--app-border);
   color: var(--app-text-primary);
 }
@@ -626,6 +653,13 @@ body {
 
 .ant-night-sleep-legend-icon.sleep {
   color: var(--night-sleep-sleep);
+}
+
+.ant-night-sleep-zzz-icon {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .ant-night-sleep-legend-icon.awake {
