@@ -482,7 +482,7 @@ body {
   border-radius: 32px;
   border: 1px solid var(--app-border);
   background: var(--night-sleep-card-bg);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .ant-night-sleep-svg {
@@ -510,6 +510,16 @@ body {
   stroke: var(--night-sleep-awake);
 }
 
+.ant-night-sleep-break-separator {
+  stroke: var(--app-bg-end);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+:root[data-theme="light"] .ant-night-sleep-break-separator {
+  stroke: #ffffff;
+}
+
 .ant-night-sleep-tick {
   stroke: var(--app-text-secondary);
   stroke-linecap: round;
@@ -527,7 +537,7 @@ body {
 
 .ant-night-sleep-tick-label {
   fill: var(--app-text-secondary);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -541,18 +551,18 @@ body {
   justify-content: center;
   gap: 8px;
   text-align: center;
-  padding: 72px;
+  padding: 92px;
 }
 
 .ant-night-sleep-kicker.ant-typography {
   color: var(--app-text-secondary);
-  font-size: 0.86rem;
+  font-size: 1rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .ant-night-sleep-total {
-  font-size: clamp(1.8rem, 3.8vw, 3.1rem);
+  font-size: clamp(2.4rem, 4vw, 4.5rem);
   line-height: 1;
   font-weight: 700;
   color: var(--app-text-primary);
@@ -560,13 +570,13 @@ body {
 
 .ant-night-sleep-subtitle.ant-typography {
   color: var(--app-text-secondary);
-  font-size: 0.96rem;
+  font-size: 1.18rem;
 }
 
 .ant-night-sleep-marker {
   position: absolute;
-  width: 34px;
-  height: 34px;
+  width: 46px;
+  height: 46px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -582,10 +592,14 @@ body {
   background: rgba(255, 255, 255, 0.96);
 }
 
-.ant-night-sleep-marker svg,
+.ant-night-sleep-marker svg {
+  width: 24px;
+  height: 24px;
+}
+
 .ant-night-sleep-legend-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
 .ant-night-sleep-marker.feeding {
@@ -621,7 +635,7 @@ body {
 
 .ant-night-sleep-stat strong {
   color: var(--app-text-primary);
-  font-size: 1rem;
+  font-size: 1.2rem;
 }
 
 .ant-night-sleep-legend {
@@ -642,8 +656,8 @@ body {
 }
 
 .ant-night-sleep-legend-icon {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -656,10 +670,8 @@ body {
 }
 
 .ant-night-sleep-zzz-icon {
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  width: 24px;
+  height: 18px;
 }
 
 .ant-night-sleep-legend-icon.awake {
@@ -801,11 +813,11 @@ body {
   }
 
   .ant-night-sleep-center {
-    padding: 58px;
+    padding: 74px;
   }
 
   .ant-night-sleep-total {
-    font-size: 2.1rem;
+    font-size: 2.8rem;
   }
 
   .ant-hero-card .ant-space,

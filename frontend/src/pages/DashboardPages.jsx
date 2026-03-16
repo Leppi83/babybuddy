@@ -999,6 +999,43 @@ function DiaperIcon() {
   );
 }
 
+function SleepZzzIcon() {
+  return (
+    <svg viewBox="0 0 36 24" aria-hidden="true">
+      <text
+        x="2"
+        y="18"
+        fontSize="18"
+        fontWeight="900"
+        fill="currentColor"
+        transform="rotate(-10 2 18)"
+      >
+        Z
+      </text>
+      <text
+        x="15"
+        y="12"
+        fontSize="12"
+        fontWeight="900"
+        fill="currentColor"
+        transform="rotate(-8 15 12)"
+      >
+        Z
+      </text>
+      <text
+        x="25"
+        y="8"
+        fontSize="9"
+        fontWeight="900"
+        fill="currentColor"
+        transform="rotate(-6 25 8)"
+      >
+        Z
+      </text>
+    </svg>
+  );
+}
+
 function NightSleepCircleCard({
   sleepItems,
   feedingItems,
@@ -1011,12 +1048,12 @@ function NightSleepCircleCard({
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
   const selectedDay = selectedDate.startOf("day");
-  const ringSize = isMobile ? 260 : 344;
+  const ringSize = isMobile ? 336 : 452;
   const svgSize = ringSize;
   const center = svgSize / 2;
-  const ringRadius = isMobile ? 98 : 126;
-  const ringWidth = isMobile ? 22 : 28;
-  const markerRadius = ringRadius + ringWidth * 0.72;
+  const ringRadius = isMobile ? 122 : 166;
+  const ringWidth = isMobile ? 24 : 32;
+  const markerRadius = ringRadius + ringWidth * 0.84;
   const sweepStart = 210;
   const sweepDegrees = 300;
   const nightStart = selectedDay.hour(18).minute(0).second(0).millisecond(0);
@@ -1049,6 +1086,7 @@ function NightSleepCircleCard({
     )
     .map((item) => ({
       kind: "sleep",
+      source: item,
       startAt: item.startAt.isAfter(nightStart) ? item.startAt : nightStart,
       endAt: item.endAt.isBefore(nightEnd) ? item.endAt : nightEnd,
     }))
@@ -1086,15 +1124,15 @@ function NightSleepCircleCard({
       .filter((item) => item.start)
       .map((item) => ({
         kind: "feeding",
+        source: item,
         at: dayjs(item.start),
-        tooltip: `${strings.feedings} · ${formatAppTime(item.start)}`,
       })),
     ...changeItems
       .filter((item) => item.time)
       .map((item) => ({
         kind: "diaper",
+        source: item,
         at: dayjs(item.time),
-        tooltip: `${strings.diaperChanges} · ${formatAppTime(item.time)}`,
       })),
   ].filter(
     (item) =>
@@ -1115,6 +1153,13 @@ function NightSleepCircleCard({
   const firstSleepStart = mergedSleepSegments[0]?.startAt || null;
   const lastSleepEnd =
     mergedSleepSegments[mergedSleepSegments.length - 1]?.endAt || null;
+  const isLastNight = selectedDay.isSame(
+    dayjs().subtract(1, "day").startOf("day"),
+    "day",
+  );
+  const centerKicker = isLastNight
+    ? strings.lastNight
+    : selectedDay.format("ddd, DD.MM.");
 
   function angleForTime(value) {
     const minutes = value.diff(nightStart, "minute", true);
@@ -1122,19 +1167,64 @@ function NightSleepCircleCard({
     return sweepStart + (clamped / totalWindowMinutes) * sweepDegrees;
   }
 
+  function renderSleepSegments() {
+    return overlappingSleepSegments.map((segment, index) => (
+      <Tooltip
+        key={`sleep-${index}`}
+        title={
+          <span>
+            {formatAppTime(segment.startAt.toDate())} -{" "}
+            {formatAppTime(segment.endAt.toDate())}
+            <br />
+            {formatDurationCompact(
+              segment.endAt.diff(segment.startAt, "minute") * 60,
+            )}
+          </span>
+        }
+      >
+        <path
+          d={describeArcPath(
+            center,
+            center,
+            ringRadius,
+            angleForTime(segment.startAt),
+            angleForTime(segment.endAt),
+          )}
+          className="ant-night-sleep-segment sleep"
+        />
+      </Tooltip>
+    ));
+  }
+
   function renderRingSegments(segments, className) {
     return segments.map((segment, index) => (
-      <path
+      <Tooltip
         key={`${className}-${index}`}
-        d={describeArcPath(
-          center,
-          center,
-          ringRadius,
-          angleForTime(segment.startAt),
-          angleForTime(segment.endAt),
-        )}
-        className={className}
-      />
+        title={
+          className.includes("awake") ? (
+            <span>
+              {formatAppTime(segment.startAt.toDate())} -{" "}
+              {formatAppTime(segment.endAt.toDate())}
+              <br />
+              {strings.awake} ·{" "}
+              {formatDurationCompact(
+                segment.endAt.diff(segment.startAt, "minute") * 60,
+              )}
+            </span>
+          ) : null
+        }
+      >
+        <path
+          d={describeArcPath(
+            center,
+            center,
+            ringRadius,
+            angleForTime(segment.startAt),
+            angleForTime(segment.endAt),
+          )}
+          className={className}
+        />
+      </Tooltip>
     ));
   }
 
@@ -1190,13 +1280,45 @@ function NightSleepCircleCard({
             textAnchor="middle"
             dominantBaseline="central"
           >
-            {value.format("HH")}
+            {value.hour() === 0 ? "24" : value.format("HH")}
           </text>,
         );
       }
     }
 
     return nodes;
+  }
+
+  function renderBreakSeparators() {
+    return awakeSegments.map((segment, index) => {
+      const mid = segment.startAt.add(
+        segment.endAt.diff(segment.startAt, "minute") / 2,
+        "minute",
+      );
+      const angle = angleForTime(mid);
+      const inner = polarToCartesian(
+        center,
+        center,
+        ringRadius - ringWidth / 2,
+        angle,
+      );
+      const outer = polarToCartesian(
+        center,
+        center,
+        ringRadius + ringWidth / 2,
+        angle,
+      );
+      return (
+        <line
+          key={`break-${index}`}
+          x1={inner.x}
+          y1={inner.y}
+          x2={outer.x}
+          y2={outer.y}
+          className="ant-night-sleep-break-separator"
+        />
+      );
+    });
   }
 
   const markerMeta = {
@@ -1209,6 +1331,38 @@ function NightSleepCircleCard({
       className: "diaper",
     },
   };
+
+  function feedingTooltip(item) {
+    const details = [
+      `${strings.feedings} · ${formatAppTime(item.start)}`,
+      item.end
+        ? `${formatAppTime(item.start)} - ${formatAppTime(item.end)}`
+        : null,
+      item.duration
+        ? formatDurationCompact(durationMinutesFromValue(item.duration) * 60)
+        : null,
+      item.type || null,
+      item.method || null,
+      item.amount ? `${item.amount} ml` : null,
+    ].filter(Boolean);
+    return <span>{details.join(" | ")}</span>;
+  }
+
+  function diaperTooltip(item) {
+    const flags = [
+      item.wet ? strings.wet : null,
+      item.solid ? strings.solid : null,
+    ]
+      .filter(Boolean)
+      .join(", ");
+    const details = [
+      `${strings.diaperChanges} · ${formatAppTime(item.time)}`,
+      flags || null,
+      item.color || null,
+      item.amount || null,
+    ].filter(Boolean);
+    return <span>{details.join(" | ")}</span>;
+  }
 
   return (
     <div className="ant-night-sleep-card">
@@ -1262,14 +1416,12 @@ function NightSleepCircleCard({
           />
           {renderTimeScale()}
           {renderRingSegments(awakeSegments, "ant-night-sleep-segment awake")}
-          {renderRingSegments(
-            mergedSleepSegments,
-            "ant-night-sleep-segment sleep",
-          )}
+          {renderSleepSegments()}
+          {renderBreakSeparators()}
         </svg>
 
         <div className="ant-night-sleep-center">
-          <Text className="ant-night-sleep-kicker">{strings.lastNight}</Text>
+          <Text className="ant-night-sleep-kicker">{centerKicker}</Text>
           <div className="ant-night-sleep-total">
             {loading
               ? "..."
@@ -1288,8 +1440,12 @@ function NightSleepCircleCard({
           const meta = markerMeta[event.kind];
           const angle = angleForTime(event.at);
           const point = polarToCartesian(center, center, markerRadius, angle);
+          const tooltip =
+            event.kind === "feeding"
+              ? feedingTooltip(event.source || event)
+              : diaperTooltip(event.source || event);
           return (
-            <Tooltip key={`${event.kind}-${index}`} title={event.tooltip}>
+            <Tooltip key={`${event.kind}-${index}`} title={tooltip}>
               <span
                 className={`ant-night-sleep-marker ${meta.className}`}
                 style={{ left: point.x, top: point.y }}
@@ -1347,7 +1503,7 @@ function NightSleepCircleCard({
       <div className="ant-night-sleep-legend">
         <span className="ant-night-sleep-legend-item">
           <span className="ant-night-sleep-legend-icon sleep">
-            <span className="ant-night-sleep-zzz-icon">zzz</span>
+            <SleepZzzIcon />
           </span>
           <span>
             {strings.sleep} · {formatDurationCompact(totalSleepMinutes * 60)}
