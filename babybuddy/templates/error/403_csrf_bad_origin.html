@@ -7,12 +7,12 @@
 {% ant_error_bootstrap title="403 Forbidden" kicker=error_kicker body=error_body as ant_bootstrap %}
 {% block title %}403 {{ title }}{% endblock %}
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}?v=20260316_2" />
+    <link rel="stylesheet" href="{% static "babybuddy/ant/app.css" %}?v=20260316_3" />
 {% endblock %}
 {% block page %}
     {{ ant_bootstrap|json_script:"ant-app-bootstrap" }}
     <div id="ant-app-root"></div>
 {% endblock %}
 {% block javascript %}
-    <script type="module" src="{% static "babybuddy/ant/app.js" %}?v=20260316_2"></script>
+    <script type="module" src="{% static "babybuddy/ant/app.js" %}?v=20260316_3"></script>
 {% endblock %}
