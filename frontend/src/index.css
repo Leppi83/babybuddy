@@ -441,6 +441,41 @@ body {
   gap: 18px;
 }
 
+.ant-night-sleep-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ant-night-sleep-toolbar-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ant-night-sleep-toolbar-label.ant-typography {
+  color: var(--app-text-secondary);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ant-night-sleep-toolbar-value.ant-typography {
+  color: var(--app-text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ant-night-sleep-toolbar-picker {
+  min-width: 220px;
+}
+
+.ant-night-sleep-toolbar-picker .ant-picker {
+  width: 100%;
+}
+
 .ant-night-sleep-visual {
   position: relative;
   margin: 0 auto;
@@ -725,6 +760,10 @@ body {
 
   .ant-night-sleep-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ant-night-sleep-toolbar-picker {
+    min-width: 100%;
   }
 
   .ant-night-sleep-center {

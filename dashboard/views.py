@@ -174,6 +174,8 @@ def _build_ant_strings():
         "wakeTime": _("Wake Time"),
         "nightFeedings": _("Night Feedings"),
         "nightChanges": _("Night Changes"),
+        "selectedDate": _("Selected date"),
+        "nightWindowLabel": _("Night window"),
         "quicklyAddBabyActions": _("Quickly add baby actions"),
         # Sleep card internal labels
         "sleepEntriesToday": _("Sleep entries today"),
