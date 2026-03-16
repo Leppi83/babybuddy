@@ -28,7 +28,13 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { ReloadOutlined } from "@ant-design/icons";
+import {
+  CoffeeOutlined,
+  EyeOutlined,
+  MoonFilled,
+  ReloadOutlined,
+  SkinOutlined,
+} from "@ant-design/icons";
 import {
   asItems,
   APP_DATE_FORMAT,
@@ -940,6 +946,306 @@ function SleepWeekChart({ sleepItems }) {
   );
 }
 
+function polarToCartesian(cx, cy, radius, angleDeg) {
+  const angleRad = ((angleDeg - 90) * Math.PI) / 180;
+  return {
+    x: cx + radius * Math.cos(angleRad),
+    y: cy + radius * Math.sin(angleRad),
+  };
+}
+
+function describeArcPath(cx, cy, radius, startAngle, endAngle) {
+  const start = polarToCartesian(cx, cy, radius, endAngle);
+  const end = polarToCartesian(cx, cy, radius, startAngle);
+  const largeArcFlag = Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
+  return `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`;
+}
+
+function NightSleepCircleCard({
+  sleepItems,
+  feedingItems,
+  changeItems,
+  currentTime,
+  strings,
+}) {
+  const screens = Grid.useBreakpoint();
+  const isMobile = !screens.md;
+  const now = dayjs(currentTime);
+  const ringSize = isMobile ? 260 : 344;
+  const svgSize = ringSize;
+  const center = svgSize / 2;
+  const ringRadius = isMobile ? 98 : 126;
+  const ringWidth = isMobile ? 22 : 28;
+  const markerRadius = ringRadius + ringWidth * 0.72;
+  const sweepStart = 210;
+  const sweepDegrees = 300;
+
+  const completedNightSleeps = sleepItems
+    .filter((item) => item.start && item.end && !item.nap)
+    .map((item) => ({
+      ...item,
+      startAt: dayjs(item.start),
+      endAt: dayjs(item.end),
+    }))
+    .filter(
+      (item) =>
+        item.startAt.isValid() &&
+        item.endAt.isValid() &&
+        item.endAt.isAfter(item.startAt),
+    );
+
+  const latestSleepEnd = completedNightSleeps.reduce((latest, item) => {
+    if (!latest || item.endAt.isAfter(latest)) {
+      return item.endAt;
+    }
+    return latest;
+  }, null);
+
+  const nightStartBase =
+    latestSleepEnd && latestSleepEnd.hour() < 12
+      ? latestSleepEnd.startOf("day").subtract(1, "day")
+      : latestSleepEnd
+        ? latestSleepEnd.startOf("day")
+        : now.startOf("day").subtract(1, "day");
+  const nightStart = nightStartBase.hour(18).minute(0).second(0).millisecond(0);
+  const nightEnd = nightStart.add(16, "hour");
+  const totalWindowMinutes = nightEnd.diff(nightStart, "minute");
+
+  const overlappingSleepSegments = completedNightSleeps
+    .filter(
+      (item) =>
+        item.endAt.isAfter(nightStart) && item.startAt.isBefore(nightEnd),
+    )
+    .map((item) => ({
+      kind: "sleep",
+      startAt: item.startAt.isAfter(nightStart) ? item.startAt : nightStart,
+      endAt: item.endAt.isBefore(nightEnd) ? item.endAt : nightEnd,
+    }))
+    .sort((a, b) => a.startAt.valueOf() - b.startAt.valueOf());
+
+  const mergedSleepSegments = [];
+  overlappingSleepSegments.forEach((segment) => {
+    const previous = mergedSleepSegments[mergedSleepSegments.length - 1];
+    if (previous && segment.startAt.diff(previous.endAt, "minute") <= 5) {
+      if (segment.endAt.isAfter(previous.endAt)) {
+        previous.endAt = segment.endAt;
+      }
+      return;
+    }
+    mergedSleepSegments.push({ ...segment });
+  });
+
+  const awakeSegments = [];
+  mergedSleepSegments.forEach((segment, index) => {
+    const next = mergedSleepSegments[index + 1];
+    if (!next) {
+      return;
+    }
+    if (next.startAt.diff(segment.endAt, "minute") >= 5) {
+      awakeSegments.push({
+        kind: "awake",
+        startAt: segment.endAt,
+        endAt: next.startAt,
+      });
+    }
+  });
+
+  const eventItems = [
+    ...feedingItems
+      .filter((item) => item.start)
+      .map((item) => ({
+        kind: "feeding",
+        at: dayjs(item.start),
+        tooltip: `${strings.feedings} · ${formatAppTime(item.start)}`,
+      })),
+    ...changeItems
+      .filter((item) => item.time)
+      .map((item) => ({
+        kind: "diaper",
+        at: dayjs(item.time),
+        tooltip: `${strings.diaperChanges} · ${formatAppTime(item.time)}`,
+      })),
+  ].filter(
+    (item) =>
+      item.at.isValid() &&
+      (item.at.isAfter(nightStart) || item.at.isSame(nightStart)) &&
+      item.at.isBefore(nightEnd),
+  );
+
+  const totalSleepMinutes = mergedSleepSegments.reduce(
+    (sum, segment) => sum + segment.endAt.diff(segment.startAt, "minute"),
+    0,
+  );
+  const totalAwakeMinutes = awakeSegments.reduce(
+    (sum, segment) => sum + segment.endAt.diff(segment.startAt, "minute"),
+    0,
+  );
+
+  const firstSleepStart = mergedSleepSegments[0]?.startAt || null;
+  const lastSleepEnd =
+    mergedSleepSegments[mergedSleepSegments.length - 1]?.endAt || null;
+
+  function angleForTime(value) {
+    const minutes = value.diff(nightStart, "minute", true);
+    const clamped = Math.max(0, Math.min(totalWindowMinutes, minutes));
+    return sweepStart + (clamped / totalWindowMinutes) * sweepDegrees;
+  }
+
+  function renderRingSegments(segments, className) {
+    return segments.map((segment, index) => (
+      <path
+        key={`${className}-${index}`}
+        d={describeArcPath(
+          center,
+          center,
+          ringRadius,
+          angleForTime(segment.startAt),
+          angleForTime(segment.endAt),
+        )}
+        className={className}
+      />
+    ));
+  }
+
+  const markerMeta = {
+    feeding: {
+      icon: <CoffeeOutlined />,
+      className: "feeding",
+    },
+    diaper: {
+      icon: <SkinOutlined />,
+      className: "diaper",
+    },
+  };
+
+  return (
+    <div className="ant-night-sleep-card">
+      <div
+        className="ant-night-sleep-visual"
+        style={{
+          width: ringSize,
+          height: ringSize,
+          "--night-sleep-ring-width": `${ringWidth}px`,
+        }}
+      >
+        <svg
+          viewBox={`0 0 ${svgSize} ${svgSize}`}
+          className="ant-night-sleep-svg"
+          aria-hidden="true"
+        >
+          <path
+            d={describeArcPath(
+              center,
+              center,
+              ringRadius,
+              sweepStart,
+              sweepStart + sweepDegrees,
+            )}
+            className="ant-night-sleep-track"
+          />
+          {renderRingSegments(awakeSegments, "ant-night-sleep-segment awake")}
+          {renderRingSegments(
+            mergedSleepSegments,
+            "ant-night-sleep-segment sleep",
+          )}
+        </svg>
+
+        <div className="ant-night-sleep-center">
+          <Text className="ant-night-sleep-kicker">{strings.lastNight}</Text>
+          <div className="ant-night-sleep-total">
+            {totalSleepMinutes > 0
+              ? formatDurationCompact(totalSleepMinutes * 60)
+              : strings.noSleepData}
+          </div>
+          <Text className="ant-night-sleep-subtitle">
+            {firstSleepStart && lastSleepEnd
+              ? `${formatAppTime(firstSleepStart.toDate())} - ${formatAppTime(lastSleepEnd.toDate())}`
+              : `${nightStart.format("DD.MM.")} · ${nightStart.format("HH:mm")} - ${nightEnd.format("HH:mm")}`}
+          </Text>
+        </div>
+
+        {eventItems.map((event, index) => {
+          const meta = markerMeta[event.kind];
+          const angle = angleForTime(event.at);
+          const point = polarToCartesian(center, center, markerRadius, angle);
+          return (
+            <Tooltip key={`${event.kind}-${index}`} title={event.tooltip}>
+              <span
+                className={`ant-night-sleep-marker ${meta.className}`}
+                style={{ left: point.x, top: point.y }}
+              >
+                {meta.icon}
+              </span>
+            </Tooltip>
+          );
+        })}
+      </div>
+
+      <div className="ant-night-sleep-stats">
+        <div className="ant-night-sleep-stat">
+          <span className="ant-night-sleep-stat-label">{strings.bedtime}</span>
+          <strong>
+            {firstSleepStart ? formatAppTime(firstSleepStart.toDate()) : "—"}
+          </strong>
+        </div>
+        <div className="ant-night-sleep-stat">
+          <span className="ant-night-sleep-stat-label">{strings.wakeTime}</span>
+          <strong>
+            {lastSleepEnd ? formatAppTime(lastSleepEnd.toDate()) : "—"}
+          </strong>
+        </div>
+        <div className="ant-night-sleep-stat">
+          <span className="ant-night-sleep-stat-label">
+            {strings.nightFeedings}
+          </span>
+          <strong>
+            {eventItems.filter((item) => item.kind === "feeding").length}
+          </strong>
+        </div>
+        <div className="ant-night-sleep-stat">
+          <span className="ant-night-sleep-stat-label">
+            {strings.nightChanges}
+          </span>
+          <strong>
+            {eventItems.filter((item) => item.kind === "diaper").length}
+          </strong>
+        </div>
+      </div>
+
+      <div className="ant-night-sleep-legend">
+        <span className="ant-night-sleep-legend-item">
+          <span className="ant-night-sleep-legend-icon sleep">
+            <MoonFilled />
+          </span>
+          <span>
+            {strings.sleep} · {formatDurationCompact(totalSleepMinutes * 60)}
+          </span>
+        </span>
+        <span className="ant-night-sleep-legend-item">
+          <span className="ant-night-sleep-legend-icon awake">
+            <EyeOutlined />
+          </span>
+          <span>
+            {strings.awake} · {formatDurationCompact(totalAwakeMinutes * 60)}
+          </span>
+        </span>
+        <span className="ant-night-sleep-legend-item">
+          <span className="ant-night-sleep-legend-icon diaper">
+            <SkinOutlined />
+          </span>
+          <span>{strings.diaperChanges}</span>
+        </span>
+        <span className="ant-night-sleep-legend-item">
+          <span className="ant-night-sleep-legend-icon feeding">
+            <CoffeeOutlined />
+          </span>
+          <span>{strings.feedings}</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function ChildDashboardPage({ bootstrap }) {
   const ant = AntApp.useApp();
   const api = useRef(createApiClient(bootstrap.csrfToken));
@@ -954,6 +1260,8 @@ export function ChildDashboardPage({ bootstrap }) {
   const [dashboardData, setDashboardData] = useState({
     sleepItems: [],
     weekSleepItems: [],
+    feedingItems: [],
+    changeItems: [],
   });
   const [diaperDate, setDiaperDate] = useState(dayjs());
   const [diaperTime, setDiaperTime] = useState(dayjs());
@@ -1149,7 +1457,12 @@ export function ChildDashboardPage({ bootstrap }) {
       const tummyItems = asItems(tummyTimes);
       const timerItems = asItems(timers);
       const weekSleepItems = asItems(weekSleeps);
-      setDashboardData({ sleepItems, weekSleepItems });
+      setDashboardData({
+        sleepItems,
+        weekSleepItems,
+        feedingItems,
+        changeItems,
+      });
 
       const lastChange = changeItems[0];
       const lastFeeding = feedingItems[0];
@@ -2629,6 +2942,16 @@ export function ChildDashboardPage({ bootstrap }) {
     if (cardKey === "card.quick_entry.consolidated")
       return renderQuickEntryCard();
     if (cardKey === "card.sleep.timeline_day") return renderSleepTimelineCard();
+    if (cardKey === "card.sleep.night_circle")
+      return (
+        <NightSleepCircleCard
+          sleepItems={dashboardData.sleepItems}
+          feedingItems={dashboardData.feedingItems}
+          changeItems={dashboardData.changeItems}
+          currentTime={currentTime}
+          strings={bootstrap.strings}
+        />
+      );
     if (cardKey === "card.sleep.week_chart")
       return <SleepWeekChart sleepItems={dashboardData.weekSleepItems} />;
     if (cardKey === "card.sleep.recommendations")

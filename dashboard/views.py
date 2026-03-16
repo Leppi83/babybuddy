@@ -127,6 +127,7 @@ def _build_ant_strings():
         "todaysNaps": _("Today's Naps"),
         "statistics": _("Statistics"),
         "sleepTimeline": _("Sleep Timeline (24h)"),
+        "nightSleepCircle": _("Night Sleep Circle"),
         "todaysTummyTime": _("Today's Tummy Time"),
         "noData": _("No data available yet."),
         "napWindowOver": _("Nap time is over for today"),
@@ -167,6 +168,12 @@ def _build_ant_strings():
         "todaysSleeps": _("Today's Sleeps"),
         "sleepStatistics": _("Sleep Statistics"),
         "sleepWeekChart": _("Sleep This Week"),
+        "lastNight": _("Last Night"),
+        "awake": _("Awake"),
+        "bedtime": _("Bedtime"),
+        "wakeTime": _("Wake Time"),
+        "nightFeedings": _("Night Feedings"),
+        "nightChanges": _("Night Changes"),
         "quicklyAddBabyActions": _("Quickly add baby actions"),
         # Sleep card internal labels
         "sleepEntriesToday": _("Sleep entries today"),
@@ -297,6 +304,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "card.sleep.naps_day",
             "card.sleep.statistics",
             "card.sleep.timeline_day",
+            "card.sleep.night_circle",
             "card.sleep.week_chart",
             "card.sleep.list",
         ],
@@ -668,6 +676,12 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         ordered_visible_items = [
             item for item in selected_items if item in allowed_items
         ]
+        if "card.sleep.night_circle" in allowed_items and "card.sleep.night_circle" not in ordered_visible_items:
+            try:
+                insert_at = ordered_visible_items.index("card.sleep.week_chart")
+            except ValueError:
+                insert_at = len(ordered_visible_items)
+            ordered_visible_items.insert(insert_at, "card.sleep.night_circle")
         visible_items = set(ordered_visible_items)
 
         preview_cards_by_section = {

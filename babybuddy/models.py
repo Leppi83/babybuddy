@@ -39,6 +39,7 @@ class Settings(models.Model):
         ("card.sleep.naps_day", _("Sleep - Today's Naps")),
         ("card.sleep.statistics", _("Sleep - Statistics")),
         ("card.sleep.timeline_day", _("Sleep - Sleep Timeline (24h)")),
+        ("card.sleep.night_circle", _("Sleep - Night Sleep Circle")),
         ("card.sleep.week_chart", _("Sleep - Sleep This Week")),
         ("card.sleep.list", _("Sleep - Sleep List")),
         ("card.tummytime.day", _("Tummy - Today's Tummy Time")),
