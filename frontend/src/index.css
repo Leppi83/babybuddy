@@ -504,20 +504,13 @@ body {
 
 .ant-night-sleep-segment.sleep {
   stroke: var(--night-sleep-sleep);
+  cursor: pointer;
+  filter: drop-shadow(0 2px 6px rgba(245, 158, 11, 0.18));
 }
 
 .ant-night-sleep-segment.awake {
   stroke: var(--night-sleep-awake);
-}
-
-.ant-night-sleep-break-separator {
-  stroke: var(--app-bg-end);
-  stroke-width: 3;
-  stroke-linecap: round;
-}
-
-:root[data-theme="light"] .ant-night-sleep-break-separator {
-  stroke: #ffffff;
+  cursor: pointer;
 }
 
 .ant-night-sleep-tick {
@@ -575,26 +568,31 @@ body {
 
 .ant-night-sleep-marker {
   position: absolute;
-  width: 46px;
-  height: 46px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   transform: translate(-50%, -50%);
-  border: 1px solid var(--app-border);
-  background: rgba(15, 23, 42, 0.94);
-  box-shadow: 0 6px 14px var(--night-sleep-marker-shadow);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
   color: var(--app-text-primary);
+  z-index: 2;
+  cursor: pointer;
 }
 
 :root[data-theme="light"] .ant-night-sleep-marker {
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: 0 4px 10px rgba(148, 163, 184, 0.14);
 }
 
 .ant-night-sleep-marker svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .ant-night-sleep-legend-icon svg {
@@ -608,6 +606,69 @@ body {
 
 .ant-night-sleep-marker.diaper {
   color: var(--night-sleep-diaper);
+}
+
+.ant-night-sleep-marker.feeding,
+.ant-night-sleep-marker.diaper {
+  width: 30px;
+  height: 30px;
+}
+
+.ant-night-sleep-marker.feeding svg,
+.ant-night-sleep-marker.diaper svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ant-night-sleep-marker.sleep,
+.ant-night-sleep-marker.awake {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.ant-night-sleep-marker.sleep {
+  color: #ffffff;
+}
+
+.ant-night-sleep-marker.sleep svg {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.28));
+}
+
+.ant-night-sleep-marker.awake {
+  color: #8b5cf6;
+}
+
+.ant-night-sleep-marker.awake svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ant-night-sleep-hovercard {
+  position: absolute;
+  max-width: 172px;
+  pointer-events: none;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--app-border);
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  z-index: 4;
+}
+
+:root[data-theme="light"] .ant-night-sleep-hovercard {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--app-text-primary);
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: 0 12px 28px rgba(148, 163, 184, 0.18);
 }
 
 .ant-night-sleep-stats {
