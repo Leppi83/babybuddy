@@ -55,6 +55,7 @@ export function getDashboardCardTitle(key, strings) {
     "card.sleep.naps_day": strings.todaysNaps,
     "card.sleep.statistics": strings.sleepStatistics,
     "card.sleep.timeline_day": strings.sleepTimeline,
+    "card.sleep.night_circle": strings.nightSleepCircle,
     "card.sleep.week_chart": strings.sleepWeekChart,
     "card.sleep.list": strings.sleepList,
     "card.tummytime.day": strings.todaysTummyTime,

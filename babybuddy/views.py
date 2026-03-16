@@ -466,6 +466,13 @@ def _build_settings_bootstrap(request, form_user, form_settings):
         links["tags"] = reverse("core:tag-list")
         links["users"] = reverse("babybuddy:user-list")
         links["databaseAdmin"] = reverse("admin:index")
+    dashboard_visible_items = user_settings.dashboard_selected_items()
+    if "card.sleep.night_circle" not in dashboard_visible_items:
+        try:
+            insert_at = dashboard_visible_items.index("card.sleep.week_chart")
+        except ValueError:
+            insert_at = len(dashboard_visible_items)
+        dashboard_visible_items.insert(insert_at, "card.sleep.night_circle")
 
     return {
         "pageType": "settings",
@@ -504,7 +511,7 @@ def _build_settings_bootstrap(request, form_user, form_settings):
                 "hideAge": _serialize_choice_value(
                     age_field, user_settings.dashboard_hide_age
                 ),
-                "visibleItems": user_settings.dashboard_selected_items(),
+                "visibleItems": dashboard_visible_items,
                 "availableItems": [
                     {"value": key, "label": str(label)}
                     for key, label in UserSettingsModel.DASHBOARD_ITEM_CHOICES
