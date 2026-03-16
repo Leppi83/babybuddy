@@ -965,12 +965,14 @@ function NightSleepCircleCard({
   sleepItems,
   feedingItems,
   changeItems,
-  currentTime,
+  selectedDate,
+  onDateChange,
+  loading,
   strings,
 }) {
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
-  const now = dayjs(currentTime);
+  const selectedDay = selectedDate.startOf("day");
   const ringSize = isMobile ? 260 : 344;
   const svgSize = ringSize;
   const center = svgSize / 2;
@@ -979,6 +981,14 @@ function NightSleepCircleCard({
   const markerRadius = ringRadius + ringWidth * 0.72;
   const sweepStart = 210;
   const sweepDegrees = 300;
+  const nightStart = selectedDay.hour(18).minute(0).second(0).millisecond(0);
+  const nightEnd = selectedDay
+    .add(1, "day")
+    .hour(7)
+    .minute(0)
+    .second(0)
+    .millisecond(0);
+  const totalWindowMinutes = nightEnd.diff(nightStart, "minute");
 
   const completedNightSleeps = sleepItems
     .filter((item) => item.start && item.end && !item.nap)
@@ -993,23 +1003,6 @@ function NightSleepCircleCard({
         item.endAt.isValid() &&
         item.endAt.isAfter(item.startAt),
     );
-
-  const latestSleepEnd = completedNightSleeps.reduce((latest, item) => {
-    if (!latest || item.endAt.isAfter(latest)) {
-      return item.endAt;
-    }
-    return latest;
-  }, null);
-
-  const nightStartBase =
-    latestSleepEnd && latestSleepEnd.hour() < 12
-      ? latestSleepEnd.startOf("day").subtract(1, "day")
-      : latestSleepEnd
-        ? latestSleepEnd.startOf("day")
-        : now.startOf("day").subtract(1, "day");
-  const nightStart = nightStartBase.hour(18).minute(0).second(0).millisecond(0);
-  const nightEnd = nightStart.add(16, "hour");
-  const totalWindowMinutes = nightEnd.diff(nightStart, "minute");
 
   const overlappingSleepSegments = completedNightSleeps
     .filter(
@@ -1120,6 +1113,31 @@ function NightSleepCircleCard({
 
   return (
     <div className="ant-night-sleep-card">
+      <div className="ant-night-sleep-toolbar">
+        <div className="ant-night-sleep-toolbar-meta">
+          <Text className="ant-night-sleep-toolbar-label">
+            {strings.nightWindowLabel}
+          </Text>
+          <Text className="ant-night-sleep-toolbar-value">18:00 - 07:00</Text>
+        </div>
+        <div className="ant-night-sleep-toolbar-picker">
+          <label className="ant-dashboard-inline-label">
+            {strings.selectedDate}
+          </label>
+          <DatePicker
+            value={selectedDate}
+            format={APP_DATE_FORMAT_FULL}
+            onChange={(value) => {
+              if (value) {
+                onDateChange(value.startOf("day"));
+              }
+            }}
+            inputReadOnly
+            allowClear={false}
+          />
+        </div>
+      </div>
+
       <div
         className="ant-night-sleep-visual"
         style={{
@@ -1153,14 +1171,16 @@ function NightSleepCircleCard({
         <div className="ant-night-sleep-center">
           <Text className="ant-night-sleep-kicker">{strings.lastNight}</Text>
           <div className="ant-night-sleep-total">
-            {totalSleepMinutes > 0
-              ? formatDurationCompact(totalSleepMinutes * 60)
-              : strings.noSleepData}
+            {loading
+              ? "..."
+              : totalSleepMinutes > 0
+                ? formatDurationCompact(totalSleepMinutes * 60)
+                : strings.noSleepData}
           </div>
           <Text className="ant-night-sleep-subtitle">
             {firstSleepStart && lastSleepEnd
               ? `${formatAppTime(firstSleepStart.toDate())} - ${formatAppTime(lastSleepEnd.toDate())}`
-              : `${nightStart.format("DD.MM.")} · ${nightStart.format("HH:mm")} - ${nightEnd.format("HH:mm")}`}
+              : `${selectedDay.format("DD.MM.YYYY")} · ${nightStart.format("HH:mm")} - ${nightEnd.format("HH:mm")}`}
           </Text>
         </div>
 
@@ -1185,13 +1205,21 @@ function NightSleepCircleCard({
         <div className="ant-night-sleep-stat">
           <span className="ant-night-sleep-stat-label">{strings.bedtime}</span>
           <strong>
-            {firstSleepStart ? formatAppTime(firstSleepStart.toDate()) : "—"}
+            {loading
+              ? "..."
+              : firstSleepStart
+                ? formatAppTime(firstSleepStart.toDate())
+                : "—"}
           </strong>
         </div>
         <div className="ant-night-sleep-stat">
           <span className="ant-night-sleep-stat-label">{strings.wakeTime}</span>
           <strong>
-            {lastSleepEnd ? formatAppTime(lastSleepEnd.toDate()) : "—"}
+            {loading
+              ? "..."
+              : lastSleepEnd
+                ? formatAppTime(lastSleepEnd.toDate())
+                : "—"}
           </strong>
         </div>
         <div className="ant-night-sleep-stat">
@@ -1199,7 +1227,9 @@ function NightSleepCircleCard({
             {strings.nightFeedings}
           </span>
           <strong>
-            {eventItems.filter((item) => item.kind === "feeding").length}
+            {loading
+              ? "..."
+              : eventItems.filter((item) => item.kind === "feeding").length}
           </strong>
         </div>
         <div className="ant-night-sleep-stat">
@@ -1207,7 +1237,9 @@ function NightSleepCircleCard({
             {strings.nightChanges}
           </span>
           <strong>
-            {eventItems.filter((item) => item.kind === "diaper").length}
+            {loading
+              ? "..."
+              : eventItems.filter((item) => item.kind === "diaper").length}
           </strong>
         </div>
       </div>
@@ -1330,6 +1362,15 @@ export function ChildDashboardPage({ bootstrap }) {
   const [selectedQuickEntrySegment, setSelectedQuickEntrySegment] =
     useState("sleep");
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [nightCircleDate, setNightCircleDate] = useState(
+    dayjs().startOf("day"),
+  );
+  const [nightCircleLoading, setNightCircleLoading] = useState(false);
+  const [nightCircleData, setNightCircleData] = useState({
+    sleepItems: [],
+    feedingItems: [],
+    changeItems: [],
+  });
   const child = bootstrap.children.find(
     (item) => String(item.id) === String(selectedChildId),
   );
@@ -1347,6 +1388,10 @@ export function ChildDashboardPage({ bootstrap }) {
     setSleepListPage(1);
     fetchSleepList(selectedChildId, 1, sleepListDateRange);
   }, [selectedChildId, sleepListDateRange]);
+
+  useEffect(() => {
+    fetchNightCircleData(selectedChildId, nightCircleDate);
+  }, [selectedChildId, nightCircleDate]);
 
   useEffect(() => {
     const t = bootstrap.sleepTimer || {};
@@ -1412,6 +1457,57 @@ export function ChildDashboardPage({ bootstrap }) {
     const date = new Date(value);
     const now = new Date();
     return date.toDateString() === now.toDateString();
+  }
+
+  async function fetchNightCircleData(childId, selectedDay = nightCircleDate) {
+    if (!childId) {
+      return;
+    }
+
+    setNightCircleLoading(true);
+    const windowStart = selectedDay
+      .startOf("day")
+      .hour(18)
+      .minute(0)
+      .second(0)
+      .millisecond(0);
+    const windowEnd = selectedDay
+      .startOf("day")
+      .add(1, "day")
+      .hour(7)
+      .minute(0)
+      .second(0)
+      .millisecond(0);
+    const childQuery = `child=${encodeURIComponent(childId)}`;
+
+    try {
+      const [sleeps, feedings, changes] = await Promise.all([
+        api.current.get(
+          `/api/sleep/?${childQuery}&start_max=${encodeURIComponent(windowEnd.toISOString())}&end_min=${encodeURIComponent(windowStart.toISOString())}&limit=100`,
+        ),
+        api.current.get(
+          `/api/feedings/?${childQuery}&start_max=${encodeURIComponent(windowEnd.toISOString())}&end_min=${encodeURIComponent(windowStart.toISOString())}&limit=100`,
+        ),
+        api.current.get(
+          `/api/changes/?${childQuery}&date_min=${encodeURIComponent(windowStart.toISOString())}&date_max=${encodeURIComponent(windowEnd.toISOString())}&limit=100`,
+        ),
+      ]);
+
+      setNightCircleData({
+        sleepItems: asItems(sleeps),
+        feedingItems: asItems(feedings),
+        changeItems: asItems(changes),
+      });
+    } catch (error) {
+      setNightCircleData({
+        sleepItems: [],
+        feedingItems: [],
+        changeItems: [],
+      });
+      ant.message.error(error.message);
+    } finally {
+      setNightCircleLoading(false);
+    }
   }
 
   async function loadDashboardData(childId, options = {}) {
@@ -2945,10 +3041,12 @@ export function ChildDashboardPage({ bootstrap }) {
     if (cardKey === "card.sleep.night_circle")
       return (
         <NightSleepCircleCard
-          sleepItems={dashboardData.sleepItems}
-          feedingItems={dashboardData.feedingItems}
-          changeItems={dashboardData.changeItems}
-          currentTime={currentTime}
+          sleepItems={nightCircleData.sleepItems}
+          feedingItems={nightCircleData.feedingItems}
+          changeItems={nightCircleData.changeItems}
+          selectedDate={nightCircleDate}
+          onDateChange={setNightCircleDate}
+          loading={nightCircleLoading}
           strings={bootstrap.strings}
         />
       );
