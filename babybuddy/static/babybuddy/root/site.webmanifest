@@ -16,32 +16,15 @@
   "lang": "en-US",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#37abe9",
+  "theme_color": "#020617",
   "background_color": "#020617",
   "shortcuts": [
-    {
-      "name": "Start a timer",
-      "url": "/timers/add/"
-    },
-    {
-      "name": "Record a change",
-      "url": "/changes/add/"
-    },
-    {
-      "name": "Record a feed",
-      "url": "/feedings/add/"
-    },
-    {
-      "name": "Record a pumping",
-      "url": "/pumping/add/"
-    },
-    {
-      "name": "Record a sleep",
-      "url": "/sleep/add/"
-    },
-    {
-      "name": "Record tummy time",
-      "url": "/tummy-time/add/"
-    }
+    { "name": "Log Diaper", "url": "/log/diaper/" },
+    { "name": "Log Feeding", "url": "/log/feeding/" },
+    { "name": "Start Sleep", "url": "/log/sleep/start/" },
+    { "name": "Log Pumping", "url": "/log/pumping/" },
+    { "name": "Log Temperature", "url": "/log/temperature/" },
+    { "name": "Log Note", "url": "/log/note/" },
+    { "name": "Log Weight", "url": "/log/weight/" }
   ]
 }
