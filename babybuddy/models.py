@@ -142,6 +142,11 @@ class Settings(models.Model):
     dashboard_hidden_sections = models.JSONField(
         verbose_name=_("Hidden dashboard sections"), default=list, blank=True
     )
+    last_used_defaults = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Last used quick-entry defaults"),
+    )
     language = models.CharField(
         choices=settings.LANGUAGES,
         default=settings.LANGUAGE_CODE,
