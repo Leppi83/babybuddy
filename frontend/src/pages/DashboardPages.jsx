@@ -847,11 +847,12 @@ function SleepWeekChart({ sleepItems }) {
     label: `${h}h`,
   })).filter((_, h) => maxH <= 4 || h % 2 === 0);
 
-  // Responsive font sizes and line width
-  const yAxisFontSize = isMobile ? "10" : "8";
-  const valueLabelFontSize = isMobile ? "9" : "7";
-  const dayLabelFontSize = isMobile ? "9" : "8";
-  const lineWidth = isMobile ? "1.6" : "1.2";
+  // SVG font sizes are in viewBox units (620px wide) — they scale with the element.
+  // Use larger values so text remains legible at small rendered widths.
+  const yAxisFontSize = isMobile ? "14" : "11";
+  const valueLabelFontSize = isMobile ? "13" : "11";
+  const dayLabelFontSize = isMobile ? "13" : "11";
+  const lineWidth = isMobile ? "2" : "1.6";
 
   return (
     <svg
@@ -3502,23 +3503,41 @@ export function ChildDashboardPage({ bootstrap }) {
                         <Col xs={24} key={cardKey}>
                           <SummaryCard title={title}>
                             {secondaryKey ? (
-                              <Row wrap={false} align="top">
-                                <Col flex="1 1 0" style={{ minWidth: 0 }}>
+                              !screens.md &&
+                              cardKey === "card.sleep.timeline_day" ? (
+                                <Space
+                                  direction="vertical"
+                                  size={12}
+                                  style={{ width: "100%" }}
+                                >
                                   {renderCardContent(cardKey)}
-                                </Col>
-                                <Divider
-                                  type="vertical"
-                                  style={{
-                                    height: "auto",
-                                    alignSelf: "stretch",
-                                    borderColor: "rgba(77,182,255,0.15)",
-                                    margin: "0 12px",
-                                  }}
-                                />
-                                <Col flex="1 1 0" style={{ minWidth: 0 }}>
+                                  <Divider
+                                    style={{
+                                      margin: "0",
+                                      borderColor: "rgba(77,182,255,0.15)",
+                                    }}
+                                  />
                                   {renderCardContent(secondaryKey)}
-                                </Col>
-                              </Row>
+                                </Space>
+                              ) : (
+                                <Row wrap={false} align="top">
+                                  <Col flex="1 1 0" style={{ minWidth: 0 }}>
+                                    {renderCardContent(cardKey)}
+                                  </Col>
+                                  <Divider
+                                    type="vertical"
+                                    style={{
+                                      height: "auto",
+                                      alignSelf: "stretch",
+                                      borderColor: "rgba(77,182,255,0.15)",
+                                      margin: "0 12px",
+                                    }}
+                                  />
+                                  <Col flex="1 1 0" style={{ minWidth: 0 }}>
+                                    {renderCardContent(secondaryKey)}
+                                  </Col>
+                                </Row>
+                              )
                             ) : (
                               renderCardContent(cardKey)
                             )}
