@@ -678,7 +678,10 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         ordered_visible_items = [
             item for item in selected_items if item in allowed_items
         ]
-        if "card.sleep.night_circle" in allowed_items and "card.sleep.night_circle" not in ordered_visible_items:
+        if (
+            "card.sleep.night_circle" in allowed_items
+            and "card.sleep.night_circle" not in ordered_visible_items
+        ):
             try:
                 insert_at = ordered_visible_items.index("card.sleep.week_chart")
             except ValueError:
