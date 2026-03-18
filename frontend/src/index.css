@@ -41,6 +41,8 @@
   --night-sleep-feeding: #38bdf8;
   --night-sleep-diaper: #ff6b8b;
   --night-sleep-marker-shadow: rgba(8, 7, 26, 0.24);
+  --app-primary: #a78bfa;
+  --app-card-glass-bg: rgba(19, 16, 58, 0.55);
 }
 
 :root[data-theme="light"] {
@@ -83,6 +85,8 @@
   --night-sleep-feeding: #0284c7;
   --night-sleep-diaper: #e11d48;
   --night-sleep-marker-shadow: rgba(196, 181, 253, 0.18);
+  --app-primary: #7c3aed;
+  --app-card-glass-bg: rgba(255, 255, 255, 0.72);
 }
 
 html,
@@ -229,11 +233,9 @@ body {
 .ant-dashboard-card,
 .ant-summary-card {
   border-color: var(--app-card-border) !important;
-  background: linear-gradient(
-    135deg,
-    var(--app-card-bg-start),
-    var(--app-card-bg-end)
-  ) !important;
+  background: var(--app-card-glass-bg) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
   box-shadow: 0 20px 50px var(--app-shell-shadow);
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -242,6 +244,10 @@ body {
 .ant-section-card:hover,
 .ant-dashboard-card:hover {
   box-shadow: 0 20px 50px var(--app-shell-shadow), 0 0 0 1px rgba(167, 139, 250, 0.28);
+}
+
+.ant-section-card.ant-card {
+  border-left: 3px solid var(--section-color, var(--app-card-border)) !important;
 }
 
 .ant-child-image-wrap {
@@ -858,6 +864,7 @@ body {
 @media (max-width: 767px) {
   .ant-shell-content {
     padding: 14px;
+    padding-bottom: 78px;
   }
 
   .ant-shell-header {
@@ -927,6 +934,133 @@ body {
   .ant-summary-card .ant-segmented {
     width: 100%;
   }
+}
+
+/* ── Pill nav items ─────────────────────────────────────────────── */
+.ant-shell-menu .ant-menu-item,
+.ant-shell-menu .ant-menu-submenu > .ant-menu-submenu-title {
+  border-radius: 12px !important;
+  margin-block: 3px !important;
+  margin-inline: 4px !important;
+  width: calc(100% - 8px) !important;
+  transition: background 0.18s ease !important;
+}
+
+.ant-shell-menu .ant-menu-item:hover,
+.ant-shell-menu .ant-menu-submenu > .ant-menu-submenu-title:hover {
+  background: rgba(167, 139, 250, 0.1) !important;
+}
+
+.ant-shell-menu .ant-menu-item-selected {
+  background: linear-gradient(
+    90deg,
+    rgba(167, 139, 250, 0.22),
+    rgba(167, 139, 250, 0.06)
+  ) !important;
+  box-shadow: inset 3px 0 0 #a78bfa;
+}
+
+:root[data-theme="light"] .ant-shell-menu .ant-menu-item:hover,
+:root[data-theme="light"]
+  .ant-shell-menu
+  .ant-menu-submenu
+  > .ant-menu-submenu-title:hover {
+  background: rgba(124, 58, 237, 0.08) !important;
+}
+
+:root[data-theme="light"] .ant-shell-menu .ant-menu-item-selected {
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.14),
+    rgba(124, 58, 237, 0.04)
+  ) !important;
+  box-shadow: inset 3px 0 0 #7c3aed;
+}
+
+/* ── Brand logo glow ─────────────────────────────────────────────── */
+.ant-shell-brand img {
+  filter: drop-shadow(0 0 7px rgba(167, 139, 250, 0.38));
+  transition: filter 0.3s ease;
+}
+
+.ant-shell-brand:hover img {
+  filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.65));
+}
+
+/* ── Page content fade-in ────────────────────────────────────────── */
+@keyframes shellFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ant-shell-content > .ant-space {
+  animation: shellFadeInUp 0.22s ease forwards;
+}
+
+/* ── Primary button hover lift ───────────────────────────────────── */
+.ant-btn-primary {
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.ant-btn-primary:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(167, 139, 250, 0.32) !important;
+}
+
+/* ── Mobile bottom nav ───────────────────────────────────────────── */
+.ant-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: stretch;
+  height: 56px;
+  background: var(--app-sider-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--app-header-border);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.ant-bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  color: var(--app-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  padding: 6px 4px;
+  transition: color 0.15s ease;
+}
+
+.ant-bottom-nav-item .anticon {
+  font-size: 1.25rem;
+}
+
+.ant-bottom-nav-item span {
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+.ant-bottom-nav-item.is-active {
+  color: var(--app-primary);
+}
+
+.ant-bottom-nav-item:active {
+  opacity: 0.65;
 }
 
 .sleep-list-row-a > td {

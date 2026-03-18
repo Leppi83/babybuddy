@@ -15,6 +15,7 @@ import {
   HomeOutlined,
   HistoryOutlined,
   HeartOutlined,
+  EllipsisOutlined,
   DesktopOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
@@ -63,6 +64,19 @@ export function AppShell({
   const screens = useBreakpoint();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  function handleLogout() {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = bootstrap.urls.logout;
+    const csrf = document.createElement("input");
+    csrf.type = "hidden";
+    csrf.name = "csrfmiddlewaretoken";
+    csrf.value = bootstrap.csrfToken;
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+  }
   const isDesktop = Boolean(screens.md);
   const isAuthLayout = bootstrap.layout === "auth";
   const childrenMenuItem = bootstrap.urls.childrenList
@@ -116,16 +130,7 @@ export function AppShell({
 
   function handleNavClick({ key }) {
     if (key === "__logout__") {
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = bootstrap.urls.logout;
-      const csrf = document.createElement("input");
-      csrf.type = "hidden";
-      csrf.name = "csrfmiddlewaretoken";
-      csrf.value = bootstrap.csrfToken;
-      form.appendChild(csrf);
-      document.body.appendChild(form);
-      form.submit();
+      handleLogout();
       return;
     }
     if (key.startsWith("/")) {
@@ -320,16 +325,52 @@ export function AppShell({
         <Drawer
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
-          placement="left"
-          width={300}
-          styles={{ body: { padding: 16 } }}
+          placement="bottom"
+          height="auto"
+          title={null}
+          closeIcon={null}
+          styles={{ body: { padding: "20px 20px 12px" } }}
         >
-          {brand}
-          {menu}
-          <ThemeSwitcher
-            themeMode={themeMode}
-            onThemeModeChange={onThemeModeChange}
-          />
+          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+            {childrenMenuItem && (
+              <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                {bootstrap.urls.childrenList && (
+                  <Button
+                    type="text"
+                    icon={<HeartOutlined />}
+                    href={bootstrap.urls.childrenList}
+                    block
+                    style={{ textAlign: "left", justifyContent: "flex-start" }}
+                  >
+                    {bootstrap.strings.children}
+                  </Button>
+                )}
+                {bootstrap.urls.addChild && (
+                  <Button
+                    type="text"
+                    icon={<PlusOutlined />}
+                    href={bootstrap.urls.addChild}
+                    block
+                    style={{ textAlign: "left", justifyContent: "flex-start" }}
+                  >
+                    {bootstrap.strings.addChild}
+                  </Button>
+                )}
+              </Space>
+            )}
+            <ThemeSwitcher
+              themeMode={themeMode}
+              onThemeModeChange={onThemeModeChange}
+            />
+            <Button
+              danger
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              block
+            >
+              {bootstrap.strings.logout}
+            </Button>
+          </Space>
         </Drawer>
       )}
       <Layout>
@@ -345,23 +386,29 @@ export function AppShell({
             }}
           >
             <Space size="middle">
-              {!isDesktop && (
-                <Button
-                  type="text"
-                  icon={<MenuUnfoldOutlined />}
-                  onClick={() => setMobileOpen(true)}
-                />
-              )}
               {(pageMeta.eyebrow || pageMeta.title) && (
-                <div>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 1 }}
+                >
                   {pageMeta.eyebrow && (
-                    <Text type="secondary">{pageMeta.eyebrow}</Text>
+                    <Text
+                      type="secondary"
+                      style={{
+                        display: "block",
+                        fontSize: "0.72rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {pageMeta.eyebrow}
+                    </Text>
                   )}
                   {pageMeta.title && (
                     <Title
                       level={3}
                       className="ant-shell-title"
-                      style={{ margin: 0 }}
+                      style={{ margin: 0, lineHeight: 1.2 }}
                     >
                       {pageMeta.title}
                     </Title>
@@ -404,6 +451,49 @@ export function AppShell({
           </Space>
         </Content>
       </Layout>
+      {!isDesktop && (
+        <nav className="ant-bottom-nav">
+          {[
+            {
+              key: bootstrap.urls.dashboard,
+              icon: <HomeOutlined />,
+              label: bootstrap.strings.dashboard,
+            },
+            {
+              key: bootstrap.urls.timeline,
+              icon: <HistoryOutlined />,
+              label: bootstrap.strings.timeline,
+            },
+            {
+              key: bootstrap.urls.settings,
+              icon: <SettingOutlined />,
+              label: bootstrap.strings.settings,
+            },
+            {
+              key: "__more__",
+              icon: <EllipsisOutlined />,
+              label: "More",
+            },
+          ].map((item) => {
+            const isActive =
+              item.key !== "__more__" && selectedKey === item.key;
+            return (
+              <button
+                key={item.key}
+                className={`ant-bottom-nav-item${isActive ? " is-active" : ""}`}
+                onClick={() =>
+                  item.key === "__more__"
+                    ? setMobileOpen(true)
+                    : handleNavClick({ key: item.key })
+                }
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
     </Layout>
   );
 }

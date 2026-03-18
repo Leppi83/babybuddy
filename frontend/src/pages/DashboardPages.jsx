@@ -3465,6 +3465,7 @@ export function ChildDashboardPage({ bootstrap }) {
             <Card
               key={sectionId}
               className="ant-section-card"
+              style={{ "--section-color": SECTION_META[sectionId]?.color }}
               title={
                 <Space>
                   <Badge color={SECTION_META[sectionId]?.color} />
