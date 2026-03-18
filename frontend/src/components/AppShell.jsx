@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { QuickLogSheet } from "./QuickLogSheet";
 import {
   Alert,
   Button,
@@ -63,6 +64,7 @@ export function AppShell({
   const screens = useBreakpoint();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const isDesktop = Boolean(screens.md);
   const isAuthLayout = bootstrap.layout === "auth";
   const navItems = [
@@ -405,6 +407,42 @@ export function AppShell({
           </Space>
         </Content>
       </Layout>
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => setSheetOpen(true)}
+        aria-label="Quick log entry"
+        style={{
+          position: "fixed",
+          bottom: `calc(20px + env(safe-area-inset-bottom))`,
+          right: 20,
+          width: 56,
+          height: 56,
+          borderRadius: "50%",
+          background: "#4db6ff",
+          border: "none",
+          color: "#020617",
+          fontSize: 28,
+          lineHeight: 1,
+          cursor: "pointer",
+          boxShadow: "0 4px 16px rgba(77,182,255,0.4)",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        +
+      </button>
+
+      <QuickLogSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        child={bootstrap.currentChild ?? null}
+        csrfToken={bootstrap.csrfToken}
+        quickStatus={bootstrap.quickStatus ?? null}
+        strings={bootstrap.strings}
+      />
     </Layout>
   );
 }

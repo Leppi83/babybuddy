@@ -2,7 +2,7 @@
 import datetime
 
 from django.core.exceptions import ValidationError
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.utils.html import strip_tags
 from django.middleware.csrf import get_token
 from django.templatetags.static import static
@@ -13,7 +13,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from core.models import Child, DiaperChange, Feeding, Pumping, Sleep
+from core.models import Child, DiaperChange, Feeding, Pumping, Sleep, Timer
 
 
 def _ant_dashboard_enabled():
@@ -202,6 +202,15 @@ def _build_ant_strings():
         "saveTimer": _("Save timer"),
         # Hero card
         "overviewFor": _("Overview for"),
+        # Quick log tile labels
+        "quickLog.tile.diaper": _("Diaper"),
+        "quickLog.tile.feeding": _("Feed"),
+        "quickLog.tile.sleep": _("Sleep"),
+        "quickLog.tile.pumping": _("Pump"),
+        "quickLog.tile.temperature": _("Temp"),
+        "quickLog.tile.timer": _("Timer"),
+        "quickLog.tile.note": _("Note"),
+        "quickLog.tile.weight": _("Weight"),
     }
 
 
@@ -269,6 +278,28 @@ class Dashboard(LoginRequiredMixin, TemplateView):
                 "strings": _build_ant_strings(),
             }
         return context
+
+
+def _build_quick_status(child):
+    """Returns a status dict for the quick-entry status strip."""
+    from django.utils import timesince as timesince_module
+
+    def _ago(dt):
+        if dt is None:
+            return None
+        return timesince_module.timesince(dt).split(",")[0] + " ago"
+
+    last_diaper = DiaperChange.objects.filter(child=child).order_by("-time").first()
+    last_feeding = Feeding.objects.filter(child=child).order_by("-start").first()
+    active_timer = Timer.objects.filter(child=child, name="Sleep", active=True).first()
+    last_sleep = Sleep.objects.filter(child=child).order_by("-start").first()
+
+    return {
+        "lastDiaper": _ago(last_diaper.time) if last_diaper else None,
+        "lastFeeding": _ago(last_feeding.start) if last_feeding else None,
+        "activeSleep": _ago(active_timer.start) if active_timer else None,
+        "lastSleep": _ago(last_sleep.start) if last_sleep else None,
+    }
 
 
 class ChildDashboard(PermissionRequiredMixin, DetailView):
@@ -796,5 +827,6 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     preview_cards_by_section, visible_sections, hidden_sections
                 ),
                 "strings": _build_ant_strings(),
+                "quickStatus": _build_quick_status(self.object),
             }
         return context
