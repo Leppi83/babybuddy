@@ -40,3 +40,21 @@ class SettingsTestCase(TestCase):
             user.settings.dashboard_selected_hidden_sections(),
             ["sleep", "feedings"],
         )
+
+
+class SettingsLastUsedDefaultsTest(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="testdefaults", password="pass"
+        )
+
+    def test_last_used_defaults_default_is_empty_dict(self):
+        settings = self.user.settings
+        self.assertEqual(settings.last_used_defaults, {})
+
+    def test_last_used_defaults_stores_and_retrieves(self):
+        settings = self.user.settings
+        settings.last_used_defaults = {"1.feeding": {"method": "bottle", "amount": 120}}
+        settings.save(update_fields=["last_used_defaults"])
+        settings.refresh_from_db()
+        self.assertEqual(settings.last_used_defaults["1.feeding"]["method"], "bottle")
