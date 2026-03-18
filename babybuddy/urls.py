@@ -49,6 +49,15 @@ app_patterns = [
 
 urlpatterns = [
     path("sw.js", views.ServiceWorkerView.as_view(), name="service-worker"),
+    path(
+        "log/sleep/start/",
+        views.QuickLogFormView.as_view(),
+        {"entry_type": "sleep"},
+        name="quick-log-sleep-start",
+    ),
+    path(
+        "log/<str:entry_type>/", views.QuickLogFormView.as_view(), name="quick-log-form"
+    ),
     path("admin/", admin.site.urls),
     path("", include("api.urls", namespace="api")),
     path("", include((app_patterns, "babybuddy"), namespace="babybuddy")),

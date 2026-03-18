@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import re
 import time
 
@@ -11,6 +12,17 @@ from django.core.management import call_command
 from faker import Faker
 
 from babybuddy.views import UserUnlock
+
+
+def _bootstrap_payload(response):
+    match = re.search(
+        rb'<script id="ant-app-bootstrap" type="application/json">(.*?)</script>',
+        response.content,
+        re.DOTALL,
+    )
+    if not match:
+        return None
+    return json.loads(match.group(1).decode("utf-8"))
 
 
 class ViewsTestCase(TestCase):
@@ -179,3 +191,35 @@ class ViewsTestCase(TestCase):
         with patch.dict(os.environ, {"BUILD_HASH": "abc123"}):
             response = self.c.get("/sw.js")
         self.assertIn(b"babybuddy-vabc123", response.content)
+
+    def test_deep_link_diaper(self):
+        from core import models as core_models
+
+        core_models.Child.objects.get_or_create(
+            first_name="Test",
+            last_name="Child",
+            defaults={"birth_date": "2023-01-01"},
+        )
+        response = self.c.get("/log/diaper/")
+        self.assertEqual(response.status_code, 200)
+        bootstrap = _bootstrap_payload(response)
+        self.assertIsNotNone(bootstrap)
+        self.assertEqual(bootstrap["pageType"], "form")
+
+    def test_deep_link_unknown_type_returns_404(self):
+        response = self.c.get("/log/unknowntype/")
+        self.assertEqual(response.status_code, 404)
+
+    def test_deep_link_no_children_redirects(self):
+        from core import models as core_models
+
+        core_models.Child.objects.all().delete()
+        childless_user = get_user_model().objects.create_user(
+            username="childless", password="testpass"
+        )
+        c2 = HttpClient()
+        c2.login(username="childless", password="testpass")
+        response = c2.get("/log/diaper/")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/children/add/", response["Location"])
+        childless_user.delete()
