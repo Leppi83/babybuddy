@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import os
 
 from django.conf import settings
 from django.contrib import messages
@@ -19,7 +20,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import BadRequest
 from django import forms as django_forms
 from django.forms import Form
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 from django.middleware.csrf import get_token
 from django.middleware.csrf import REASON_BAD_ORIGIN
 from django.shortcuts import redirect, render
@@ -77,6 +78,17 @@ def csrf_failure(request, reason=""):
         return HttpResponseForbidden(template.render(context), content_type="text/html")
 
     return csrf.csrf_failure(request, reason, "403_csrf.html")
+
+
+class ServiceWorkerView(View):
+    @method_decorator(never_cache)
+    def get(self, request):
+        build_hash = os.environ.get("BUILD_HASH", "dev")
+        template = loader.get_template("babybuddy/sw.js")
+        content = template.render({"STATIC_VERSION": build_hash})
+        response = HttpResponse(content, content_type="application/javascript")
+        response["Service-Worker-Allowed"] = "/"
+        return response
 
 
 class RootRouter(LoginRequiredMixin, RedirectView):

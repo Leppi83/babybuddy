@@ -164,3 +164,18 @@ class ViewsTestCase(TestCase):
         }
         page = client.post(page.request["PATH_INFO"], data=data, follow=True)
         self.assertEqual(page.status_code, 200)
+
+    def test_service_worker_is_served(self):
+        response = self.c.get("/sw.js")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/javascript")
+        self.assertIn("Service-Worker-Allowed", response)
+        self.assertIn(b"CACHE_NAME", response.content)
+
+    def test_service_worker_cache_name_uses_build_hash(self):
+        import os
+        from unittest.mock import patch
+
+        with patch.dict(os.environ, {"BUILD_HASH": "abc123"}):
+            response = self.c.get("/sw.js")
+        self.assertIn(b"babybuddy-vabc123", response.content)
