@@ -2237,8 +2237,11 @@ export function ChildDashboardPage({ bootstrap }) {
       feedingStartDate.format("YYYY-MM-DD"),
     );
     payload.set("feeding_entry_start_time", feedingStartTime.format("HH:mm"));
-    payload.set("feeding_entry_end_date", feedingEndDate.format("YYYY-MM-DD"));
-    payload.set("feeding_entry_end_time", feedingEndTime.format("HH:mm"));
+    payload.set(
+      "feeding_entry_end_date",
+      feedingStartDate.format("YYYY-MM-DD"),
+    );
+    payload.set("feeding_entry_end_time", feedingStartTime.format("HH:mm"));
     payload.set("feeding_entry_type", feedingType);
 
     setSubmittingFeeding(true);
@@ -2272,11 +2275,11 @@ export function ChildDashboardPage({ bootstrap }) {
     );
     payload.set(
       "breastfeeding_entry_end_date",
-      breastfeedingEndDate.format("YYYY-MM-DD"),
+      breastfeedingStartDate.format("YYYY-MM-DD"),
     );
     payload.set(
       "breastfeeding_entry_end_time",
-      breastfeedingEndTime.format("HH:mm"),
+      breastfeedingStartTime.format("HH:mm"),
     );
     payload.set("breastfeeding_entry_side", breastfeedingSide);
 
