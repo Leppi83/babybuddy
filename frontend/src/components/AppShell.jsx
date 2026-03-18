@@ -12,7 +12,9 @@ import {
 } from "antd";
 import {
   PlusOutlined,
-  DashboardOutlined,
+  HomeOutlined,
+  HistoryOutlined,
+  HeartOutlined,
   DesktopOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
@@ -20,8 +22,6 @@ import {
   MoonOutlined,
   SettingOutlined,
   SunOutlined,
-  SwapOutlined,
-  TeamOutlined,
   UnorderedListOutlined,
 } from "@ant-design/icons";
 
@@ -65,44 +65,43 @@ export function AppShell({
   const [collapsed, setCollapsed] = useState(false);
   const isDesktop = Boolean(screens.md);
   const isAuthLayout = bootstrap.layout === "auth";
+  const childrenMenuItem = bootstrap.urls.childrenList
+    ? {
+        key: "children-menu",
+        icon: <HeartOutlined />,
+        label: bootstrap.strings.children,
+        children: [
+          {
+            key: bootstrap.urls.childrenList,
+            icon: <UnorderedListOutlined />,
+            label: "Overview",
+          },
+          ...(bootstrap.urls.addChild
+            ? [
+                {
+                  key: bootstrap.urls.addChild,
+                  icon: <PlusOutlined />,
+                  label: bootstrap.strings.addChild,
+                },
+              ]
+            : []),
+        ],
+      }
+    : null;
+
   const navItems = [
     {
       key: bootstrap.urls.dashboard,
-      icon: <DashboardOutlined />,
+      icon: <HomeOutlined />,
       label: bootstrap.strings.dashboard,
     },
     {
       key: bootstrap.urls.timeline,
-      icon: <SwapOutlined />,
+      icon: <HistoryOutlined />,
       label: bootstrap.strings.timeline,
     },
-    bootstrap.urls.childrenList
-      ? {
-          key: "children-menu",
-          icon: <TeamOutlined />,
-          label: bootstrap.strings.children,
-          children: [
-            ...(bootstrap.urls.childrenList
-              ? [
-                  {
-                    key: bootstrap.urls.childrenList,
-                    icon: <UnorderedListOutlined />,
-                    label: "Overview",
-                  },
-                ]
-              : []),
-            ...(bootstrap.urls.addChild
-              ? [
-                  {
-                    key: bootstrap.urls.addChild,
-                    icon: <PlusOutlined />,
-                    label: bootstrap.strings.addChild,
-                  },
-                ]
-              : []),
-          ],
-        }
-      : null,
+    ...(childrenMenuItem ? [{ type: "divider" }, childrenMenuItem] : []),
+    { type: "divider" },
     {
       key: bootstrap.urls.settings,
       icon: <SettingOutlined />,
@@ -113,7 +112,7 @@ export function AppShell({
       icon: <LogoutOutlined />,
       label: bootstrap.strings.logout,
     },
-  ].filter(Boolean);
+  ];
 
   function handleNavClick({ key }) {
     if (key === "__logout__") {

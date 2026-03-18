@@ -20,12 +20,12 @@ import {
 const { Text } = Typography;
 
 export const SECTION_META = {
-  quick_entry: { color: "#1890ff" },
-  diaper: { color: "#ff7875" },
-  feedings: { color: "#69b1ff" },
-  pumpings: { color: "#b37feb" },
-  sleep: { color: "#ffd666" },
-  tummytime: { color: "#5cdb8b" },
+  quick_entry: { color: "#818cf8" },
+  diaper: { color: "#ff6b8b" },
+  feedings: { color: "#38bdf8" },
+  pumpings: { color: "#c084fc" },
+  sleep: { color: "#fbbf24" },
+  tummytime: { color: "#34d399" },
 };
 
 export const APP_DATE_FORMAT = "DD.MM.";
