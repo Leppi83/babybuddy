@@ -58,3 +58,4 @@ devenv.local.nix
 .pre-commit-config.yaml
 
 .vscode
+.superpowers/
