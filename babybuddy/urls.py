@@ -48,6 +48,7 @@ app_patterns = [
 ]
 
 urlpatterns = [
+    path("sw.js", views.ServiceWorkerView.as_view(), name="service-worker"),
     path("admin/", admin.site.urls),
     path("", include("api.urls", namespace="api")),
     path("", include((app_patterns, "babybuddy"), namespace="babybuddy")),
