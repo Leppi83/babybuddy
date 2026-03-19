@@ -4,7 +4,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  padding: 24px 16px;
+  border-radius: 20px;
+  background: var(--dial-bg, linear-gradient(160deg, #0f172a 0%, #1a1a2e 50%, #0f172a 100%));
+}
+
+:root[data-theme="light"] .activity-dial {
+  --dial-bg: linear-gradient(160deg, #f0f4ff 0%, #e8ecf8 30%, #fef9ef 70%, #f0f4ff 100%);
+}
+
+:root[data-theme="dark"] .activity-dial,
+:root:not([data-theme]) .activity-dial {
+  --dial-bg: linear-gradient(160deg, #0f172a 0%, #151530 50%, #0f172a 100%);
 }
 
 .activity-dial__svg {
@@ -14,41 +26,55 @@
   height: auto;
 }
 
-/* Hour labels on the atmosphere ring — larger, theme-aware */
+/* Hour labels — large, readable */
 .activity-dial__label {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   text-anchor: middle;
   dominant-baseline: central;
   fill: var(--app-text-primary, #f1f0ff);
   pointer-events: none;
 }
 
+/* Tick marks */
+.activity-dial__tick {
+  stroke: var(--app-text-primary, #f1f0ff);
+}
+
 /* Center display */
 .activity-dial__center-bg {
   fill: var(--app-card-bg-start, #020617);
-  opacity: 0.92;
+  opacity: 0.95;
 }
 
 .activity-dial__center-time {
-  font-size: var(--font-body-size, 12px);
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   fill: var(--app-text-primary, #f1f5f9);
   text-anchor: middle;
+  dominant-baseline: central;
 }
 
 .activity-dial__center-status {
-  font-size: var(--font-chart-size, 10px);
-  font-weight: var(--font-chart-weight, 400);
+  font-size: 11px;
+  font-weight: 400;
   fill: #fbbf24;
   text-anchor: middle;
+  dominant-baseline: central;
 }
 
-/* Bedtime marker — bed icon on inner ring */
-.activity-dial__bedtime-icon {
-  font-size: 14px;
-  pointer-events: none;
-  user-select: none;
+.activity-dial__center-insight {
+  font-size: 12px;
+  font-weight: 500;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.activity-dial__center-hint {
+  font-size: 10px;
+  text-anchor: middle;
+  dominant-baseline: central;
+  opacity: 0.7;
 }
 
 /* Star scatter */
@@ -57,10 +83,10 @@
   pointer-events: none;
 }
 
-/* Outer activity ring baseline track */
+/* Outer activity ring baseline track — thin */
 .activity-dial__track {
   stroke: var(--app-card-border, #1e3a5f);
-  opacity: 0.4;
+  opacity: 0.25;
 }
 
 /* Dot stroke — uses theme background for contrast */
@@ -68,13 +94,14 @@
   stroke: var(--app-card-bg-start, #020617);
 }
 
-/* Legend row below the dial */
+/* Legend — larger, readable */
 .activity-dial__legend {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
-  font-size: var(--font-chart-size, 10px);
+  gap: 20px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--app-text-secondary, #c4b5fd);
 }
 
@@ -92,8 +119,8 @@
 }
 
 .activity-dial__legend-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }

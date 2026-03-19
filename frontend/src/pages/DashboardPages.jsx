@@ -1736,23 +1736,40 @@ function ChildDashboardPageV2({ bootstrap }) {
     return "";
   }, [quickStatus]);
 
-  const childName = bootstrap.currentChild?.displayName || "";
+  const childName =
+    bootstrap.currentChild?.name || bootstrap.currentChild?.displayName || "";
 
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", padding: "16px" }}>
-      <div style={{ marginBottom: 16, textAlign: "center" }}>
-        <Typography.Title
-          level={4}
-          style={{ margin: 0, color: "var(--app-text-primary)" }}
-        >
-          {childName}
-        </Typography.Title>
-        <Typography.Text
-          type="secondary"
-          style={{ fontSize: "var(--font-body-size, 12px)" }}
-        >
-          {s.dashboardTitle || "Dashboard"}
-        </Typography.Text>
+    <div style={{ maxWidth: 520, margin: "0 auto", padding: "16px" }}>
+      <div
+        style={{
+          marginBottom: 16,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <Typography.Title
+            level={4}
+            style={{
+              margin: 0,
+              color: "var(--app-text-primary)",
+              fontSize: 18,
+            }}
+          >
+            {childName}
+          </Typography.Title>
+          <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+            {s.dashboardTitle || "Dashboard"}
+          </Typography.Text>
+        </div>
+        <DatePicker
+          defaultValue={dayjs()}
+          size="small"
+          style={{ width: 130 }}
+          allowClear={false}
+        />
       </div>
       <ActivityDial
         activities={dialActivities || []}
