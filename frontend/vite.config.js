@@ -11,6 +11,7 @@ export default defineConfig({
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
   },
+  base: "/static/babybuddy/ant/",
   build: {
     outDir: "../babybuddy/static/babybuddy/ant",
     emptyOutDir: true,
