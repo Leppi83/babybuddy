@@ -28,6 +28,17 @@ export const SECTION_META = {
   tummytime: { color: "#34d399" },
 };
 
+/**
+ * Core activity colors — used by the activity dial and throughout the app.
+ * These match the spec §1 activity type table.
+ */
+export const ACTIVITY_COLORS = {
+  sleep: "#fbbf24",
+  feeding: "#38bdf8",
+  diaper: "#ff6b8b",
+  pumping: "#c084fc",
+};
+
 export const APP_DATE_FORMAT = "DD.MM.";
 export const APP_DATE_FORMAT_FULL = "DD.MM.YYYY";
 export const APP_TIME_FORMAT = "HH:mm";
