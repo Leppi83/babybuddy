@@ -43,6 +43,15 @@
   --night-sleep-marker-shadow: rgba(8, 7, 26, 0.24);
   --app-primary: #a78bfa;
   --app-card-glass-bg: rgba(19, 16, 58, 0.55);
+  /* Typography scale (spec §13) */
+  --font-title-size: 14px;
+  --font-title-weight: 600;
+  --font-body-size: 12px;
+  --font-body-weight: 400;
+  --font-chart-size: 10px;
+  --font-chart-weight: 400;
+  --font-caption-size: 14px;
+  --font-caption-weight: 500;
 }
 
 :root[data-theme="light"] {
@@ -87,6 +96,15 @@
   --night-sleep-marker-shadow: rgba(196, 181, 253, 0.18);
   --app-primary: #7c3aed;
   --app-card-glass-bg: rgba(255, 255, 255, 0.72);
+  /* Typography scale (spec §13) */
+  --font-title-size: 14px;
+  --font-title-weight: 600;
+  --font-body-size: 12px;
+  --font-body-weight: 400;
+  --font-chart-size: 10px;
+  --font-chart-weight: 400;
+  --font-caption-size: 14px;
+  --font-caption-weight: 500;
 }
 
 html,
