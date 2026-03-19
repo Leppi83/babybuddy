@@ -65,6 +65,13 @@ function formatTime(date) {
   return `${h}:${m}`;
 }
 
+/* ── Severity colors for insight display ────────────────────── */
+const SEVERITY_COLORS = {
+  alert: "#ff4d4f",
+  warning: "#faad14",
+  info: "#1890ff",
+};
+
 /* ── Sub-components ──────────────────────────────────────────── */
 
 function AtmosphereRing({ now }) {
@@ -193,17 +200,46 @@ function NowMarker() {
   );
 }
 
-function CenterDisplay({ now, currentStatus }) {
+function CenterDisplay({ now, currentStatus, showInsight, topInsight, onCenterClick }) {
+  const hasInsight = Boolean(topInsight);
+  const insightColor = hasInsight ? (SEVERITY_COLORS[topInsight.severity] ?? SEVERITY_COLORS.info) : null;
+  const insightTitle = hasInsight
+    ? topInsight.title.length > 25
+      ? topInsight.title.slice(0, 24) + "…"
+      : topInsight.title
+    : null;
+
   return (
-    <g>
+    <g
+      onClick={hasInsight ? onCenterClick : undefined}
+      style={{ cursor: hasInsight ? "pointer" : "default" }}
+    >
       <circle cx={CX} cy={CY} r={CENTER_R} fill="#020617" opacity={0.92} />
-      <text x={CX} y={CY - 6} className="activity-dial__center-time">
-        {formatTime(now)}
-      </text>
-      {currentStatus && (
-        <text x={CX} y={CY + 12} className="activity-dial__center-status">
-          {currentStatus}
-        </text>
+      {showInsight && hasInsight ? (
+        <>
+          <text
+            x={CX}
+            y={CY - 10}
+            className="activity-dial__center-time"
+            style={{ fontSize: "13px", fill: insightColor }}
+          >
+            {insightTitle}
+          </text>
+          <text x={CX} y={CY + 10} className="activity-dial__center-status" style={{ fill: insightColor, opacity: 0.75 }}>
+            ↓ Tap for details
+          </text>
+        </>
+      ) : (
+        <>
+          <text x={CX} y={CY - 6} className="activity-dial__center-time">
+            {formatTime(now)}
+          </text>
+          {currentStatus && (
+            <text x={CX} y={CY + 12} className="activity-dial__center-status">
+              {currentStatus}
+            </text>
+          )}
+        </>
       )}
     </g>
   );
@@ -311,11 +347,29 @@ export default function ActivityDial({
   strings = {},
 }) {
   const [now, setNow] = useState(() => new Date());
+  const [showInsight, setShowInsight] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
+
+  const topInsight =
+    insights.find((i) => i.severity === "alert") ||
+    insights.find((i) => i.severity === "warning") ||
+    insights[0] ||
+    null;
+
+  useEffect(() => {
+    if (!topInsight) return;
+    const id = setInterval(() => setShowInsight((v) => !v), 5000);
+    return () => clearInterval(id);
+  }, [topInsight]);
+
+  const handleCenterClick = () => {
+    const el = document.getElementById("dashboard-insights-card");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
 
   const parsedActivities = useMemo(
     () =>
@@ -378,8 +432,14 @@ export default function ActivityDial({
         {/* NOW marker */}
         <NowMarker />
 
-        {/* Center circle with time + status */}
-        <CenterDisplay now={now} currentStatus={currentStatus} />
+        {/* Center circle with time + status, rotates to show top insight */}
+        <CenterDisplay
+          now={now}
+          currentStatus={currentStatus}
+          showInsight={showInsight}
+          topInsight={topInsight}
+          onCenterClick={handleCenterClick}
+        />
       </svg>
 
       <Legend strings={strings} />
