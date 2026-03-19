@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import {
   App as AntApp,
@@ -29,6 +29,8 @@ import {
   Typography,
 } from "antd";
 import { EyeOutlined, ReloadOutlined } from "@ant-design/icons";
+import ActivityDial from "../components/ActivityDial";
+import { DashboardInsightsCard } from "../components/DashboardInsightsCard";
 import {
   asItems,
   APP_DATE_FORMAT,
@@ -1722,7 +1724,51 @@ function NightSleepCircleCard({
   );
 }
 
+function ChildDashboardPageV2({ bootstrap }) {
+  const { insights, dialActivities, bedtime, strings, quickStatus } = bootstrap;
+  const s = strings || {};
+
+  const statusText = useMemo(() => {
+    if (!quickStatus) return "";
+    if (quickStatus.activeSleepTimer)
+      return `Sleeping ${quickStatus.activeSleepTimer}`;
+    if (quickStatus.lastSleep) return `Awake since ${quickStatus.lastSleep}`;
+    return "";
+  }, [quickStatus]);
+
+  return (
+    <div style={{ maxWidth: 480, margin: "0 auto", padding: "16px" }}>
+      <ActivityDial
+        activities={dialActivities || []}
+        bedtime={bedtime}
+        currentStatus={statusText}
+        insights={insights || []}
+        strings={{
+          sleep: s.sleepLabel || "Sleep",
+          feed: s.feedingLabel || "Feed",
+          diaper: s.diaperLabel || "Diaper",
+          pump: s.pumpingLabel || "Pump",
+        }}
+      />
+      <div id="dashboard-insights-card" style={{ marginTop: 20 }}>
+        <DashboardInsightsCard
+          insights={insights || []}
+          strings={{
+            allGood: s.insightsAllGood || "All good — no alerts right now",
+            dismiss: s.dismiss || "Dismiss",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function ChildDashboardPage({ bootstrap }) {
+  // Use new dial-based dashboard when backend provides dial data
+  if (bootstrap.dialActivities !== undefined) {
+    return <ChildDashboardPageV2 bootstrap={bootstrap} />;
+  }
+
   const ant = AntApp.useApp();
   const api = useRef(createApiClient(bootstrap.csrfToken));
   const [selectedChildId, setSelectedChildId] = useState(
