@@ -95,7 +95,7 @@ class ViewsTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(
             self.user.settings.dashboard_section_order,
-            ["sleep", "diaper", "feedings", "pumpings", "tummytime"],
+            ["sleep", "diaper", "quick_entry", "feedings", "pumpings", "tummytime"],
         )
         self.assertEqual(self.user.settings.dashboard_hidden_sections, ["sleep"])
 

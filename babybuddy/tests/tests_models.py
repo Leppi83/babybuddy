@@ -34,7 +34,7 @@ class SettingsTestCase(TestCase):
 
         self.assertEqual(
             user.settings.dashboard_selected_section_order(),
-            ["sleep", "diaper", "feedings", "pumpings", "tummytime"],
+            ["quick_entry", "sleep", "tummytime", "diaper", "feedings", "pumpings"],
         )
         self.assertEqual(
             user.settings.dashboard_selected_hidden_sections(),
