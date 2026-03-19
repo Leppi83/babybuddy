@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.contrib.messages.views import SuccessMessageMixin
 from django.conf import settings
 from django.db.models import Count
@@ -2622,8 +2623,6 @@ class QuickLogView(LoginRequiredMixin, View):
         raise Http404
 
     def _log_diaper(self, request, child, body, now):
-        from django.core.exceptions import ValidationError
-
         obj = models.DiaperChange(
             child=child,
             time=now,
@@ -2641,8 +2640,6 @@ class QuickLogView(LoginRequiredMixin, View):
         return JsonResponse({"status": "ok", "entry_id": obj.pk})
 
     def _log_feeding(self, request, child, body, now):
-        from django.core.exceptions import ValidationError
-
         start = self._parse_dt(body.get("start", now.isoformat())) or now
         end_raw = body.get("end")
         end = self._parse_dt(end_raw) if end_raw else now
@@ -2665,8 +2662,6 @@ class QuickLogView(LoginRequiredMixin, View):
         return JsonResponse({"status": "ok", "entry_id": obj.pk})
 
     def _log_pumping(self, request, child, body, now):
-        from django.core.exceptions import ValidationError
-
         obj = models.Pumping(
             child=child,
             start=now,
@@ -2689,21 +2684,35 @@ class QuickLogView(LoginRequiredMixin, View):
                 {"status": "error", "errors": ["Sleep timer already active"]},
                 status=409,
             )
-        obj = models.Timer.objects.create(
+        obj = models.Timer(
             child=child,
             user=request.user,
             name="Sleep",
             start=now,
         )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
         return JsonResponse({"status": "ok", "entry_id": obj.pk})
 
     def _log_timer(self, request, child, body, now):
-        obj = models.Timer.objects.create(
+        obj = models.Timer(
             child=child,
             user=request.user,
             name=body.get("name", ""),
             start=now,
         )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
         return JsonResponse({"status": "ok", "entry_id": obj.pk})
 
     def _save_defaults(self, request, child, entry_type, body):
