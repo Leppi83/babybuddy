@@ -49,6 +49,7 @@ class FormsTestCase(TestCase):
             "timezone": "UTC",
             "next": "/user/settings/",
             "pagination_count": 25,
+            "llm_provider": "none",
         }
 
     def test_change_password(self):
