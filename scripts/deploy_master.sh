@@ -12,7 +12,7 @@ git checkout "${BRANCH}"
 git pull --rebase origin "${BRANCH}"
 
 echo "==> Building and recreating babybuddy container"
-"${COMPOSE[@]}" build --no-cache babybuddy
+"${COMPOSE[@]}" build babybuddy
 "${COMPOSE[@]}" up -d --force-recreate babybuddy
 
 echo "==> Collecting static files"
