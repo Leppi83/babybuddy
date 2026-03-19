@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
@@ -22,6 +24,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "gulp": "^5.0.1",
     "gulp-cli": "^3.1.0",
-    "vite": "^6.0.5"
+    "vite": "^6.0.5",
+    "vitest": "^4.1.0"
   }
 }
