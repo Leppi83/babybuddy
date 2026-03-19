@@ -58,3 +58,27 @@ class SettingsLastUsedDefaultsTest(TestCase):
         settings.save(update_fields=["last_used_defaults"])
         settings.refresh_from_db()
         self.assertEqual(settings.last_used_defaults["1.feeding"]["method"], "bottle")
+
+
+class SettingsLLMFieldsTest(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        self.user = get_user_model().objects.create_user(
+            username="testllm", password="pass"
+        )
+
+    def test_llm_provider_default_is_none(self):
+        self.assertEqual(self.user.settings.llm_provider, "none")
+
+    def test_llm_fields_exist(self):
+        s = self.user.settings
+        s.llm_provider = "ollama"
+        s.llm_model = "llama3"
+        s.llm_base_url = "http://localhost:11434"
+        s.llm_api_key = ""
+        s.save()
+        s.refresh_from_db()
+        self.assertEqual(s.llm_provider, "ollama")
+        self.assertEqual(s.llm_model, "llama3")
+        self.assertEqual(s.llm_base_url, "http://localhost:11434")

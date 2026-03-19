@@ -616,12 +616,22 @@ def _build_settings_bootstrap(request, form_user, form_settings):
                 ],
             },
             "apiKey": str(user_settings.api_key()),
+            "ai": {
+                "provider": user_settings.llm_provider,
+                "model": user_settings.llm_model,
+                "baseUrl": user_settings.llm_base_url,
+                "apiKeySet": bool(user_settings.llm_api_key),
+            },
             "choices": {
                 "language": _serialize_field_choices(language_field),
                 "timezone": _serialize_field_choices(timezone_field),
                 "paginationCount": _serialize_field_choices(pagination_field),
                 "refreshRate": _serialize_field_choices(refresh_field),
                 "hideAge": _serialize_field_choices(age_field),
+                "aiProvider": [
+                    {"value": k, "label": str(v)}
+                    for k, v in UserSettingsModel.LLM_PROVIDER_CHOICES
+                ],
             },
             "links": links,
         },
@@ -676,6 +686,13 @@ def _build_settings_bootstrap(request, form_user, form_settings):
             "settingsDescription": _(
                 "Manage your profile, preferences, dashboard layout, and API access."
             ),
+            "aiAssistant": _("AI Assistant"),
+            "aiProvider": _("AI provider"),
+            "aiModel": _("AI model"),
+            "aiBaseUrl": _("AI base URL"),
+            "aiApiKey": _("AI API key"),
+            "aiApiKeySet": _("API key is set"),
+            "aiApiKeyPlaceholder": _("Enter new API key to update"),
         },
     }
 

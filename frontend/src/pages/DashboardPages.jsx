@@ -359,6 +359,44 @@ function SettingsCardPicker({
   );
 }
 
+function AiAssistantCard({ bootstrap }) {
+  const provider = Form.useWatch("llm_provider");
+  const s = bootstrap.strings;
+
+  return (
+    <Card className="ant-section-card" title={s.aiAssistant}>
+      <Form.Item name="llm_provider" label={s.aiProvider}>
+        <Select
+          options={bootstrap.settings.choices.aiProvider.map((c) => ({
+            value: c.value,
+            label: c.label,
+          }))}
+        />
+      </Form.Item>
+      <Form.Item name="llm_model" label={s.aiModel}>
+        <Input placeholder="e.g. llama3, gpt-4o" />
+      </Form.Item>
+      {provider === "ollama" && (
+        <Form.Item name="llm_base_url" label={s.aiBaseUrl}>
+          <Input placeholder="http://localhost:11434" />
+        </Form.Item>
+      )}
+      {(provider === "openai" || provider === "anthropic") && (
+        <Form.Item name="llm_api_key" label={s.aiApiKey}>
+          <Input.Password
+            placeholder={
+              bootstrap.settings.ai.apiKeySet
+                ? s.aiApiKeySet
+                : s.aiApiKeyPlaceholder
+            }
+            autoComplete="new-password"
+          />
+        </Form.Item>
+      )}
+    </Card>
+  );
+}
+
 export function SettingsPage({ bootstrap }) {
   const ant = AntApp.useApp();
   const api = useRef(createApiClient(bootstrap.csrfToken));
@@ -381,6 +419,9 @@ export function SettingsPage({ bootstrap }) {
       dashboard_refresh_rate: bootstrap.settings.dashboard.refreshRate,
       dashboard_hide_empty: bootstrap.settings.dashboard.hideEmpty,
       dashboard_hide_age: bootstrap.settings.dashboard.hideAge,
+      llm_provider: bootstrap.settings.ai.provider,
+      llm_model: bootstrap.settings.ai.model,
+      llm_base_url: bootstrap.settings.ai.baseUrl,
     });
   }, [bootstrap, form]);
 
@@ -415,6 +456,9 @@ export function SettingsPage({ bootstrap }) {
       if (values.dashboard_hide_empty) {
         payload.set("dashboard_hide_empty", "on");
       }
+      payload.set("llm_provider", values.llm_provider || "none");
+      payload.set("llm_model", values.llm_model || "");
+      payload.set("llm_base_url", values.llm_base_url || "");
 
       try {
         await api.current.postForm(bootstrap.urls.self, payload);
@@ -449,6 +493,12 @@ export function SettingsPage({ bootstrap }) {
     payload.set("dashboard_visible_items", selectedItems.join(","));
     if (values.dashboard_hide_empty) {
       payload.set("dashboard_hide_empty", "on");
+    }
+    payload.set("llm_provider", values.llm_provider || "none");
+    payload.set("llm_model", values.llm_model || "");
+    payload.set("llm_base_url", values.llm_base_url || "");
+    if (values.llm_api_key) {
+      payload.set("llm_api_key", values.llm_api_key);
     }
     payload.set("next", bootstrap.urls.self);
 
@@ -621,6 +671,9 @@ export function SettingsPage({ bootstrap }) {
                 </Button>
               </Space>
             </Card>
+          </Col>
+          <Col xs={24} xl={12}>
+            <AiAssistantCard bootstrap={bootstrap} />
           </Col>
           <Col xs={24}>
             <SettingsCardPicker
