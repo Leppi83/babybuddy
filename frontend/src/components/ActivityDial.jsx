@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   atmosphereStops,
-  hourLabels,
   dayBrightness,
   pointOnCircle,
   timeToAngle,
@@ -20,34 +19,6 @@ const ATMO_STROKE = 38;
 const ACTIVITY_R = 162;
 const ACTIVITY_STROKE = 5;
 const CENTER_R = 80;
-
-/* ── Star positions for night sky ────────────────────────────── */
-const STAR_SEED = [
-  0.12, 0.87, 0.34, 0.62, 0.91, 0.05, 0.73, 0.48, 0.29, 0.56, 0.81, 0.17, 0.68,
-  0.39, 0.94, 0.02, 0.53, 0.76, 0.21, 0.44, 0.88, 0.33, 0.61, 0.09,
-];
-
-function buildStars(now) {
-  const nowHour = now.getHours() + now.getMinutes() / 60;
-  const stars = [];
-  const count = STAR_SEED.length;
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * 360;
-    const absHour = (nowHour + angle / 15) % 24;
-    if (dayBrightness(absHour) >= 0.3) continue;
-    const rJitter = ATMO_R + (STAR_SEED[i] - 0.5) * (ATMO_STROKE - 4);
-    const aJitter = angle + (STAR_SEED[(i + 7) % count] - 0.5) * 12;
-    const { x, y } = pointOnCircle(aJitter, rJitter, CX, CY);
-    stars.push({
-      x,
-      y,
-      r: 0.7 + STAR_SEED[(i + 3) % count] * 0.8,
-      opacity: 0.3 + STAR_SEED[(i + 5) % count] * 0.3,
-      key: i,
-    });
-  }
-  return stars;
-}
 
 function formatTime(date) {
   const h = String(date.getHours()).padStart(2, "0");
@@ -147,9 +118,21 @@ function TickMarks({ now }) {
   );
 }
 
-/* ── Hour labels ─────────────────────────────────────────────── */
+/* ── Hour labels — snapped to same angles as hourly tick marks ─ */
 function HourLabels({ now }) {
-  const labels = useMemo(() => hourLabels(now, ATMO_R, CX, CY), [now]);
+  const labels = useMemo(() => {
+    const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21];
+    const nowHour = now.getHours() + now.getMinutes() / 60;
+    const labelR = ATMO_R - 16; // inside the atmosphere ring
+    return LABEL_HOURS.map((hour) => {
+      // Compute hour offset from now, matching tick mark angle formula
+      let hourOffset = hour - nowHour;
+      if (hourOffset < 0) hourOffset += 24;
+      const angle = (hourOffset / 24) * 360;
+      const { x, y } = pointOnCircle(angle, labelR, CX, CY);
+      return { hour, angle, x, y };
+    });
+  }, [now]);
   return (
     <g>
       {labels.map((l) => {
@@ -171,26 +154,7 @@ function HourLabels({ now }) {
   );
 }
 
-/* ── Stars in night zones ────────────────────────────────────── */
-function Stars({ now }) {
-  const stars = useMemo(() => buildStars(now), [now]);
-  return (
-    <g>
-      {stars.map((s) => (
-        <circle
-          key={s.key}
-          cx={s.x}
-          cy={s.y}
-          r={s.r}
-          className="activity-dial__star"
-          opacity={s.opacity}
-        />
-      ))}
-    </g>
-  );
-}
-
-/* ── Bedtime marker — dot + small moon icon ──────────────────── */
+/* ── Bedtime marker — dot + bed icon ─────────────────────────── */
 function BedtimeMarker({ bedtime, now }) {
   if (!bedtime) return null;
   const [hStr, mStr] = bedtime.split(":");
@@ -216,19 +180,18 @@ function BedtimeMarker({ bedtime, now }) {
           Bedtime: {hStr}:{mStr}
         </title>
       </circle>
-      {/* Crescent moon SVG icon — inset on the ring */}
+      {/* Bed SVG icon — inset on the atmosphere ring */}
       <g
-        transform={`translate(${iconPos.x - 6}, ${iconPos.y - 6})`}
-        opacity={0.8}
+        transform={`translate(${iconPos.x - 6}, ${iconPos.y - 6}) scale(0.5)`}
+        opacity={0.85}
         style={{ pointerEvents: "none" }}
       >
-        <circle cx="6" cy="6" r="5" fill="#818cf8" />
-        <circle
-          cx="8"
-          cy="4.5"
-          r="4"
-          fill="var(--app-card-bg-start, #020617)"
-        />
+        <rect x="2" y="14" width="20" height="2" rx="1" fill="#818cf8" />
+        <rect x="3" y="8" width="8" height="6" rx="2" fill="#818cf8" />
+        <path d="M13 10h6a2 2 0 0 1 2 2v2H13v-4z" fill="#818cf8" />
+        <rect x="3" y="14" width="1.5" height="3" rx="0.5" fill="#818cf8" />
+        <rect x="19.5" y="14" width="1.5" height="3" rx="0.5" fill="#818cf8" />
+        <circle cx="7" cy="7" r="2" fill="#818cf8" />
       </g>
     </g>
   );
@@ -419,13 +382,31 @@ export default function ActivityDial({
   currentStatus = null,
   insights = [],
   strings = {},
+  referenceDate = null,
 }) {
-  const [now, setNow] = useState(() => new Date());
+  const [realNow, setRealNow] = useState(() => new Date());
   const [showInsight, setShowInsight] = useState(false);
   const [theme, setTheme] = useState(getTheme);
 
+  // When viewing a past date, anchor the dial to that day's current-equivalent time
+  // so activities render at the correct angular positions
+  const now = useMemo(() => {
+    if (!referenceDate) return realNow;
+    const ref =
+      referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
+    // Set hours/minutes/seconds from real now onto the reference date
+    const anchored = new Date(ref);
+    anchored.setHours(
+      realNow.getHours(),
+      realNow.getMinutes(),
+      realNow.getSeconds(),
+      0,
+    );
+    return anchored;
+  }, [referenceDate, realNow]);
+
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
+    const id = setInterval(() => setRealNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
 
@@ -485,9 +466,6 @@ export default function ActivityDial({
       >
         {/* Atmosphere gradient ring */}
         <AtmosphereRing now={now} theme={theme} />
-
-        {/* Stars in night zones */}
-        <Stars now={now} />
 
         {/* 15-minute tick marks */}
         <TickMarks now={now} />

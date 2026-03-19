@@ -380,69 +380,74 @@ export function AppShell({
         </Drawer>
       )}
       <Layout>
-        <Header className="ant-shell-header">
-          <div
-            style={{
-              display: "flex",
-              gap: 16,
-              justifyContent: "space-between",
-              alignItems: "center",
-              width: "100%",
-              flexWrap: "wrap",
-            }}
-          >
-            <Space size="middle">
-              {(pageMeta.eyebrow || pageMeta.title) && (
-                <div
-                  style={{ display: "flex", flexDirection: "column", gap: 1 }}
-                >
-                  {pageMeta.eyebrow && (
-                    <Text
-                      type="secondary"
-                      style={{
-                        display: "block",
-                        fontSize: "0.72rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {pageMeta.eyebrow}
-                    </Text>
-                  )}
-                  {pageMeta.title && (
-                    <Title
-                      level={3}
-                      className="ant-shell-title"
-                      style={{ margin: 0, lineHeight: 1.2 }}
-                    >
-                      {pageMeta.title}
-                    </Title>
-                  )}
-                </div>
-              )}
-            </Space>
-            {childSwitcher?.options?.length ? (
-              <Space size={8} wrap>
-                <Text type="secondary">{childSwitcher.label}</Text>
-                <Select
-                  value={childSwitcher.value}
-                  onChange={(value) =>
-                    handleChildSwitch(
-                      childSwitcher.options.find((item) => item.value === value)
-                        ?.href,
-                    )
-                  }
-                  options={childSwitcher.options.map((option) => ({
-                    value: option.value,
-                    label: option.label,
-                  }))}
-                  style={{ minWidth: isDesktop ? 220 : 180 }}
-                />
+        {(pageMeta.eyebrow ||
+          pageMeta.title ||
+          childSwitcher?.options?.length) && (
+          <Header className="ant-shell-header">
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+                flexWrap: "wrap",
+              }}
+            >
+              <Space size="middle">
+                {(pageMeta.eyebrow || pageMeta.title) && (
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 1 }}
+                  >
+                    {pageMeta.eyebrow && (
+                      <Text
+                        type="secondary"
+                        style={{
+                          display: "block",
+                          fontSize: "0.72rem",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {pageMeta.eyebrow}
+                      </Text>
+                    )}
+                    {pageMeta.title && (
+                      <Title
+                        level={3}
+                        className="ant-shell-title"
+                        style={{ margin: 0, lineHeight: 1.2 }}
+                      >
+                        {pageMeta.title}
+                      </Title>
+                    )}
+                  </div>
+                )}
               </Space>
-            ) : null}
-          </div>
-        </Header>
+              {childSwitcher?.options?.length ? (
+                <Space size={8} wrap>
+                  <Text type="secondary">{childSwitcher.label}</Text>
+                  <Select
+                    value={childSwitcher.value}
+                    onChange={(value) =>
+                      handleChildSwitch(
+                        childSwitcher.options.find(
+                          (item) => item.value === value,
+                        )?.href,
+                      )
+                    }
+                    options={childSwitcher.options.map((option) => ({
+                      value: option.value,
+                      label: option.label,
+                    }))}
+                    style={{ minWidth: isDesktop ? 220 : 180 }}
+                  />
+                </Space>
+              ) : null}
+            </div>
+          </Header>
+        )}
         <Content className="ant-shell-content">
           <Space direction="vertical" size={16} style={{ width: "100%" }}>
             {(bootstrap.messages || []).map((message, index) => (

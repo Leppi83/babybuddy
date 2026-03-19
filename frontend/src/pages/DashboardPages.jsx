@@ -1747,25 +1747,19 @@ function ChildDashboardPageV2({ bootstrap }) {
 
     Promise.all([
       api.current.get(
-        `/api/sleep/?child=${childId}&start_min=${startOfDay}&end_max=${endOfDay}&limit=50`,
+        `/api/sleep/?child=${childId}&start_min=${startOfDay}&start_max=${endOfDay}&limit=50`,
       ),
       api.current.get(
-        `/api/feedings/?child=${childId}&start_min=${startOfDay}&end_max=${endOfDay}&limit=50`,
+        `/api/feedings/?child=${childId}&start_min=${startOfDay}&start_max=${endOfDay}&limit=50`,
       ),
       api.current.get(
-        `/api/pumping/?child=${childId}&start_min=${startOfDay}&end_max=${endOfDay}&limit=50`,
+        `/api/pumping/?child=${childId}&start_min=${startOfDay}&start_max=${endOfDay}&limit=50`,
       ),
       api.current.get(
-        `/api/changes/?child=${childId}&time_min=${startOfDay}&time_max=${endOfDay}&limit=50`,
+        `/api/changes/?child=${childId}&date_min=${startOfDay}&date_max=${endOfDay}&limit=50`,
       ),
     ])
-      .then(async ([sleepRes, feedRes, pumpRes, diaperRes]) => {
-        const [sleepData, feedData, pumpData, diaperData] = await Promise.all([
-          sleepRes.json(),
-          feedRes.json(),
-          pumpRes.json(),
-          diaperRes.json(),
-        ]);
+      .then(([sleepData, feedData, pumpData, diaperData]) => {
         const items = [];
         for (const s of sleepData.results || []) {
           const endStr = s.end
@@ -1876,6 +1870,7 @@ function ChildDashboardPageV2({ bootstrap }) {
         bedtime={bedtime}
         currentStatus={statusText}
         insights={isToday ? insights || [] : []}
+        referenceDate={isToday ? null : selectedDate.toDate()}
         strings={{
           sleep: s.sleepLabel || "Sleep",
           feed: s.feedingLabel || "Feed",
