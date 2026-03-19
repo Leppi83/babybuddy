@@ -23,8 +23,8 @@ const CENTER_R = 80;
 
 /* ── Deterministic star seed for night zones ─────────────────── */
 const STAR_SEED = [
-  0.12, 0.87, 0.34, 0.62, 0.91, 0.05, 0.73, 0.48, 0.29, 0.56, 0.81, 0.17,
-  0.68, 0.39, 0.94, 0.02, 0.53, 0.76, 0.21, 0.44, 0.88, 0.33, 0.61, 0.09,
+  0.12, 0.87, 0.34, 0.62, 0.91, 0.05, 0.73, 0.48, 0.29, 0.56, 0.81, 0.17, 0.68,
+  0.39, 0.94, 0.02, 0.53, 0.76, 0.21, 0.44, 0.88, 0.33, 0.61, 0.09,
 ];
 
 /**
@@ -107,10 +107,7 @@ function AtmosphereRing({ now }) {
 }
 
 function HourLabels({ now }) {
-  const labels = useMemo(
-    () => hourLabels(now, ATMO_R, CX, CY),
-    [now],
-  );
+  const labels = useMemo(() => hourLabels(now, ATMO_R, CX, CY), [now]);
 
   return (
     <g>
@@ -200,9 +197,17 @@ function NowMarker() {
   );
 }
 
-function CenterDisplay({ now, currentStatus, showInsight, topInsight, onCenterClick }) {
+function CenterDisplay({
+  now,
+  currentStatus,
+  showInsight,
+  topInsight,
+  onCenterClick,
+}) {
   const hasInsight = Boolean(topInsight);
-  const insightColor = hasInsight ? (SEVERITY_COLORS[topInsight.severity] ?? SEVERITY_COLORS.info) : null;
+  const insightColor = hasInsight
+    ? (SEVERITY_COLORS[topInsight.severity] ?? SEVERITY_COLORS.info)
+    : null;
   const insightTitle = hasInsight
     ? topInsight.title.length > 25
       ? topInsight.title.slice(0, 24) + "…"
@@ -225,7 +230,12 @@ function CenterDisplay({ now, currentStatus, showInsight, topInsight, onCenterCl
           >
             {insightTitle}
           </text>
-          <text x={CX} y={CY + 10} className="activity-dial__center-status" style={{ fill: insightColor, opacity: 0.75 }}>
+          <text
+            x={CX}
+            y={CY + 10}
+            className="activity-dial__center-status"
+            style={{ fill: insightColor, opacity: 0.75 }}
+          >
             ↓ Tap for details
           </text>
         </>
@@ -309,10 +319,30 @@ function ActivityDots({ dots, cx, cy, radius }) {
 
 function Legend({ strings }) {
   const items = [
-    { key: "sleep", color: ACTIVITY_COLORS.sleep, label: strings.sleep, type: "line" },
-    { key: "feeding", color: ACTIVITY_COLORS.feeding, label: strings.feed, type: "line" },
-    { key: "diaper", color: ACTIVITY_COLORS.diaper, label: strings.diaper, type: "dot" },
-    { key: "pumping", color: ACTIVITY_COLORS.pumping, label: strings.pump, type: "line" },
+    {
+      key: "sleep",
+      color: ACTIVITY_COLORS.sleep,
+      label: strings.sleep,
+      type: "line",
+    },
+    {
+      key: "feeding",
+      color: ACTIVITY_COLORS.feeding,
+      label: strings.feed,
+      type: "line",
+    },
+    {
+      key: "diaper",
+      color: ACTIVITY_COLORS.diaper,
+      label: strings.diaper,
+      type: "dot",
+    },
+    {
+      key: "pumping",
+      color: ACTIVITY_COLORS.pumping,
+      label: strings.pump,
+      type: "line",
+    },
   ];
 
   return (
@@ -377,7 +407,11 @@ export default function ActivityDial({
         if (a.type === "diaper") {
           return { ...a, time: new Date(a.time) };
         }
-        return { ...a, start: new Date(a.start), end: new Date(a.end) };
+        return {
+          ...a,
+          start: new Date(a.start),
+          end: a.end ? new Date(a.end) : new Date(),
+        };
       }),
     [activities],
   );

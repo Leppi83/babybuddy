@@ -53,11 +53,21 @@ function InsightRow({ insight, onDismiss, strings }) {
       }}
     >
       <div
-        style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 4,
+        }}
       >
         <Tag
           color={meta.color}
-          style={{ color: "#020617", border: "none", fontWeight: 600, fontSize: 11 }}
+          style={{
+            color: "#020617",
+            border: "none",
+            fontWeight: 600,
+            fontSize: 11,
+          }}
         >
           {insight.severity.toUpperCase()}
         </Tag>
@@ -88,7 +98,10 @@ function InsightRow({ insight, onDismiss, strings }) {
             href={insight.action_url}
             icon={<RightOutlined />}
             iconPosition="end"
-            style={{ borderColor: "var(--app-card-border)", color: "var(--app-link)" }}
+            style={{
+              borderColor: "var(--app-card-border)",
+              color: "var(--app-link)",
+            }}
           >
             {insight.action_label}
           </Button>
@@ -144,9 +157,7 @@ export function DashboardInsightsCard({ insights = [], strings = {} }) {
             color: "var(--app-text-secondary)",
           }}
         >
-          <CheckCircleOutlined
-            style={{ fontSize: 28, color: "#5cdb8b" }}
-          />
+          <CheckCircleOutlined style={{ fontSize: 28, color: "#5cdb8b" }} />
           <span style={{ fontSize: "var(--font-body-size, 12px)" }}>
             {strings.allGood ?? "All good — no alerts right now"}
           </span>

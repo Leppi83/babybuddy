@@ -352,36 +352,42 @@ def _build_dial_activities(child):
     for s in Sleep.objects.filter(child=child, start__gte=since).order_by("start"):
         end_str = s.end.isoformat() if s.end else None
         end_display = s.end.strftime("%H:%M") if s.end else "ongoing"
-        activities.append({
-            "type": "sleep",
-            "start": s.start.isoformat(),
-            "end": end_str,
-            "tooltip": f"Sleep: {s.start.strftime('%H:%M')}\u2013{end_display}",
-        })
+        activities.append(
+            {
+                "type": "sleep",
+                "start": s.start.isoformat(),
+                "end": end_str,
+                "tooltip": f"Sleep: {s.start.strftime('%H:%M')}\u2013{end_display}",
+            }
+        )
 
     for f in Feeding.objects.filter(child=child, start__gte=since).order_by("start"):
         method = f.method or ""
         end_str = f.end.isoformat() if f.end else None
         end_display = f.end.strftime("%H:%M") if f.end else "?"
-        activities.append({
-            "type": "feeding",
-            "start": f.start.isoformat(),
-            "end": end_str,
-            "details": method,
-            "tooltip": f"Feed: {f.start.strftime('%H:%M')}\u2013{end_display} ({method})",
-        })
+        activities.append(
+            {
+                "type": "feeding",
+                "start": f.start.isoformat(),
+                "end": end_str,
+                "details": method,
+                "tooltip": f"Feed: {f.start.strftime('%H:%M')}\u2013{end_display} ({method})",
+            }
+        )
 
     for p in Pumping.objects.filter(child=child, start__gte=since).order_by("start"):
         amt = f"{p.amount}ml" if p.amount else ""
         end_str = p.end.isoformat() if p.end else None
         end_display = p.end.strftime("%H:%M") if p.end else "?"
-        activities.append({
-            "type": "pumping",
-            "start": p.start.isoformat(),
-            "end": end_str,
-            "details": amt,
-            "tooltip": f"Pump: {p.start.strftime('%H:%M')}\u2013{end_display} {amt}".strip(),
-        })
+        activities.append(
+            {
+                "type": "pumping",
+                "start": p.start.isoformat(),
+                "end": end_str,
+                "details": amt,
+                "tooltip": f"Pump: {p.start.strftime('%H:%M')}\u2013{end_display} {amt}".strip(),
+            }
+        )
 
     for d in DiaperChange.objects.filter(child=child, time__gte=since).order_by("time"):
         types = []
@@ -389,16 +395,18 @@ def _build_dial_activities(child):
             types.append("wet")
         if d.solid:
             types.append("solid")
-        activities.append({
-            "type": "diaper",
-            "time": d.time.isoformat(),
-            "details": " + ".join(types) if types else "",
-            "tooltip": (
-                f"Diaper: {d.time.strftime('%H:%M')} ({', '.join(types)})"
-                if types
-                else f"Diaper: {d.time.strftime('%H:%M')}"
-            ),
-        })
+        activities.append(
+            {
+                "type": "diaper",
+                "time": d.time.isoformat(),
+                "details": " + ".join(types) if types else "",
+                "tooltip": (
+                    f"Diaper: {d.time.strftime('%H:%M')} ({', '.join(types)})"
+                    if types
+                    else f"Diaper: {d.time.strftime('%H:%M')}"
+                ),
+            }
+        )
 
     return activities
 
