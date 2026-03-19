@@ -208,6 +208,25 @@ class ViewsTestCase(TestCase):
         self.assertEqual(pumping.amount, 90)
         self.assertEqual(pumping.side, "both")
 
+    def test_child_dashboard_bootstrap_has_insights(self):
+        from core.models import Child
+
+        child = Child.objects.first()
+        if child is None:
+            child = Child.objects.create(
+                first_name="Test",
+                last_name="Child",
+                birth_date=timezone.localdate() - timezone.timedelta(days=90),
+            )
+        response = self.c.get(f"/children/{child.slug}/dashboard/")
+        self.assertEqual(response.status_code, 200)
+        from babybuddy.tests.tests_views import _bootstrap_payload
+
+        bootstrap = _bootstrap_payload(response)
+        self.assertIsNotNone(bootstrap)
+        self.assertIn("insights", bootstrap)
+        self.assertIsInstance(bootstrap["insights"], list)
+
     def test_insights_page(self):
         from core.models import Child
 

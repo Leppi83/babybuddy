@@ -46,6 +46,69 @@ import {
 
 const { Text, Title } = Typography;
 
+function InsightsBanner({ insights, urls, childId }) {
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      const stored = JSON.parse(
+        localStorage.getItem(`dismissed_insights_${childId}`) || "[]",
+      );
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+      return stored
+        .filter((e) => new Date(e.dismissedAt).getTime() > cutoff)
+        .map((e) => e.id);
+    } catch {
+      return [];
+    }
+  });
+
+  const visible = insights.filter((i) => !dismissed.includes(i.id));
+  if (visible.length === 0) return null;
+
+  const hasAlert = visible.some((i) => i.severity === "alert");
+  const bannerColor = hasAlert ? "#ff7875" : "#ffd666";
+
+  const handleDismiss = () => {
+    const now = new Date().toISOString();
+    const entries = visible.map((i) => ({ id: i.id, dismissedAt: now }));
+    try {
+      const existing = JSON.parse(
+        localStorage.getItem(`dismissed_insights_${childId}`) || "[]",
+      );
+      localStorage.setItem(
+        `dismissed_insights_${childId}`,
+        JSON.stringify([...existing, ...entries]),
+      );
+    } catch {}
+    setDismissed((prev) => [...prev, ...visible.map((i) => i.id)]);
+  };
+
+  const insightsUrl = urls.childInsights;
+
+  return (
+    <Alert
+      type={hasAlert ? "error" : "warning"}
+      message={
+        <span>
+          {visible.length} insight{visible.length > 1 ? "s" : ""} detected
+          {insightsUrl && (
+            <Button
+              type="link"
+              size="small"
+              href={insightsUrl}
+              style={{ color: bannerColor, paddingLeft: 8 }}
+            >
+              View all →
+            </Button>
+          )}
+        </span>
+      }
+      closable
+      onClose={handleDismiss}
+      style={{ marginBottom: 12, borderRadius: 12 }}
+    />
+  );
+}
+
 const COMBINED_PAIRS = {
   "card.diaper.last": "card.diaper.types",
   "card.feedings.last": "card.feedings.method",
@@ -1699,6 +1762,10 @@ export function ChildDashboardPage({ bootstrap }) {
   });
   const child = bootstrap.children.find(
     (item) => String(item.id) === String(selectedChildId),
+  );
+  const { insights = [], urls, currentChild } = bootstrap;
+  const alertInsights = insights.filter(
+    (i) => i.severity === "alert" || i.severity === "warning",
   );
   const locale = bootstrap.locale || "en";
   const s = bootstrap.strings;
@@ -3423,6 +3490,13 @@ export function ChildDashboardPage({ bootstrap }) {
 
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      {alertInsights.length > 0 && (
+        <InsightsBanner
+          insights={alertInsights}
+          urls={urls}
+          childId={currentChild?.id}
+        />
+      )}
       <Card
         className="ant-hero-card"
         title={`${s.overviewFor} ${child?.name || bootstrap.currentChild.name}`}
