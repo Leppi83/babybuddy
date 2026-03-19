@@ -1736,8 +1736,24 @@ function ChildDashboardPageV2({ bootstrap }) {
     return "";
   }, [quickStatus]);
 
+  const childName = bootstrap.currentChild?.displayName || "";
+
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", padding: "16px" }}>
+      <div style={{ marginBottom: 16, textAlign: "center" }}>
+        <Typography.Title
+          level={4}
+          style={{ margin: 0, color: "var(--app-text-primary)" }}
+        >
+          {childName}
+        </Typography.Title>
+        <Typography.Text
+          type="secondary"
+          style={{ fontSize: "var(--font-body-size, 12px)" }}
+        >
+          {s.dashboardTitle || "Dashboard"}
+        </Typography.Text>
+      </div>
       <ActivityDial
         activities={dialActivities || []}
         bedtime={bedtime}

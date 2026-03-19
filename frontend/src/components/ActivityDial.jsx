@@ -65,6 +65,24 @@ function formatTime(date) {
   return `${h}:${m}`;
 }
 
+/**
+ * Detect current theme from the DOM.
+ */
+function getTheme() {
+  if (typeof document === "undefined") return "dark";
+  const attr = document.documentElement.getAttribute("data-theme");
+  if (attr === "light") return "light";
+  if (attr === "dark") return "dark";
+  // system preference
+  if (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-color-scheme: light)").matches
+  ) {
+    return "light";
+  }
+  return "dark";
+}
+
 /* ── Severity colors for insight display ────────────────────── */
 const SEVERITY_COLORS = {
   alert: "#ff4d4f",
@@ -74,8 +92,8 @@ const SEVERITY_COLORS = {
 
 /* ── Sub-components ──────────────────────────────────────────── */
 
-function AtmosphereRing({ now }) {
-  const stops = useMemo(() => atmosphereStops(now, 72), [now]);
+function AtmosphereRing({ now, theme }) {
+  const stops = useMemo(() => atmosphereStops(now, 72, theme), [now, theme]);
   const stepDeg = 360 / stops.length;
   const circumference = 2 * Math.PI * ATMO_R;
 
@@ -112,7 +130,8 @@ function HourLabels({ now }) {
   return (
     <g>
       {labels.map((l) => {
-        const opacity = 0.35 + dayBrightness(l.hour) * 0.65;
+        const brightness = dayBrightness(l.hour);
+        const opacity = 0.5 + brightness * 0.5;
         return (
           <text
             key={l.hour}
@@ -121,7 +140,7 @@ function HourLabels({ now }) {
             className="activity-dial__label"
             opacity={opacity}
           >
-            {l.text}
+            {l.hour}
           </text>
         );
       })}
@@ -156,44 +175,20 @@ function BedtimeMarker({ bedtime, now }) {
   bedDate.setHours(parseInt(hStr, 10), parseInt(mStr, 10), 0, 0);
 
   const angle = timeToAngle(bedDate, now);
-
-  const innerR = ATMO_R - ATMO_STROKE / 2 - 2;
-  const outerR = ATMO_R + ATMO_STROKE / 2 + 2;
-  const inner = pointOnCircle(angle, innerR, CX, CY);
-  const outer = pointOnCircle(angle, outerR, CX, CY);
-  const labelPos = pointOnCircle(angle, outerR + 12, CX, CY);
+  const pos = pointOnCircle(angle, ATMO_R, CX, CY);
 
   return (
-    <g opacity={0.7}>
-      <line
-        x1={inner.x}
-        y1={inner.y}
-        x2={outer.x}
-        y2={outer.y}
-        stroke="#818cf8"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-      />
+    <g>
       <text
-        x={labelPos.x}
-        y={labelPos.y}
-        className="activity-dial__bedtime-label"
+        x={pos.x}
+        y={pos.y}
+        className="activity-dial__bedtime-icon"
+        textAnchor="middle"
+        dominantBaseline="central"
       >
-        &#9789;
+        🛏
       </text>
     </g>
-  );
-}
-
-function NowMarker() {
-  // Small triangle at top of dial pointing inward
-  const tipY = CY - ACTIVITY_R - 7 + 14;
-  const baseY = CY - ACTIVITY_R - 7;
-  return (
-    <polygon
-      points={`${CX},${tipY} ${CX - 4},${baseY} ${CX + 4},${baseY}`}
-      className="activity-dial__now-marker"
-    />
   );
 }
 
@@ -219,7 +214,12 @@ function CenterDisplay({
       onClick={hasInsight ? onCenterClick : undefined}
       style={{ cursor: hasInsight ? "pointer" : "default" }}
     >
-      <circle cx={CX} cy={CY} r={CENTER_R} fill="#020617" opacity={0.92} />
+      <circle
+        cx={CX}
+        cy={CY}
+        r={CENTER_R}
+        className="activity-dial__center-bg"
+      />
       {showInsight && hasInsight ? (
         <>
           <text
@@ -305,7 +305,7 @@ function ActivityDots({ dots, cx, cy, radius }) {
             cy={y}
             r={5}
             fill={ACTIVITY_COLORS[dot.type]}
-            stroke="#020617"
+            className="activity-dial__dot-stroke"
             strokeWidth={1.5}
             style={{ cursor: "pointer" }}
           >
@@ -378,10 +378,21 @@ export default function ActivityDial({
 }) {
   const [now, setNow] = useState(() => new Date());
   const [showInsight, setShowInsight] = useState(false);
+  const [theme, setTheme] = useState(getTheme);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
+  }, []);
+
+  // Watch for theme changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => setTheme(getTheme()));
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
   }, []);
 
   const topInsight =
@@ -430,22 +441,22 @@ export default function ActivityDial({
         aria-label="24-hour activity dial"
       >
         {/* Atmosphere gradient ring */}
-        <AtmosphereRing now={now} />
+        <AtmosphereRing now={now} theme={theme} />
 
         {/* Stars in night zones */}
         <Stars now={now} />
 
-        {/* Activity ring track */}
+        {/* Outer activity ring — thin baseline track (always visible) */}
         <circle
           cx={CX}
           cy={CY}
           r={ACTIVITY_R}
           fill="none"
-          stroke="rgba(255,255,255,0.06)"
+          className="activity-dial__track"
           strokeWidth={ACTIVITY_STROKE}
         />
 
-        {/* Activity arcs (sleep, feeding, pumping) */}
+        {/* Activity arcs (sleep, feeding, pumping) — overlay the track */}
         <ActivityArcs
           arcs={arcs}
           cx={CX}
@@ -454,17 +465,14 @@ export default function ActivityDial({
           strokeWidth={ACTIVITY_STROKE}
         />
 
-        {/* Activity dots (diaper changes) */}
+        {/* Activity dots (diaper changes) — overlay the track */}
         <ActivityDots dots={dots} cx={CX} cy={CY} radius={ACTIVITY_R} />
 
-        {/* Bedtime marker */}
+        {/* Bedtime marker — bed icon on inner ring */}
         <BedtimeMarker bedtime={bedtime} now={now} />
 
         {/* Hour labels on atmosphere ring */}
         <HourLabels now={now} />
-
-        {/* NOW marker */}
-        <NowMarker />
 
         {/* Center circle with time + status, rotates to show top insight */}
         <CenterDisplay

@@ -11,9 +11,13 @@ const HOURS_IN_DAY = 24;
 const DEG_PER_HOUR = 360 / HOURS_IN_DAY; // 15°/h
 const MS_PER_HOUR = 3_600_000;
 
-// Atmosphere gradient endpoints
-const COLOR_NIGHT = { r: 0x06, g: 0x0b, b: 0x18 }; // #060b18
-const COLOR_DAY = { r: 0x87, g: 0xce, b: 0xeb }; // #87CEEB
+// Atmosphere gradient endpoints — theme-dependent
+// Dark theme: light yellow (day) → lighter grey (night) — visible on dark bg
+const COLOR_NIGHT_DARK = { r: 0x33, g: 0x33, b: 0x3d }; // #33333d
+const COLOR_DAY_DARK = { r: 0xfb, g: 0xd3, b: 0x5c }; // #fbd35c
+// Light theme: warm yellow (day) → dark grey/black (night)
+const COLOR_NIGHT_LIGHT = { r: 0x1e, g: 0x1e, b: 0x2a }; // #1e1e2a
+const COLOR_DAY_LIGHT = { r: 0xfb, g: 0xd3, b: 0x5c }; // #fbd35c
 
 /** Clamp n into [0, 360). */
 function normalizeAngle(deg) {
@@ -127,10 +131,12 @@ function toHex(n) {
 }
 
 /** Interpolate between night and day colour given a brightness in [0,1]. */
-function interpolateColor(brightness) {
-  const r = lerp(COLOR_NIGHT.r, COLOR_DAY.r, brightness);
-  const g = lerp(COLOR_NIGHT.g, COLOR_DAY.g, brightness);
-  const b = lerp(COLOR_NIGHT.b, COLOR_DAY.b, brightness);
+function interpolateColor(brightness, theme = "dark") {
+  const night = theme === "light" ? COLOR_NIGHT_LIGHT : COLOR_NIGHT_DARK;
+  const day = theme === "light" ? COLOR_DAY_LIGHT : COLOR_DAY_DARK;
+  const r = lerp(night.r, day.r, brightness);
+  const g = lerp(night.g, day.g, brightness);
+  const b = lerp(night.b, day.b, brightness);
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
@@ -141,9 +147,10 @@ function interpolateColor(brightness) {
  *
  * @param {Date} now
  * @param {number} steps - number of stops (default 48)
+ * @param {string} theme - "dark" or "light"
  * @returns {Array<{ angle: number, color: string, opacity: number }>}
  */
-export function atmosphereStops(now, steps = 48) {
+export function atmosphereStops(now, steps = 48, theme = "dark") {
   const nowHour = now.getHours() + now.getMinutes() / 60;
 
   return Array.from({ length: steps }, (_, i) => {
@@ -154,8 +161,8 @@ export function atmosphereStops(now, steps = 48) {
     const brightness = dayBrightness(absoluteHour);
     return {
       angle,
-      color: interpolateColor(brightness),
-      opacity: 0.15 + brightness * 0.65, // 0.15 at night → 0.80 at noon
+      color: interpolateColor(brightness, theme),
+      opacity: 0.4 + brightness * 0.5, // 0.4 at night → 0.9 at noon
     };
   });
 }

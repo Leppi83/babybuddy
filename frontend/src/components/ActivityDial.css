@@ -14,10 +14,10 @@
   height: auto;
 }
 
-/* Hour labels on the atmosphere ring */
+/* Hour labels on the atmosphere ring — larger, theme-aware */
 .activity-dial__label {
-  font-size: var(--font-chart-size, 10px);
-  font-weight: var(--font-chart-weight, 400);
+  font-size: 13px;
+  font-weight: 500;
   text-anchor: middle;
   dominant-baseline: central;
   fill: var(--app-text-primary, #f1f0ff);
@@ -25,10 +25,15 @@
 }
 
 /* Center display */
+.activity-dial__center-bg {
+  fill: var(--app-card-bg-start, #020617);
+  opacity: 0.92;
+}
+
 .activity-dial__center-time {
   font-size: var(--font-body-size, 12px);
   font-weight: 600;
-  fill: var(--app-primary, #a78bfa);
+  fill: var(--app-text-primary, #f1f5f9);
   text-anchor: middle;
 }
 
@@ -39,13 +44,11 @@
   text-anchor: middle;
 }
 
-/* Bedtime marker text */
-.activity-dial__bedtime-label {
-  font-size: 11px;
-  fill: #818cf8;
-  text-anchor: middle;
-  dominant-baseline: central;
+/* Bedtime marker — bed icon on inner ring */
+.activity-dial__bedtime-icon {
+  font-size: 14px;
   pointer-events: none;
+  user-select: none;
 }
 
 /* Star scatter */
@@ -54,9 +57,15 @@
   pointer-events: none;
 }
 
-/* NOW marker triangle */
-.activity-dial__now-marker {
-  fill: var(--app-primary, #a78bfa);
+/* Outer activity ring baseline track */
+.activity-dial__track {
+  stroke: var(--app-card-border, #1e3a5f);
+  opacity: 0.4;
+}
+
+/* Dot stroke — uses theme background for contrast */
+.activity-dial__dot-stroke {
+  stroke: var(--app-card-bg-start, #020617);
 }
 
 /* Legend row below the dial */
