@@ -30,18 +30,23 @@ WORKDIR /app
 # pip/packaging aktualisieren
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Dependencies
+# Python dependencies
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Node dependencies — copy manifests first so this layer is cached unless deps change
+COPY package.json package-lock.json /app/
+COPY frontend/package.json frontend/package-lock.json /app/frontend/
+RUN npm ci && cd /app/frontend && npm ci
 
 # App Code
 COPY . /app
 
-# Frontend assets (SCSS/JS)
+# Frontend assets (SCSS/JS) — node_modules already installed above
 # Gulp builds into babybuddy/static/babybuddy/*.
 # Sync into /app/static/babybuddy/* because FileSystemFinder prefers /app/static.
-RUN npm ci && npx gulp build \
-    && cd /app/frontend && npm ci --cache /tmp/frontend-npm-cache && npm run build \
+RUN npx gulp build \
+    && cd /app/frontend && npm run build \
     && mkdir -p /app/static/babybuddy \
     && cp -a /app/babybuddy/static/babybuddy/. /app/static/babybuddy/
 
