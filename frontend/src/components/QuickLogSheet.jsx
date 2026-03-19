@@ -19,7 +19,7 @@ const TILES = [
     key: "pumping",
     labelKey: "quickLog.tile.pumping",
     icon: "🫧",
-    instant: true,
+    instant: false,
   },
   {
     key: "temperature",

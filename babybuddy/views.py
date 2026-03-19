@@ -1047,8 +1047,11 @@ class UserSettings(LoginRequiredMixin, View):
 
     def _save_forms(self, request):
         form_user = self.form_user_class(instance=request.user, data=request.POST)
+        post_data = request.POST.copy()
+        if not post_data.get("llm_api_key") and request.user.settings.llm_api_key:
+            post_data["llm_api_key"] = request.user.settings.llm_api_key
         form_settings = self.form_settings_class(
-            instance=request.user.settings, data=request.POST
+            instance=request.user.settings, data=post_data
         )
         if form_user.is_valid() and form_settings.is_valid():
             user = form_user.save(commit=False)
