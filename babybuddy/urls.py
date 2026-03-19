@@ -6,6 +6,7 @@ from django.views.static import serve
 
 from . import views
 from core.views import QuickLogView
+from dashboard.views import InsightsSummaryView
 
 app_patterns = [
     path("login/", views.LoginView.as_view(), name="login"),
@@ -51,6 +52,11 @@ app_patterns = [
 urlpatterns = [
     path("sw.js", views.ServiceWorkerView.as_view(), name="service-worker"),
     path("api/quick-log/<str:entry_type>/", QuickLogView.as_view(), name="quick-log"),
+    path(
+        "api/insights/summary/",
+        InsightsSummaryView.as_view(),
+        name="insights-summary",
+    ),
     path(
         "log/sleep/start/",
         views.QuickLogFormView.as_view(),

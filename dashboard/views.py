@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 import datetime
+import json as _json
 
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, StreamingHttpResponse
+from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.middleware.csrf import get_token
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 from django.views.generic.detail import DetailView
+from django.views.decorators.csrf import csrf_exempt
 
 from django.core.cache import cache
 
@@ -919,6 +923,64 @@ class ChildInsightsView(PermissionRequiredMixin, DetailView):
                 }
                 for ins in insights
             ],
+            "settings": {
+                "ai": {
+                    "provider": self.request.user.settings.llm_provider,
+                }
+            },
             "strings": _build_ant_strings(),
         }
         return context
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(csrf_exempt, name="dispatch")
+class InsightsSummaryView(View):
+    """
+    GET /api/insights/summary/?child=<id>
+    Streams an LLM summary as Server-Sent Events.
+    Uses GET (required for native EventSource compatibility — no CSRF token support).
+    """
+
+    def get(self, request):
+        child_id = request.GET.get("child")
+        try:
+            child = Child.objects.get(pk=child_id)
+        except (Child.DoesNotExist, ValueError, TypeError):
+            return StreamingHttpResponse(
+                iter([f'event: error\ndata: {_json.dumps("Child not found")}\n\n']),
+                content_type="text/event-stream",
+            )
+
+        user_settings = request.user.settings
+
+        def stream():
+            from core.insights import build_llm_context
+            from core.llm import generate_summary, LLMError
+
+            data = build_insights_data(child)
+            cache_key = f"insights_{child.id}"
+            insights = cache.get(cache_key)
+            if insights is None:
+                insights = run_rules(child, data)
+                cache.set(cache_key, insights, 300)
+
+            context = build_llm_context(child, data, insights)
+
+            try:
+                for chunk in generate_summary(
+                    provider=user_settings.llm_provider,
+                    model=user_settings.llm_model,
+                    base_url=user_settings.llm_base_url,
+                    api_key=user_settings.llm_api_key,
+                    context=context,
+                ):
+                    yield f"data: {_json.dumps(chunk)}\n\n"
+                yield "event: done\ndata: \n\n"
+            except Exception as e:
+                yield f"event: error\ndata: {_json.dumps(str(e))}\n\n"
+
+        response = StreamingHttpResponse(stream(), content_type="text/event-stream")
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
