@@ -313,6 +313,28 @@ def _build_quick_status(child):
     }
 
 
+def _build_insights_for_bootstrap(child):
+    cache_key = f"insights_{child.id}"
+    insights = cache.get(cache_key)
+    if insights is None:
+        data = build_insights_data(child)
+        insights = run_rules(child, data)
+        cache.set(cache_key, insights, 300)
+
+    return [
+        {
+            "id": ins.id,
+            "severity": ins.severity,
+            "category": ins.category,
+            "title": ins.title,
+            "body": ins.body,
+            "actionLabel": ins.action_label,
+            "actionUrl": ins.action_url,
+        }
+        for ins in insights
+    ]
+
+
 class ChildDashboard(PermissionRequiredMixin, DetailView):
     model = Child
     permission_required = ("core.view_child",)
@@ -822,6 +844,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     "childDashboardTemplate": reverse(
                         "dashboard:dashboard-child", kwargs={"slug": "__CHILD_SLUG__"}
                     ),
+                    "childInsights": reverse(
+                        "dashboard:child-insights", kwargs={"pk": self.object.pk}
+                    ),
                 },
                 "children": _serialize_children(self.request, children),
                 "currentChild": {
@@ -839,6 +864,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                 ),
                 "strings": _build_ant_strings(),
                 "quickStatus": _build_quick_status(self.object),
+                "insights": _build_insights_for_bootstrap(self.object),
             }
         return context
 
