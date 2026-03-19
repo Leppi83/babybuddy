@@ -1,4 +1,5 @@
-import { Empty, Tag, Button } from "antd";
+import { useState, useRef } from "react";
+import { Empty, Tag, Button, Modal, Spin } from "antd";
 
 const SEVERITY_COLORS = {
   alert: "#ff7875",
@@ -58,8 +59,88 @@ function InsightCard({ insight }) {
   );
 }
 
+function AskAIModal({ childId, open, onClose }) {
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const esRef = useRef(null);
+
+  const start = () => {
+    if (esRef.current) esRef.current.close();
+    setText("");
+    setError(null);
+    setLoading(true);
+
+    const es = new EventSource(`/api/insights/summary/?child=${childId}`);
+    esRef.current = es;
+
+    es.onmessage = (e) => {
+      try {
+        setText((prev) => prev + JSON.parse(e.data));
+      } catch {}
+    };
+    es.addEventListener("done", () => {
+      setLoading(false);
+      es.close();
+    });
+    es.addEventListener("error", (e) => {
+      setLoading(false);
+      try {
+        setError(JSON.parse(e.data));
+      } catch {
+        setError("Connection error");
+      }
+      es.close();
+    });
+    es.onerror = () => {
+      if (loading) {
+        setLoading(false);
+        setError("Connection lost");
+      }
+      es.close();
+    };
+  };
+
+  const handleOpen = () => {
+    if (!text && !loading) start();
+  };
+
+  return (
+    <Modal
+      open={open}
+      onCancel={() => {
+        esRef.current?.close();
+        onClose();
+      }}
+      footer={null}
+      title="AI Summary"
+      styles={{ body: { background: "#0f172a", minHeight: 120 } }}
+      afterOpenChange={(visible) => {
+        if (visible) handleOpen();
+      }}
+    >
+      {loading && !text && (
+        <Spin style={{ display: "block", margin: "40px auto" }} />
+      )}
+      {error && <p style={{ color: "#ff7875" }}>{error}</p>}
+      {text && (
+        <p
+          style={{ color: "#e2e8f0", lineHeight: 1.7, whiteSpace: "pre-wrap" }}
+        >
+          {text}
+          {loading && <span style={{ opacity: 0.5 }}>▌</span>}
+        </p>
+      )}
+    </Modal>
+  );
+}
+
 export function InsightsPage({ bootstrap }) {
   const { child, insights, urls, strings } = bootstrap;
+  const showAI =
+    bootstrap.settings?.ai?.provider &&
+    bootstrap.settings.ai.provider !== "none";
+  const [aiOpen, setAiOpen] = useState(false);
 
   const byCategory = insights.reduce((acc, ins) => {
     const cat = ins.category;
@@ -94,6 +175,27 @@ export function InsightsPage({ bootstrap }) {
           ← {strings?.["insights.backToDashboard"] ?? "Back to dashboard"}
         </Button>
       </div>
+
+      {/* AI summary button */}
+      {showAI && (
+        <>
+          <Button
+            onClick={() => setAiOpen(true)}
+            style={{
+              marginBottom: 16,
+              borderColor: "#1e3a5f",
+              color: "#4db6ff",
+            }}
+          >
+            ✨ Ask AI for summary
+          </Button>
+          <AskAIModal
+            childId={child.id}
+            open={aiOpen}
+            onClose={() => setAiOpen(false)}
+          />
+        </>
+      )}
 
       {/* Empty state */}
       {insights.length === 0 && (

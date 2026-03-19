@@ -246,3 +246,37 @@ class ViewsTestCase(TestCase):
         self.assertEqual(bootstrap["pageType"], "insights")
         self.assertIn("insights", bootstrap)
         self.assertIsInstance(bootstrap["insights"], list)
+
+    def test_insights_summary_endpoint_no_provider(self):
+        """With no LLM provider configured (default 'none'), returns SSE error event."""
+        from core.models import Child
+        from django.utils import timezone
+
+        child = Child.objects.first()
+        if child is None:
+            child = Child.objects.create(
+                first_name="Test",
+                last_name="Child",
+                birth_date=timezone.localdate() - timezone.timedelta(days=90),
+            )
+        response = self.c.get(f"/api/insights/summary/?child={child.pk}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/event-stream")
+        content = b"".join(response.streaming_content)
+        self.assertIn(b"event: error", content)
+
+    def test_insights_summary_requires_login(self):
+        from core.models import Child
+        from django.test import Client as HttpClient
+        from django.utils import timezone
+
+        child = Child.objects.first()
+        if child is None:
+            child = Child.objects.create(
+                first_name="Test",
+                last_name="Child",
+                birth_date=timezone.localdate() - timezone.timedelta(days=90),
+            )
+        anon = HttpClient()
+        response = anon.get(f"/api/insights/summary/?child={child.pk}")
+        self.assertEqual(response.status_code, 302)
