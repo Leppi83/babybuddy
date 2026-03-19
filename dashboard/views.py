@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from babybuddy.views import _serialize_messages
 from core.models import Child, DiaperChange, Feeding, Pumping, Sleep, Timer
 from core.insights import build_insights_data, run_rules
 
@@ -901,7 +902,9 @@ class ChildInsightsView(PermissionRequiredMixin, DetailView):
                 "childDashboard": reverse(
                     "dashboard:dashboard-child", kwargs={"slug": child.slug}
                 ),
+                "addChild": reverse("core:child-add"),
             },
+            "messages": _serialize_messages(self.request),
             "child": {
                 "id": child.id,
                 "name": str(child),
@@ -952,6 +955,12 @@ class InsightsSummaryView(View):
                 content_type="text/event-stream",
             )
 
+        if not request.user.has_perm("core.view_child"):
+            return StreamingHttpResponse(
+                iter([f'event: error\ndata: {_json.dumps("Permission denied")}\n\n']),
+                content_type="text/event-stream",
+            )
+
         user_settings = request.user.settings
 
         def stream():
@@ -977,7 +986,7 @@ class InsightsSummaryView(View):
                 ):
                     yield f"data: {_json.dumps(chunk)}\n\n"
                 yield "event: done\ndata: \n\n"
-            except Exception as e:
+            except LLMError as e:
                 yield f"event: error\ndata: {_json.dumps(str(e))}\n\n"
 
         response = StreamingHttpResponse(stream(), content_type="text/event-stream")

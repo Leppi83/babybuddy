@@ -64,12 +64,14 @@ function AskAIModal({ childId, open, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const esRef = useRef(null);
+  const loadingRef = useRef(false);
 
   const start = () => {
     if (esRef.current) esRef.current.close();
     setText("");
     setError(null);
     setLoading(true);
+    loadingRef.current = true;
 
     const es = new EventSource(`/api/insights/summary/?child=${childId}`);
     esRef.current = es;
@@ -81,10 +83,12 @@ function AskAIModal({ childId, open, onClose }) {
     };
     es.addEventListener("done", () => {
       setLoading(false);
+      loadingRef.current = false;
       es.close();
     });
     es.addEventListener("error", (e) => {
       setLoading(false);
+      loadingRef.current = false;
       try {
         setError(JSON.parse(e.data));
       } catch {
@@ -93,8 +97,9 @@ function AskAIModal({ childId, open, onClose }) {
       es.close();
     });
     es.onerror = () => {
-      if (loading) {
+      if (loadingRef.current) {
         setLoading(false);
+        loadingRef.current = false;
         setError("Connection lost");
       }
       es.close();
