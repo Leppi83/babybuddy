@@ -77,7 +77,7 @@ def _rule_no_diaper_8h(child, data: dict) -> list:
                     f"It's been {hours} hours since the last diaper change. Consider checking soon."
                 ),
                 action_label=_("Log diaper"),
-                action_url="/log/diaper/",
+                action_url=f"/log/diaper/?child={child.id}",
             )
         ]
     return []
@@ -108,7 +108,7 @@ def _rule_newborn_feeding_interval(child, data: dict) -> list:
                     f"It's been {hours}h since the last feed."
                 ),
                 action_label=_("Log feeding"),
-                action_url="/log/feeding/",
+                action_url=f"/log/feeding/?child={child.id}",
             )
         ]
     return []
