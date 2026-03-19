@@ -204,10 +204,10 @@ export function App({ bootstrap }) {
       theme={{
         algorithm: themeAlgorithm,
         token: {
-          colorPrimary: "#4db6ff",
-          colorBgBase: effectiveTheme === "dark" ? "#020617" : "#f5f9ff",
-          colorBgContainer: effectiveTheme === "dark" ? "#0f172a" : "#ffffff",
-          colorBorder: effectiveTheme === "dark" ? "#1e3a5f" : "#d0dbe9",
+          colorPrimary: effectiveTheme === "dark" ? "#a78bfa" : "#7c3aed",
+          colorBgBase: effectiveTheme === "dark" ? "#08071a" : "#faf8ff",
+          colorBgContainer: effectiveTheme === "dark" ? "#13103a" : "#ffffff",
+          colorBorder: effectiveTheme === "dark" ? "#2d2560" : "#e4d9f7",
           borderRadius: 18,
         },
       }}

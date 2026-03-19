@@ -13,7 +13,10 @@ import {
 } from "antd";
 import {
   PlusOutlined,
-  DashboardOutlined,
+  HomeOutlined,
+  HistoryOutlined,
+  HeartOutlined,
+  EllipsisOutlined,
   DesktopOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
@@ -21,8 +24,6 @@ import {
   MoonOutlined,
   SettingOutlined,
   SunOutlined,
-  SwapOutlined,
-  TeamOutlined,
   UnorderedListOutlined,
 } from "@ant-design/icons";
 
@@ -65,46 +66,58 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  function handleLogout() {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = bootstrap.urls.logout;
+    const csrf = document.createElement("input");
+    csrf.type = "hidden";
+    csrf.name = "csrfmiddlewaretoken";
+    csrf.value = bootstrap.csrfToken;
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+  }
   const isDesktop = Boolean(screens.md);
   const isAuthLayout = bootstrap.layout === "auth";
+  const childrenMenuItem = bootstrap.urls.childrenList
+    ? {
+        key: "children-menu",
+        icon: <HeartOutlined />,
+        label: bootstrap.strings.children,
+        children: [
+          {
+            key: bootstrap.urls.childrenList,
+            icon: <UnorderedListOutlined />,
+            label: "Overview",
+          },
+          ...(bootstrap.urls.addChild
+            ? [
+                {
+                  key: bootstrap.urls.addChild,
+                  icon: <PlusOutlined />,
+                  label: bootstrap.strings.addChild,
+                },
+              ]
+            : []),
+        ],
+      }
+    : null;
+
   const navItems = [
     {
       key: bootstrap.urls.dashboard,
-      icon: <DashboardOutlined />,
+      icon: <HomeOutlined />,
       label: bootstrap.strings.dashboard,
     },
     {
       key: bootstrap.urls.timeline,
-      icon: <SwapOutlined />,
+      icon: <HistoryOutlined />,
       label: bootstrap.strings.timeline,
     },
-    bootstrap.urls.childrenList
-      ? {
-          key: "children-menu",
-          icon: <TeamOutlined />,
-          label: bootstrap.strings.children,
-          children: [
-            ...(bootstrap.urls.childrenList
-              ? [
-                  {
-                    key: bootstrap.urls.childrenList,
-                    icon: <UnorderedListOutlined />,
-                    label: "Overview",
-                  },
-                ]
-              : []),
-            ...(bootstrap.urls.addChild
-              ? [
-                  {
-                    key: bootstrap.urls.addChild,
-                    icon: <PlusOutlined />,
-                    label: bootstrap.strings.addChild,
-                  },
-                ]
-              : []),
-          ],
-        }
-      : null,
+    ...(childrenMenuItem ? [{ type: "divider" }, childrenMenuItem] : []),
+    { type: "divider" },
     {
       key: bootstrap.urls.settings,
       icon: <SettingOutlined />,
@@ -115,20 +128,11 @@ export function AppShell({
       icon: <LogoutOutlined />,
       label: bootstrap.strings.logout,
     },
-  ].filter(Boolean);
+  ];
 
   function handleNavClick({ key }) {
     if (key === "__logout__") {
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = bootstrap.urls.logout;
-      const csrf = document.createElement("input");
-      csrf.type = "hidden";
-      csrf.name = "csrfmiddlewaretoken";
-      csrf.value = bootstrap.csrfToken;
-      form.appendChild(csrf);
-      document.body.appendChild(form);
-      form.submit();
+      handleLogout();
       return;
     }
     if (key.startsWith("/")) {
@@ -327,16 +331,52 @@ export function AppShell({
         <Drawer
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
-          placement="left"
-          width={300}
-          styles={{ body: { padding: 16 } }}
+          placement="bottom"
+          height="auto"
+          title={null}
+          closeIcon={null}
+          styles={{ body: { padding: "20px 20px 12px" } }}
         >
-          {brand}
-          {menu}
-          <ThemeSwitcher
-            themeMode={themeMode}
-            onThemeModeChange={onThemeModeChange}
-          />
+          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+            {childrenMenuItem && (
+              <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                {bootstrap.urls.childrenList && (
+                  <Button
+                    type="text"
+                    icon={<HeartOutlined />}
+                    href={bootstrap.urls.childrenList}
+                    block
+                    style={{ textAlign: "left", justifyContent: "flex-start" }}
+                  >
+                    {bootstrap.strings.children}
+                  </Button>
+                )}
+                {bootstrap.urls.addChild && (
+                  <Button
+                    type="text"
+                    icon={<PlusOutlined />}
+                    href={bootstrap.urls.addChild}
+                    block
+                    style={{ textAlign: "left", justifyContent: "flex-start" }}
+                  >
+                    {bootstrap.strings.addChild}
+                  </Button>
+                )}
+              </Space>
+            )}
+            <ThemeSwitcher
+              themeMode={themeMode}
+              onThemeModeChange={onThemeModeChange}
+            />
+            <Button
+              danger
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              block
+            >
+              {bootstrap.strings.logout}
+            </Button>
+          </Space>
         </Drawer>
       )}
       <Layout>
@@ -352,23 +392,29 @@ export function AppShell({
             }}
           >
             <Space size="middle">
-              {!isDesktop && (
-                <Button
-                  type="text"
-                  icon={<MenuUnfoldOutlined />}
-                  onClick={() => setMobileOpen(true)}
-                />
-              )}
               {(pageMeta.eyebrow || pageMeta.title) && (
-                <div>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 1 }}
+                >
                   {pageMeta.eyebrow && (
-                    <Text type="secondary">{pageMeta.eyebrow}</Text>
+                    <Text
+                      type="secondary"
+                      style={{
+                        display: "block",
+                        fontSize: "0.72rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {pageMeta.eyebrow}
+                    </Text>
                   )}
                   {pageMeta.title && (
                     <Title
                       level={3}
                       className="ant-shell-title"
-                      style={{ margin: 0 }}
+                      style={{ margin: 0, lineHeight: 1.2 }}
                     >
                       {pageMeta.title}
                     </Title>
@@ -419,7 +465,7 @@ export function AppShell({
           aria-label="Quick log entry"
           style={{
             position: "fixed",
-            bottom: `calc(20px + env(safe-area-inset-bottom))`,
+            bottom: `calc(${isDesktop ? "20px" : "72px"} + env(safe-area-inset-bottom))`,
             right: 20,
             width: 56,
             height: 56,
@@ -449,6 +495,50 @@ export function AppShell({
         quickStatus={bootstrap.quickStatus ?? null}
         strings={bootstrap.strings}
       />
+
+      {!isDesktop && (
+        <nav className="ant-bottom-nav">
+          {[
+            {
+              key: bootstrap.urls.dashboard,
+              icon: <HomeOutlined />,
+              label: bootstrap.strings.dashboard,
+            },
+            {
+              key: bootstrap.urls.timeline,
+              icon: <HistoryOutlined />,
+              label: bootstrap.strings.timeline,
+            },
+            {
+              key: bootstrap.urls.settings,
+              icon: <SettingOutlined />,
+              label: bootstrap.strings.settings,
+            },
+            {
+              key: "__more__",
+              icon: <EllipsisOutlined />,
+              label: "More",
+            },
+          ].map((item) => {
+            const isActive =
+              item.key !== "__more__" && selectedKey === item.key;
+            return (
+              <button
+                key={item.key}
+                className={`ant-bottom-nav-item${isActive ? " is-active" : ""}`}
+                onClick={() =>
+                  item.key === "__more__"
+                    ? setMobileOpen(true)
+                    : handleNavClick({ key: item.key })
+                }
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
     </Layout>
   );
 }
