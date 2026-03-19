@@ -303,3 +303,4 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response["Content-Type"], "text/event-stream")
         content = b"".join(response.streaming_content).decode()
         self.assertIn("event: error", content)
+        self.assertIn("Permission denied", content)
