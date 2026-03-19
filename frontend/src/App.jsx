@@ -76,6 +76,11 @@ const ChildDashboardPage = lazy(() =>
     default: module.ChildDashboardPage,
   })),
 );
+const InsightsPage = lazy(() =>
+  import("./pages/InsightsPages").then((module) => ({
+    default: module.InsightsPage,
+  })),
+);
 
 const THEME_MODE_KEY = "babybuddy.theme.mode";
 
@@ -139,6 +144,9 @@ function RoutedPage({ bootstrap }) {
   }
   if (bootstrap.pageType === "report-detail") {
     return <ReportDetailPage bootstrap={bootstrap} />;
+  }
+  if (bootstrap.pageType === "insights") {
+    return <InsightsPage bootstrap={bootstrap} />;
   }
   return <ChildDashboardPage bootstrap={bootstrap} />;
 }

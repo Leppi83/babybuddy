@@ -12,8 +12,11 @@ from django.utils.translation import gettext as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
 
+from django.core.cache import cache
+
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from core.models import Child, DiaperChange, Feeding, Pumping, Sleep, Timer
+from core.insights import build_insights_data, run_rules
 
 
 def _ant_dashboard_enabled():
@@ -211,6 +214,14 @@ def _build_ant_strings():
         "quickLog.tile.timer": _("Timer"),
         "quickLog.tile.note": _("Note"),
         "quickLog.tile.weight": _("Weight"),
+        # Insights page
+        "insights.title": _("Insights"),
+        "insights.backToDashboard": _("Back to dashboard"),
+        "insights.emptyState": _("No issues detected — everything looks on track."),
+        "insights.category.sleep": _("Sleep"),
+        "insights.category.feeding": _("Feeding"),
+        "insights.category.diaper": _("Diaper"),
+        "insights.category.growth": _("Growth"),
     }
 
 
@@ -829,4 +840,59 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                 "strings": _build_ant_strings(),
                 "quickStatus": _build_quick_status(self.object),
             }
+        return context
+
+
+class ChildInsightsView(PermissionRequiredMixin, DetailView):
+    model = Child
+    permission_required = ("core.view_child",)
+    template_name = "babybuddy/ant_app.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        child = self.object
+
+        cache_key = f"insights_{child.id}"
+        insights = cache.get(cache_key)
+        if insights is None:
+            data = build_insights_data(child)
+            insights = run_rules(child, data)
+            cache.set(cache_key, insights, 300)
+
+        context["ant_page_title"] = _("Insights")
+        context["ant_bootstrap"] = {
+            "pageType": "insights",
+            "currentPath": self.request.path,
+            "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
+            "csrfToken": get_token(self.request),
+            "user": {"displayName": _display_name(self.request.user)},
+            "urls": {
+                **_build_nav_urls(self.request),
+                "childDashboard": reverse(
+                    "dashboard:dashboard-child", kwargs={"slug": child.slug}
+                ),
+            },
+            "child": {
+                "id": child.id,
+                "name": str(child),
+                "ageWeeks": (
+                    (datetime.date.today() - child.birth_date).days // 7
+                    if child.birth_date
+                    else None
+                ),
+            },
+            "insights": [
+                {
+                    "id": ins.id,
+                    "severity": ins.severity,
+                    "category": ins.category,
+                    "title": ins.title,
+                    "body": ins.body,
+                    "actionLabel": ins.action_label,
+                    "actionUrl": ins.action_url,
+                }
+                for ins in insights
+            ],
+            "strings": _build_ant_strings(),
+        }
         return context
