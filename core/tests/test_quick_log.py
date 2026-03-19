@@ -39,7 +39,9 @@ class QuickLogViewTest(TestCase):
 
     def test_diaper_quick_log_creates_record(self):
         count_before = models.DiaperChange.objects.count()
-        response = self._post("diaper", {"child": self.child.id, "wet": True, "solid": False})
+        response = self._post(
+            "diaper", {"child": self.child.id, "wet": True, "solid": False}
+        )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertEqual(data["status"], "ok")
@@ -68,10 +70,14 @@ class QuickLogViewTest(TestCase):
         response = self._post("sleep", {"child": self.child.id})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(models.Timer.objects.count(), count_before + 1)
-        timer = models.Timer.objects.filter(child=self.child, name="Sleep", active=True).first()
+        timer = models.Timer.objects.filter(
+            child=self.child, name="Sleep", active=True
+        ).first()
         self.assertIsNotNone(timer)
         # Clean up to avoid conflict with test_sleep_timer_conflict_returns_409
-        models.Timer.objects.filter(child=self.child, name="Sleep", active=True).delete()
+        models.Timer.objects.filter(
+            child=self.child, name="Sleep", active=True
+        ).delete()
 
     def test_sleep_timer_conflict_returns_409(self):
         # Create existing active sleep timer

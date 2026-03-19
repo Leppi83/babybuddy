@@ -57,7 +57,9 @@ def _rule_no_diaper_8h(child, data: dict) -> list:
                 severity="warning",
                 category="diaper",
                 title=_("No diaper changes recorded"),
-                body=_("No diaper change has been logged yet. Track changes to spot patterns."),
+                body=_(
+                    "No diaper change has been logged yet. Track changes to spot patterns."
+                ),
                 action_label=None,
                 action_url=None,
             )
@@ -71,7 +73,9 @@ def _rule_no_diaper_8h(child, data: dict) -> list:
                 severity="warning",
                 category="diaper",
                 title=_(f"No diaper change in {hours}h"),
-                body=_(f"It's been {hours} hours since the last diaper change. Consider checking soon."),
+                body=_(
+                    f"It's been {hours} hours since the last diaper change. Consider checking soon."
+                ),
                 action_label=_("Log diaper"),
                 action_url="/log/diaper/",
             )
