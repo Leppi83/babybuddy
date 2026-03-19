@@ -5,6 +5,8 @@ import {
   dayBrightness,
   pointOnCircle,
   timeToAngle,
+  arcDasharray,
+  classifyActivities,
 } from "../lib/dial-utils.js";
 import { ACTIVITY_COLORS } from "../lib/app-utils.jsx";
 import "./ActivityDial.css";
@@ -16,6 +18,7 @@ const CY = 190;
 const ATMO_R = 125;
 const ATMO_STROKE = 38;
 const ACTIVITY_R = 162;
+const ACTIVITY_STROKE = 7;
 const CENTER_R = 80;
 
 /* ── Deterministic star seed for night zones ─────────────────── */
@@ -206,6 +209,68 @@ function CenterDisplay({ now, currentStatus }) {
   );
 }
 
+function ActivityArcs({ arcs, cx, cy, radius, strokeWidth }) {
+  const circumference = 2 * Math.PI * radius;
+
+  return (
+    <g>
+      {arcs.map((arc, i) => {
+        const { dasharray, dashoffset } = arcDasharray(
+          arc.startAngle,
+          arc.endAngle,
+          circumference,
+        );
+        return (
+          <circle
+            key={i}
+            cx={cx}
+            cy={cy}
+            r={radius}
+            fill="none"
+            stroke={ACTIVITY_COLORS[arc.type]}
+            strokeWidth={strokeWidth}
+            strokeDasharray={dasharray}
+            strokeDashoffset={dashoffset}
+            strokeLinecap="round"
+            opacity={0.9}
+            style={{
+              transform: "rotate(-90deg)",
+              transformOrigin: `${cx}px ${cy}px`,
+              cursor: "pointer",
+            }}
+          >
+            {arc.tooltip && <title>{arc.tooltip}</title>}
+          </circle>
+        );
+      })}
+    </g>
+  );
+}
+
+function ActivityDots({ dots, cx, cy, radius }) {
+  return (
+    <g>
+      {dots.map((dot, i) => {
+        const { x, y } = pointOnCircle(dot.angle, radius, cx, cy);
+        return (
+          <circle
+            key={i}
+            cx={x}
+            cy={y}
+            r={5}
+            fill={ACTIVITY_COLORS[dot.type]}
+            stroke="#020617"
+            strokeWidth={1.5}
+            style={{ cursor: "pointer" }}
+          >
+            {dot.tooltip && <title>{dot.tooltip}</title>}
+          </circle>
+        );
+      })}
+    </g>
+  );
+}
+
 function Legend({ strings }) {
   const items = [
     { key: "sleep", color: ACTIVITY_COLORS.sleep, label: strings.sleep, type: "line" },
@@ -252,6 +317,22 @@ export default function ActivityDial({
     return () => clearInterval(id);
   }, []);
 
+  const parsedActivities = useMemo(
+    () =>
+      activities.map((a) => {
+        if (a.type === "diaper") {
+          return { ...a, time: new Date(a.time) };
+        }
+        return { ...a, start: new Date(a.start), end: new Date(a.end) };
+      }),
+    [activities],
+  );
+
+  const { arcs, dots } = useMemo(
+    () => classifyActivities(parsedActivities, now),
+    [parsedActivities, now],
+  );
+
   return (
     <div className="activity-dial">
       <svg
@@ -266,15 +347,27 @@ export default function ActivityDial({
         {/* Stars in night zones */}
         <Stars now={now} />
 
-        {/* Activity ring placeholder (outer, for Task 4) */}
+        {/* Activity ring track */}
         <circle
           cx={CX}
           cy={CY}
           r={ACTIVITY_R}
           fill="none"
           stroke="rgba(255,255,255,0.06)"
-          strokeWidth={7}
+          strokeWidth={ACTIVITY_STROKE}
         />
+
+        {/* Activity arcs (sleep, feeding, pumping) */}
+        <ActivityArcs
+          arcs={arcs}
+          cx={CX}
+          cy={CY}
+          radius={ACTIVITY_R}
+          strokeWidth={ACTIVITY_STROKE}
+        />
+
+        {/* Activity dots (diaper changes) */}
+        <ActivityDots dots={dots} cx={CX} cy={CY} radius={ACTIVITY_R} />
 
         {/* Bedtime marker */}
         <BedtimeMarker bedtime={bedtime} now={now} />
