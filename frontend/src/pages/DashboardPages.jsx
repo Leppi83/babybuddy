@@ -29,8 +29,9 @@ import {
   Typography,
 } from "antd";
 import { EyeOutlined, ReloadOutlined } from "@ant-design/icons";
-import ActivityDial from "../components/ActivityDial";
-import { DashboardInsightsCard } from "../components/DashboardInsightsCard";
+// Phase 1: Activity Dial (temporarily disabled for debugging)
+// import ActivityDial from "../components/ActivityDial";
+// import { DashboardInsightsCard } from "../components/DashboardInsightsCard";
 import {
   asItems,
   APP_DATE_FORMAT,
@@ -1764,10 +1765,10 @@ function ChildDashboardPageV2({ bootstrap }) {
 }
 
 export function ChildDashboardPage({ bootstrap }) {
-  // Use new dial-based dashboard when backend provides dial data
-  if (bootstrap.dialActivities !== undefined) {
-    return <ChildDashboardPageV2 bootstrap={bootstrap} />;
-  }
+  // Phase 1: Activity Dial (temporarily disabled for debugging)
+  // if (bootstrap.dialActivities !== undefined) {
+  //   return <ChildDashboardPageV2 bootstrap={bootstrap} />;
+  // }
 
   const ant = AntApp.useApp();
   const api = useRef(createApiClient(bootstrap.csrfToken));
