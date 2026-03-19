@@ -1,86 +1,92 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap");
+
 :root {
-  font-family: "SF Pro Display", "Segoe UI", sans-serif;
+  font-family: "Nunito", "SF Pro Display", "Segoe UI", sans-serif;
   color-scheme: dark;
-  --app-text-primary: #f8fafc;
-  --app-text-secondary: #cbd5e1;
-  --app-bg-start: #020617;
-  --app-bg-mid: #07142b;
-  --app-bg-end: #031224;
-  --app-bg-radial: rgba(56, 189, 248, 0.18);
-  --app-sider-bg: rgba(7, 18, 39, 0.92);
-  --app-sider-border: rgba(77, 182, 255, 0.18);
-  --app-header-bg: rgba(2, 6, 23, 0.6);
-  --app-header-border: rgba(77, 182, 255, 0.14);
-  --app-card-border: rgba(77, 182, 255, 0.18);
-  --app-card-bg-start: rgba(15, 23, 42, 0.95);
-  --app-card-bg-end: rgba(2, 6, 23, 0.94);
-  --app-shell-shadow: rgba(2, 6, 23, 0.28);
-  --app-list-bg: rgba(2, 6, 23, 0.58);
-  --app-list-item-text: #e2e8f0;
-  --app-list-item-active: rgba(77, 182, 255, 0.12);
-  --app-link: #cfe8ff;
-  --app-link-hover: #ffffff;
-  --app-timeline-slot-bg: rgba(15, 23, 42, 0.65);
-  --app-timeline-axis: #94a3b8;
-  --app-native-input-bg: rgba(2, 6, 23, 0.72);
-  --app-native-input-border: rgba(148, 163, 184, 0.28);
-  --app-event-card-bg: rgba(2, 6, 23, 0.42);
-  --app-event-card-border: rgba(77, 182, 255, 0.14);
+  --app-text-primary: #f1f0ff;
+  --app-text-secondary: #c4b5fd;
+  --app-bg-start: #08071a;
+  --app-bg-mid: #100e2a;
+  --app-bg-end: #0d0b24;
+  --app-bg-radial: rgba(167, 139, 250, 0.14);
+  --app-sider-bg: rgba(16, 14, 42, 0.94);
+  --app-sider-border: rgba(167, 139, 250, 0.18);
+  --app-header-bg: rgba(8, 7, 26, 0.72);
+  --app-header-border: rgba(167, 139, 250, 0.14);
+  --app-card-border: rgba(167, 139, 250, 0.16);
+  --app-card-bg-start: rgba(19, 16, 58, 0.95);
+  --app-card-bg-end: rgba(8, 7, 26, 0.96);
+  --app-shell-shadow: rgba(8, 7, 26, 0.35);
+  --app-list-bg: rgba(8, 7, 26, 0.58);
+  --app-list-item-text: #e8e4ff;
+  --app-list-item-active: rgba(167, 139, 250, 0.12);
+  --app-link: #c4b5fd;
+  --app-link-hover: #f1f0ff;
+  --app-timeline-slot-bg: rgba(19, 16, 58, 0.65);
+  --app-timeline-axis: #a78bfa;
+  --app-native-input-bg: rgba(8, 7, 26, 0.72);
+  --app-native-input-border: rgba(167, 139, 250, 0.28);
+  --app-event-card-bg: rgba(8, 7, 26, 0.42);
+  --app-event-card-border: rgba(167, 139, 250, 0.14);
   --app-row-a: rgba(255, 255, 255, 0.02);
-  --app-row-b: rgba(77, 182, 255, 0.04);
-  --app-row-hover: rgba(255, 255, 255, 0.07);
-  --sleep-week-grid-color: rgba(255, 255, 255, 0.12);
-  --sleep-week-axis-color: rgba(255, 255, 255, 0.72);
-  --sleep-week-day-color: rgba(255, 255, 255, 0.82);
-  --night-sleep-card-bg: linear-gradient(180deg, rgba(12, 18, 38, 0.96), rgba(15, 23, 42, 0.94));
-  --night-sleep-track: rgba(148, 163, 184, 0.18);
+  --app-row-b: rgba(167, 139, 250, 0.04);
+  --app-row-hover: rgba(167, 139, 250, 0.08);
+  --sleep-week-grid-color: rgba(167, 139, 250, 0.18);
+  --sleep-week-axis-color: rgba(200, 191, 255, 0.72);
+  --sleep-week-day-color: rgba(220, 214, 255, 0.82);
+  --night-sleep-card-bg: linear-gradient(180deg, rgba(12, 10, 32, 0.96), rgba(19, 16, 58, 0.94));
+  --night-sleep-track: rgba(167, 139, 250, 0.18);
   --night-sleep-sleep: #fbbf24;
-  --night-sleep-awake: rgba(148, 163, 184, 0.7);
+  --night-sleep-awake: rgba(167, 139, 250, 0.6);
   --night-sleep-feeding: #38bdf8;
-  --night-sleep-diaper: #fb7185;
-  --night-sleep-marker-shadow: rgba(2, 6, 23, 0.2);
+  --night-sleep-diaper: #ff6b8b;
+  --night-sleep-marker-shadow: rgba(8, 7, 26, 0.24);
+  --app-primary: #a78bfa;
+  --app-card-glass-bg: rgba(19, 16, 58, 0.55);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --app-text-primary: #0f172a;
-  --app-text-secondary: #475569;
-  --app-bg-start: #f6fbff;
-  --app-bg-mid: #edf5ff;
-  --app-bg-end: #e6f1ff;
-  --app-bg-radial: rgba(59, 130, 246, 0.14);
-  --app-sider-bg: rgba(255, 255, 255, 0.92);
-  --app-sider-border: rgba(59, 130, 246, 0.18);
-  --app-header-bg: rgba(255, 255, 255, 0.82);
-  --app-header-border: rgba(148, 163, 184, 0.28);
-  --app-card-border: rgba(148, 163, 184, 0.3);
-  --app-card-bg-start: rgba(255, 255, 255, 0.96);
-  --app-card-bg-end: rgba(241, 245, 249, 0.94);
-  --app-shell-shadow: rgba(15, 23, 42, 0.12);
-  --app-list-bg: rgba(255, 255, 255, 0.85);
-  --app-list-item-text: #1e293b;
-  --app-list-item-active: rgba(59, 130, 246, 0.12);
-  --app-link: #1d4ed8;
-  --app-link-hover: #1e40af;
-  --app-timeline-slot-bg: rgba(226, 232, 240, 0.7);
-  --app-timeline-axis: #64748b;
-  --app-native-input-bg: rgba(255, 255, 255, 0.95);
-  --app-native-input-border: rgba(148, 163, 184, 0.5);
-  --app-event-card-bg: rgba(248, 250, 252, 0.9);
-  --app-event-card-border: rgba(148, 163, 184, 0.35);
-  --app-row-a: rgba(148, 163, 184, 0.07);
-  --app-row-b: rgba(59, 130, 246, 0.08);
-  --app-row-hover: rgba(148, 163, 184, 0.16);
-  --sleep-week-grid-color: rgba(100, 116, 139, 0.26);
-  --sleep-week-axis-color: rgba(30, 41, 59, 0.78);
-  --sleep-week-day-color: rgba(15, 23, 42, 0.9);
-  --night-sleep-card-bg: linear-gradient(180deg, #ffffff, #f8fbff);
-  --night-sleep-track: rgba(148, 163, 184, 0.2);
-  --night-sleep-sleep: #f59e0b;
-  --night-sleep-awake: rgba(100, 116, 139, 0.46);
+  --app-text-primary: #1e1b4b;
+  --app-text-secondary: #6d28d9;
+  --app-bg-start: #faf8ff;
+  --app-bg-mid: #f3f0ff;
+  --app-bg-end: #ede9ff;
+  --app-bg-radial: rgba(139, 92, 246, 0.12);
+  --app-sider-bg: rgba(255, 255, 255, 0.94);
+  --app-sider-border: rgba(139, 92, 246, 0.18);
+  --app-header-bg: rgba(255, 255, 255, 0.88);
+  --app-header-border: rgba(196, 181, 253, 0.4);
+  --app-card-border: rgba(196, 181, 253, 0.4);
+  --app-card-bg-start: rgba(255, 255, 255, 0.97);
+  --app-card-bg-end: rgba(248, 245, 255, 0.95);
+  --app-shell-shadow: rgba(109, 40, 217, 0.1);
+  --app-list-bg: rgba(255, 255, 255, 0.9);
+  --app-list-item-text: #1e1b4b;
+  --app-list-item-active: rgba(139, 92, 246, 0.1);
+  --app-link: #6d28d9;
+  --app-link-hover: #4c1d95;
+  --app-timeline-slot-bg: rgba(237, 233, 255, 0.9);
+  --app-timeline-axis: #7c3aed;
+  --app-native-input-bg: rgba(255, 255, 255, 0.98);
+  --app-native-input-border: rgba(196, 181, 253, 0.5);
+  --app-event-card-bg: rgba(252, 250, 255, 0.95);
+  --app-event-card-border: rgba(196, 181, 253, 0.4);
+  --app-row-a: rgba(196, 181, 253, 0.06);
+  --app-row-b: rgba(139, 92, 246, 0.08);
+  --app-row-hover: rgba(139, 92, 246, 0.12);
+  --sleep-week-grid-color: rgba(109, 40, 217, 0.2);
+  --sleep-week-axis-color: rgba(30, 27, 75, 0.75);
+  --sleep-week-day-color: rgba(15, 10, 60, 0.88);
+  --night-sleep-card-bg: linear-gradient(180deg, #ffffff, #f5f0ff);
+  --night-sleep-track: rgba(196, 181, 253, 0.25);
+  --night-sleep-sleep: #d97706;
+  --night-sleep-awake: rgba(109, 40, 217, 0.42);
   --night-sleep-feeding: #0284c7;
   --night-sleep-diaper: #e11d48;
-  --night-sleep-marker-shadow: rgba(148, 163, 184, 0.14);
+  --night-sleep-marker-shadow: rgba(196, 181, 253, 0.18);
+  --app-primary: #7c3aed;
+  --app-card-glass-bg: rgba(255, 255, 255, 0.72);
 }
 
 html,
@@ -92,6 +98,8 @@ body,
 
 body {
   background:
+    radial-gradient(circle at 92% 6%, rgba(167, 139, 250, 0.12), transparent 30%),
+    radial-gradient(circle at 6% 88%, rgba(56, 189, 248, 0.08), transparent 28%),
     radial-gradient(circle at top left, var(--app-bg-radial), transparent 24%),
     linear-gradient(
       135deg,
@@ -100,6 +108,20 @@ body {
       var(--app-bg-end) 100%
     );
   color: var(--app-text-primary);
+}
+
+:root[data-theme="light"] body,
+[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 92% 6%, rgba(139, 92, 246, 0.08), transparent 30%),
+    radial-gradient(circle at 6% 88%, rgba(99, 102, 241, 0.06), transparent 28%),
+    radial-gradient(circle at top left, var(--app-bg-radial), transparent 24%),
+    linear-gradient(
+      135deg,
+      var(--app-bg-start) 0%,
+      var(--app-bg-mid) 52%,
+      var(--app-bg-end) 100%
+    );
 }
 
 #ant-app-root {
@@ -211,12 +233,21 @@ body {
 .ant-dashboard-card,
 .ant-summary-card {
   border-color: var(--app-card-border) !important;
-  background: linear-gradient(
-    135deg,
-    var(--app-card-bg-start),
-    var(--app-card-bg-end)
-  ) !important;
+  background: var(--app-card-glass-bg) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
   box-shadow: 0 20px 50px var(--app-shell-shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ant-hero-card:hover,
+.ant-section-card:hover,
+.ant-dashboard-card:hover {
+  box-shadow: 0 20px 50px var(--app-shell-shadow), 0 0 0 1px rgba(167, 139, 250, 0.28);
+}
+
+.ant-section-card.ant-card {
+  border-left: 3px solid var(--section-color, var(--app-card-border)) !important;
 }
 
 .ant-child-image-wrap {
@@ -316,11 +347,11 @@ body {
 }
 
 .ant-timeline-bar.nap {
-  background: linear-gradient(180deg, #ffdf8c, #ff9f1a);
+  background: linear-gradient(180deg, #fde68a, #fbbf24);
 }
 
 .ant-timeline-bar.sleep {
-  background: linear-gradient(180deg, #91caff, #1677ff);
+  background: linear-gradient(180deg, #c4b5fd, #8b5cf6);
 }
 
 .ant-timeline-now-line {
@@ -380,11 +411,11 @@ body {
 }
 
 .ant-timeline-legend-dot.sleep {
-  background: #1677ff;
+  background: #8b5cf6;
 }
 
 .ant-timeline-legend-dot.nap {
-  background: #ffb020;
+  background: #fbbf24;
 }
 
 .ant-timeline-legend-dot.now {
@@ -641,7 +672,7 @@ body {
 }
 
 .ant-night-sleep-marker.awake {
-  color: #8b5cf6;
+  color: #c084fc;
 }
 
 .ant-night-sleep-marker.awake svg {
@@ -736,7 +767,7 @@ body {
 }
 
 .ant-night-sleep-legend-icon.awake {
-  color: #a78bfa;
+  color: #c084fc;
 }
 
 .ant-night-sleep-legend-icon.diaper {
@@ -749,8 +780,8 @@ body {
 
 .ant-dashboard-child-avatar {
   flex-shrink: 0;
-  border: 1px solid rgba(77, 182, 255, 0.24);
-  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.22);
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  box-shadow: 0 10px 30px rgba(8, 7, 26, 0.24);
 }
 
 .ant-managed-form {
@@ -833,6 +864,7 @@ body {
 @media (max-width: 767px) {
   .ant-shell-content {
     padding: 14px;
+    padding-bottom: 78px;
   }
 
   .ant-shell-header {
@@ -902,6 +934,133 @@ body {
   .ant-summary-card .ant-segmented {
     width: 100%;
   }
+}
+
+/* ── Pill nav items ─────────────────────────────────────────────── */
+.ant-shell-menu .ant-menu-item,
+.ant-shell-menu .ant-menu-submenu > .ant-menu-submenu-title {
+  border-radius: 12px !important;
+  margin-block: 3px !important;
+  margin-inline: 4px !important;
+  width: calc(100% - 8px) !important;
+  transition: background 0.18s ease !important;
+}
+
+.ant-shell-menu .ant-menu-item:hover,
+.ant-shell-menu .ant-menu-submenu > .ant-menu-submenu-title:hover {
+  background: rgba(167, 139, 250, 0.1) !important;
+}
+
+.ant-shell-menu .ant-menu-item-selected {
+  background: linear-gradient(
+    90deg,
+    rgba(167, 139, 250, 0.22),
+    rgba(167, 139, 250, 0.06)
+  ) !important;
+  box-shadow: inset 3px 0 0 #a78bfa;
+}
+
+:root[data-theme="light"] .ant-shell-menu .ant-menu-item:hover,
+:root[data-theme="light"]
+  .ant-shell-menu
+  .ant-menu-submenu
+  > .ant-menu-submenu-title:hover {
+  background: rgba(124, 58, 237, 0.08) !important;
+}
+
+:root[data-theme="light"] .ant-shell-menu .ant-menu-item-selected {
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.14),
+    rgba(124, 58, 237, 0.04)
+  ) !important;
+  box-shadow: inset 3px 0 0 #7c3aed;
+}
+
+/* ── Brand logo glow ─────────────────────────────────────────────── */
+.ant-shell-brand img {
+  filter: drop-shadow(0 0 7px rgba(167, 139, 250, 0.38));
+  transition: filter 0.3s ease;
+}
+
+.ant-shell-brand:hover img {
+  filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.65));
+}
+
+/* ── Page content fade-in ────────────────────────────────────────── */
+@keyframes shellFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ant-shell-content > .ant-space {
+  animation: shellFadeInUp 0.22s ease forwards;
+}
+
+/* ── Primary button hover lift ───────────────────────────────────── */
+.ant-btn-primary {
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.ant-btn-primary:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(167, 139, 250, 0.32) !important;
+}
+
+/* ── Mobile bottom nav ───────────────────────────────────────────── */
+.ant-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: stretch;
+  height: 56px;
+  background: var(--app-sider-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--app-header-border);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.ant-bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  color: var(--app-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  padding: 6px 4px;
+  transition: color 0.15s ease;
+}
+
+.ant-bottom-nav-item .anticon {
+  font-size: 1.25rem;
+}
+
+.ant-bottom-nav-item span {
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+.ant-bottom-nav-item.is-active {
+  color: var(--app-primary);
+}
+
+.ant-bottom-nav-item:active {
+  opacity: 0.65;
 }
 
 .sleep-list-row-a > td {
