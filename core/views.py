@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.contrib.messages.views import SuccessMessageMixin
 from django.conf import settings
 from django.db.models import Count
@@ -11,8 +12,9 @@ from django.middleware.csrf import get_token
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils import formats, timezone, timesince
+from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext as _
-from django.views.generic.base import RedirectView, TemplateView
+from django.views.generic.base import RedirectView, TemplateView, View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 
@@ -2543,3 +2545,196 @@ class WeightDelete(AntDeleteMixin, CoreDeleteView):
     permission_required = ("core.delete_weight",)
     success_url = reverse_lazy("core:weight-list")
     ant_title = _("Delete Weight")
+
+
+import json as _json
+from django.http import Http404, JsonResponse
+from django.views.decorators.csrf import csrf_protect
+from django.utils.decorators import method_decorator
+
+_QUICK_LOG_DEFAULTS_FIELDS = {
+    "feeding": ["type", "method", "amount"],
+    "diaper": ["wet", "solid", "color"],
+    "pumping": ["amount"],
+}
+
+_QUICK_LOG_FORM_ONLY_TYPES = {"temperature", "note", "weight"}
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class QuickLogView(LoginRequiredMixin, View):
+    """
+    POST /api/quick-log/<entry_type>/
+    Instant-log endpoint. Returns JSON {"status": "ok", "entry_id": N} or
+    {"status": "error", "errors": [...]}.
+    """
+
+    PERM_MAP = {
+        "diaper": "core.add_diaperchange",
+        "feeding": "core.add_feeding",
+        "pumping": "core.add_pumping",
+        "sleep": "core.add_timer",
+        "timer": "core.add_timer",
+    }
+
+    def post(self, request, entry_type, **kwargs):
+        try:
+            body = _json.loads(request.body)
+        except (_json.JSONDecodeError, UnicodeDecodeError):
+            body = {}
+
+        child_id = body.get("child")
+        if not child_id:
+            return JsonResponse(
+                {"status": "error", "errors": ["child required"]}, status=400
+            )
+
+        try:
+            child = models.Child.objects.get(pk=child_id)
+        except models.Child.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "errors": ["child not found"]}, status=404
+            )
+
+        required_perm = self.PERM_MAP.get(entry_type)
+        if required_perm and not request.user.has_perm(required_perm):
+            return JsonResponse(
+                {"status": "error", "errors": ["Permission denied"]}, status=403
+            )
+
+        now = timezone.now()
+
+        if entry_type == "diaper":
+            return self._log_diaper(request, child, body, now)
+        elif entry_type == "feeding":
+            return self._log_feeding(request, child, body, now)
+        elif entry_type == "pumping":
+            return self._log_pumping(request, child, body, now)
+        elif entry_type == "sleep":
+            return self._log_sleep(request, child, now)
+        elif entry_type == "timer":
+            return self._log_timer(request, child, body, now)
+        elif entry_type in _QUICK_LOG_FORM_ONLY_TYPES:
+            return JsonResponse(
+                {"status": "error", "errors": [f"{entry_type} requires full form"]},
+                status=400,
+            )
+
+        raise Http404
+
+    def _log_diaper(self, request, child, body, now):
+        obj = models.DiaperChange(
+            child=child,
+            time=now,
+            wet=body.get("wet", True),
+            solid=body.get("solid", False),
+        )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
+        self._save_defaults(request, child, "diaper", body)
+        return JsonResponse({"status": "ok", "entry_id": obj.pk})
+
+    def _log_feeding(self, request, child, body, now):
+        start = self._parse_dt(body.get("start", now.isoformat())) or now
+        end_raw = body.get("end")
+        end = self._parse_dt(end_raw) if end_raw else now
+        obj = models.Feeding(
+            child=child,
+            start=start,
+            end=end,
+            type=body.get("type", "breast milk"),
+            method=body.get("method", "bottle"),
+            amount=body.get("amount"),
+        )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
+        self._save_defaults(request, child, "feeding", body)
+        return JsonResponse({"status": "ok", "entry_id": obj.pk})
+
+    def _log_pumping(self, request, child, body, now):
+        obj = models.Pumping(
+            child=child,
+            start=now,
+            end=now,
+            amount=body.get("amount"),
+        )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
+        self._save_defaults(request, child, "pumping", body)
+        return JsonResponse({"status": "ok", "entry_id": obj.pk})
+
+    def _log_sleep(self, request, child, now):
+        if models.Timer.objects.filter(child=child, name="Sleep", active=True).exists():
+            return JsonResponse(
+                {"status": "error", "errors": ["Sleep timer already active"]},
+                status=409,
+            )
+        obj = models.Timer(
+            child=child,
+            user=request.user,
+            name="Sleep",
+            start=now,
+        )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
+        return JsonResponse({"status": "ok", "entry_id": obj.pk})
+
+    def _log_timer(self, request, child, body, now):
+        obj = models.Timer(
+            child=child,
+            user=request.user,
+            name=body.get("name", ""),
+            start=now,
+        )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
+        return JsonResponse({"status": "ok", "entry_id": obj.pk})
+
+    def _save_defaults(self, request, child, entry_type, body):
+        fields = _QUICK_LOG_DEFAULTS_FIELDS.get(entry_type, [])
+        saved = {k: body[k] for k in fields if k in body}
+        if not saved:
+            return
+        settings_obj = request.user.settings
+        key = f"{child.id}.{entry_type}"
+        defaults = settings_obj.last_used_defaults or {}
+        defaults[key] = {**defaults.get(key, {}), **saved}
+        settings_obj.last_used_defaults = defaults
+        settings_obj.save(update_fields=["last_used_defaults"])
+
+    @staticmethod
+    def _parse_dt(value):
+        if not value:
+            return None
+        try:
+            dt = parse_datetime(value)
+            if dt and timezone.is_naive(dt):
+                dt = timezone.make_aware(dt)
+            return dt
+        except (ValueError, TypeError):
+            return None

@@ -142,6 +142,46 @@ class Settings(models.Model):
     dashboard_hidden_sections = models.JSONField(
         verbose_name=_("Hidden dashboard sections"), default=list, blank=True
     )
+    last_used_defaults = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Last used quick-entry defaults"),
+    )
+
+    LLM_PROVIDER_CHOICES = [
+        ("none", _("None")),
+        ("ollama", _("Ollama (local)")),
+        ("openai", _("OpenAI")),
+        ("anthropic", _("Anthropic")),
+    ]
+
+    llm_provider = models.CharField(
+        choices=LLM_PROVIDER_CHOICES,
+        default="none",
+        max_length=20,
+        verbose_name=_("AI provider"),
+    )
+    llm_model = models.CharField(
+        blank=True,
+        default="",
+        max_length=100,
+        verbose_name=_("AI model"),
+        help_text=_("e.g. llama3, gpt-4o, claude-sonnet-4-6"),
+    )
+    llm_base_url = models.CharField(
+        blank=True,
+        default="",
+        max_length=500,
+        verbose_name=_("AI base URL"),
+        help_text=_("For Ollama: http://localhost:11434"),
+    )
+    llm_api_key = models.CharField(
+        blank=True,
+        default="",
+        max_length=500,
+        verbose_name=_("AI API key"),
+    )
+
     language = models.CharField(
         choices=settings.LANGUAGES,
         default=settings.LANGUAGE_CODE,

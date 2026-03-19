@@ -34,9 +34,51 @@ class SettingsTestCase(TestCase):
 
         self.assertEqual(
             user.settings.dashboard_selected_section_order(),
-            ["sleep", "diaper", "feedings", "pumpings", "tummytime"],
+            ["quick_entry", "sleep", "tummytime", "diaper", "feedings", "pumpings"],
         )
         self.assertEqual(
             user.settings.dashboard_selected_hidden_sections(),
             ["sleep", "feedings"],
         )
+
+
+class SettingsLastUsedDefaultsTest(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="testdefaults", password="pass"
+        )
+
+    def test_last_used_defaults_default_is_empty_dict(self):
+        settings = self.user.settings
+        self.assertEqual(settings.last_used_defaults, {})
+
+    def test_last_used_defaults_stores_and_retrieves(self):
+        settings = self.user.settings
+        settings.last_used_defaults = {"1.feeding": {"method": "bottle", "amount": 120}}
+        settings.save(update_fields=["last_used_defaults"])
+        settings.refresh_from_db()
+        self.assertEqual(settings.last_used_defaults["1.feeding"]["method"], "bottle")
+
+
+class SettingsLLMFieldsTest(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        self.user = get_user_model().objects.create_user(
+            username="testllm", password="pass"
+        )
+
+    def test_llm_provider_default_is_none(self):
+        self.assertEqual(self.user.settings.llm_provider, "none")
+
+    def test_llm_fields_exist(self):
+        s = self.user.settings
+        s.llm_provider = "ollama"
+        s.llm_model = "llama3"
+        s.llm_base_url = "http://localhost:11434"
+        s.llm_api_key = ""
+        s.save()
+        s.refresh_from_db()
+        self.assertEqual(s.llm_provider, "ollama")
+        self.assertEqual(s.llm_model, "llama3")
+        self.assertEqual(s.llm_base_url, "http://localhost:11434")

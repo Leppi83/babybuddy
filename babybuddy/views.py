@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import os
 
 from django.conf import settings
 from django.contrib import messages
@@ -19,7 +20,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import BadRequest
 from django import forms as django_forms
 from django.forms import Form
-from django.http import HttpResponseForbidden
+from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.middleware.csrf import get_token
 from django.middleware.csrf import REASON_BAD_ORIGIN
 from django.shortcuts import redirect, render
@@ -77,6 +78,105 @@ def csrf_failure(request, reason=""):
         return HttpResponseForbidden(template.render(context), content_type="text/html")
 
     return csrf.csrf_failure(request, reason, "403_csrf.html")
+
+
+class ServiceWorkerView(View):
+    @method_decorator(never_cache)
+    def get(self, request):
+        build_hash = os.environ.get("BUILD_HASH", "dev")
+        template = loader.get_template("babybuddy/sw.js")
+        content = template.render({"STATIC_VERSION": build_hash})
+        response = HttpResponse(content, content_type="application/javascript")
+        response["Service-Worker-Allowed"] = "/"
+        return response
+
+
+from core import models as core_models, forms as core_forms
+
+_QUICK_LOG_FORM_MAP = {
+    "diaper": {
+        "form_class": core_forms.DiaperChangeForm,
+        "title": _("Log Diaper Change"),
+        "submit_url_name": "core:diaperchange-add",
+    },
+    "feeding": {
+        "form_class": core_forms.FeedingForm,
+        "title": _("Log Feeding"),
+        "submit_url_name": "core:feeding-add",
+    },
+    "sleep": {
+        "form_class": core_forms.SleepForm,
+        "title": _("Log Sleep"),
+        "submit_url_name": "core:sleep-add",
+    },
+    "pumping": {
+        "form_class": core_forms.PumpingForm,
+        "title": _("Log Pumping"),
+        "submit_url_name": "core:pumping-add",
+    },
+    "temperature": {
+        "form_class": core_forms.TemperatureForm,
+        "title": _("Log Temperature"),
+        "submit_url_name": "core:temperature-add",
+    },
+    "note": {
+        "form_class": core_forms.NoteForm,
+        "title": _("Log Note"),
+        "submit_url_name": "core:note-add",
+    },
+    "weight": {
+        "form_class": core_forms.WeightForm,
+        "title": _("Log Weight"),
+        "submit_url_name": "core:weight-add",
+    },
+}
+
+
+class QuickLogFormView(PermissionRequiredMixin, View):
+    """
+    Deep-link form pre-populated with smart defaults. Maps /log/<type>/ to the
+    existing Django form for that entry type, rendered via ant_app.html.
+    """
+
+    permission_required = ("core.view_child",)
+
+    def get(self, request, entry_type, **kwargs):
+        config = _QUICK_LOG_FORM_MAP.get(entry_type)
+        if config is None:
+            raise Http404
+
+        child = self._get_child(request)
+        if child is None:
+            return redirect(reverse("core:child-add"))
+
+        user_settings = request.user.settings
+        defaults_key = f"{child.id}.{entry_type}"
+        last_defaults = getattr(user_settings, "last_used_defaults", {}) or {}
+        base_defaults = last_defaults.get(defaults_key, {})
+        allowed_params = {k: v for k, v in request.GET.items() if k != "child"}
+        initial = {**base_defaults, **allowed_params, "child": child.id}
+
+        form = config["form_class"](initial=initial)
+        cancel_url = reverse("dashboard:dashboard-child", kwargs={"slug": child.slug})
+        bootstrap = _build_ant_form_bootstrap(
+            request,
+            title=config["title"],
+            kicker=_("Quick Entry"),
+            form=form,
+            submit_label="Save",
+            cancel_url=cancel_url,
+        )
+        bootstrap["urls"]["self"] = reverse(config["submit_url_name"])
+        return render(request, "babybuddy/ant_app.html", {"ant_bootstrap": bootstrap})
+
+    def _get_child(self, request):
+        child_id = request.GET.get("child")
+        if child_id:
+            try:
+                return core_models.Child.objects.get(pk=child_id)
+            except core_models.Child.DoesNotExist:
+                pass
+        return core_models.Child.objects.order_by("pk").first()
 
 
 class RootRouter(LoginRequiredMixin, RedirectView):
@@ -518,12 +618,22 @@ def _build_settings_bootstrap(request, form_user, form_settings):
                 ],
             },
             "apiKey": str(user_settings.api_key()),
+            "ai": {
+                "provider": user_settings.llm_provider,
+                "model": user_settings.llm_model,
+                "baseUrl": user_settings.llm_base_url,
+                "apiKeySet": bool(user_settings.llm_api_key),
+            },
             "choices": {
                 "language": _serialize_field_choices(language_field),
                 "timezone": _serialize_field_choices(timezone_field),
                 "paginationCount": _serialize_field_choices(pagination_field),
                 "refreshRate": _serialize_field_choices(refresh_field),
                 "hideAge": _serialize_field_choices(age_field),
+                "aiProvider": [
+                    {"value": k, "label": str(v)}
+                    for k, v in UserSettingsModel.LLM_PROVIDER_CHOICES
+                ],
             },
             "links": links,
         },
@@ -578,6 +688,13 @@ def _build_settings_bootstrap(request, form_user, form_settings):
             "settingsDescription": _(
                 "Manage your profile, preferences, dashboard layout, and API access."
             ),
+            "aiAssistant": _("AI Assistant"),
+            "aiProvider": _("AI provider"),
+            "aiModel": _("AI model"),
+            "aiBaseUrl": _("AI base URL"),
+            "aiApiKey": _("AI API key"),
+            "aiApiKeySet": _("API key is set"),
+            "aiApiKeyPlaceholder": _("Enter new API key to update"),
         },
     }
 
