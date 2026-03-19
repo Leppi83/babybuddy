@@ -296,9 +296,7 @@ class ViewsTestCase(TestCase):
         )
         unpermissioned_client = HttpClient()
         unpermissioned_client.force_login(unpermissioned_user)
-        response = unpermissioned_client.get(
-            f"/api/insights/summary/?child={child.pk}"
-        )
+        response = unpermissioned_client.get(f"/api/insights/summary/?child={child.pk}")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "text/event-stream")
         content = b"".join(response.streaming_content).decode()

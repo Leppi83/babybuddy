@@ -4,6 +4,9 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+ARG BUILD_HASH=dev
+ENV BUILD_HASH=${BUILD_HASH}
+
 # System deps (für Pillow + Build)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \

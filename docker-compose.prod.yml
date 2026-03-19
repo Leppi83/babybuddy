@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - BUILD_HASH=${BUILD_HASH:-dev}
     container_name: babybuddy
     restart: unless-stopped
     env_file:
