@@ -2549,7 +2549,6 @@ class WeightDelete(AntDeleteMixin, CoreDeleteView):
 import json as _json
 from django.http import Http404, JsonResponse
 from django.views.decorators.csrf import csrf_protect
-from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 _QUICK_LOG_DEFAULTS_FIELDS = {
@@ -2561,14 +2560,21 @@ _QUICK_LOG_DEFAULTS_FIELDS = {
 _QUICK_LOG_FORM_ONLY_TYPES = {"temperature", "note", "weight"}
 
 
-@method_decorator(login_required, name="dispatch")
 @method_decorator(csrf_protect, name="dispatch")
-class QuickLogView(View):
+class QuickLogView(LoginRequiredMixin, View):
     """
     POST /api/quick-log/<entry_type>/
     Instant-log endpoint. Returns JSON {"status": "ok", "entry_id": N} or
     {"status": "error", "errors": [...]}.
     """
+
+    PERM_MAP = {
+        "diaper": "core.add_diaperchange",
+        "feeding": "core.add_feeding",
+        "pumping": "core.add_pumping",
+        "sleep": "core.add_timer",
+        "timer": "core.add_timer",
+    }
 
     def post(self, request, entry_type, **kwargs):
         try:
@@ -2587,6 +2593,12 @@ class QuickLogView(View):
         except models.Child.DoesNotExist:
             return JsonResponse(
                 {"status": "error", "errors": ["child not found"]}, status=404
+            )
+
+        required_perm = self.PERM_MAP.get(entry_type)
+        if required_perm and not request.user.has_perm(required_perm):
+            return JsonResponse(
+                {"status": "error", "errors": ["Permission denied"]}, status=403
             )
 
         now = timezone.now()
@@ -2610,20 +2622,31 @@ class QuickLogView(View):
         raise Http404
 
     def _log_diaper(self, request, child, body, now):
-        obj = models.DiaperChange.objects.create(
+        from django.core.exceptions import ValidationError
+
+        obj = models.DiaperChange(
             child=child,
             time=now,
             wet=body.get("wet", True),
             solid=body.get("solid", False),
         )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
         self._save_defaults(request, child, "diaper", body)
         return JsonResponse({"status": "ok", "entry_id": obj.pk})
 
     def _log_feeding(self, request, child, body, now):
+        from django.core.exceptions import ValidationError
+
         start = self._parse_dt(body.get("start", now.isoformat())) or now
         end_raw = body.get("end")
         end = self._parse_dt(end_raw) if end_raw else now
-        obj = models.Feeding.objects.create(
+        obj = models.Feeding(
             child=child,
             start=start,
             end=end,
@@ -2631,16 +2654,32 @@ class QuickLogView(View):
             method=body.get("method", "bottle"),
             amount=body.get("amount"),
         )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
         self._save_defaults(request, child, "feeding", body)
         return JsonResponse({"status": "ok", "entry_id": obj.pk})
 
     def _log_pumping(self, request, child, body, now):
-        obj = models.Pumping.objects.create(
+        from django.core.exceptions import ValidationError
+
+        obj = models.Pumping(
             child=child,
             start=now,
             end=now,
             amount=body.get("amount"),
         )
+        try:
+            obj.full_clean()
+        except ValidationError as exc:
+            return JsonResponse(
+                {"status": "error", "errors": list(exc.messages)}, status=400
+            )
+        obj.save()
         self._save_defaults(request, child, "pumping", body)
         return JsonResponse({"status": "ok", "entry_id": obj.pk})
 

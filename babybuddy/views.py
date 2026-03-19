@@ -132,11 +132,13 @@ _QUICK_LOG_FORM_MAP = {
 }
 
 
-class QuickLogFormView(LoginRequiredMixin, View):
+class QuickLogFormView(PermissionRequiredMixin, View):
     """
     Deep-link form pre-populated with smart defaults. Maps /log/<type>/ to the
     existing Django form for that entry type, rendered via ant_app.html.
     """
+
+    permission_required = ("core.view_child",)
 
     def get(self, request, entry_type, **kwargs):
         config = _QUICK_LOG_FORM_MAP.get(entry_type)

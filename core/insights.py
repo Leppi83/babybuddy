@@ -9,6 +9,8 @@ import datetime
 from dataclasses import dataclass
 from typing import Optional
 
+from django.utils.translation import gettext_lazy as _
+
 
 @dataclass
 class Insight:
@@ -54,8 +56,8 @@ def _rule_no_diaper_8h(child, data: dict) -> list:
                 id=_make_id(child, "no_diaper_ever"),
                 severity="warning",
                 category="diaper",
-                title="No diaper changes recorded",
-                body="No diaper change has been logged yet. Track changes to spot patterns.",
+                title=_("No diaper changes recorded"),
+                body=_("No diaper change has been logged yet. Track changes to spot patterns."),
                 action_label=None,
                 action_url=None,
             )
@@ -68,9 +70,9 @@ def _rule_no_diaper_8h(child, data: dict) -> list:
                 id=_make_id(child, "no_diaper_8h"),
                 severity="warning",
                 category="diaper",
-                title=f"No diaper change in {hours}h",
-                body=f"It's been {hours} hours since the last diaper change. Consider checking soon.",
-                action_label="Log diaper",
+                title=_(f"No diaper change in {hours}h"),
+                body=_(f"It's been {hours} hours since the last diaper change. Consider checking soon."),
+                action_label=_("Log diaper"),
                 action_url="/log/diaper/",
             )
         ]
@@ -96,12 +98,12 @@ def _rule_newborn_feeding_interval(child, data: dict) -> list:
                 id=_make_id(child, "newborn_feeding_interval"),
                 severity="alert",
                 category="feeding",
-                title=f"No feeding in {hours}h",
-                body=(
+                title=_(f"No feeding in {hours}h"),
+                body=_(
                     f"Newborns typically need feeding every 2–3 hours. "
                     f"It's been {hours}h since the last feed."
                 ),
-                action_label="Log feeding",
+                action_label=_("Log feeding"),
                 action_url="/log/feeding/",
             )
         ]
@@ -119,8 +121,8 @@ def _rule_newborn_low_feeding_count(child, data: dict) -> list:
                 id=_make_id(child, "newborn_low_feeding_count"),
                 severity="warning",
                 category="feeding",
-                title=f"Only {count} feedings in 24h",
-                body=(
+                title=_(f"Only {count} feedings in 24h"),
+                body=_(
                     f"Newborns typically need 8–12 feedings per day. "
                     f"Only {count} have been logged in the last 24 hours."
                 ),
@@ -155,8 +157,8 @@ def _rule_all_low_sleep(child, data: dict) -> list:
                 id=_make_id(child, "low_total_sleep"),
                 severity="warning",
                 category="sleep",
-                title=f"Low sleep: {total_h:.1f}h vs {rec_h:.0f}h recommended",
-                body=(
+                title=_(f"Low sleep: {total_h:.1f}h vs {rec_h:.0f}h recommended"),
+                body=_(
                     f"Total sleep in the last 24h ({total_h:.1f}h) is more than 3h below "
                     f"the recommended {rec_h:.0f}h for {stage}s."
                 ),
@@ -181,8 +183,8 @@ def _rule_infant_nap_duration_drop(child, data: dict) -> list:
                 id=_make_id(child, "infant_nap_duration_drop"),
                 severity="warning",
                 category="sleep",
-                title=f"Nap duration down {pct}% this week",
-                body=(
+                title=_(f"Nap duration down {pct}% this week"),
+                body=_(
                     f"Average nap duration has dropped {pct}% compared to the prior week. "
                     "This can signal a sleep regression or developmental leap."
                 ),

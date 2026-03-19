@@ -227,6 +227,9 @@ def _build_ant_strings():
         "insights.category.feeding": _("Feeding"),
         "insights.category.diaper": _("Diaper"),
         "insights.category.growth": _("Growth"),
+        "insightsBannerViewAll": _("View all"),
+        "insightsBannerSuffix": _("insight(s) detected"),
+        "aiSummaryTitle": _("AI Summary"),
     }
 
 
