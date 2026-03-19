@@ -1727,14 +1727,113 @@ function NightSleepCircleCard({
 function ChildDashboardPageV2({ bootstrap }) {
   const { insights, dialActivities, bedtime, strings, quickStatus } = bootstrap;
   const s = strings || {};
+  const api = useRef(createApiClient(bootstrap.csrfToken));
+  const childId = bootstrap.currentChild?.id;
+
+  const [selectedDate, setSelectedDate] = useState(() => dayjs());
+  const [activities, setActivities] = useState(dialActivities || []);
+  const isToday = selectedDate.isSame(dayjs(), "day");
+
+  // Fetch activities when date changes
+  useEffect(() => {
+    if (isToday) {
+      setActivities(dialActivities || []);
+      return;
+    }
+    if (!childId) return;
+
+    const startOfDay = selectedDate.startOf("day").toISOString();
+    const endOfDay = selectedDate.endOf("day").toISOString();
+
+    Promise.all([
+      api.current.get(
+        `/api/sleep/?child=${childId}&start_min=${startOfDay}&end_max=${endOfDay}&limit=50`,
+      ),
+      api.current.get(
+        `/api/feedings/?child=${childId}&start_min=${startOfDay}&end_max=${endOfDay}&limit=50`,
+      ),
+      api.current.get(
+        `/api/pumping/?child=${childId}&start_min=${startOfDay}&end_max=${endOfDay}&limit=50`,
+      ),
+      api.current.get(
+        `/api/changes/?child=${childId}&time_min=${startOfDay}&time_max=${endOfDay}&limit=50`,
+      ),
+    ])
+      .then(async ([sleepRes, feedRes, pumpRes, diaperRes]) => {
+        const [sleepData, feedData, pumpData, diaperData] = await Promise.all([
+          sleepRes.json(),
+          feedRes.json(),
+          pumpRes.json(),
+          diaperRes.json(),
+        ]);
+        const items = [];
+        for (const s of sleepData.results || []) {
+          const endStr = s.end
+            ? new Date(s.end).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "ongoing";
+          items.push({
+            type: "sleep",
+            start: s.start,
+            end: s.end,
+            tooltip: `Sleep: ${new Date(s.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}–${endStr}`,
+          });
+        }
+        for (const f of feedData.results || []) {
+          const endStr = f.end
+            ? new Date(f.end).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "?";
+          items.push({
+            type: "feeding",
+            start: f.start,
+            end: f.end,
+            details: f.method || "",
+            tooltip: `Feed: ${new Date(f.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}–${endStr} (${f.method || ""})`,
+          });
+        }
+        for (const p of pumpData.results || []) {
+          const endStr = p.end
+            ? new Date(p.end).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "?";
+          const amt = p.amount ? `${p.amount}ml` : "";
+          items.push({
+            type: "pumping",
+            start: p.start,
+            end: p.end,
+            details: amt,
+            tooltip: `Pump: ${new Date(p.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}–${endStr} ${amt}`,
+          });
+        }
+        for (const d of diaperData.results || []) {
+          const types = [d.wet && "wet", d.solid && "solid"].filter(Boolean);
+          items.push({
+            type: "diaper",
+            time: d.time,
+            details: types.join(" + "),
+            tooltip: `Diaper: ${new Date(d.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (${types.join(", ")})`,
+          });
+        }
+        setActivities(items);
+      })
+      .catch(() => setActivities([]));
+  }, [selectedDate, isToday, childId, dialActivities]);
 
   const statusText = useMemo(() => {
+    if (!isToday) return selectedDate.format("dddd, D MMMM YYYY");
     if (!quickStatus) return "";
     if (quickStatus.activeSleepTimer)
       return `Sleeping ${quickStatus.activeSleepTimer}`;
     if (quickStatus.lastSleep) return `Awake since ${quickStatus.lastSleep}`;
     return "";
-  }, [quickStatus]);
+  }, [quickStatus, isToday, selectedDate]);
 
   const childName =
     bootstrap.currentChild?.name || bootstrap.currentChild?.displayName || "";
@@ -1765,17 +1864,18 @@ function ChildDashboardPageV2({ bootstrap }) {
           </Typography.Text>
         </div>
         <DatePicker
-          defaultValue={dayjs()}
+          value={selectedDate}
+          onChange={(d) => d && setSelectedDate(d)}
           size="small"
           style={{ width: 130 }}
           allowClear={false}
         />
       </div>
       <ActivityDial
-        activities={dialActivities || []}
+        activities={activities}
         bedtime={bedtime}
         currentStatus={statusText}
-        insights={insights || []}
+        insights={isToday ? insights || [] : []}
         strings={{
           sleep: s.sleepLabel || "Sleep",
           feed: s.feedingLabel || "Feed",

@@ -74,37 +74,38 @@ const SEVERITY_COLORS = {
   info: "#1890ff",
 };
 
-/* ── Atmosphere ring — smooth gradient, no visible segments ── */
+/* ── Atmosphere ring — CSS conic-gradient for truly smooth blending ── */
 function AtmosphereRing({ now, theme }) {
-  // Use many stops for smooth blending with generous overlap
-  const stops = useMemo(() => atmosphereStops(now, 120, theme), [now, theme]);
-  const stepDeg = 360 / stops.length;
-  const circumference = 2 * Math.PI * ATMO_R;
+  const stops = useMemo(() => atmosphereStops(now, 24, theme), [now, theme]);
+
+  // Build a CSS conic-gradient string from the stops
+  const gradientStr = useMemo(() => {
+    const parts = stops.map((s) => `${s.color} ${s.angle.toFixed(1)}deg`);
+    // Close the loop by repeating the first stop at 360deg
+    parts.push(`${stops[0].color} 360deg`);
+    // Rotate so 0° (NOW) is at the top: conic-gradient starts at 3 o'clock,
+    // so rotate -90deg to put 0° at 12 o'clock
+    return `conic-gradient(from -90deg, ${parts.join(", ")})`;
+  }, [stops]);
+
+  const outerR = ATMO_R + ATMO_STROKE / 2;
+  const innerR = ATMO_R - ATMO_STROKE / 2;
+  const size = outerR * 2;
 
   return (
-    <g>
-      {stops.map((stop, i) => {
-        // Each segment overlaps the next by 50% to hide seams
-        const arcLen = (stepDeg / 360) * circumference * 1.6;
-        const gapLen = circumference - arcLen;
-        const svgStart = stop.angle - 90;
-        const offset = -((svgStart / 360) * circumference);
-        return (
-          <circle
-            key={i}
-            cx={CX}
-            cy={CY}
-            r={ATMO_R}
-            fill="none"
-            stroke={stop.color}
-            strokeWidth={ATMO_STROKE}
-            strokeDasharray={`${arcLen.toFixed(2)} ${gapLen.toFixed(2)}`}
-            strokeDashoffset={offset}
-            opacity={stop.opacity}
-          />
-        );
-      })}
-    </g>
+    <foreignObject x={CX - outerR} y={CY - outerR} width={size} height={size}>
+      <div
+        xmlns="http://www.w3.org/1999/xhtml"
+        style={{
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          background: gradientStr,
+          mask: `radial-gradient(circle, transparent ${innerR}px, black ${innerR}px, black ${outerR}px, transparent ${outerR}px)`,
+          WebkitMask: `radial-gradient(circle, transparent ${innerR}px, black ${innerR}px, black ${outerR}px, transparent ${outerR}px)`,
+        }}
+      />
+    </foreignObject>
   );
 }
 

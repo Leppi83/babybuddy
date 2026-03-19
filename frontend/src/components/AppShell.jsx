@@ -202,7 +202,7 @@ export function AppShell({
     },
     "dashboard-child": {
       eyebrow: null,
-      title: bootstrap.strings.dashboard,
+      title: null,
     },
     "child-detail": {
       eyebrow: bootstrap.strings.timeline,
