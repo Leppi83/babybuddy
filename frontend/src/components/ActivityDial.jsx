@@ -198,9 +198,11 @@ function BedtimeMarker({ bedtime, now }) {
   const angle = timeToAngle(bedDate, now);
   const pos = pointOnCircle(angle, ATMO_R, CX, CY);
 
+  const iconPos = pointOnCircle(angle, ATMO_R - 14, CX, CY);
+
   return (
     <g>
-      {/* Dot at exact bedtime position */}
+      {/* Dot at exact bedtime position on atmosphere ring */}
       <circle
         cx={pos.x}
         cy={pos.y}
@@ -213,16 +215,20 @@ function BedtimeMarker({ bedtime, now }) {
           Bedtime: {hStr}:{mStr}
         </title>
       </circle>
-      {/* Small moon icon offset slightly outward */}
-      <text
-        x={pos.x}
-        y={pos.y - 12}
-        textAnchor="middle"
-        dominantBaseline="central"
-        style={{ fontSize: "10px", pointerEvents: "none", userSelect: "none" }}
+      {/* Crescent moon SVG icon — inset on the ring */}
+      <g
+        transform={`translate(${iconPos.x - 6}, ${iconPos.y - 6})`}
+        opacity={0.8}
+        style={{ pointerEvents: "none" }}
       >
-        🌙
-      </text>
+        <circle cx="6" cy="6" r="5" fill="#818cf8" />
+        <circle
+          cx="8"
+          cy="4.5"
+          r="4"
+          fill="var(--app-card-bg-start, #020617)"
+        />
+      </g>
     </g>
   );
 }
