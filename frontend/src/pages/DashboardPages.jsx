@@ -46,7 +46,7 @@ import {
 
 const { Text, Title } = Typography;
 
-function InsightsBanner({ insights, urls, childId }) {
+function InsightsBanner({ insights, urls, childId, strings }) {
   const [dismissed, setDismissed] = useState(() => {
     try {
       const stored = JSON.parse(
@@ -89,7 +89,8 @@ function InsightsBanner({ insights, urls, childId }) {
       type={hasAlert ? "error" : "warning"}
       message={
         <span>
-          {visible.length} insight{visible.length > 1 ? "s" : ""} detected
+          {visible.length}{" "}
+          {strings?.insightsBannerSuffix ?? "insight(s) detected"}
           {insightsUrl && (
             <Button
               type="link"
@@ -97,7 +98,7 @@ function InsightsBanner({ insights, urls, childId }) {
               href={insightsUrl}
               style={{ color: bannerColor, paddingLeft: 8 }}
             >
-              View all →
+              {strings?.insightsBannerViewAll ?? "View all"} →
             </Button>
           )}
         </span>
@@ -3548,6 +3549,7 @@ export function ChildDashboardPage({ bootstrap }) {
           insights={alertInsights}
           urls={urls}
           childId={currentChild?.id}
+          strings={s}
         />
       )}
       <Card

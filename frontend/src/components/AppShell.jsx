@@ -256,6 +256,10 @@ export function AppShell({
       eyebrow: bootstrap.formPage?.kicker || bootstrap.strings.welcome,
       title: bootstrap.formPage?.title || bootstrap.strings.login,
     },
+    insights: {
+      eyebrow: null,
+      title: null,
+    },
   }[bootstrap.pageType] || {
     eyebrow: bootstrap.strings.dashboard,
     title: bootstrap.strings.dashboard,
@@ -408,32 +412,34 @@ export function AppShell({
         </Content>
       </Layout>
 
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setSheetOpen(true)}
-        aria-label="Quick log entry"
-        style={{
-          position: "fixed",
-          bottom: `calc(20px + env(safe-area-inset-bottom))`,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          background: "#4db6ff",
-          border: "none",
-          color: "#020617",
-          fontSize: 28,
-          lineHeight: 1,
-          cursor: "pointer",
-          boxShadow: "0 4px 16px rgba(77,182,255,0.4)",
-          zIndex: 1000,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        +
-      </button>
+      {/* Floating Action Button — only shown when a child is selected */}
+      {bootstrap.currentChild && (
+        <button
+          onClick={() => setSheetOpen(true)}
+          aria-label="Quick log entry"
+          style={{
+            position: "fixed",
+            bottom: `calc(20px + env(safe-area-inset-bottom))`,
+            right: 20,
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            background: "#4db6ff",
+            border: "none",
+            color: "#020617",
+            fontSize: 28,
+            lineHeight: 1,
+            cursor: "pointer",
+            boxShadow: "0 4px 16px rgba(77,182,255,0.4)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          +
+        </button>
+      )}
 
       <QuickLogSheet
         open={sheetOpen}

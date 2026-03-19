@@ -211,11 +211,15 @@ class ViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_deep_link_no_children_redirects(self):
+        from django.contrib.auth.models import Permission
         from core import models as core_models
 
         core_models.Child.objects.all().delete()
         childless_user = get_user_model().objects.create_user(
             username="childless", password="testpass"
+        )
+        childless_user.user_permissions.add(
+            Permission.objects.get(codename="view_child")
         )
         c2 = HttpClient()
         c2.login(username="childless", password="testpass")

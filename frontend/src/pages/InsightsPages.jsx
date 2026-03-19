@@ -59,7 +59,7 @@ function InsightCard({ insight }) {
   );
 }
 
-function AskAIModal({ childId, open, onClose }) {
+function AskAIModal({ childId, open, onClose, strings }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -118,7 +118,7 @@ function AskAIModal({ childId, open, onClose }) {
         onClose();
       }}
       footer={null}
-      title="AI Summary"
+      title={strings?.aiSummaryTitle ?? "AI Summary"}
       styles={{ body: { background: "#0f172a", minHeight: 120 } }}
       afterOpenChange={(visible) => {
         if (visible) handleOpen();
@@ -198,6 +198,7 @@ export function InsightsPage({ bootstrap }) {
             childId={child.id}
             open={aiOpen}
             onClose={() => setAiOpen(false)}
+            strings={strings}
           />
         </>
       )}
