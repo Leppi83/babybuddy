@@ -1,0 +1,90 @@
+/* ── ActivityDial ─────────────────────────────────────────────── */
+
+.activity-dial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.activity-dial__svg {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+}
+
+/* Hour labels on the atmosphere ring */
+.activity-dial__label {
+  font-size: var(--font-chart-size, 10px);
+  font-weight: var(--font-chart-weight, 400);
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: var(--app-text-primary, #f1f0ff);
+  pointer-events: none;
+}
+
+/* Center display */
+.activity-dial__center-time {
+  font-size: var(--font-body-size, 12px);
+  font-weight: 600;
+  fill: var(--app-primary, #a78bfa);
+  text-anchor: middle;
+}
+
+.activity-dial__center-status {
+  font-size: var(--font-chart-size, 10px);
+  font-weight: var(--font-chart-weight, 400);
+  fill: #fbbf24;
+  text-anchor: middle;
+}
+
+/* Bedtime marker text */
+.activity-dial__bedtime-label {
+  font-size: 11px;
+  fill: #818cf8;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+/* Star scatter */
+.activity-dial__star {
+  fill: #e2e8f0;
+  pointer-events: none;
+}
+
+/* NOW marker triangle */
+.activity-dial__now-marker {
+  fill: var(--app-primary, #a78bfa);
+}
+
+/* Legend row below the dial */
+.activity-dial__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  font-size: var(--font-chart-size, 10px);
+  color: var(--app-text-secondary, #c4b5fd);
+}
+
+.activity-dial__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.activity-dial__legend-line {
+  width: 20px;
+  height: 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.activity-dial__legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
