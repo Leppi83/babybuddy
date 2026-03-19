@@ -280,3 +280,26 @@ class ViewsTestCase(TestCase):
         anon = HttpClient()
         response = anon.get(f"/api/insights/summary/?child={child.pk}")
         self.assertEqual(response.status_code, 302)
+
+    def test_insights_summary_permission_denied_for_unpermissioned_user(self):
+        """User without core.view_child permission gets SSE error."""
+        child = Child.objects.first()
+        if child is None:
+            child = Child.objects.create(
+                first_name="Test",
+                last_name="Child",
+                birth_date=timezone.localdate() - timezone.timedelta(days=90),
+            )
+        unpermissioned_user = get_user_model().objects.create_user(
+            username="noperm_user",
+            password="testpass123",
+        )
+        unpermissioned_client = HttpClient()
+        unpermissioned_client.force_login(unpermissioned_user)
+        response = unpermissioned_client.get(
+            f"/api/insights/summary/?child={child.pk}"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/event-stream")
+        content = b"".join(response.streaming_content).decode()
+        self.assertIn("event: error", content)
