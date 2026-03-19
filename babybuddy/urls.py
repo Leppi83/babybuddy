@@ -5,6 +5,8 @@ from django.urls import include, path, re_path, reverse_lazy
 from django.views.static import serve
 
 from . import views
+from core.views import QuickLogView
+from dashboard.views import InsightsSummaryView
 
 app_patterns = [
     path("login/", views.LoginView.as_view(), name="login"),
@@ -48,6 +50,22 @@ app_patterns = [
 ]
 
 urlpatterns = [
+    path("sw.js", views.ServiceWorkerView.as_view(), name="service-worker"),
+    path("api/quick-log/<str:entry_type>/", QuickLogView.as_view(), name="quick-log"),
+    path(
+        "api/insights/summary/",
+        InsightsSummaryView.as_view(),
+        name="insights-summary",
+    ),
+    path(
+        "log/sleep/start/",
+        views.QuickLogFormView.as_view(),
+        {"entry_type": "sleep"},
+        name="quick-log-sleep-start",
+    ),
+    path(
+        "log/<str:entry_type>/", views.QuickLogFormView.as_view(), name="quick-log-form"
+    ),
     path("admin/", admin.site.urls),
     path("", include("api.urls", namespace="api")),
     path("", include((app_patterns, "babybuddy"), namespace="babybuddy")),

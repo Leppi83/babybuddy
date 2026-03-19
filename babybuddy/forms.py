@@ -93,7 +93,14 @@ class UserSettingsForm(forms.ModelForm):
             "timezone",
             "pagination_count",
             "dashboard_visible_items",
+            "llm_provider",
+            "llm_model",
+            "llm_base_url",
+            "llm_api_key",
         ]
+        widgets = {
+            "llm_api_key": forms.PasswordInput(render_value=False),
+        }
 
     def __init__(self, *args, **kwargs):
         super(UserSettingsForm, self).__init__(*args, **kwargs)

@@ -12,4 +12,9 @@ urlpatterns = [
         views.ChildDashboard.as_view(),
         name="dashboard-child",
     ),
+    path(
+        "children/<int:pk>/insights/",
+        views.ChildInsightsView.as_view(),
+        name="child-insights",
+    ),
 ]

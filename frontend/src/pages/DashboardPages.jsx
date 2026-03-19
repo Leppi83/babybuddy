@@ -46,6 +46,70 @@ import {
 
 const { Text, Title } = Typography;
 
+function InsightsBanner({ insights, urls, childId, strings }) {
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      const stored = JSON.parse(
+        localStorage.getItem(`dismissed_insights_${childId}`) || "[]",
+      );
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+      return stored
+        .filter((e) => new Date(e.dismissedAt).getTime() > cutoff)
+        .map((e) => e.id);
+    } catch {
+      return [];
+    }
+  });
+
+  const visible = insights.filter((i) => !dismissed.includes(i.id));
+  if (visible.length === 0) return null;
+
+  const hasAlert = visible.some((i) => i.severity === "alert");
+  const bannerColor = hasAlert ? "#ff7875" : "#ffd666";
+
+  const handleDismiss = () => {
+    const now = new Date().toISOString();
+    const entries = visible.map((i) => ({ id: i.id, dismissedAt: now }));
+    try {
+      const existing = JSON.parse(
+        localStorage.getItem(`dismissed_insights_${childId}`) || "[]",
+      );
+      localStorage.setItem(
+        `dismissed_insights_${childId}`,
+        JSON.stringify([...existing, ...entries]),
+      );
+    } catch {}
+    setDismissed((prev) => [...prev, ...visible.map((i) => i.id)]);
+  };
+
+  const insightsUrl = urls.childInsights;
+
+  return (
+    <Alert
+      type={hasAlert ? "error" : "warning"}
+      message={
+        <span>
+          {visible.length}{" "}
+          {strings?.insightsBannerSuffix ?? "insight(s) detected"}
+          {insightsUrl && (
+            <Button
+              type="link"
+              size="small"
+              href={insightsUrl}
+              style={{ color: bannerColor, paddingLeft: 8 }}
+            >
+              {strings?.insightsBannerViewAll ?? "View all"} →
+            </Button>
+          )}
+        </span>
+      }
+      closable
+      onClose={handleDismiss}
+      style={{ marginBottom: 12, borderRadius: 12 }}
+    />
+  );
+}
+
 const COMBINED_PAIRS = {
   "card.diaper.last": "card.diaper.types",
   "card.feedings.last": "card.feedings.method",
@@ -296,6 +360,44 @@ function SettingsCardPicker({
   );
 }
 
+function AiAssistantCard({ bootstrap }) {
+  const provider = Form.useWatch("llm_provider");
+  const s = bootstrap.strings;
+
+  return (
+    <Card className="ant-section-card" title={s.aiAssistant}>
+      <Form.Item name="llm_provider" label={s.aiProvider}>
+        <Select
+          options={bootstrap.settings.choices.aiProvider.map((c) => ({
+            value: c.value,
+            label: c.label,
+          }))}
+        />
+      </Form.Item>
+      <Form.Item name="llm_model" label={s.aiModel}>
+        <Input placeholder="e.g. llama3, gpt-4o" />
+      </Form.Item>
+      {provider === "ollama" && (
+        <Form.Item name="llm_base_url" label={s.aiBaseUrl}>
+          <Input placeholder="http://localhost:11434" />
+        </Form.Item>
+      )}
+      {(provider === "openai" || provider === "anthropic") && (
+        <Form.Item name="llm_api_key" label={s.aiApiKey}>
+          <Input.Password
+            placeholder={
+              bootstrap.settings.ai.apiKeySet
+                ? s.aiApiKeySet
+                : s.aiApiKeyPlaceholder
+            }
+            autoComplete="new-password"
+          />
+        </Form.Item>
+      )}
+    </Card>
+  );
+}
+
 export function SettingsPage({ bootstrap }) {
   const ant = AntApp.useApp();
   const api = useRef(createApiClient(bootstrap.csrfToken));
@@ -318,6 +420,9 @@ export function SettingsPage({ bootstrap }) {
       dashboard_refresh_rate: bootstrap.settings.dashboard.refreshRate,
       dashboard_hide_empty: bootstrap.settings.dashboard.hideEmpty,
       dashboard_hide_age: bootstrap.settings.dashboard.hideAge,
+      llm_provider: bootstrap.settings.ai.provider,
+      llm_model: bootstrap.settings.ai.model,
+      llm_base_url: bootstrap.settings.ai.baseUrl,
     });
   }, [bootstrap, form]);
 
@@ -352,6 +457,9 @@ export function SettingsPage({ bootstrap }) {
       if (values.dashboard_hide_empty) {
         payload.set("dashboard_hide_empty", "on");
       }
+      payload.set("llm_provider", values.llm_provider || "none");
+      payload.set("llm_model", values.llm_model || "");
+      payload.set("llm_base_url", values.llm_base_url || "");
 
       try {
         await api.current.postForm(bootstrap.urls.self, payload);
@@ -386,6 +494,12 @@ export function SettingsPage({ bootstrap }) {
     payload.set("dashboard_visible_items", selectedItems.join(","));
     if (values.dashboard_hide_empty) {
       payload.set("dashboard_hide_empty", "on");
+    }
+    payload.set("llm_provider", values.llm_provider || "none");
+    payload.set("llm_model", values.llm_model || "");
+    payload.set("llm_base_url", values.llm_base_url || "");
+    if (values.llm_api_key) {
+      payload.set("llm_api_key", values.llm_api_key);
     }
     payload.set("next", bootstrap.urls.self);
 
@@ -558,6 +672,9 @@ export function SettingsPage({ bootstrap }) {
                 </Button>
               </Space>
             </Card>
+          </Col>
+          <Col xs={24} xl={12}>
+            <AiAssistantCard bootstrap={bootstrap} />
           </Col>
           <Col xs={24}>
             <SettingsCardPicker
@@ -1699,6 +1816,10 @@ export function ChildDashboardPage({ bootstrap }) {
   });
   const child = bootstrap.children.find(
     (item) => String(item.id) === String(selectedChildId),
+  );
+  const { insights = [], urls, currentChild } = bootstrap;
+  const alertInsights = insights.filter(
+    (i) => i.severity === "alert" || i.severity === "warning",
   );
   const locale = bootstrap.locale || "en";
   const s = bootstrap.strings;
@@ -3423,6 +3544,14 @@ export function ChildDashboardPage({ bootstrap }) {
 
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      {alertInsights.length > 0 && (
+        <InsightsBanner
+          insights={alertInsights}
+          urls={urls}
+          childId={currentChild?.id}
+          strings={s}
+        />
+      )}
       <Card
         className="ant-hero-card"
         title={`${s.overviewFor} ${child?.name || bootstrap.currentChild.name}`}
