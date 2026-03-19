@@ -120,3 +120,17 @@ class RuleEngineTest(TestCase):
         )
         insights = run_rules(child, data)
         self.assertEqual(len(insights), 0)
+
+
+class LLMClientTest(TestCase):
+    def test_llm_error_raised_for_none_provider(self):
+        from core.llm import generate_summary, LLMError
+
+        with self.assertRaises(LLMError):
+            list(generate_summary("none", "", "", "", "context"))
+
+    def test_llm_error_raised_for_unknown_provider(self):
+        from core.llm import generate_summary, LLMError
+
+        with self.assertRaises(LLMError):
+            list(generate_summary("unknown", "", "", "", "context"))
