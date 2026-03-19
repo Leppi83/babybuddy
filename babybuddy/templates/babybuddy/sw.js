@@ -44,10 +44,11 @@ self.addEventListener("fetch", (event) => {
         (cached) =>
           cached ||
           fetch(request).then((response) => {
-            if (response.ok) {
+            if (response.ok && response.type !== "opaque") {
+              const cloned = response.clone();
               caches
                 .open(CACHE_NAME)
-                .then((cache) => cache.put(request, response.clone()));
+                .then((cache) => cache.put(request, cloned));
             }
             return response;
           }),
@@ -64,10 +65,9 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          if (response.ok) {
-            caches
-              .open(CACHE_NAME)
-              .then((cache) => cache.put(request, response.clone()));
+          if (response.ok && response.type !== "opaque") {
+            const cloned = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
           }
           return response;
         })
