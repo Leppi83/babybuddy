@@ -3,6 +3,13 @@ import json
 import os
 
 from django.conf import settings
+
+
+def build_hash_context(request):
+    """Inject BUILD_HASH into every template for cache-busting static assets."""
+    return {"BUILD_HASH": os.environ.get("BUILD_HASH", "dev")}
+
+
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.auth import get_user_model
