@@ -1844,37 +1844,35 @@ function ChildDashboardPageV2({ bootstrap }) {
     bootstrap.currentChild?.name || bootstrap.currentChild?.displayName || "";
 
   return (
-    <div style={{ maxWidth: 520, margin: "0 auto", padding: "16px" }}>
+    <div style={{ maxWidth: 520, margin: "0 auto" }}>
       <div
-        style={{
-          marginBottom: 16,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
+        className="ant-shell-header-band"
+        style={{ marginBottom: 16, borderRadius: 0 }}
       >
-        <div>
-          <Typography.Title
-            level={4}
-            style={{
-              margin: 0,
-              color: "var(--app-text-primary)",
-              fontSize: 18,
-            }}
-          >
-            {childName}
-          </Typography.Title>
-          <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-            {s.dashboardTitle || "Dashboard"}
-          </Typography.Text>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            width: "100%",
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
+          <div>
+            <div className="ant-shell-header-band__eyebrow">
+              {s.dashboardTitle || "Dashboard"}
+            </div>
+            <div className="ant-shell-header-band__title">{childName}</div>
+          </div>
+          <DatePicker
+            value={selectedDate}
+            onChange={(d) => d && setSelectedDate(d)}
+            size="small"
+            style={{ width: 130, marginTop: 4 }}
+            allowClear={false}
+          />
         </div>
-        <DatePicker
-          value={selectedDate}
-          onChange={(d) => d && setSelectedDate(d)}
-          size="small"
-          style={{ width: 130 }}
-          allowClear={false}
-        />
       </div>
       <ActivityDial
         activities={activities}

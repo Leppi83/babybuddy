@@ -57,6 +57,8 @@
   --app-primary-hover: #3a7cc0;
   --app-primary-active: #1e4f7a;
   --header-band-bg: linear-gradient(135deg, #0a1e3a, #0f2848, #0a1e3a);
+  --header-band-eyebrow: #4db6ff;
+  --header-band-title: #e8f0f8;
 
   /* Activity accents — dimmed for dark theme */
   --accent-diaper: #cc5570;
@@ -120,7 +122,9 @@
   --night-sleep-marker-shadow: rgba(77, 182, 255, 0.18);
   --app-primary-hover: #2a9df4;
   --app-primary-active: #1a85d0;
-  --header-band-bg: linear-gradient(135deg, #d0e8ff, #e0f0ff, #d0e8ff);
+  --header-band-bg: linear-gradient(135deg, #b8d8f5, #c8e4ff, #b8d8f5);
+  --header-band-eyebrow: #1a6da0;
+  --header-band-title: #0a3a5c;
 
   /* Activity accents — full brightness for light theme */
   --accent-diaper: #ff6b8b;
@@ -298,14 +302,14 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--app-primary);
+  color: var(--header-band-eyebrow);
   margin-bottom: var(--space-xs);
 }
 
 .ant-shell-header-band__title {
   font-size: 22px;
   font-weight: 800;
-  color: var(--app-text-primary);
+  color: var(--header-band-title);
   line-height: 1.2;
   margin: 0;
 }
