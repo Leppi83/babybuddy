@@ -15,8 +15,8 @@
 
 /* ── Day theme: sun + clouds ─────────────────────────────────── */
 
-/* Sun — top-left corner */
-.activity-dial.is-day::after {
+/* Sun — top-left corner, light theme only */
+:root[data-theme="light"] .activity-dial::after {
   content: "";
   position: absolute;
   top: 24px;
@@ -32,8 +32,8 @@
   pointer-events: none;
 }
 
-/* Clouds — small decorative shapes */
-.activity-dial.is-day::before {
+/* Clouds — small decorative shapes, light theme only */
+:root[data-theme="light"] .activity-dial::before {
   content: "";
   position: absolute;
   top: 32px;
@@ -53,8 +53,8 @@
 
 /* ── Night theme: moon + stars ──────────────────────────────── */
 
-/* Moon crescent — visible on night + dark theme only */
-:root:not([data-theme="light"]) .activity-dial.is-night::after {
+/* Moon crescent — dark theme only */
+:root:not([data-theme="light"]) .activity-dial::after {
   content: "";
   position: absolute;
   top: 28px;
@@ -70,8 +70,8 @@
   pointer-events: none;
 }
 
-/* Night sky stars — visible on night + dark theme only */
-:root:not([data-theme="light"]) .activity-dial.is-night::before {
+/* Night sky stars — dark theme only */
+:root:not([data-theme="light"]) .activity-dial::before {
   content: "";
   position: absolute;
   inset: 0;
