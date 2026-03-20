@@ -512,7 +512,7 @@ export function AppShell({
             width: 56,
             height: 56,
             borderRadius: "50%",
-            background: "#4db6ff",
+            background: "var(--app-primary)",
             border: "none",
             color: "#020617",
             fontSize: 28,

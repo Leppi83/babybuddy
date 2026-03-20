@@ -20,12 +20,12 @@ import {
 const { Text } = Typography;
 
 export const SECTION_META = {
-  quick_entry: { color: "#818cf8" },
-  diaper: { color: "#ff6b8b" },
-  feedings: { color: "#38bdf8" },
-  pumpings: { color: "#c084fc" },
-  sleep: { color: "#fbbf24" },
-  tummytime: { color: "#34d399" },
+  quick_entry: { color: "var(--app-primary)" },
+  diaper: { color: "var(--accent-diaper)" },
+  feedings: { color: "var(--accent-feedings)" },
+  pumpings: { color: "var(--accent-pumpings)" },
+  sleep: { color: "var(--accent-sleep)" },
+  tummytime: { color: "var(--accent-tummytime)" },
 };
 
 /**
@@ -33,10 +33,11 @@ export const SECTION_META = {
  * These match the spec §1 activity type table.
  */
 export const ACTIVITY_COLORS = {
-  sleep: "#fbbf24",
-  feeding: "#38bdf8",
-  diaper: "#ff6b8b",
-  pumping: "#c084fc",
+  sleep: "var(--accent-sleep)",
+  feeding: "var(--accent-feedings)",
+  diaper: "var(--accent-diaper)",
+  pumping: "var(--accent-pumpings)",
+  tummytime: "var(--accent-tummytime)",
 };
 
 export const APP_DATE_FORMAT = "DD.MM.";

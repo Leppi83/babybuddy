@@ -212,10 +212,11 @@ export function App({ bootstrap }) {
       theme={{
         algorithm: themeAlgorithm,
         token: {
-          colorPrimary: effectiveTheme === "dark" ? "#a78bfa" : "#7c3aed",
-          colorBgBase: effectiveTheme === "dark" ? "#08071a" : "#faf8ff",
-          colorBgContainer: effectiveTheme === "dark" ? "#13103a" : "#ffffff",
-          colorBorder: effectiveTheme === "dark" ? "#2d2560" : "#e4d9f7",
+          colorPrimary: effectiveTheme === "dark" ? "#2a5f96" : "#4db6ff",
+          colorBgBase: effectiveTheme === "dark" ? "#080d1e" : "#eef6ff",
+          colorBgContainer:
+            effectiveTheme === "dark" ? "rgba(18,30,55,0.95)" : "#ffffff",
+          colorBorder: effectiveTheme === "dark" ? "#1a3050" : "#c0ddf5",
           borderRadius: 18,
         },
       }}

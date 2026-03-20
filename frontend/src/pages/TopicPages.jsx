@@ -60,7 +60,7 @@ const TOPIC_CONFIG = {
   },
   feeding: {
     label: "Feeding",
-    color: "#38bdf8",
+    color: "var(--accent-feedings)",
     apiPath: "/api/feedings/",
     timeField: "start",
     columns: (s) => [

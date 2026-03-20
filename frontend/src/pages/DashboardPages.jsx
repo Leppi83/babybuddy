@@ -67,7 +67,7 @@ function InsightsBanner({ insights, urls, childId, strings }) {
   if (visible.length === 0) return null;
 
   const hasAlert = visible.some((i) => i.severity === "alert");
-  const bannerColor = hasAlert ? "#ff7875" : "#ffd666";
+  const bannerColor = hasAlert ? "var(--accent-diaper)" : "var(--accent-sleep)";
 
   const handleDismiss = () => {
     const now = new Date().toISOString();
@@ -980,8 +980,14 @@ function SleepWeekChart({ sleepItems }) {
     >
       <defs>
         <linearGradient id="sleepWeekGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffd666" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#ffd666" stopOpacity="0.02" />
+          <stop
+            offset="0%"
+            style={{ stopColor: "var(--accent-sleep)", stopOpacity: 0.22 }}
+          />
+          <stop
+            offset="100%"
+            style={{ stopColor: "var(--accent-sleep)", stopOpacity: 0.02 }}
+          />
         </linearGradient>
         <clipPath id="sleepWeekClip">
           <rect x={PAD_L} y={PAD_T} width={CW} height={CH} />
@@ -1022,7 +1028,7 @@ function SleepWeekChart({ sleepItems }) {
       <path
         d={linePath}
         fill="none"
-        stroke="#ffd666"
+        style={{ stroke: "var(--accent-sleep)" }}
         strokeWidth={lineWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -1032,7 +1038,12 @@ function SleepWeekChart({ sleepItems }) {
       {/* Dots + value labels + day labels */}
       {pts.map((pt, i) => (
         <g key={i}>
-          <circle cx={pt.x} cy={pt.y} r="3.2" fill="#ffd666" />
+          <circle
+            cx={pt.x}
+            cy={pt.y}
+            r="3.2"
+            style={{ fill: "var(--accent-sleep)" }}
+          />
           {pt.minutes > 0 && (
             <text
               x={pt.x}
@@ -1040,7 +1051,7 @@ function SleepWeekChart({ sleepItems }) {
               textAnchor="middle"
               fontSize={valueLabelFontSize}
               fontWeight="600"
-              fill="#ffd666"
+              style={{ fill: "var(--accent-sleep)" }}
             >
               {formatDurationCompact(pt.minutes * 60)}
             </text>

@@ -13,7 +13,7 @@ const SEVERITY_ORDER = ["alert", "warning", "info"];
 const SEVERITY_META = {
   alert: { color: "#ff7875", Icon: AlertOutlined },
   warning: { color: "#ffd666", Icon: WarningOutlined },
-  info: { color: "#4db6ff", Icon: InfoCircleOutlined },
+  info: { color: "var(--app-primary)", Icon: InfoCircleOutlined },
 };
 
 const DISMISSED_KEY = "dismissed_insights";
@@ -157,7 +157,9 @@ export function DashboardInsightsCard({ insights = [], strings = {} }) {
             color: "var(--app-text-secondary)",
           }}
         >
-          <CheckCircleOutlined style={{ fontSize: 28, color: "#5cdb8b" }} />
+          <CheckCircleOutlined
+            style={{ fontSize: 28, color: "var(--accent-tummytime)" }}
+          />
           <span style={{ fontSize: "var(--font-body-size, 12px)" }}>
             {strings.allGood ?? "All good — no alerts right now"}
           </span>

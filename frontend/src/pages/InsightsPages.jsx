@@ -4,7 +4,7 @@ import { Empty, Tag, Button, Modal, Spin } from "antd";
 const SEVERITY_COLORS = {
   alert: "#ff7875",
   warning: "#ffd666",
-  info: "#4db6ff",
+  info: "var(--app-primary)",
 };
 
 function InsightCard({ insight }) {
@@ -139,7 +139,7 @@ function AskAIModal({ childId, open, onClose, strings }) {
       {loading && !text && (
         <Spin style={{ display: "block", margin: "40px auto" }} />
       )}
-      {error && <p style={{ color: "#ff7875" }}>{error}</p>}
+      {error && <p style={{ color: "var(--accent-diaper)" }}>{error}</p>}
       {text && (
         <p
           style={{

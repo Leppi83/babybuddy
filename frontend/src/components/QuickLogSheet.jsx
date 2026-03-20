@@ -105,7 +105,7 @@ function TileButton({
         width: "100%",
         aspectRatio: "1",
         background: pressing ? "var(--app-card-border)" : "var(--app-list-bg)",
-        border: `1px solid ${pressing ? "var(--colorPrimary, #4db6ff)" : "var(--app-card-border)"}`,
+        border: `1px solid ${pressing ? "var(--app-primary)" : "var(--app-card-border)"}`,
         borderRadius: 18,
         color: "var(--app-text-primary)",
         cursor: "pointer",
@@ -127,7 +127,7 @@ function TileButton({
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: "#ffd666",
+            background: "var(--accent-sleep)",
             animation: "pulse 1.5s infinite",
           }}
         />
