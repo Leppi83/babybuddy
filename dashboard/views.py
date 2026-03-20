@@ -85,6 +85,7 @@ def _build_ant_strings():
         "timeline": _("Timeline"),
         "settings": _("Settings"),
         "logout": _("Logout"),
+        "insights": _("Insights"),
         "childDashboard": _("Child Dashboard"),
         "overview": _("Overview"),
         "born": _("Born"),
@@ -1218,6 +1219,13 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     "childInsights": reverse(
                         "dashboard:child-insights", kwargs={"pk": self.object.pk}
                     ),
+                    "topicPages": {
+                        t: reverse(
+                            "dashboard:child-topic",
+                            kwargs={"slug": self.object.slug, "topic": t},
+                        )
+                        for t in VALID_TOPICS
+                    },
                 },
                 "children": _serialize_children(self.request, children),
                 "currentChild": {

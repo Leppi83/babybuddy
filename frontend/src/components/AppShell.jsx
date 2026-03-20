@@ -12,6 +12,7 @@ import {
   Typography,
 } from "antd";
 import {
+  BulbOutlined,
   PlusOutlined,
   HomeOutlined,
   HistoryOutlined,
@@ -105,12 +106,40 @@ export function AppShell({
       }
     : null;
 
+  const topicPages = bootstrap.urls.topicPages;
+  const insightsMenuItem = topicPages
+    ? {
+        key: "insights-menu",
+        icon: <BulbOutlined />,
+        label: bootstrap.strings.insights || "Insights",
+        children: [
+          {
+            key: topicPages.sleep,
+            label: bootstrap.strings.sleepLabel || "Sleep",
+          },
+          {
+            key: topicPages.feeding,
+            label: bootstrap.strings.feedingLabel || "Feeding",
+          },
+          {
+            key: topicPages.diaper,
+            label: bootstrap.strings.diaperLabel || "Diaper",
+          },
+          {
+            key: topicPages.pumping,
+            label: bootstrap.strings.pumpingLabel || "Pumping",
+          },
+        ],
+      }
+    : null;
+
   const navItems = [
     {
       key: bootstrap.urls.dashboard,
       icon: <HomeOutlined />,
       label: bootstrap.strings.dashboard,
     },
+    ...(insightsMenuItem ? [insightsMenuItem] : []),
     {
       key: bootstrap.urls.timeline,
       icon: <HistoryOutlined />,
@@ -508,6 +537,11 @@ export function AppShell({
               key: bootstrap.urls.dashboard,
               icon: <HomeOutlined />,
               label: bootstrap.strings.dashboard,
+            },
+            {
+              key: topicPages?.sleep || bootstrap.urls.dashboard,
+              icon: <BulbOutlined />,
+              label: bootstrap.strings.insights || "Insights",
             },
             {
               key: bootstrap.urls.timeline,
