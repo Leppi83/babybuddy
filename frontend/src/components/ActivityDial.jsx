@@ -17,6 +17,7 @@ const CY = 190;
 const ATMO_R = 125;
 const ATMO_STROKE = 38;
 const ACTIVITY_R = 162;
+const TRACK_STROKE = 5;
 const ACTIVITY_STROKE = 12;
 const CENTER_R = 80;
 
@@ -162,44 +163,26 @@ function BedtimeMarker({ bedtime, now }) {
   bedDate.setHours(parseInt(hStr, 10), parseInt(mStr, 10), 0, 0);
   const angle = timeToAngle(bedDate, now);
 
-  // Position icon inward from the atmosphere ring center, away from the dot
-  const iconPos = pointOnCircle(angle, ATMO_R - ATMO_STROKE / 2 + 4, CX, CY);
-  const iconSize = 30;
-  const halfIcon = iconSize / 2;
+  // Line marker across the atmosphere ring
+  const innerR = ATMO_R - ATMO_STROKE / 2;
+  const outerR = ATMO_R + ATMO_STROKE / 2;
+  const inner = pointOnCircle(angle, innerR, CX, CY);
+  const outer = pointOnCircle(angle, outerR, CX, CY);
 
   return (
-    <g style={{ cursor: "pointer" }}>
-      {/* Bed icon — larger, inset on inner edge of atmosphere ring */}
-      <g
-        transform={`translate(${iconPos.x - halfIcon}, ${iconPos.y - halfIcon})`}
-        opacity={0.9}
+    <g>
+      <line
+        x1={inner.x}
+        y1={inner.y}
+        x2={outer.x}
+        y2={outer.y}
+        stroke="#a5b4fc"
+        strokeWidth={2.5}
+        strokeLinecap="round"
+        opacity={0.8}
       >
         <title>{`Bedtime: ${hStr}:${mStr}`}</title>
-        {/* Background circle for contrast */}
-        <circle
-          cx={halfIcon}
-          cy={halfIcon}
-          r={halfIcon}
-          fill="var(--app-card-bg-start, #020617)"
-          opacity={0.7}
-        />
-        {/* Bed icon scaled to fill */}
-        <g transform="translate(3, 4.5) scale(1)">
-          <rect x="2" y="14" width="20" height="2" rx="1" fill="#a5b4fc" />
-          <rect x="3" y="8" width="8" height="6" rx="2" fill="#a5b4fc" />
-          <path d="M13 10h6a2 2 0 0 1 2 2v2H13v-4z" fill="#a5b4fc" />
-          <rect x="3" y="14" width="1.5" height="3" rx="0.5" fill="#a5b4fc" />
-          <rect
-            x="19.5"
-            y="14"
-            width="1.5"
-            height="3"
-            rx="0.5"
-            fill="#a5b4fc"
-          />
-          <circle cx="7" cy="7" r="2" fill="#a5b4fc" />
-        </g>
-      </g>
+      </line>
     </g>
   );
 }
@@ -292,11 +275,7 @@ function ActivityArcs({ arcs, cx, cy, radius, strokeWidth, onHover }) {
             strokeDashoffset={dashoffset}
             strokeLinecap="round"
             opacity={0.9}
-            style={{
-              transform: "rotate(-90deg)",
-              transformOrigin: `${cx}px ${cy}px`,
-              cursor: "pointer",
-            }}
+            style={{ cursor: "pointer" }}
             onMouseEnter={(e) =>
               onHover?.({
                 text: arc.tooltip || arc.type,
@@ -527,7 +506,7 @@ export default function ActivityDial({
           r={ACTIVITY_R}
           fill="none"
           className="activity-dial__track"
-          strokeWidth={ACTIVITY_STROKE}
+          strokeWidth={TRACK_STROKE}
         />
 
         {/* Activity arcs overlay the track */}
@@ -575,6 +554,13 @@ export default function ActivityDial({
           }}
         >
           {tooltip.text}
+        </div>
+      )}
+
+      {bedtime && (
+        <div className="activity-dial__bedtime-label">
+          <span className="activity-dial__bedtime-title">Usual bedtime</span>
+          <span className="activity-dial__bedtime-time">{bedtime}</span>
         </div>
       )}
 
