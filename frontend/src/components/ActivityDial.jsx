@@ -575,9 +575,6 @@ export default function ActivityDial({
           onHover={setTooltip}
         />
 
-        {/* Bedtime marker on inner ring */}
-        <BedtimeMarker bedtime={bedtime} now={now} />
-
         {/* Hour labels */}
         <HourLabels />
 
@@ -604,13 +601,6 @@ export default function ActivityDial({
           }}
         >
           {tooltip.text}
-        </div>
-      )}
-
-      {bedtime && (
-        <div className="activity-dial__bedtime-label">
-          <span className="activity-dial__bedtime-title">Usual bedtime</span>
-          <span className="activity-dial__bedtime-time">{bedtime}</span>
         </div>
       )}
 
