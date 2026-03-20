@@ -6,7 +6,6 @@ import {
   Col,
   Empty,
   Form,
-  Image,
   Input,
   List,
   Pagination,
@@ -64,23 +63,15 @@ export function ListPage({ bootstrap }) {
 
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
-        <Space direction="vertical" size={6}>
-          <Text type="secondary">{bootstrap.listPage.kicker}</Text>
-          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-            {bootstrap.listPage.title}
-          </Title>
-          {(bootstrap.listPage.addActions || []).length > 0 ? (
-            <Space wrap>
-              {(bootstrap.listPage.addActions || []).map((action) => (
-                <Button key={action.href} type="primary" href={action.href}>
-                  {action.label}
-                </Button>
-              ))}
-            </Space>
-          ) : null}
+      {(bootstrap.listPage.addActions || []).length > 0 ? (
+        <Space wrap>
+          {(bootstrap.listPage.addActions || []).map((action) => (
+            <Button key={action.href} type="primary" href={action.href}>
+              {action.label}
+            </Button>
+          ))}
         </Space>
-      </Card>
+      ) : null}
       <Card className="ant-section-card">
         <Table
           columns={columns}
@@ -122,24 +113,14 @@ export function AntFormPage({ bootstrap, deleteMode = false }) {
 
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
-        <Space direction="vertical" size={6}>
-          <Text type="secondary">{bootstrap.formPage.kicker}</Text>
-          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-            {bootstrap.formPage.title}
-          </Title>
-          {!deleteMode && bootstrap.formPage.description ? (
-            <Text style={{ color: "#cbd5e1" }}>
-              {bootstrap.formPage.description}
-            </Text>
-          ) : null}
-          {deleteMode && bootstrap.formPage.dangerText ? (
-            <Text style={{ color: "#fca5a5" }}>
-              {bootstrap.formPage.dangerText}
-            </Text>
-          ) : null}
-        </Space>
-      </Card>
+      {!deleteMode && bootstrap.formPage.description ? (
+        <Text type="secondary">{bootstrap.formPage.description}</Text>
+      ) : null}
+      {deleteMode && bootstrap.formPage.dangerText ? (
+        <Text type="secondary" style={{ color: "#fca5a5" }}>
+          {bootstrap.formPage.dangerText}
+        </Text>
+      ) : null}
 
       {bootstrap.messageBanner ? (
         <Alert
@@ -249,32 +230,21 @@ export function MessagePage({ bootstrap }) {
   const message = bootstrap.messagePage;
 
   return (
-    <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
-        <Space direction="vertical" size={10} style={{ width: "100%" }}>
-          <Text type="secondary">{message.kicker}</Text>
-          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-            {message.title}
-          </Title>
-          {(message.body || []).map((paragraph, index) => (
-            <Text
-              key={`${message.title}-${index}`}
-              style={{ color: "#cbd5e1" }}
-            >
-              {paragraph}
-            </Text>
+    <Space direction="vertical" size={16} style={{ width: "100%" }}>
+      {(message.body || []).map((paragraph, index) => (
+        <Text key={`${message.title}-${index}`} type="secondary">
+          {paragraph}
+        </Text>
+      ))}
+      {message.actions?.length ? (
+        <Space wrap>
+          {message.actions.map((action) => (
+            <Button key={action.href} href={action.href} type="primary">
+              {action.label}
+            </Button>
           ))}
-          {message.actions?.length ? (
-            <Space wrap style={{ marginTop: 12 }}>
-              {message.actions.map((action) => (
-                <Button key={action.href} href={action.href} type="primary">
-                  {action.label}
-                </Button>
-              ))}
-            </Space>
-          ) : null}
         </Space>
-      </Card>
+      ) : null}
     </Space>
   );
 }
@@ -288,39 +258,23 @@ export function WelcomePage({ bootstrap }) {
   ];
 
   return (
-    <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
-        <Space direction="vertical" size={12}>
-          <Text type="secondary">{bootstrap.strings.welcome}</Text>
-          <Title level={1} style={{ margin: 0, color: "#f8fafc" }}>
-            {bootstrap.strings.welcomeTitle}
-          </Title>
-          <Text style={{ color: "#cbd5e1" }}>
-            {bootstrap.strings.welcomeIntro}
-          </Text>
-          <Text style={{ color: "#cbd5e1" }}>
-            {bootstrap.strings.welcomeBody}
-          </Text>
-          <Space wrap style={{ marginTop: 8 }}>
-            {featureItems.map((item) => (
-              <Tag key={item} color="blue">
-                {item}
-              </Tag>
-            ))}
-          </Space>
-          {bootstrap.urls.addChild ? (
-            <div style={{ marginTop: 12 }}>
-              <Button
-                type="primary"
-                href={bootstrap.urls.addChild}
-                size="large"
-              >
-                {bootstrap.strings.addChild}
-              </Button>
-            </div>
-          ) : null}
-        </Space>
-      </Card>
+    <Space direction="vertical" size={16} style={{ width: "100%" }}>
+      <Text type="secondary">{bootstrap.strings.welcomeIntro}</Text>
+      <Text type="secondary">{bootstrap.strings.welcomeBody}</Text>
+      <Space wrap>
+        {featureItems.map((item) => (
+          <Tag key={item} color="blue">
+            {item}
+          </Tag>
+        ))}
+      </Space>
+      {bootstrap.urls.addChild ? (
+        <div>
+          <Button type="primary" href={bootstrap.urls.addChild} size="large">
+            {bootstrap.strings.addChild}
+          </Button>
+        </div>
+      ) : null}
     </Space>
   );
 }
@@ -330,19 +284,7 @@ export function DeviceAccessPage({ bootstrap }) {
 
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
-        <Space direction="vertical" size={10} style={{ width: "100%" }}>
-          <Text type="secondary">
-            {bootstrap.strings.authenticationMethods}
-          </Text>
-          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-            {bootstrap.strings.addDevice}
-          </Title>
-          <Text style={{ color: "#cbd5e1" }}>
-            {bootstrap.strings.deviceAccessDescription}
-          </Text>
-        </Space>
-      </Card>
+      <Text type="secondary">{bootstrap.strings.deviceAccessDescription}</Text>
 
       {bootstrap.messageBanner ? (
         <Alert
@@ -470,9 +412,6 @@ export function ChildDetailPage({ bootstrap }) {
           </Col>
           <Col xs={24} md={16} lg={18}>
             <Space direction="vertical" size={12} style={{ width: "100%" }}>
-              <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-                {child.name}
-              </Title>
               <Space wrap size="middle">
                 <Tag color="blue">
                   {bootstrap.strings.born}: {child.birthLabel}
@@ -632,7 +571,7 @@ export function TimerDetailPage({ bootstrap }) {
           size={10}
           style={{ width: "100%", textAlign: "center" }}
         >
-          <Title level={1} style={{ margin: 0, color: "#f8fafc" }}>
+          <Title level={1} style={{ margin: 0 }}>
             {durationLabel}
           </Title>
           <Text type="secondary">
@@ -770,37 +709,27 @@ export function ReportListPage({ bootstrap }) {
 
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
-        <Row gutter={[16, 16]} align="middle">
-          <Col flex="auto">
-            <Space direction="vertical" size={6}>
-              <Text type="secondary">{bootstrap.strings.reports}</Text>
-              <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-                {reportList.childName}
-              </Title>
-              <Text style={{ color: "#cbd5e1" }}>
-                {bootstrap.strings.reportSummary}
-              </Text>
-            </Space>
-          </Col>
-          <Col>
-            <Space wrap>
-              <Button
-                href={reportList.actions.dashboard}
-                icon={<DashboardOutlined />}
-              >
-                {bootstrap.strings.dashboard}
-              </Button>
-              <Button
-                href={reportList.actions.timeline}
-                icon={<CalendarOutlined />}
-              >
-                {bootstrap.strings.timeline}
-              </Button>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
+      <Row gutter={[16, 16]} align="middle">
+        <Col flex="auto">
+          <Text type="secondary">{bootstrap.strings.reportSummary}</Text>
+        </Col>
+        <Col>
+          <Space wrap>
+            <Button
+              href={reportList.actions.dashboard}
+              icon={<DashboardOutlined />}
+            >
+              {bootstrap.strings.dashboard}
+            </Button>
+            <Button
+              href={reportList.actions.timeline}
+              icon={<CalendarOutlined />}
+            >
+              {bootstrap.strings.timeline}
+            </Button>
+          </Space>
+        </Col>
+      </Row>
 
       <Row gutter={[16, 16]}>
         {Object.entries(groupedEntries).map(([category, entries]) => (
@@ -878,41 +807,27 @@ export function ReportDetailPage({ bootstrap }) {
 
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
-        <Row gutter={[16, 16]} align="middle">
-          <Col flex="auto">
-            <Space direction="vertical" size={6}>
-              <Text type="secondary">{report.category}</Text>
-              <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-                {report.title}
-              </Title>
-              <Text style={{ color: "#cbd5e1" }}>{report.childName}</Text>
-            </Space>
-          </Col>
-          <Col>
-            <Space wrap>
-              <Button
-                href={report.actions.dashboard}
-                icon={<DashboardOutlined />}
-              >
-                {bootstrap.strings.dashboard}
-              </Button>
-              <Button
-                href={report.actions.timeline}
-                icon={<CalendarOutlined />}
-              >
-                {bootstrap.strings.timeline}
-              </Button>
-              <Button
-                href={report.actions.reports}
-                icon={<LineChartOutlined />}
-              >
-                {bootstrap.strings.reports}
-              </Button>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
+      <Row gutter={[16, 16]} align="middle">
+        <Col flex="auto">
+          <Text type="secondary">{report.childName}</Text>
+        </Col>
+        <Col>
+          <Space wrap>
+            <Button
+              href={report.actions.dashboard}
+              icon={<DashboardOutlined />}
+            >
+              {bootstrap.strings.dashboard}
+            </Button>
+            <Button href={report.actions.timeline} icon={<CalendarOutlined />}>
+              {bootstrap.strings.timeline}
+            </Button>
+            <Button href={report.actions.reports} icon={<LineChartOutlined />}>
+              {bootstrap.strings.reports}
+            </Button>
+          </Space>
+        </Col>
+      </Row>
 
       <Card className="ant-section-card">
         {report.html ? (
@@ -931,14 +846,6 @@ export function ReportDetailPage({ bootstrap }) {
 export function DashboardHomePage({ bootstrap }) {
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
-        <Space direction="vertical" size={6}>
-          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-            {bootstrap.strings.dashboard}
-          </Title>
-        </Space>
-      </Card>
-
       <Card
         className="ant-section-card"
         title={bootstrap.strings.selectDashboard}
