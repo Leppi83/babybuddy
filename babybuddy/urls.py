@@ -47,6 +47,7 @@ app_patterns = [
     path("user/add-device/", views.UserAddDevice.as_view(), name="user-add-device"),
     path("settings/", views.SiteSettings.as_view(), name="site_settings"),
     path("settings/<str:app_label>/", views.AppSettings.as_view(), name="app_settings"),
+    path("quick-entry/", views.QuickEntryView.as_view(), name="quick-entry"),
 ]
 
 urlpatterns = [

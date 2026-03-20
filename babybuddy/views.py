@@ -225,6 +225,7 @@ def _nav_urls():
         "settings": reverse("babybuddy:user-settings"),
         "logout": reverse("babybuddy:logout"),
         "addChild": reverse("core:child-add"),
+        "quickEntry": reverse("babybuddy:quick-entry"),
     }
 
 
@@ -1580,3 +1581,54 @@ class AppSettings(SiteSettings):
                 request, form, title=title, success_message=str(_("Settings saved!"))
             )
         return self._render_form(request, form, title=title)
+
+
+class QuickEntryView(LoginRequiredMixin, View):
+    def get(self, request):
+        from dashboard.views import _build_quick_status, _child_picture_url
+
+        children = core_models.Child.objects.all().order_by(
+            "last_name", "first_name", "id"
+        )
+        child = children.first()
+
+        child_slug = request.GET.get("child")
+        if child_slug:
+            child = children.filter(slug=child_slug).first() or child
+
+        current_child = None
+        if child:
+            current_child = {
+                "id": child.id,
+                "slug": child.slug,
+                "name": str(child),
+                "pictureUrl": request.build_absolute_uri(_child_picture_url(child)),
+            }
+
+        bootstrap = {
+            "pageType": "quick-entry",
+            "currentPath": request.path,
+            "locale": str(getattr(request, "LANGUAGE_CODE", "en")),
+            "csrfToken": get_token(request),
+            "user": {"displayName": _display_name(request.user)},
+            "urls": {
+                **_nav_urls(),
+                "addChild": reverse("core:child-add"),
+            },
+            "strings": {
+                **_base_strings(),
+                "quickEntry": _("Quick Entry"),
+            },
+            "messages": _serialize_messages(request),
+            "currentChild": current_child,
+            "quickStatus": _build_quick_status(child) if child else None,
+        }
+
+        return render(
+            request,
+            "babybuddy/ant_app.html",
+            {
+                "ant_bootstrap": bootstrap,
+                "ant_page_title": _("Quick Entry"),
+            },
+        )

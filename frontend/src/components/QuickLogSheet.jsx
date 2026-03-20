@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Drawer, message } from "antd";
 
-const TILES = [
+export const TILES = [
   {
     key: "diaper",
     labelKey: "quickLog.tile.diaper",
@@ -37,7 +37,7 @@ const TILES = [
   },
 ];
 
-const DEFAULT_TILE_LABELS = {
+export const DEFAULT_TILE_LABELS = {
   "quickLog.tile.diaper": "Diaper",
   "quickLog.tile.feeding": "Feed",
   "quickLog.tile.sleep": "Sleep",
@@ -50,7 +50,7 @@ const DEFAULT_TILE_LABELS = {
 
 const LONG_PRESS_MS = 500;
 
-function TileButton({
+export function TileButton({
   tile,
   child,
   csrfToken,

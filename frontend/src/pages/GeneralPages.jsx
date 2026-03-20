@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -8,6 +8,7 @@ import {
   Form,
   Input,
   List,
+  message,
   Pagination,
   Row,
   Space,
@@ -16,6 +17,11 @@ import {
   Timeline as AntTimeline,
   Typography,
 } from "antd";
+import {
+  TileButton,
+  TILES,
+  DEFAULT_TILE_LABELS,
+} from "../components/QuickLogSheet";
 import {
   CalendarOutlined,
   DashboardOutlined,
@@ -904,6 +910,98 @@ export function DashboardHomePage({ bootstrap }) {
             </Col>
           ))}
         </Row>
+      </Card>
+    </Space>
+  );
+}
+
+export function QuickEntryPage({ bootstrap }) {
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const child = bootstrap.currentChild;
+  const csrfToken = bootstrap.csrfToken;
+  const quickStatus = bootstrap.quickStatus;
+
+  const handleInstantLog = useCallback(
+    async (entryType) => {
+      if (!child) {
+        messageApi.warning("No child selected");
+        return;
+      }
+      try {
+        const res = await fetch(`/api/quick-log/${entryType}/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify({ child: child.id }),
+        });
+        const data = await res.json();
+        if (data.status === "ok") {
+          const labels = {
+            sleep: "Sleep timer started ✓",
+            timer: "Timer started ✓",
+          };
+          messageApi.success(labels[entryType] ?? `${entryType} logged ✓`);
+        } else if (res.status === 409) {
+          messageApi.warning(data.errors?.[0] ?? "Already active");
+        } else {
+          messageApi.error(data.errors?.join(", ") ?? "Error");
+        }
+      } catch {
+        messageApi.error("Network error");
+      }
+    },
+    [child, csrfToken, messageApi],
+  );
+
+  const statusItems = quickStatus
+    ? [
+        quickStatus.lastDiaper && `Diaper ${quickStatus.lastDiaper}`,
+        quickStatus.lastFeeding && `Fed ${quickStatus.lastFeeding}`,
+        quickStatus.activeSleep
+          ? `Sleeping ${quickStatus.activeSleep}`
+          : quickStatus.lastSleep && `Slept ${quickStatus.lastSleep}`,
+      ].filter(Boolean)
+    : [];
+
+  return (
+    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+      {contextHolder}
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }`}</style>
+      <Card className="ant-section-card">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 12,
+          }}
+        >
+          {TILES.map((tile) => (
+            <TileButton
+              key={tile.key}
+              tile={tile}
+              child={child}
+              csrfToken={csrfToken}
+              quickStatus={quickStatus}
+              onInstantLog={handleInstantLog}
+              strings={bootstrap.strings}
+            />
+          ))}
+        </div>
+        {statusItems.length > 0 && (
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--app-text-secondary)",
+              textAlign: "center",
+              marginTop: 12,
+            }}
+          >
+            {statusItems.join(" · ")}
+          </div>
+        )}
       </Card>
     </Space>
   );

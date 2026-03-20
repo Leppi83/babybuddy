@@ -156,7 +156,7 @@ export function AppShell({
     ...(bootstrap.currentChild
       ? [
           {
-            key: "__quick_entry__",
+            key: bootstrap.urls.quickEntry || "/quick-entry/",
             icon: <EditOutlined />,
             label: bootstrap.strings.quickEntry || "Quick Entry",
           },
@@ -185,10 +185,6 @@ export function AppShell({
   function handleNavClick({ key }) {
     if (key === "__logout__") {
       handleLogout();
-      return;
-    }
-    if (key === "__quick_entry__") {
-      setSheetOpen(true);
       return;
     }
     if (key.startsWith("/")) {
@@ -323,6 +319,13 @@ export function AppShell({
     insights: {
       eyebrow: null,
       title: null,
+    },
+    "quick-entry": {
+      eyebrow: bootstrap.strings.quickEntry || "Quick Actions",
+      title:
+        bootstrap.currentChild?.name ||
+        bootstrap.strings.quickEntry ||
+        "Quick Entry",
     },
   }[bootstrap.pageType] || {
     eyebrow: bootstrap.strings.dashboard,

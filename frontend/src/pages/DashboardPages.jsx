@@ -1917,16 +1917,13 @@ function ChildDashboardPageV2({ bootstrap }) {
           type="primary"
           size="large"
           icon={<EditOutlined />}
+          href="/quick-entry/"
           style={{
             borderRadius: 14,
             height: 48,
             paddingInline: 28,
             fontSize: 15,
             fontWeight: 600,
-          }}
-          onClick={() => {
-            // Dispatch custom event to open QuickLogSheet in AppShell
-            window.dispatchEvent(new CustomEvent("open-quick-entry"));
           }}
         >
           {s.quickEntry || "Quick Entry"}

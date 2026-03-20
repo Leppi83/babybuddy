@@ -86,6 +86,11 @@ const TopicPage = lazy(() =>
     default: module.TopicPage,
   })),
 );
+const QuickEntryPage = lazy(() =>
+  import("./pages/GeneralPages").then((module) => ({
+    default: module.QuickEntryPage,
+  })),
+);
 
 const THEME_MODE_KEY = "babybuddy.theme.mode";
 
@@ -155,6 +160,9 @@ function RoutedPage({ bootstrap }) {
   }
   if (bootstrap.pageType === "topic-detail") {
     return <TopicPage bootstrap={bootstrap} />;
+  }
+  if (bootstrap.pageType === "quick-entry") {
+    return <QuickEntryPage bootstrap={bootstrap} />;
   }
   return <ChildDashboardPage bootstrap={bootstrap} />;
 }
