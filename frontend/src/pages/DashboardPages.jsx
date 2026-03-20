@@ -584,17 +584,17 @@ export function SettingsPage({ bootstrap }) {
 
   return (
     <Space direction="vertical" size={24} style={{ width: "100%" }}>
-      <Card className="ant-hero-card">
-        <Space direction="vertical" size={6}>
-          <Text type="secondary">{bootstrap.strings.settings}</Text>
-          <Title level={2} style={{ margin: 0, color: "#f8fafc" }}>
-            {bootstrap.strings.userSettings}
-          </Title>
-          <Text style={{ color: "#cbd5e1" }}>
-            {bootstrap.strings.settingsDescription}
-          </Text>
-        </Space>
-      </Card>
+      <div className="ant-shell-header-band">
+        <div className="ant-shell-header-band__eyebrow">
+          {bootstrap.strings.settings}
+        </div>
+        <div className="ant-shell-header-band__title">
+          {bootstrap.strings.userSettings}
+        </div>
+        <div className="ant-shell-header-band__subtitle">
+          {bootstrap.strings.settingsDescription}
+        </div>
+      </div>
 
       {errorText ? <Alert type="error" message={errorText} showIcon /> : null}
 

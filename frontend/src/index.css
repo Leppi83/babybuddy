@@ -295,6 +295,19 @@ body {
   padding: var(--space-xl) var(--space-xl) var(--space-lg);
   background: var(--header-band-bg);
   border-bottom: 1px solid var(--app-header-border);
+  border-radius: 0;
+}
+
+/* When band is rendered inside content (pages that manage their own header),
+   break out of the content padding so it stays full-width */
+.ant-shell-content .ant-shell-header-band {
+  margin: -20px -20px var(--space-lg) -20px;
+}
+
+@media (max-width: 767px) {
+  .ant-shell-content .ant-shell-header-band {
+    margin: -14px -14px var(--space-lg) -14px;
+  }
 }
 
 .ant-shell-header-band__eyebrow {
