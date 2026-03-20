@@ -1881,7 +1881,11 @@ function ChildDashboardPageV2({ bootstrap }) {
         size={16}
         style={{ width: "100%", maxWidth: 520, margin: "0 auto" }}
       >
-        <Card className="ant-section-card" style={{ overflow: "hidden" }}>
+        <Card
+          className="ant-section-card"
+          styles={{ body: { padding: 0 } }}
+          style={{ overflow: "hidden" }}
+        >
           <ActivityDial
             activities={activities}
             bedtime={bedtime}
