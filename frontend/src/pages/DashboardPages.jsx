@@ -1866,17 +1866,20 @@ function ChildDashboardPageV2({ bootstrap }) {
             <div
               style={{
                 display: "flex",
-                justifyContent: "flex-end",
-                padding: "12px 16px 0",
+                justifyContent: "flex-start",
+                alignItems: "center",
+                padding: "16px 20px",
                 position: "relative",
                 zIndex: 2,
+                background: "var(--app-card-bg-start)",
+                borderBottom: "1px solid var(--app-card-border)",
               }}
             >
               <DatePicker
                 value={selectedDate}
                 onChange={(d) => d && setSelectedDate(d)}
                 size="small"
-                style={{ width: 130 }}
+                style={{ width: 140 }}
                 allowClear={false}
               />
             </div>

@@ -53,8 +53,8 @@
 
 /* ── Night theme: moon + stars ──────────────────────────────── */
 
-/* Moon crescent — visible on night theme */
-.activity-dial.is-night::after {
+/* Moon crescent — visible on night + dark theme only */
+:root:not([data-theme="light"]) .activity-dial.is-night::after {
   content: "";
   position: absolute;
   top: 28px;
@@ -70,8 +70,8 @@
   pointer-events: none;
 }
 
-/* Night sky stars — CSS radial-gradient dots */
-.activity-dial.is-night::before {
+/* Night sky stars — visible on night + dark theme only */
+:root:not([data-theme="light"]) .activity-dial.is-night::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -206,7 +206,7 @@
   height: auto;
 }
 
-/* Hour labels — centered in atmosphere ring, always white for readability */
+/* Hour labels — centered in atmosphere ring */
 .activity-dial__label {
   font-size: 13px;
   font-weight: 700;
@@ -214,6 +214,16 @@
   dominant-baseline: central;
   fill: rgba(255, 255, 255, 0.9);
   pointer-events: none;
+}
+
+/* On light theme, use dark text for contrast against the bright gradient */
+:root[data-theme="light"] .activity-dial__label {
+  fill: rgba(255, 255, 255, 0.95);
+  font-weight: 800;
+  font-size: 14px;
+  paint-order: stroke fill;
+  stroke: rgba(0, 30, 60, 0.4);
+  stroke-width: 2px;
 }
 
 /* Tick marks */
