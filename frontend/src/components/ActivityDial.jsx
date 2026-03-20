@@ -123,7 +123,7 @@ function HourLabels({ now }) {
   const labels = useMemo(() => {
     const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21];
     const nowHour = now.getHours() + now.getMinutes() / 60;
-    const labelR = ATMO_R - 16; // inside the atmosphere ring
+    const labelR = ATMO_R; // center of the atmosphere ring
     return LABEL_HOURS.map((hour) => {
       // Compute hour offset from now, matching tick mark angle formula
       let hourOffset = hour - nowHour;
@@ -163,35 +163,46 @@ function BedtimeMarker({ bedtime, now }) {
   const angle = timeToAngle(bedDate, now);
   const pos = pointOnCircle(angle, ATMO_R, CX, CY);
 
-  const iconPos = pointOnCircle(angle, ATMO_R - 14, CX, CY);
+  // Position icon at center of the atmosphere ring band
+  const iconPos = pointOnCircle(angle, ATMO_R, CX, CY);
+  const iconSize = 20;
+  const halfIcon = iconSize / 2;
 
   return (
     <g>
-      {/* Dot at exact bedtime position on atmosphere ring */}
-      <circle
-        cx={pos.x}
-        cy={pos.y}
-        r={4}
-        fill="#818cf8"
-        stroke="var(--app-card-bg-start, #020617)"
-        strokeWidth={1.5}
+      {/* Bed SVG icon — centered in the atmosphere ring */}
+      <g
+        transform={`translate(${iconPos.x - halfIcon}, ${iconPos.y - halfIcon})`}
+        opacity={0.9}
+        style={{ pointerEvents: "none" }}
       >
         <title>
           Bedtime: {hStr}:{mStr}
         </title>
-      </circle>
-      {/* Bed SVG icon — inset on the atmosphere ring */}
-      <g
-        transform={`translate(${iconPos.x - 6}, ${iconPos.y - 6}) scale(0.5)`}
-        opacity={0.85}
-        style={{ pointerEvents: "none" }}
-      >
-        <rect x="2" y="14" width="20" height="2" rx="1" fill="#818cf8" />
-        <rect x="3" y="8" width="8" height="6" rx="2" fill="#818cf8" />
-        <path d="M13 10h6a2 2 0 0 1 2 2v2H13v-4z" fill="#818cf8" />
-        <rect x="3" y="14" width="1.5" height="3" rx="0.5" fill="#818cf8" />
-        <rect x="19.5" y="14" width="1.5" height="3" rx="0.5" fill="#818cf8" />
-        <circle cx="7" cy="7" r="2" fill="#818cf8" />
+        {/* Background circle for contrast */}
+        <circle
+          cx={halfIcon}
+          cy={halfIcon}
+          r={halfIcon}
+          fill="var(--app-card-bg-start, #020617)"
+          opacity={0.6}
+        />
+        {/* Bed icon scaled to fill the circle */}
+        <g transform={`translate(2.5, 3) scale(0.625)`}>
+          <rect x="2" y="14" width="20" height="2" rx="1" fill="#a5b4fc" />
+          <rect x="3" y="8" width="8" height="6" rx="2" fill="#a5b4fc" />
+          <path d="M13 10h6a2 2 0 0 1 2 2v2H13v-4z" fill="#a5b4fc" />
+          <rect x="3" y="14" width="1.5" height="3" rx="0.5" fill="#a5b4fc" />
+          <rect
+            x="19.5"
+            y="14"
+            width="1.5"
+            height="3"
+            rx="0.5"
+            fill="#a5b4fc"
+          />
+          <circle cx="7" cy="7" r="2" fill="#a5b4fc" />
+        </g>
       </g>
     </g>
   );
@@ -456,8 +467,34 @@ export default function ActivityDial({
     [parsedActivities, now],
   );
 
+  // Compute day/night background gradient based on current hour
+  const bgStyle = useMemo(() => {
+    const hour = now.getHours() + now.getMinutes() / 60;
+    const brightness = dayBrightness(hour);
+
+    if (brightness > 0.7) {
+      // Daytime — warm sky gradient
+      return {
+        background:
+          "linear-gradient(180deg, #87CEEB 0%, #B8E4F9 30%, #FFF8E7 70%, #FFE4B5 100%)",
+      };
+    } else if (brightness > 0.3) {
+      // Twilight — dusk/dawn gradient
+      return {
+        background:
+          "linear-gradient(180deg, #2d1b69 0%, #6b3fa0 25%, #e8756a 55%, #ffc878 100%)",
+      };
+    } else {
+      // Night — deep dark sky
+      return {
+        background:
+          "radial-gradient(ellipse at 30% 20%, #1a1a3e 0%, #0d0d2b 40%, #060614 100%)",
+      };
+    }
+  }, [now]);
+
   return (
-    <div className="activity-dial">
+    <div className="activity-dial" style={bgStyle}>
       <svg
         className="activity-dial__svg"
         viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}

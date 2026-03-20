@@ -7,7 +7,9 @@
   gap: 16px;
   padding: 24px 16px;
   border-radius: 20px;
-  background: transparent;
+  transition: background 2s ease;
+  overflow: hidden;
+  position: relative;
 }
 
 .activity-dial__svg {
@@ -17,10 +19,10 @@
   height: auto;
 }
 
-/* Hour labels — large, readable */
+/* Hour labels — centered in atmosphere ring */
 .activity-dial__label {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   text-anchor: middle;
   dominant-baseline: central;
   fill: var(--app-text-primary, #f1f0ff);
