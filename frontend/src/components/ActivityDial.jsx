@@ -43,7 +43,7 @@ function getTheme() {
 const SEVERITY_COLORS = {
   alert: "#ff4d4f",
   warning: "#faad14",
-  info: "#1890ff",
+  info: "var(--app-primary)",
 };
 
 /* ── Atmosphere ring — CSS conic-gradient for truly smooth blending ── */

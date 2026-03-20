@@ -2965,11 +2965,11 @@ export function ChildDashboardPage({ bootstrap }) {
 
   function renderQuickEntryCard() {
     const segmentColors = {
-      diaper: "#ff4d4f",
-      sleep: "#fa8c16",
-      feeding: "#1890ff",
-      breastfeeding: "#722ed1",
-      pumping: "#13c2c2",
+      diaper: "var(--accent-diaper)",
+      sleep: "var(--accent-sleep)",
+      feeding: "var(--accent-feedings)",
+      breastfeeding: "var(--accent-feedings)",
+      pumping: "var(--accent-pumpings)",
     };
 
     const segments = [
