@@ -544,84 +544,90 @@ def _build_topic_charts(child, topic, request):
         else "en-US"
     )
 
+    def _safe_chart(key, title, graph_fn, queryset):
+        try:
+            html, js = graph_fn(queryset)
+            return {"key": key, "title": str(title), "html": html, "js": js}
+        except Exception:
+            return None
+
     if topic == "sleep":
-        sleeps = Sleep.objects.filter(child=child).order_by("-start")[:200]
+        sleeps = Sleep.objects.filter(child=child, end__isnull=False).order_by(
+            "-start"
+        )[:200]
         if sleeps:
-            html, js = report_graphs.sleep_totals.sleep_totals(sleeps)
-            charts.append(
-                {
-                    "key": "sleep-totals",
-                    "title": str(_("Sleep Totals")),
-                    "html": html,
-                    "js": js,
-                }
+            c = _safe_chart(
+                "sleep-totals",
+                _("Sleep Totals"),
+                report_graphs.sleep_totals.sleep_totals,
+                sleeps,
             )
-            html, js = report_graphs.sleep_pattern.sleep_pattern(sleeps)
-            charts.append(
-                {
-                    "key": "sleep-pattern",
-                    "title": str(_("Sleep Pattern")),
-                    "html": html,
-                    "js": js,
-                }
+            if c:
+                charts.append(c)
+            c = _safe_chart(
+                "sleep-pattern",
+                _("Sleep Pattern"),
+                report_graphs.sleep_pattern.sleep_pattern,
+                sleeps,
             )
+            if c:
+                charts.append(c)
 
     elif topic == "feeding":
-        feedings = Feeding.objects.filter(child=child).order_by("-start")[:200]
+        feedings = Feeding.objects.filter(child=child, end__isnull=False).order_by(
+            "-start"
+        )[:200]
         if feedings:
-            html, js = report_graphs.feeding_duration.feeding_duration(feedings)
-            charts.append(
-                {
-                    "key": "feeding-duration",
-                    "title": str(_("Feeding Duration")),
-                    "html": html,
-                    "js": js,
-                }
+            c = _safe_chart(
+                "feeding-duration",
+                _("Feeding Duration"),
+                report_graphs.feeding_duration.feeding_duration,
+                feedings,
             )
-            html, js = report_graphs.feeding_amounts.feeding_amounts(feedings)
-            charts.append(
-                {
-                    "key": "feeding-amounts",
-                    "title": str(_("Feeding Amounts")),
-                    "html": html,
-                    "js": js,
-                }
+            if c:
+                charts.append(c)
+            c = _safe_chart(
+                "feeding-amounts",
+                _("Feeding Amounts"),
+                report_graphs.feeding_amounts.feeding_amounts,
+                feedings,
             )
+            if c:
+                charts.append(c)
 
     elif topic == "diaper":
         changes = DiaperChange.objects.filter(child=child).order_by("-time")[:200]
         if changes:
-            html, js = report_graphs.diaperchange_types.diaperchange_types(changes)
-            charts.append(
-                {
-                    "key": "diaper-types",
-                    "title": str(_("Diaper Types")),
-                    "html": html,
-                    "js": js,
-                }
+            c = _safe_chart(
+                "diaper-types",
+                _("Diaper Types"),
+                report_graphs.diaperchange_types.diaperchange_types,
+                changes,
             )
-            html, js = report_graphs.diaperchange_amounts.diaperchange_amounts(changes)
-            charts.append(
-                {
-                    "key": "diaper-amounts",
-                    "title": str(_("Diaper Amounts")),
-                    "html": html,
-                    "js": js,
-                }
+            if c:
+                charts.append(c)
+            c = _safe_chart(
+                "diaper-amounts",
+                _("Diaper Amounts"),
+                report_graphs.diaperchange_amounts.diaperchange_amounts,
+                changes,
             )
+            if c:
+                charts.append(c)
 
     elif topic == "pumping":
-        pumpings = Pumping.objects.filter(child=child).order_by("-start")[:200]
+        pumpings = Pumping.objects.filter(child=child, end__isnull=False).order_by(
+            "-start"
+        )[:200]
         if pumpings:
-            html, js = report_graphs.pumping_amounts.pumping_amounts(pumpings)
-            charts.append(
-                {
-                    "key": "pumping-amounts",
-                    "title": str(_("Pumping Amounts")),
-                    "html": html,
-                    "js": js,
-                }
+            c = _safe_chart(
+                "pumping-amounts",
+                _("Pumping Amounts"),
+                report_graphs.pumping_amounts.pumping_amounts,
+                pumpings,
             )
+            if c:
+                charts.append(c)
 
     return {"charts": charts, "plotlyLocale": plotly_locale}
 
