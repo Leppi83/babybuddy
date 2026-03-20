@@ -487,7 +487,7 @@ export default function ActivityDial({
     } else {
       // Night — dark grey base (stars added via CSS pseudo-element)
       return {
-        background: "#080d1e",
+        background: "var(--app-bg-start)",
       };
     }
   }, [now]);

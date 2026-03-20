@@ -11,8 +11,8 @@ import {
 const SEVERITY_ORDER = ["alert", "warning", "info"];
 
 const SEVERITY_META = {
-  alert: { color: "#ff7875", Icon: AlertOutlined },
-  warning: { color: "#ffd666", Icon: WarningOutlined },
+  alert: { color: "var(--accent-diaper)", Icon: AlertOutlined },
+  warning: { color: "var(--accent-sleep)", Icon: WarningOutlined },
   info: { color: "var(--app-primary)", Icon: InfoCircleOutlined },
 };
 
@@ -63,7 +63,7 @@ function InsightRow({ insight, onDismiss, strings }) {
         <Tag
           color={meta.color}
           style={{
-            color: "#020617",
+            color: "var(--app-text-primary)",
             border: "none",
             fontWeight: 600,
             fontSize: 11,

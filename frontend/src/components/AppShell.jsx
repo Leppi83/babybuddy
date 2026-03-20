@@ -493,7 +493,7 @@ export function AppShell({
             borderRadius: "50%",
             background: "var(--app-primary)",
             border: "none",
-            color: "#020617",
+            color: "#fff",
             fontSize: 28,
             lineHeight: 1,
             cursor: "pointer",

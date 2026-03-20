@@ -2,8 +2,8 @@ import { useState, useRef } from "react";
 import { Empty, Tag, Button, Modal, Spin } from "antd";
 
 const SEVERITY_COLORS = {
-  alert: "#ff7875",
-  warning: "#ffd666",
+  alert: "var(--accent-diaper)",
+  warning: "var(--accent-sleep)",
   info: "var(--app-primary)",
 };
 
@@ -29,7 +29,7 @@ function InsightCard({ insight }) {
         <Tag
           color={SEVERITY_COLORS[insight.severity]}
           style={{
-            color: "#020617",
+            color: "var(--app-text-primary)",
             border: "none",
             fontWeight: 600,
             fontSize: 11,
@@ -175,26 +175,13 @@ export function InsightsPage({ bootstrap }) {
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "16px 16px 80px" }}>
       {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <div
-          style={{
-            color: "var(--app-timeline-axis)",
-            fontSize: 12,
-            marginBottom: 2,
-          }}
-        >
+      <div className="ant-shell-header-band" style={{ marginBottom: 20 }}>
+        <div className="ant-shell-header-band__eyebrow">
           {child.name} · {child.ageWeeks}w
         </div>
-        <h1
-          style={{
-            color: "var(--app-text-primary)",
-            fontSize: 22,
-            fontWeight: 700,
-            margin: 0,
-          }}
-        >
+        <div className="ant-shell-header-band__title">
           {strings?.["insights.title"] ?? "Insights"}
-        </h1>
+        </div>
       </div>
 
       {/* Back link */}

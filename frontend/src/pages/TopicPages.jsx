@@ -24,7 +24,7 @@ const { Title } = Typography;
 const TOPIC_CONFIG = {
   sleep: {
     label: "Sleep",
-    color: "#fbbf24",
+    color: "var(--accent-sleep)",
     apiPath: "/api/sleep/",
     timeField: "start",
     columns: (s) => [
@@ -96,7 +96,7 @@ const TOPIC_CONFIG = {
   },
   diaper: {
     label: "Diaper",
-    color: "#ff6b8b",
+    color: "var(--accent-diaper)",
     apiPath: "/api/changes/",
     timeField: "time",
     columns: (s) => [
@@ -124,7 +124,7 @@ const TOPIC_CONFIG = {
   },
   pumping: {
     label: "Pumping",
-    color: "#c084fc",
+    color: "var(--accent-pumpings)",
     apiPath: "/api/pumping/",
     timeField: "start",
     columns: (s) => [
@@ -455,16 +455,27 @@ export function TopicPage({ bootstrap }) {
 
   return (
     <div className="topic-page">
-      <div className="topic-page__header">
-        <div className="topic-page__icon" style={{ background: config.color }}>
-          {topic === "sleep" && "\u263D"}
-          {topic === "feeding" && "\uD83C\uDF7C"}
-          {topic === "diaper" && "\uD83D\uDCA7"}
-          {topic === "pumping" && "\u229B"}
+      <div className="ant-shell-header-band topic-page__header">
+        <div className="ant-shell-header-band__eyebrow">
+          <span
+            className="topic-page__icon"
+            style={{
+              background: config.color,
+              display: "inline-flex",
+              verticalAlign: "middle",
+              marginRight: 8,
+            }}
+          >
+            {topic === "sleep" && "\u263D"}
+            {topic === "feeding" && "\uD83C\uDF7C"}
+            {topic === "diaper" && "\uD83D\uDCA7"}
+            {topic === "pumping" && "\u229B"}
+          </span>
+          {config.label}
         </div>
-        <Title level={4} style={{ margin: 0 }}>
+        <div className="ant-shell-header-band__title">
           {s[`${topic}Label`] || config.label}
-        </Title>
+        </div>
       </div>
       <Tabs items={tabItems} size="large" />
     </div>

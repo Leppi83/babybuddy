@@ -117,7 +117,7 @@ export function AntFormPage({ bootstrap, deleteMode = false }) {
         <Text type="secondary">{bootstrap.formPage.description}</Text>
       ) : null}
       {deleteMode && bootstrap.formPage.dangerText ? (
-        <Text type="secondary" style={{ color: "#fca5a5" }}>
+        <Text type="secondary" style={{ color: "var(--accent-diaper)" }}>
           {bootstrap.formPage.dangerText}
         </Text>
       ) : null}
@@ -893,7 +893,7 @@ export function DashboardHomePage({ bootstrap }) {
                   title={child.name}
                   description={
                     <Space direction="vertical" size={4}>
-                      <Text style={{ color: "#cbd5e1" }}>
+                      <Text style={{ color: "var(--app-text-secondary)" }}>
                         {bootstrap.strings.born}: {child.birthDateLabel}
                         {child.ageLabel ? ` (${child.ageLabel})` : ""}
                       </Text>
