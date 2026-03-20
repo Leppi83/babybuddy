@@ -1851,30 +1851,10 @@ function ChildDashboardPageV2({ bootstrap }) {
   return (
     <>
       <div className="ant-shell-header-band">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            width: "100%",
-            flexWrap: "wrap",
-            gap: 12,
-          }}
-        >
-          <div>
-            <div className="ant-shell-header-band__eyebrow">
-              {s.dashboardTitle || "Dashboard"}
-            </div>
-            <div className="ant-shell-header-band__title">{childName}</div>
-          </div>
-          <DatePicker
-            value={selectedDate}
-            onChange={(d) => d && setSelectedDate(d)}
-            size="small"
-            style={{ width: 130, marginTop: 4 }}
-            allowClear={false}
-          />
+        <div className="ant-shell-header-band__eyebrow">
+          {s.dashboardTitle || "Dashboard"}
         </div>
+        <div className="ant-shell-header-band__title">{childName}</div>
       </div>
       <Row
         gutter={[16, 16]}
@@ -1886,6 +1866,23 @@ function ChildDashboardPageV2({ bootstrap }) {
             styles={{ body: { padding: 0 } }}
             style={{ overflow: "hidden" }}
           >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                padding: "12px 16px 0",
+                position: "relative",
+                zIndex: 2,
+              }}
+            >
+              <DatePicker
+                value={selectedDate}
+                onChange={(d) => d && setSelectedDate(d)}
+                size="small"
+                style={{ width: 130 }}
+                allowClear={false}
+              />
+            </div>
             <ActivityDial
               activities={activities}
               bedtime={bedtime}
@@ -1904,9 +1901,13 @@ function ChildDashboardPageV2({ bootstrap }) {
         <Col xs={24} lg={10}>
           <DashboardInsightsCard
             insights={insights || []}
+            isToday={isToday}
             strings={{
               allGood: s.insightsAllGood || "All good — no alerts right now",
               dismiss: s.dismiss || "Dismiss",
+              insightsPastDay:
+                s.insightsPastDay ||
+                "Insights are only available for the current day",
             }}
           />
         </Col>

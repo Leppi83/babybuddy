@@ -122,7 +122,11 @@ function InsightRow({ insight, onDismiss, strings }) {
   );
 }
 
-export function DashboardInsightsCard({ insights = [], strings = {} }) {
+export function DashboardInsightsCard({
+  insights = [],
+  strings = {},
+  isToday = true,
+}) {
   const [dismissed, setDismissed] = useState(() => loadDismissed());
 
   const visible = insights
@@ -145,7 +149,27 @@ export function DashboardInsightsCard({ insights = [], strings = {} }) {
         borderRadius: 16,
       }}
     >
-      {visible.length === 0 ? (
+      {!isToday ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px 0",
+            gap: 8,
+            color: "var(--app-text-secondary)",
+          }}
+        >
+          <InfoCircleOutlined
+            style={{ fontSize: 28, color: "var(--app-text-secondary)" }}
+          />
+          <span style={{ fontSize: "var(--font-body-size, 12px)" }}>
+            {strings.insightsPastDay ??
+              "Insights are only available for the current day"}
+          </span>
+        </div>
+      ) : visible.length === 0 ? (
         <div
           style={{
             display: "flex",
@@ -158,7 +182,7 @@ export function DashboardInsightsCard({ insights = [], strings = {} }) {
           }}
         >
           <CheckCircleOutlined
-            style={{ fontSize: 28, color: "var(--accent-tummytime)" }}
+            style={{ fontSize: 28, color: "var(--app-primary)" }}
           />
           <span style={{ fontSize: "var(--font-body-size, 12px)" }}>
             {strings.allGood ?? "All good — no alerts right now"}
