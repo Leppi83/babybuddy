@@ -1917,13 +1917,16 @@ function ChildDashboardPageV2({ bootstrap }) {
           type="primary"
           size="large"
           icon={<EditOutlined />}
-          block
-          style={{ maxWidth: 300, borderRadius: 14, height: 48 }}
+          style={{
+            borderRadius: 14,
+            height: 48,
+            paddingInline: 28,
+            fontSize: 15,
+            fontWeight: 600,
+          }}
           onClick={() => {
-            const fab = document.querySelector(
-              'button[aria-label="Quick log entry"]',
-            );
-            if (fab) fab.click();
+            // Dispatch custom event to open QuickLogSheet in AppShell
+            window.dispatchEvent(new CustomEvent("open-quick-entry"));
           }}
         >
           {s.quickEntry || "Quick Entry"}

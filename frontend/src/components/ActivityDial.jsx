@@ -143,7 +143,7 @@ function HourLabels() {
     const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 24];
     const labelR = ATMO_R; // center of the atmosphere ring
     // Pull 00 and 24 inward so they sit fully inside the dark arc
-    const endpointR = ATMO_R - 14;
+    const endpointR = ATMO_R - 30;
     return LABEL_HOURS.map((hour) => {
       const angle = hourToAngle(hour);
       const r = hour === 0 || hour === 24 ? endpointR : labelR;

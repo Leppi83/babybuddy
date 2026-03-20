@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { QuickLogSheet } from "./QuickLogSheet";
 import {
   Alert,
@@ -68,6 +68,13 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Listen for custom event from dashboard Quick Entry button
+  useEffect(() => {
+    const handler = () => setSheetOpen(true);
+    window.addEventListener("open-quick-entry", handler);
+    return () => window.removeEventListener("open-quick-entry", handler);
+  }, []);
 
   function handleLogout() {
     const form = document.createElement("form");
@@ -493,34 +500,7 @@ export function AppShell({
         </Content>
       </Layout>
 
-      {/* Floating Action Button — only shown when a child is selected */}
-      {bootstrap.currentChild && (
-        <button
-          onClick={() => setSheetOpen(true)}
-          aria-label="Quick log entry"
-          style={{
-            position: "fixed",
-            bottom: `calc(${isDesktop ? "20px" : "72px"} + env(safe-area-inset-bottom))`,
-            right: 20,
-            width: 56,
-            height: 56,
-            borderRadius: "50%",
-            background: "var(--app-primary)",
-            border: "none",
-            color: "#fff",
-            fontSize: 28,
-            lineHeight: 1,
-            cursor: "pointer",
-            boxShadow: "0 4px 16px rgba(77,182,255,0.4)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          +
-        </button>
-      )}
+      {/* FAB removed — Quick Entry accessible via nav item and dashboard button */}
 
       <QuickLogSheet
         open={sheetOpen}
