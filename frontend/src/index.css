@@ -2,6 +2,17 @@
 
 :root {
   font-family: "Nunito", "SF Pro Display", "Segoe UI", sans-serif;
+  /* Spacing (4px grid) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  /* Radii */
+  --radius-card: 18px;
+  --radius-button: 10px;
   color-scheme: dark;
   --app-text-primary: #f1f0ff;
   --app-text-secondary: #c4b5fd;
