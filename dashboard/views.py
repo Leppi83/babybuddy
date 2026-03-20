@@ -4,7 +4,13 @@ import json as _json
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseRedirect, JsonResponse, StreamingHttpResponse
+from django.http import (
+    Http404,
+    HttpResponseRedirect,
+    JsonResponse,
+    StreamingHttpResponse,
+)
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.middleware.csrf import get_token
@@ -20,6 +26,7 @@ from django.core.cache import cache
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from babybuddy.views import _serialize_messages
+from core.views import _build_child_switcher
 from core.models import Child, DiaperChange, Feeding, Pumping, Sleep, Timer
 from core.insights import build_insights_data, run_rules
 
@@ -409,6 +416,294 @@ def _build_dial_activities(child):
         )
 
     return activities
+
+
+VALID_TOPICS = {"sleep", "feeding", "diaper", "pumping"}
+
+
+def _build_topic_overview(child, topic):
+    """Compute overview statistics for a topic page."""
+    now = timezone.now()
+    today_start = timezone.localtime(now).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+
+    if topic == "sleep":
+        sleeps_today = Sleep.objects.filter(child=child, start__gte=today_start)
+        total_minutes = sum(
+            (s.duration.total_seconds() / 60 if s.duration else 0) for s in sleeps_today
+        )
+        nap_count = sleeps_today.filter(nap=True).count()
+        last_sleep = Sleep.objects.filter(child=child).order_by("-end").first()
+        return {
+            "totalMinutesToday": round(total_minutes),
+            "napCountToday": nap_count,
+            "nightSleepCountToday": sleeps_today.filter(nap=False).count(),
+            "lastSleep": (
+                {
+                    "start": last_sleep.start.isoformat(),
+                    "end": last_sleep.end.isoformat() if last_sleep.end else None,
+                    "nap": last_sleep.nap,
+                    "duration": (
+                        last_sleep.duration.total_seconds()
+                        if last_sleep.duration
+                        else None
+                    ),
+                }
+                if last_sleep
+                else None
+            ),
+        }
+
+    if topic == "feeding":
+        feedings_today = Feeding.objects.filter(child=child, start__gte=today_start)
+        total_count = feedings_today.count()
+        methods = {}
+        for f in feedings_today:
+            m = f.method or "unknown"
+            methods[m] = methods.get(m, 0) + 1
+        last_feeding = Feeding.objects.filter(child=child).order_by("-end").first()
+        return {
+            "countToday": total_count,
+            "methodBreakdown": methods,
+            "lastFeeding": (
+                {
+                    "start": last_feeding.start.isoformat(),
+                    "end": (last_feeding.end.isoformat() if last_feeding.end else None),
+                    "method": last_feeding.method,
+                    "amount": (
+                        float(last_feeding.amount) if last_feeding.amount else None
+                    ),
+                    "duration": (
+                        last_feeding.duration.total_seconds()
+                        if last_feeding.duration
+                        else None
+                    ),
+                }
+                if last_feeding
+                else None
+            ),
+        }
+
+    if topic == "diaper":
+        changes_today = DiaperChange.objects.filter(child=child, time__gte=today_start)
+        wet_count = changes_today.filter(wet=True).count()
+        solid_count = changes_today.filter(solid=True).count()
+        last_change = DiaperChange.objects.filter(child=child).order_by("-time").first()
+        return {
+            "countToday": changes_today.count(),
+            "wetToday": wet_count,
+            "solidToday": solid_count,
+            "lastChange": (
+                {
+                    "time": last_change.time.isoformat(),
+                    "wet": last_change.wet,
+                    "solid": last_change.solid,
+                    "color": last_change.color or "",
+                }
+                if last_change
+                else None
+            ),
+        }
+
+    if topic == "pumping":
+        pumpings_today = Pumping.objects.filter(child=child, start__gte=today_start)
+        total_amount = sum(float(p.amount) for p in pumpings_today if p.amount)
+        last_pump = Pumping.objects.filter(child=child).order_by("-end").first()
+        return {
+            "countToday": pumpings_today.count(),
+            "totalAmountToday": round(total_amount, 1),
+            "lastPump": (
+                {
+                    "start": last_pump.start.isoformat(),
+                    "end": last_pump.end.isoformat() if last_pump.end else None,
+                    "amount": (float(last_pump.amount) if last_pump.amount else None),
+                    "duration": (
+                        last_pump.duration.total_seconds()
+                        if last_pump.duration
+                        else None
+                    ),
+                }
+                if last_pump
+                else None
+            ),
+        }
+
+    return {}
+
+
+def _build_topic_charts(child, topic, request):
+    """Generate Plotly chart HTML+JS for the Charts tab."""
+    from reports import graphs as report_graphs
+
+    charts = []
+    plotly_locale = (
+        "de"
+        if str(getattr(request, "LANGUAGE_CODE", "en")).startswith("de")
+        else "en-US"
+    )
+
+    if topic == "sleep":
+        sleeps = Sleep.objects.filter(child=child).order_by("-start")[:200]
+        if sleeps:
+            html, js = report_graphs.sleep_totals.sleep_totals(sleeps)
+            charts.append(
+                {
+                    "key": "sleep-totals",
+                    "title": str(_("Sleep Totals")),
+                    "html": html,
+                    "js": js,
+                }
+            )
+            html, js = report_graphs.sleep_pattern.sleep_pattern(sleeps)
+            charts.append(
+                {
+                    "key": "sleep-pattern",
+                    "title": str(_("Sleep Pattern")),
+                    "html": html,
+                    "js": js,
+                }
+            )
+
+    elif topic == "feeding":
+        feedings = Feeding.objects.filter(child=child).order_by("-start")[:200]
+        if feedings:
+            html, js = report_graphs.feeding_duration.feeding_duration(feedings)
+            charts.append(
+                {
+                    "key": "feeding-duration",
+                    "title": str(_("Feeding Duration")),
+                    "html": html,
+                    "js": js,
+                }
+            )
+            html, js = report_graphs.feeding_amounts.feeding_amounts(feedings)
+            charts.append(
+                {
+                    "key": "feeding-amounts",
+                    "title": str(_("Feeding Amounts")),
+                    "html": html,
+                    "js": js,
+                }
+            )
+
+    elif topic == "diaper":
+        changes = DiaperChange.objects.filter(child=child).order_by("-time")[:200]
+        if changes:
+            html, js = report_graphs.diaperchange_types.diaperchange_types(changes)
+            charts.append(
+                {
+                    "key": "diaper-types",
+                    "title": str(_("Diaper Types")),
+                    "html": html,
+                    "js": js,
+                }
+            )
+            html, js = report_graphs.diaperchange_amounts.diaperchange_amounts(changes)
+            charts.append(
+                {
+                    "key": "diaper-amounts",
+                    "title": str(_("Diaper Amounts")),
+                    "html": html,
+                    "js": js,
+                }
+            )
+
+    elif topic == "pumping":
+        pumpings = Pumping.objects.filter(child=child).order_by("-start")[:200]
+        if pumpings:
+            html, js = report_graphs.pumping_amounts.pumping_amounts(pumpings)
+            charts.append(
+                {
+                    "key": "pumping-amounts",
+                    "title": str(_("Pumping Amounts")),
+                    "html": html,
+                    "js": js,
+                }
+            )
+
+    return {"charts": charts, "plotlyLocale": plotly_locale}
+
+
+class ChildTopicView(LoginRequiredMixin, DetailView):
+    model = Child
+    slug_field = "slug"
+
+    def get(self, request, *args, **kwargs):
+        topic = kwargs.get("topic", "")
+        if topic not in VALID_TOPICS:
+            raise Http404
+
+        child = self.get_object()
+        overview = _build_topic_overview(child, topic)
+        chart_data = _build_topic_charts(child, topic, request)
+
+        topic_urls = {}
+        for t in VALID_TOPICS:
+            topic_urls[t] = reverse(
+                "dashboard:child-topic",
+                kwargs={"slug": child.slug, "topic": t},
+            )
+
+        context = {
+            "ant_page_title": f"{child} — {topic.title()}",
+            "ant_bootstrap": {
+                "pageType": "topic-detail",
+                "currentPath": request.path,
+                "locale": getattr(request, "LANGUAGE_CODE", "en"),
+                "csrfToken": get_token(request),
+                "user": {"displayName": _display_name(request.user)},
+                "urls": {
+                    **_build_nav_urls(request),
+                    "addChild": reverse("core:child-add"),
+                    "childDashboard": reverse(
+                        "dashboard:dashboard-child",
+                        kwargs={"slug": child.slug},
+                    ),
+                    "graphJs": "/static/babybuddy/js/graph.js",
+                    "topicPages": topic_urls,
+                },
+                "currentChild": {
+                    "id": child.id,
+                    "slug": child.slug,
+                    "name": str(child),
+                    "birthDateLabel": _format_full_date(child.birth_date),
+                    "pictureUrl": request.build_absolute_uri(_child_picture_url(child)),
+                },
+                "childSwitcher": _build_child_switcher(request, current_child=child),
+                "strings": {
+                    **_build_ant_strings(),
+                    "overview": str(_("Overview")),
+                    "history": str(_("History")),
+                    "charts": str(_("Charts")),
+                    "today": str(_("Today")),
+                    "last": str(_("Last")),
+                    "total": str(_("Total")),
+                    "count": str(_("Count")),
+                    "naps": str(_("Naps")),
+                    "nightSleep": str(_("Night sleep")),
+                    "wet": str(_("Wet")),
+                    "solid": str(_("Solid")),
+                    "amount": str(_("Amount")),
+                    "method": str(_("Method")),
+                    "duration": str(_("Duration")),
+                    "start": str(_("Start")),
+                    "end": str(_("End")),
+                    "type": str(_("Type")),
+                    "noData": str(_("No data yet")),
+                    "loadMore": str(_("Load more")),
+                },
+                "messages": _serialize_messages(request),
+                "topicPage": {
+                    "topic": topic,
+                    "childId": child.id,
+                    "childSlug": child.slug,
+                    "overview": overview,
+                    **chart_data,
+                },
+            },
+        }
+        return render(request, "babybuddy/ant_app.html", context)
 
 
 class ChildDashboard(PermissionRequiredMixin, DetailView):

@@ -17,4 +17,9 @@ urlpatterns = [
         views.ChildInsightsView.as_view(),
         name="child-insights",
     ),
+    path(
+        "children/<str:slug>/topics/<str:topic>/",
+        views.ChildTopicView.as_view(),
+        name="child-topic",
+    ),
 ]
