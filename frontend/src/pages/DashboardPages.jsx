@@ -1876,38 +1876,41 @@ function ChildDashboardPageV2({ bootstrap }) {
           />
         </div>
       </div>
-      <Space
-        direction="vertical"
-        size={16}
-        style={{ width: "100%", maxWidth: 520, margin: "0 auto" }}
+      <Row
+        gutter={[16, 16]}
+        style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}
       >
-        <Card
-          className="ant-section-card"
-          styles={{ body: { padding: 0 } }}
-          style={{ overflow: "hidden" }}
-        >
-          <ActivityDial
-            activities={activities}
-            bedtime={bedtime}
-            currentStatus={statusText}
-            insights={isToday ? insights || [] : []}
-            referenceDate={isToday ? null : selectedDate.toDate()}
+        <Col xs={24} lg={14}>
+          <Card
+            className="ant-section-card"
+            styles={{ body: { padding: 0 } }}
+            style={{ overflow: "hidden" }}
+          >
+            <ActivityDial
+              activities={activities}
+              bedtime={bedtime}
+              currentStatus={statusText}
+              insights={isToday ? insights || [] : []}
+              referenceDate={isToday ? null : selectedDate.toDate()}
+              strings={{
+                sleep: s.sleepLabel || "Sleep",
+                feed: s.feedingLabel || "Feed",
+                diaper: s.diaperLabel || "Diaper",
+                pump: s.pumpingLabel || "Pump",
+              }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} lg={10}>
+          <DashboardInsightsCard
+            insights={insights || []}
             strings={{
-              sleep: s.sleepLabel || "Sleep",
-              feed: s.feedingLabel || "Feed",
-              diaper: s.diaperLabel || "Diaper",
-              pump: s.pumpingLabel || "Pump",
+              allGood: s.insightsAllGood || "All good — no alerts right now",
+              dismiss: s.dismiss || "Dismiss",
             }}
           />
-        </Card>
-        <DashboardInsightsCard
-          insights={insights || []}
-          strings={{
-            allGood: s.insightsAllGood || "All good — no alerts right now",
-            dismiss: s.dismiss || "Dismiss",
-          }}
-        />
-      </Space>
+        </Col>
+      </Row>
     </>
   );
 }

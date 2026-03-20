@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
+  ARC_SPAN,
+  ARC_START,
   atmosphereStops,
   dayBrightness,
+  hourToAngle,
   pointOnCircle,
-  timeToAngle,
+  timeToFixedAngle,
   arcDasharray,
   classifyActivities,
 } from "../lib/dial-utils.js";
@@ -46,23 +49,33 @@ const SEVERITY_COLORS = {
   info: "var(--app-primary)",
 };
 
-/* ── Atmosphere ring — CSS conic-gradient for truly smooth blending ── */
-function AtmosphereRing({ now, theme }) {
-  const stops = useMemo(() => atmosphereStops(now, 24, theme), [now, theme]);
+/* ── Atmosphere ring — CSS conic-gradient over 270° arc ──────── */
+function AtmosphereRing({ theme }) {
+  const stops = useMemo(() => atmosphereStops(48, theme), [theme]);
 
-  // Build a CSS conic-gradient string from the stops
+  // Build a CSS conic-gradient string from the stops.
+  // The stops cover the 270° arc from ARC_START (225°) clockwise to ARC_START + ARC_SPAN (135°).
+  // CSS conic-gradient "from" rotates the 0-degree start point.
+  // Default CSS conic 0° is at 12 o'clock (top). Our angle convention also uses 0° = top.
+  // So "from 0deg" means our angles map directly to CSS conic angles.
   const gradientStr = useMemo(() => {
     const parts = stops.map((s) => `${s.color} ${s.angle.toFixed(1)}deg`);
-    // Close the loop by repeating the first stop at 360deg
-    parts.push(`${stops[0].color} 360deg`);
-    // Rotate so 0° (NOW) is at the top: conic-gradient starts at 3 o'clock,
-    // so rotate -90deg to put 0° at 12 o'clock
-    return `conic-gradient(from -90deg, ${parts.join(", ")})`;
+    return `conic-gradient(from 0deg, ${parts.join(", ")})`;
   }, [stops]);
 
   const outerR = ATMO_R + ATMO_STROKE / 2;
   const innerR = ATMO_R - ATMO_STROKE / 2;
   const size = outerR * 2;
+
+  // Create a mask that shows only the ring (radial) AND only the 270° arc (conic).
+  // The gap is from 135° to 225° (90° centered at bottom = 180°).
+  // In CSS conic-gradient terms: transparent from 135° to 225°, black elsewhere.
+  const arcMask = [
+    // Radial mask for ring shape
+    `radial-gradient(circle, transparent ${innerR}px, black ${innerR}px, black ${outerR}px, transparent ${outerR}px)`,
+    // Conic mask to hide the 90° gap at the bottom (135° → 225°)
+    `conic-gradient(from 0deg, black 0deg, black 135deg, transparent 135deg, transparent 225deg, black 225deg, black 360deg)`,
+  ].join(", ");
 
   return (
     <foreignObject x={CX - outerR} y={CY - outerR} width={size} height={size}>
@@ -73,25 +86,25 @@ function AtmosphereRing({ now, theme }) {
           height: size,
           borderRadius: "50%",
           background: gradientStr,
-          mask: `radial-gradient(circle, transparent ${innerR}px, black ${innerR}px, black ${outerR}px, transparent ${outerR}px)`,
-          WebkitMask: `radial-gradient(circle, transparent ${innerR}px, black ${innerR}px, black ${outerR}px, transparent ${outerR}px)`,
+          maskImage: arcMask,
+          maskComposite: "intersect",
+          WebkitMaskImage: arcMask,
+          WebkitMaskComposite: "source-in",
         }}
       />
     </foreignObject>
   );
 }
 
-/* ── Tick marks at 15-minute intervals ───────────────────────── */
-function TickMarks({ now }) {
+/* ── Tick marks at 15-minute intervals along the 270° arc ───── */
+function TickMarks() {
   const ticks = useMemo(() => {
     const result = [];
-    for (let i = 0; i < 96; i++) {
-      // 96 ticks = every 15 minutes
-      const minuteOffset = i * 15;
-      const t = new Date(now.getTime() + minuteOffset * 60000);
-      // Wrap to same 24h window
-      const angle = (minuteOffset / (24 * 60)) * 360;
-      const isHour = minuteOffset % 60 === 0;
+    // 96 ticks = every 15 minutes across 24 hours
+    for (let i = 0; i <= 96; i++) {
+      const hour = (i * 15) / 60; // fractional hour 0–24
+      const angle = hourToAngle(hour);
+      const isHour = i % 4 === 0;
       const innerR = ATMO_R - ATMO_STROKE / 2;
       const outerR = ATMO_R - ATMO_STROKE / 2 + (isHour ? 6 : 3);
       const inner = pointOnCircle(angle, innerR, CX, CY);
@@ -99,7 +112,7 @@ function TickMarks({ now }) {
       result.push({ inner, outer, isHour, key: i });
     }
     return result;
-  }, [now]);
+  }, []);
 
   return (
     <g>
@@ -119,21 +132,18 @@ function TickMarks({ now }) {
   );
 }
 
-/* ── Hour labels — snapped to same angles as hourly tick marks ─ */
-function HourLabels({ now }) {
+/* ── Hour labels — fixed positions on the 270° arc ───────────── */
+function HourLabels() {
   const labels = useMemo(() => {
     const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21];
-    const nowHour = now.getHours() + now.getMinutes() / 60;
     const labelR = ATMO_R; // center of the atmosphere ring
     return LABEL_HOURS.map((hour) => {
-      // Compute hour offset from now, matching tick mark angle formula
-      let hourOffset = hour - nowHour;
-      if (hourOffset < 0) hourOffset += 24;
-      const angle = (hourOffset / 24) * 360;
+      const angle = hourToAngle(hour);
       const { x, y } = pointOnCircle(angle, labelR, CX, CY);
       return { hour, angle, x, y };
     });
-  }, [now]);
+  }, []);
+
   return (
     <g>
       {labels.map((l) => {
@@ -155,13 +165,13 @@ function HourLabels({ now }) {
   );
 }
 
-/* ── Bedtime marker — bed icon on inner ring ─────────────────── */
+/* ── Bedtime marker — dashed line across atmosphere ring ─────── */
 function BedtimeMarker({ bedtime, now }) {
   if (!bedtime) return null;
   const [hStr, mStr] = bedtime.split(":");
   const bedDate = new Date(now);
   bedDate.setHours(parseInt(hStr, 10), parseInt(mStr, 10), 0, 0);
-  const angle = timeToAngle(bedDate, now);
+  const angle = timeToFixedAngle(bedDate);
 
   // Line marker across the atmosphere ring
   const innerR = ATMO_R - ATMO_STROKE / 2;
@@ -188,6 +198,19 @@ function BedtimeMarker({ bedtime, now }) {
   );
 }
 
+/* ── Red dot marking current time on the inner edge of atmosphere ring ── */
+function CurrentTimeDot({ now }) {
+  const angle = timeToFixedAngle(now);
+  const innerEdge = ATMO_R - ATMO_STROKE / 2;
+  const { x, y } = pointOnCircle(angle, innerEdge, CX, CY);
+
+  return (
+    <circle cx={x} cy={y} r={5} fill="#ff4d4f" stroke="#020617" strokeWidth={2}>
+      <title>Now</title>
+    </circle>
+  );
+}
+
 /* ── Center display ──────────────────────────────────────────── */
 function CenterDisplay({
   now,
@@ -202,7 +225,7 @@ function CenterDisplay({
     : null;
   const insightTitle = hasInsight
     ? topInsight.title.length > 22
-      ? topInsight.title.slice(0, 21) + "…"
+      ? topInsight.title.slice(0, 21) + "\u2026"
       : topInsight.title
     : null;
 
@@ -233,7 +256,7 @@ function CenterDisplay({
             className="activity-dial__center-hint"
             style={{ fill: insightColor }}
           >
-            ↓ Tap for details
+            {"\u2193"} Tap for details
           </text>
         </>
       ) : (
@@ -249,6 +272,29 @@ function CenterDisplay({
         </>
       )}
     </g>
+  );
+}
+
+/* ── Activity track — 270° arc baseline ─────────────────────── */
+function ActivityTrack() {
+  const circumference = 2 * Math.PI * ACTIVITY_R;
+  const { dasharray, dashoffset } = arcDasharray(
+    ARC_START, // start at 225°
+    (ARC_START + ARC_SPAN) % 360, // end at 135°
+    circumference,
+  );
+
+  return (
+    <circle
+      cx={CX}
+      cy={CY}
+      r={ACTIVITY_R}
+      fill="none"
+      className="activity-dial__track"
+      strokeWidth={TRACK_STROKE}
+      strokeDasharray={dasharray}
+      strokeDashoffset={dashoffset}
+    />
   );
 }
 
@@ -393,12 +439,10 @@ export default function ActivityDial({
   const [theme, setTheme] = useState(getTheme);
 
   // When viewing a past date, anchor the dial to that day's current-equivalent time
-  // so activities render at the correct angular positions
   const now = useMemo(() => {
     if (!referenceDate) return realNow;
     const ref =
       referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
-    // Set hours/minutes/seconds from real now onto the reference date
     const anchored = new Date(ref);
     anchored.setHours(
       realNow.getHours(),
@@ -456,13 +500,11 @@ export default function ActivityDial({
   );
 
   const { arcs, dots } = useMemo(
-    () => classifyActivities(parsedActivities, now),
-    [parsedActivities, now],
+    () => classifyActivities(parsedActivities),
+    [parsedActivities],
   );
 
   // Compute day/night background gradient based on current hour
-  // Day: sun (yellow TL) → sky (blue TR/center) → earth (green bottom)
-  // Night: dark grey with star-like dots
   const isNight = useMemo(() => {
     const hour = now.getHours() + now.getMinutes() / 60;
     return dayBrightness(hour) < 0.3;
@@ -473,19 +515,16 @@ export default function ActivityDial({
     const brightness = dayBrightness(hour);
 
     if (brightness > 0.7) {
-      // Daytime — sun, sky, earth
       return {
         background:
           "linear-gradient(135deg, #FFD700 0%, #87CEEB 30%, #6BB3E0 55%, #7BC67E 100%)",
       };
     } else if (brightness > 0.3) {
-      // Twilight
       return {
         background:
           "linear-gradient(135deg, #e8956a 0%, #0a1e3a 40%, #0f2848 70%, #3a5a3a 100%)",
       };
     } else {
-      // Night — dark grey base (stars added via CSS pseudo-element)
       return {
         background: "var(--app-bg-start)",
       };
@@ -503,21 +542,14 @@ export default function ActivityDial({
         role="img"
         aria-label="24-hour activity dial"
       >
-        {/* Atmosphere gradient ring */}
-        <AtmosphereRing now={now} theme={theme} />
+        {/* Atmosphere gradient ring — 270° arc */}
+        <AtmosphereRing theme={theme} />
 
-        {/* 15-minute tick marks */}
-        <TickMarks now={now} />
+        {/* 15-minute tick marks along the arc */}
+        <TickMarks />
 
-        {/* Outer activity ring — thin baseline track */}
-        <circle
-          cx={CX}
-          cy={CY}
-          r={ACTIVITY_R}
-          fill="none"
-          className="activity-dial__track"
-          strokeWidth={TRACK_STROKE}
-        />
+        {/* Outer activity ring — 270° baseline track */}
+        <ActivityTrack />
 
         {/* Activity arcs overlay the track */}
         <ActivityArcs
@@ -542,7 +574,10 @@ export default function ActivityDial({
         <BedtimeMarker bedtime={bedtime} now={now} />
 
         {/* Hour labels */}
-        <HourLabels now={now} />
+        <HourLabels />
+
+        {/* Red dot for current time */}
+        <CurrentTimeDot now={now} />
 
         {/* Center display */}
         <CenterDisplay

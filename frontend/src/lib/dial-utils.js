@@ -2,14 +2,18 @@
  * dial-utils.js — Pure math utilities for the 24h activity dial.
  *
  * Coordinate convention:
- *   0° = top (NOW), increasing clockwise.
- *   Past events drift counter-clockwise (left), future events clockwise (right).
- *   360° = 24 hours.
+ *   0° = top (12 o'clock), increasing clockwise.
+ *   The visible arc spans 270° from 225° (bottom-left, midnight)
+ *   clockwise through 0° (top, noon) to 135° (bottom-right, ~24:00).
+ *   The 90° gap at the bottom (135°–225°) is hidden.
  */
 
 const HOURS_IN_DAY = 24;
-const DEG_PER_HOUR = 360 / HOURS_IN_DAY; // 15°/h
-const MS_PER_HOUR = 3_600_000;
+
+/** Arc geometry constants */
+export const ARC_SPAN = 270; // degrees of visible arc
+export const ARC_START = 225; // angle where hour 0 (midnight) starts
+const DEG_PER_HOUR_ARC = ARC_SPAN / HOURS_IN_DAY; // 11.25°/hour
 
 // Atmosphere gradient endpoints — bright blue (day) → deep navy (night)
 const COLOR_NIGHT_DARK = { r: 0x08, g: 0x0d, b: 0x1e }; // #080d1e deep navy
@@ -23,25 +27,27 @@ function normalizeAngle(deg) {
 }
 
 /**
- * Convert a Date to an angle on the dial.
- * NOW maps to 0°. Counter-clockwise convention: future = right = positive angle.
- * Returns a value in [0, 360).
+ * Convert a wall-clock hour (0–24) to a fixed angle on the 270° arc.
+ * Hour 0 (midnight) = 225° (bottom-left).
+ * Hour 12 (noon) = 0° (top).
+ * Hour 24 = 135° (bottom-right).
  */
-export function timeToAngle(time, now) {
-  const diffMs = time.getTime() - now.getTime();
-  const diffHours = diffMs / MS_PER_HOUR;
-  const rawAngle = diffHours * DEG_PER_HOUR;
-  return normalizeAngle(rawAngle);
+export function hourToAngle(hour) {
+  return (ARC_START + (hour / HOURS_IN_DAY) * ARC_SPAN) % 360;
 }
 
 /**
- * Compute SVG stroke-dasharray and stroke-dashoffset for a circular arc.
- *
- * SVG strokes start at the "right" (3-o'clock) position and go clockwise by
- * default. We rotate the circle so that 0° points up, then compute the offset
- * so the visible portion covers exactly [startAngle, endAngle].
- *
- * Handles arcs that cross 0° (e.g. 350° → 10°).
+ * Convert a Date to its fixed angle on the 270° arc based on wall-clock time.
+ */
+export function timeToFixedAngle(date) {
+  const hour =
+    date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+  return hourToAngle(hour);
+}
+
+/**
+ * Compute SVG stroke-dasharray and stroke-dashoffset for a circular arc
+ * segment within the 270° visible arc.
  *
  * @param {number} startAngle - degrees, 0 = top, clockwise
  * @param {number} endAngle   - degrees
@@ -83,26 +89,22 @@ export function pointOnCircle(angleDeg, radius = 125, cx = 190, cy = 190) {
 
 /**
  * Generate label descriptors for the 8 canonical hours (0,3,6,9,12,15,18,21).
- * Each label is positioned at the given radius from (cx, cy).
+ * Each label is positioned at a fixed angle on the 270° arc.
  *
- * @param {Date} now
  * @param {number} radius
  * @param {number} cx
  * @param {number} cy
  * @returns {Array<{ hour: number, text: string, angle: number, x: number, y: number }>}
  */
-export function hourLabels(now, radius = 125, cx = 190, cy = 190) {
+export function hourLabels(radius = 125, cx = 190, cy = 190) {
   const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21];
 
   return LABEL_HOURS.map((hour) => {
-    const hourDate = new Date(now);
-    // Build a Date that represents this exact wall-clock hour today
-    hourDate.setHours(hour, 0, 0, 0);
-    const angle = timeToAngle(hourDate, now);
+    const angle = hourToAngle(hour);
     const { x, y } = pointOnCircle(angle, radius, cx, cy);
     return {
       hour,
-      text: String(hour).padStart(2, "0"),
+      text: hour === 0 ? "24" : String(hour).padStart(2, "0"),
       angle,
       x,
       y,
@@ -139,24 +141,20 @@ function interpolateColor(brightness, theme = "dark") {
 }
 
 /**
- * Generate gradient stops for the day/night atmosphere ring.
- * Angles are evenly distributed 0–360 (exclusive of 360).
- * Each stop's hour is computed relative to `now`.
+ * Generate gradient stops for the 270° day/night atmosphere arc.
+ * Stops are distributed along the arc from hour 0 (225°) to hour 24 (135°).
+ * Each stop's color is based on its wall-clock hour brightness.
  *
- * @param {Date} now
  * @param {number} steps - number of stops (default 48)
  * @param {string} theme - "dark" or "light"
  * @returns {Array<{ angle: number, color: string, opacity: number }>}
  */
-export function atmosphereStops(now, steps = 48, theme = "dark") {
-  const nowHour = now.getHours() + now.getMinutes() / 60;
-
-  return Array.from({ length: steps }, (_, i) => {
-    const angle = (i / steps) * 360;
-    // angle=0 → NOW, positive angle → future
-    const hourOffset = angle / DEG_PER_HOUR;
-    const absoluteHour = (nowHour + hourOffset) % HOURS_IN_DAY;
-    const brightness = dayBrightness(absoluteHour);
+export function atmosphereStops(steps = 48, theme = "dark") {
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const fraction = i / steps; // 0 → 1 along the arc
+    const hour = fraction * HOURS_IN_DAY; // wall-clock hour
+    const angle = hourToAngle(hour);
+    const brightness = dayBrightness(hour);
     return {
       angle,
       color: interpolateColor(brightness, theme),
@@ -169,16 +167,12 @@ const ARC_TYPES = new Set(["sleep", "feeding", "pumping"]);
 
 /**
  * Split activities into arcs (duration-based) and dots (instant events).
- *
- * Input activity shapes:
- *   Arc:  { type: "sleep"|"feeding"|"pumping", start: Date, end: Date, ...rest }
- *   Dot:  { type: "diaper", time: Date, ...rest }
+ * Uses fixed angles based on wall-clock time (no rotation).
  *
  * @param {Array} activities
- * @param {Date} now
  * @returns {{ arcs: Array, dots: Array }}
  */
-export function classifyActivities(activities, now) {
+export function classifyActivities(activities) {
   const arcs = [];
   const dots = [];
 
@@ -186,13 +180,13 @@ export function classifyActivities(activities, now) {
     if (ARC_TYPES.has(activity.type)) {
       arcs.push({
         ...activity,
-        startAngle: timeToAngle(activity.start, now),
-        endAngle: timeToAngle(activity.end, now),
+        startAngle: timeToFixedAngle(activity.start),
+        endAngle: timeToFixedAngle(activity.end),
       });
     } else {
       dots.push({
         ...activity,
-        angle: timeToAngle(activity.time, now),
+        angle: timeToFixedAngle(activity.time),
       });
     }
   }
