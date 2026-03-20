@@ -142,30 +142,28 @@ function HourLabels() {
   const labels = useMemo(() => {
     const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 24];
     const labelR = ATMO_R; // center of the atmosphere ring
+    // Pull 00 and 24 inward so they sit fully inside the dark arc
+    const endpointR = ATMO_R - 14;
     return LABEL_HOURS.map((hour) => {
       const angle = hourToAngle(hour);
-      const { x, y } = pointOnCircle(angle, labelR, CX, CY);
+      const r = hour === 0 || hour === 24 ? endpointR : labelR;
+      const { x, y } = pointOnCircle(angle, r, CX, CY);
       return { hour, angle, x, y, text: String(hour).padStart(2, "0") };
     });
   }, []);
 
   return (
     <g>
-      {labels.map((l) => {
-        const brightness = dayBrightness(l.hour);
-        const opacity = 0.6 + brightness * 0.4;
-        return (
-          <text
-            key={`h${l.hour}`}
-            x={l.x}
-            y={l.y}
-            className="activity-dial__label"
-            opacity={opacity}
-          >
-            {l.text}
-          </text>
-        );
-      })}
+      {labels.map((l) => (
+        <text
+          key={`h${l.hour}`}
+          x={l.x}
+          y={l.y}
+          className="activity-dial__label"
+        >
+          {l.text}
+        </text>
+      ))}
     </g>
   );
 }
@@ -538,7 +536,7 @@ export default function ActivityDial({
 
   return (
     <div
-      className={`activity-dial${isNight ? " is-night" : ""}`}
+      className={`activity-dial${isNight ? " is-night" : " is-day"}`}
       style={bgStyle}
     >
       <svg

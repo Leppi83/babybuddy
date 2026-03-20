@@ -13,6 +13,46 @@
   padding: 32px 24px;
 }
 
+/* ── Day theme: sun + clouds ─────────────────────────────────── */
+
+/* Sun — top-left corner */
+.activity-dial.is-day::after {
+  content: "";
+  position: absolute;
+  top: 24px;
+  left: 36px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffd666;
+  box-shadow:
+    0 0 12px 4px rgba(255, 214, 102, 0.5),
+    0 0 28px 8px rgba(255, 214, 102, 0.2);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Clouds — small decorative shapes */
+.activity-dial.is-day::before {
+  content: "";
+  position: absolute;
+  top: 32px;
+  left: 80px;
+  width: 48px;
+  height: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow:
+    14px -6px 0 6px rgba(255, 255, 255, 0.5),
+    -8px -2px 0 4px rgba(255, 255, 255, 0.45),
+    60px 10px 0 8px rgba(255, 255, 255, 0.4),
+    80px 4px 0 4px rgba(255, 255, 255, 0.35);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Night theme: moon + stars ──────────────────────────────── */
+
 /* Moon crescent — visible on night theme */
 .activity-dial.is-night::after {
   content: "";
@@ -166,13 +206,13 @@
   height: auto;
 }
 
-/* Hour labels — centered in atmosphere ring */
+/* Hour labels — centered in atmosphere ring, always white for readability */
 .activity-dial__label {
   font-size: 13px;
   font-weight: 700;
   text-anchor: middle;
   dominant-baseline: central;
-  fill: var(--app-text-primary, #f1f0ff);
+  fill: rgba(255, 255, 255, 0.9);
   pointer-events: none;
 }
 
