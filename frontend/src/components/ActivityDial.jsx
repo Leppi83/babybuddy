@@ -177,7 +177,8 @@ function BedtimeMarker({ bedtime, now }) {
         x2={outer.x}
         y2={outer.y}
         stroke="#a5b4fc"
-        strokeWidth={2.5}
+        strokeWidth={2}
+        strokeDasharray="4 3"
         strokeLinecap="round"
         opacity={0.8}
       >
@@ -460,33 +461,42 @@ export default function ActivityDial({
   );
 
   // Compute day/night background gradient based on current hour
+  // Day: sun (yellow TL) → sky (blue TR/center) → earth (green bottom)
+  // Night: dark grey with star-like dots
+  const isNight = useMemo(() => {
+    const hour = now.getHours() + now.getMinutes() / 60;
+    return dayBrightness(hour) < 0.3;
+  }, [now]);
+
   const bgStyle = useMemo(() => {
     const hour = now.getHours() + now.getMinutes() / 60;
     const brightness = dayBrightness(hour);
 
     if (brightness > 0.7) {
-      // Daytime — warm sky gradient
+      // Daytime — sun, sky, earth
       return {
         background:
-          "linear-gradient(180deg, #87CEEB 0%, #B8E4F9 30%, #FFF8E7 70%, #FFE4B5 100%)",
+          "linear-gradient(135deg, #FFD700 0%, #87CEEB 30%, #6BB3E0 55%, #7BC67E 100%)",
       };
     } else if (brightness > 0.3) {
-      // Twilight — dusk/dawn gradient
+      // Twilight
       return {
         background:
-          "linear-gradient(180deg, #2d1b69 0%, #6b3fa0 25%, #e8756a 55%, #ffc878 100%)",
+          "linear-gradient(135deg, #e8956a 0%, #6b3fa0 40%, #2d1b69 70%, #3a5a3a 100%)",
       };
     } else {
-      // Night — deep dark sky
+      // Night — dark grey base (stars added via CSS pseudo-element)
       return {
-        background:
-          "radial-gradient(ellipse at 30% 20%, #1a1a3e 0%, #0d0d2b 40%, #060614 100%)",
+        background: "#1a1a24",
       };
     }
   }, [now]);
 
   return (
-    <div className="activity-dial" style={bgStyle}>
+    <div
+      className={`activity-dial${isNight ? " is-night" : ""}`}
+      style={bgStyle}
+    >
       <svg
         className="activity-dial__svg"
         viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
