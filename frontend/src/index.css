@@ -196,16 +196,26 @@ body {
 
 .ant-auth-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   color: var(--app-text-primary);
-  font-size: clamp(2rem, 4vw, 4rem);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
   font-weight: 700;
   text-align: center;
 }
 
 .ant-auth-content {
-  width: min(680px, 100%);
+  width: min(420px, 100%);
+}
+
+/* Auth forms: stack fields vertically */
+.ant-auth-shell .ant-managed-form .ant-row {
+  flex-direction: column;
+}
+.ant-auth-shell .ant-managed-form .ant-col {
+  max-width: 100% !important;
+  flex: 0 0 100% !important;
 }
 
 .ant-shell-sider {
