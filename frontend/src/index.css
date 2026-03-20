@@ -272,16 +272,17 @@ body {
 
 .ant-child-image-wrap {
   display: flex;
-  height: 220px;
+  height: 300px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #000;
+  background: var(--app-card-bg-start, #000);
+  border-radius: 12px 12px 0 0;
 }
 
 .ant-child-image {
-  height: 100%;
-  width: 100%;
+  max-height: 100%;
+  max-width: 100%;
   object-fit: contain;
 }
 
