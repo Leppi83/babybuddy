@@ -11,11 +11,11 @@ const HOURS_IN_DAY = 24;
 const DEG_PER_HOUR = 360 / HOURS_IN_DAY; // 15°/h
 const MS_PER_HOUR = 3_600_000;
 
-// Atmosphere gradient endpoints — bright purple (day) → dark purple (night)
-const COLOR_NIGHT_DARK = { r: 0x1a, g: 0x0a, b: 0x3e }; // #1a0a3e deep dark purple
-const COLOR_DAY_DARK = { r: 0xc4, g: 0x8b, b: 0xfe }; // #c48bfe bright lavender
-const COLOR_NIGHT_LIGHT = { r: 0x2d, g: 0x15, b: 0x5e }; // #2d155e dark purple
-const COLOR_DAY_LIGHT = { r: 0xd4, g: 0xa0, b: 0xff }; // #d4a0ff bright purple
+// Atmosphere gradient endpoints — bright blue (day) → deep navy (night)
+const COLOR_NIGHT_DARK = { r: 0x08, g: 0x0d, b: 0x1e }; // #080d1e deep navy
+const COLOR_DAY_DARK = { r: 0x4d, g: 0xb6, b: 0xff }; // #4db6ff bright sky blue
+const COLOR_NIGHT_LIGHT = { r: 0x0a, g: 0x12, b: 0x25 }; // #0a1225 dark navy
+const COLOR_DAY_LIGHT = { r: 0x6a, g: 0xc8, b: 0xff }; // #6ac8ff light sky blue
 
 /** Clamp n into [0, 360). */
 function normalizeAngle(deg) {

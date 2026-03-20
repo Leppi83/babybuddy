@@ -176,7 +176,7 @@ function BedtimeMarker({ bedtime, now }) {
         y1={inner.y}
         x2={outer.x}
         y2={outer.y}
-        stroke="#a5b4fc"
+        stroke="#4a88b8"
         strokeWidth={2}
         strokeDasharray="4 3"
         strokeLinecap="round"
@@ -482,12 +482,12 @@ export default function ActivityDial({
       // Twilight
       return {
         background:
-          "linear-gradient(135deg, #e8956a 0%, #6b3fa0 40%, #2d1b69 70%, #3a5a3a 100%)",
+          "linear-gradient(135deg, #e8956a 0%, #0a1e3a 40%, #0f2848 70%, #3a5a3a 100%)",
       };
     } else {
       // Night — dark grey base (stars added via CSS pseudo-element)
       return {
-        background: "#1a1a24",
+        background: "#080d1e",
       };
     }
   }, [now]);
