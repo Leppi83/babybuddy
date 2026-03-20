@@ -289,6 +289,10 @@ export function AppShell({
       eyebrow: bootstrap.formPage?.kicker || bootstrap.strings.welcome,
       title: bootstrap.formPage?.title || bootstrap.strings.login,
     },
+    "topic-detail": {
+      eyebrow: bootstrap.strings.insights || "Insights",
+      title: bootstrap.currentChild?.name || "",
+    },
     insights: {
       eyebrow: null,
       title: null,
