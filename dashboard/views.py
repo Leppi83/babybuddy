@@ -637,14 +637,42 @@ class ChildTopicView(LoginRequiredMixin, DetailView):
     slug_field = "slug"
 
     def get(self, request, *args, **kwargs):
+        import logging
+        import traceback
+
+        logger = logging.getLogger(__name__)
+
         topic = kwargs.get("topic", "")
         if topic not in VALID_TOPICS:
             raise Http404
 
-        child = self.get_object()
-        overview = _build_topic_overview(child, topic)
-        chart_data = _build_topic_charts(child, topic, request)
+        try:
+            child = self.get_object()
+        except Exception:
+            logger.error(
+                "ChildTopicView get_object failed:\n%s", traceback.format_exc()
+            )
+            raise
 
+        try:
+            overview = _build_topic_overview(child, topic)
+        except Exception:
+            logger.error("_build_topic_overview failed:\n%s", traceback.format_exc())
+            overview = {}
+
+        try:
+            chart_data = _build_topic_charts(child, topic, request)
+        except Exception:
+            logger.error("_build_topic_charts failed:\n%s", traceback.format_exc())
+            chart_data = {"charts": [], "plotlyLocale": "en-US"}
+
+        try:
+            return self._render_topic(request, child, topic, overview, chart_data)
+        except Exception:
+            logger.error("ChildTopicView render failed:\n%s", traceback.format_exc())
+            raise
+
+    def _render_topic(self, request, child, topic, overview, chart_data):
         topic_urls = {}
         for t in VALID_TOPICS:
             topic_urls[t] = reverse(
