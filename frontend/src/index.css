@@ -1157,3 +1157,24 @@ body {
 .sleep-list-row-b:hover > td {
   background: var(--app-row-hover) !important;
 }
+
+/* ── Background modes ───────────────────────────────────────────── */
+.bg-solid {
+  background: var(--app-bg-start) !important;
+}
+
+.bg-image {
+  position: relative;
+}
+
+.bg-image::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--bg-image-url);
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px);
+  transform: scale(1.1);
+}
