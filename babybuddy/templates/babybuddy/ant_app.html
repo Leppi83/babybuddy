@@ -4,6 +4,10 @@
 {% block extra_head %}
     <link rel="stylesheet"
           href="{% static "babybuddy/ant/app.css" %}?v={{ BUILD_HASH }}" />
+    <link rel="stylesheet"
+          href="{% static "babybuddy/ant/app2.css" %}?v={{ BUILD_HASH }}" />
+    <link rel="stylesheet"
+          href="{% static "babybuddy/ant/app3.css" %}?v={{ BUILD_HASH }}" />
 {% endblock %}
 {% block page %}
     {{ ant_bootstrap|json_script:"ant-app-bootstrap" }}
