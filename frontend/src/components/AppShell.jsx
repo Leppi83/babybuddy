@@ -28,8 +28,8 @@ import {
   UnorderedListOutlined,
 } from "@ant-design/icons";
 
-const { Header, Content, Sider } = Layout;
-const { Text, Title } = Typography;
+const { Content, Sider } = Layout;
+const { Text } = Typography;
 const { useBreakpoint } = Grid;
 
 function ThemeSwitcher({ themeMode, onThemeModeChange, compact = false }) {
@@ -420,50 +420,29 @@ export function AppShell({
       )}
       <Layout>
         {(pageMeta.eyebrow || pageMeta.title) && (
-          <Header className="ant-shell-header">
+          <div className="ant-shell-header-band">
             <div
               style={{
                 display: "flex",
                 gap: 16,
                 justifyContent: "space-between",
-                alignItems: "center",
+                alignItems: "flex-start",
                 width: "100%",
                 flexWrap: "wrap",
               }}
             >
-              <Space size="middle">
-                {(pageMeta.eyebrow || pageMeta.title) && (
-                  <div
-                    style={{ display: "flex", flexDirection: "column", gap: 1 }}
-                  >
-                    {pageMeta.eyebrow && (
-                      <Text
-                        type="secondary"
-                        style={{
-                          display: "block",
-                          fontSize: "0.72rem",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.06em",
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        {pageMeta.eyebrow}
-                      </Text>
-                    )}
-                    {pageMeta.title && (
-                      <Title
-                        level={3}
-                        className="ant-shell-title"
-                        style={{ margin: 0, lineHeight: 1.2 }}
-                      >
-                        {pageMeta.title}
-                      </Title>
-                    )}
+              <div>
+                {pageMeta.eyebrow && (
+                  <div className="ant-shell-header-band__eyebrow">
+                    {pageMeta.eyebrow}
                   </div>
                 )}
-              </Space>
+                <div className="ant-shell-header-band__title">
+                  {pageMeta.title}
+                </div>
+              </div>
               {childSwitcher?.options?.length ? (
-                <Space size={8} wrap>
+                <Space size={8} wrap style={{ paddingTop: 4 }}>
                   <Text type="secondary">{childSwitcher.label}</Text>
                   <Select
                     value={childSwitcher.value}
@@ -483,7 +462,7 @@ export function AppShell({
                 </Space>
               ) : null}
             </div>
-          </Header>
+          </div>
         )}
         <Content className="ant-shell-content">
           <Space direction="vertical" size={16} style={{ width: "100%" }}>
