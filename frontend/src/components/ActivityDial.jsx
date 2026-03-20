@@ -17,7 +17,7 @@ const CY = 190;
 const ATMO_R = 125;
 const ATMO_STROKE = 38;
 const ACTIVITY_R = 162;
-const ACTIVITY_STROKE = 5;
+const ACTIVITY_STROKE = 12;
 const CENTER_R = 80;
 
 function formatTime(date) {
@@ -154,41 +154,37 @@ function HourLabels({ now }) {
   );
 }
 
-/* ── Bedtime marker — dot + bed icon ─────────────────────────── */
+/* ── Bedtime marker — bed icon on inner ring ─────────────────── */
 function BedtimeMarker({ bedtime, now }) {
   if (!bedtime) return null;
   const [hStr, mStr] = bedtime.split(":");
   const bedDate = new Date(now);
   bedDate.setHours(parseInt(hStr, 10), parseInt(mStr, 10), 0, 0);
   const angle = timeToAngle(bedDate, now);
-  const pos = pointOnCircle(angle, ATMO_R, CX, CY);
 
-  // Position icon at center of the atmosphere ring band
-  const iconPos = pointOnCircle(angle, ATMO_R, CX, CY);
-  const iconSize = 20;
+  // Position icon inward from the atmosphere ring center, away from the dot
+  const iconPos = pointOnCircle(angle, ATMO_R - ATMO_STROKE / 2 + 4, CX, CY);
+  const iconSize = 30;
   const halfIcon = iconSize / 2;
 
   return (
-    <g>
-      {/* Bed SVG icon — centered in the atmosphere ring */}
+    <g style={{ cursor: "pointer" }}>
+      {/* Bed icon — larger, inset on inner edge of atmosphere ring */}
       <g
         transform={`translate(${iconPos.x - halfIcon}, ${iconPos.y - halfIcon})`}
         opacity={0.9}
-        style={{ pointerEvents: "none" }}
       >
-        <title>
-          Bedtime: {hStr}:{mStr}
-        </title>
+        <title>{`Bedtime: ${hStr}:${mStr}`}</title>
         {/* Background circle for contrast */}
         <circle
           cx={halfIcon}
           cy={halfIcon}
           r={halfIcon}
           fill="var(--app-card-bg-start, #020617)"
-          opacity={0.6}
+          opacity={0.7}
         />
-        {/* Bed icon scaled to fill the circle */}
-        <g transform={`translate(2.5, 3) scale(0.625)`}>
+        {/* Bed icon scaled to fill */}
+        <g transform="translate(3, 4.5) scale(1)">
           <rect x="2" y="14" width="20" height="2" rx="1" fill="#a5b4fc" />
           <rect x="3" y="8" width="8" height="6" rx="2" fill="#a5b4fc" />
           <path d="M13 10h6a2 2 0 0 1 2 2v2H13v-4z" fill="#a5b4fc" />
@@ -273,7 +269,7 @@ function CenterDisplay({
 }
 
 /* ── Activity arcs ───────────────────────────────────────────── */
-function ActivityArcs({ arcs, cx, cy, radius, strokeWidth }) {
+function ActivityArcs({ arcs, cx, cy, radius, strokeWidth, onHover }) {
   const circumference = 2 * Math.PI * radius;
   return (
     <g>
@@ -301,6 +297,14 @@ function ActivityArcs({ arcs, cx, cy, radius, strokeWidth }) {
               transformOrigin: `${cx}px ${cy}px`,
               cursor: "pointer",
             }}
+            onMouseEnter={(e) =>
+              onHover?.({
+                text: arc.tooltip || arc.type,
+                x: e.clientX,
+                y: e.clientY,
+              })
+            }
+            onMouseLeave={() => onHover?.(null)}
           >
             <title>{arc.tooltip || arc.type}</title>
           </circle>
@@ -311,7 +315,7 @@ function ActivityArcs({ arcs, cx, cy, radius, strokeWidth }) {
 }
 
 /* ── Activity dots ───────────────────────────────────────────── */
-function ActivityDots({ dots, cx, cy, radius }) {
+function ActivityDots({ dots, cx, cy, radius, onHover }) {
   return (
     <g>
       {dots.map((dot, i) => {
@@ -321,11 +325,19 @@ function ActivityDots({ dots, cx, cy, radius }) {
             key={i}
             cx={x}
             cy={y}
-            r={5}
+            r={6}
             fill={ACTIVITY_COLORS[dot.type]}
             className="activity-dial__dot-stroke"
-            strokeWidth={1.5}
+            strokeWidth={2}
             style={{ cursor: "pointer" }}
+            onMouseEnter={(e) =>
+              onHover?.({
+                text: dot.tooltip || dot.type,
+                x: e.clientX,
+                y: e.clientY,
+              })
+            }
+            onMouseLeave={() => onHover?.(null)}
           >
             <title>{dot.tooltip || dot.type}</title>
           </circle>
@@ -397,6 +409,7 @@ export default function ActivityDial({
 }) {
   const [realNow, setRealNow] = useState(() => new Date());
   const [showInsight, setShowInsight] = useState(false);
+  const [tooltip, setTooltip] = useState(null);
   const [theme, setTheme] = useState(getTheme);
 
   // When viewing a past date, anchor the dial to that day's current-equivalent time
@@ -524,10 +537,17 @@ export default function ActivityDial({
           cy={CY}
           radius={ACTIVITY_R}
           strokeWidth={ACTIVITY_STROKE}
+          onHover={setTooltip}
         />
 
         {/* Activity dots overlay the track */}
-        <ActivityDots dots={dots} cx={CX} cy={CY} radius={ACTIVITY_R} />
+        <ActivityDots
+          dots={dots}
+          cx={CX}
+          cy={CY}
+          radius={ACTIVITY_R}
+          onHover={setTooltip}
+        />
 
         {/* Bedtime marker on inner ring */}
         <BedtimeMarker bedtime={bedtime} now={now} />
@@ -544,6 +564,19 @@ export default function ActivityDial({
           onCenterClick={handleCenterClick}
         />
       </svg>
+
+      {tooltip && (
+        <div
+          className="activity-dial__tooltip"
+          style={{
+            position: "fixed",
+            left: tooltip.x + 12,
+            top: tooltip.y - 8,
+          }}
+        >
+          {tooltip.text}
+        </div>
+      )}
 
       <Legend strings={strings} />
     </div>
