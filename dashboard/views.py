@@ -559,7 +559,7 @@ def _build_topic_charts(child, topic, request):
             c = _safe_chart(
                 "sleep-totals",
                 _("Sleep Totals"),
-                report_graphs.sleep_totals.sleep_totals,
+                report_graphs.sleep_totals,
                 sleeps,
             )
             if c:
@@ -567,7 +567,7 @@ def _build_topic_charts(child, topic, request):
             c = _safe_chart(
                 "sleep-pattern",
                 _("Sleep Pattern"),
-                report_graphs.sleep_pattern.sleep_pattern,
+                report_graphs.sleep_pattern,
                 sleeps,
             )
             if c:
@@ -581,7 +581,7 @@ def _build_topic_charts(child, topic, request):
             c = _safe_chart(
                 "feeding-duration",
                 _("Feeding Duration"),
-                report_graphs.feeding_duration.feeding_duration,
+                report_graphs.feeding_duration,
                 feedings,
             )
             if c:
@@ -589,7 +589,7 @@ def _build_topic_charts(child, topic, request):
             c = _safe_chart(
                 "feeding-amounts",
                 _("Feeding Amounts"),
-                report_graphs.feeding_amounts.feeding_amounts,
+                report_graphs.feeding_amounts,
                 feedings,
             )
             if c:
@@ -601,7 +601,7 @@ def _build_topic_charts(child, topic, request):
             c = _safe_chart(
                 "diaper-types",
                 _("Diaper Types"),
-                report_graphs.diaperchange_types.diaperchange_types,
+                report_graphs.diaperchange_types,
                 changes,
             )
             if c:
@@ -609,7 +609,7 @@ def _build_topic_charts(child, topic, request):
             c = _safe_chart(
                 "diaper-amounts",
                 _("Diaper Amounts"),
-                report_graphs.diaperchange_amounts.diaperchange_amounts,
+                report_graphs.diaperchange_amounts,
                 changes,
             )
             if c:
@@ -623,7 +623,7 @@ def _build_topic_charts(child, topic, request):
             c = _safe_chart(
                 "pumping-amounts",
                 _("Pumping Amounts"),
-                report_graphs.pumping_amounts.pumping_amounts,
+                report_graphs.pumping_amounts,
                 pumpings,
             )
             if c:
