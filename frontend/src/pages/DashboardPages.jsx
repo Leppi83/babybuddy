@@ -583,7 +583,7 @@ export function SettingsPage({ bootstrap }) {
   ];
 
   return (
-    <Space direction="vertical" size={24} style={{ width: "100%" }}>
+    <>
       <div className="ant-shell-header-band">
         <div className="ant-shell-header-band__eyebrow">
           {bootstrap.strings.settings}
@@ -596,137 +596,142 @@ export function SettingsPage({ bootstrap }) {
         </div>
       </div>
 
-      {errorText ? <Alert type="error" message={errorText} showIcon /> : null}
+      <Space direction="vertical" size={24} style={{ width: "100%" }}>
+        {errorText ? <Alert type="error" message={errorText} showIcon /> : null}
 
-      <Form layout="vertical" form={form} onFinish={saveSettings}>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} xl={12}>
-            <Card
-              className="ant-section-card"
-              title={bootstrap.strings.profile}
-            >
-              <Form.Item name="first_name" label={bootstrap.strings.firstName}>
-                <Input />
-              </Form.Item>
-              <Form.Item name="last_name" label={bootstrap.strings.lastName}>
-                <Input />
-              </Form.Item>
-              <Form.Item name="email" label={bootstrap.strings.email}>
-                <Input type="email" />
-              </Form.Item>
-            </Card>
-          </Col>
-          <Col xs={24} xl={12}>
-            <Card
-              className="ant-section-card"
-              title={bootstrap.strings.preferences}
-            >
-              <Form.Item name="language" label={bootstrap.strings.language}>
-                <Select options={choiceOptions("language")} />
-              </Form.Item>
-              <Form.Item name="timezone" label={bootstrap.strings.timezone}>
-                <Select
-                  showSearch
-                  options={choiceOptions("timezone")}
-                  optionFilterProp="label"
-                />
-              </Form.Item>
-              <Form.Item
-                name="pagination_count"
-                label={bootstrap.strings.pagination}
+        <Form layout="vertical" form={form} onFinish={saveSettings}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} xl={12}>
+              <Card
+                className="ant-section-card"
+                title={bootstrap.strings.profile}
               >
-                <Select options={choiceOptions("paginationCount")} />
-              </Form.Item>
-            </Card>
-          </Col>
-          <Col xs={24} xl={12}>
-            <Card
-              className="ant-section-card"
-              title={bootstrap.strings.dashboardPreferences}
-            >
-              <Form.Item
-                name="dashboard_refresh_rate"
-                label={bootstrap.strings.refreshRate}
+                <Form.Item
+                  name="first_name"
+                  label={bootstrap.strings.firstName}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item name="last_name" label={bootstrap.strings.lastName}>
+                  <Input />
+                </Form.Item>
+                <Form.Item name="email" label={bootstrap.strings.email}>
+                  <Input type="email" />
+                </Form.Item>
+              </Card>
+            </Col>
+            <Col xs={24} xl={12}>
+              <Card
+                className="ant-section-card"
+                title={bootstrap.strings.preferences}
               >
-                <Select options={choiceOptions("refreshRate")} />
-              </Form.Item>
-              <Form.Item
-                name="dashboard_hide_age"
-                label={bootstrap.strings.hideAge}
-              >
-                <Select options={choiceOptions("hideAge")} />
-              </Form.Item>
-              <Form.Item
-                name="dashboard_hide_empty"
-                label={bootstrap.strings.hideEmpty}
-                valuePropName="checked"
-              >
-                <Switch />
-              </Form.Item>
-            </Card>
-          </Col>
-          <Col xs={24} xl={12}>
-            <Card className="ant-section-card" title={bootstrap.strings.api}>
-              <Space direction="vertical" size={12} style={{ width: "100%" }}>
-                <Input value={apiKey} readOnly />
-                <Button danger onClick={regenerateApiKey}>
-                  {bootstrap.strings.regenerate}
-                </Button>
-              </Space>
-            </Card>
-          </Col>
-          <Col xs={24} xl={12}>
-            <AiAssistantCard bootstrap={bootstrap} />
-          </Col>
-          <Col xs={24}>
-            <SettingsCardPicker
-              bootstrap={bootstrap}
-              selectedItems={selectedItems}
-              setSelectedItems={setSelectedItems}
-              statusText={statusText}
-            />
-          </Col>
-          <Col xs={24}>
-            <Card
-              className="ant-section-card"
-              title={bootstrap.strings.siteSupport}
-            >
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Text type="secondary">{bootstrap.strings.site}</Text>
-                  <List
-                    className="ant-link-list"
-                    dataSource={siteLinks}
-                    renderItem={(item) => (
-                      <List.Item>
-                        <a href={item.href}>{item.label}</a>
-                      </List.Item>
-                    )}
+                <Form.Item name="language" label={bootstrap.strings.language}>
+                  <Select options={choiceOptions("language")} />
+                </Form.Item>
+                <Form.Item name="timezone" label={bootstrap.strings.timezone}>
+                  <Select
+                    showSearch
+                    options={choiceOptions("timezone")}
+                    optionFilterProp="label"
                   />
-                </Col>
-                <Col xs={24} md={12}>
-                  <Text type="secondary">{bootstrap.strings.support}</Text>
-                  <List
-                    className="ant-link-list"
-                    dataSource={supportLinks}
-                    renderItem={(item) => (
-                      <List.Item>
-                        <a href={item.href}>{item.label}</a>
-                      </List.Item>
-                    )}
-                  />
-                </Col>
-              </Row>
-            </Card>
-          </Col>
-        </Row>
-        <div style={{ marginTop: 20 }}>
-          <Button type="primary" htmlType="submit" size="large">
-            {bootstrap.strings.submit}
-          </Button>
-        </div>
-      </Form>
-    </Space>
+                </Form.Item>
+                <Form.Item
+                  name="pagination_count"
+                  label={bootstrap.strings.pagination}
+                >
+                  <Select options={choiceOptions("paginationCount")} />
+                </Form.Item>
+              </Card>
+            </Col>
+            <Col xs={24} xl={12}>
+              <Card
+                className="ant-section-card"
+                title={bootstrap.strings.dashboardPreferences}
+              >
+                <Form.Item
+                  name="dashboard_refresh_rate"
+                  label={bootstrap.strings.refreshRate}
+                >
+                  <Select options={choiceOptions("refreshRate")} />
+                </Form.Item>
+                <Form.Item
+                  name="dashboard_hide_age"
+                  label={bootstrap.strings.hideAge}
+                >
+                  <Select options={choiceOptions("hideAge")} />
+                </Form.Item>
+                <Form.Item
+                  name="dashboard_hide_empty"
+                  label={bootstrap.strings.hideEmpty}
+                  valuePropName="checked"
+                >
+                  <Switch />
+                </Form.Item>
+              </Card>
+            </Col>
+            <Col xs={24} xl={12}>
+              <Card className="ant-section-card" title={bootstrap.strings.api}>
+                <Space direction="vertical" size={12} style={{ width: "100%" }}>
+                  <Input value={apiKey} readOnly />
+                  <Button danger onClick={regenerateApiKey}>
+                    {bootstrap.strings.regenerate}
+                  </Button>
+                </Space>
+              </Card>
+            </Col>
+            <Col xs={24} xl={12}>
+              <AiAssistantCard bootstrap={bootstrap} />
+            </Col>
+            <Col xs={24}>
+              <SettingsCardPicker
+                bootstrap={bootstrap}
+                selectedItems={selectedItems}
+                setSelectedItems={setSelectedItems}
+                statusText={statusText}
+              />
+            </Col>
+            <Col xs={24}>
+              <Card
+                className="ant-section-card"
+                title={bootstrap.strings.siteSupport}
+              >
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} md={12}>
+                    <Text type="secondary">{bootstrap.strings.site}</Text>
+                    <List
+                      className="ant-link-list"
+                      dataSource={siteLinks}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <a href={item.href}>{item.label}</a>
+                        </List.Item>
+                      )}
+                    />
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Text type="secondary">{bootstrap.strings.support}</Text>
+                    <List
+                      className="ant-link-list"
+                      dataSource={supportLinks}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <a href={item.href}>{item.label}</a>
+                        </List.Item>
+                      )}
+                    />
+                  </Col>
+                </Row>
+              </Card>
+            </Col>
+          </Row>
+          <div style={{ marginTop: 20 }}>
+            <Button type="primary" htmlType="submit" size="large">
+              {bootstrap.strings.submit}
+            </Button>
+          </div>
+        </Form>
+      </Space>
+    </>
   );
 }
 
