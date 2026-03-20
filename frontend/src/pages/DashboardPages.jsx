@@ -1849,11 +1849,8 @@ function ChildDashboardPageV2({ bootstrap }) {
     bootstrap.currentChild?.name || bootstrap.currentChild?.displayName || "";
 
   return (
-    <div style={{ maxWidth: 520, margin: "0 auto" }}>
-      <div
-        className="ant-shell-header-band"
-        style={{ marginBottom: 16, borderRadius: 0 }}
-      >
+    <>
+      <div className="ant-shell-header-band">
         <div
           style={{
             display: "flex",
@@ -1879,20 +1876,26 @@ function ChildDashboardPageV2({ bootstrap }) {
           />
         </div>
       </div>
-      <ActivityDial
-        activities={activities}
-        bedtime={bedtime}
-        currentStatus={statusText}
-        insights={isToday ? insights || [] : []}
-        referenceDate={isToday ? null : selectedDate.toDate()}
-        strings={{
-          sleep: s.sleepLabel || "Sleep",
-          feed: s.feedingLabel || "Feed",
-          diaper: s.diaperLabel || "Diaper",
-          pump: s.pumpingLabel || "Pump",
-        }}
-      />
-      <div id="dashboard-insights-card" style={{ marginTop: 20 }}>
+      <Space
+        direction="vertical"
+        size={16}
+        style={{ width: "100%", maxWidth: 520, margin: "0 auto" }}
+      >
+        <Card className="ant-section-card" style={{ overflow: "hidden" }}>
+          <ActivityDial
+            activities={activities}
+            bedtime={bedtime}
+            currentStatus={statusText}
+            insights={isToday ? insights || [] : []}
+            referenceDate={isToday ? null : selectedDate.toDate()}
+            strings={{
+              sleep: s.sleepLabel || "Sleep",
+              feed: s.feedingLabel || "Feed",
+              diaper: s.diaperLabel || "Diaper",
+              pump: s.pumpingLabel || "Pump",
+            }}
+          />
+        </Card>
         <DashboardInsightsCard
           insights={insights || []}
           strings={{
@@ -1900,8 +1903,8 @@ function ChildDashboardPageV2({ bootstrap }) {
             dismiss: s.dismiss || "Dismiss",
           }}
         />
-      </div>
-    </div>
+      </Space>
+    </>
   );
 }
 
