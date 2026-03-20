@@ -193,10 +193,11 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 10px 16px;
+  padding: 10px 10px 16px;
   color: var(--app-text-primary);
   font-size: 1.05rem;
   font-weight: 700;
+  line-height: 1;
 }
 
 .ant-shell-collapse {
@@ -244,6 +245,7 @@ body {
 
 .ant-shell-content {
   padding: 20px;
+  min-height: calc(100vh - 64px);
 }
 
 .ant-hero-card,

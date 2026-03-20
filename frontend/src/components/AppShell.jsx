@@ -107,12 +107,12 @@ export function AppShell({
     : null;
 
   const topicPages = bootstrap.urls.topicPages;
-  const insightsMenuItem = topicPages
-    ? {
-        key: "insights-menu",
-        icon: <BulbOutlined />,
-        label: bootstrap.strings.insights || "Insights",
-        children: [
+  const insightsMenuItem = {
+    key: "insights-menu",
+    icon: <BulbOutlined />,
+    label: bootstrap.strings.insights || "Insights",
+    children: topicPages
+      ? [
           {
             key: topicPages.sleep,
             label: bootstrap.strings.sleepLabel || "Sleep",
@@ -129,9 +129,15 @@ export function AppShell({
             key: topicPages.pumping,
             label: bootstrap.strings.pumpingLabel || "Pumping",
           },
+        ]
+      : [
+          {
+            key: "__no-child__",
+            label: bootstrap.strings.selectChildFirst || "Select a child first",
+            disabled: true,
+          },
         ],
-      }
-    : null;
+  };
 
   const navItems = [
     {
@@ -139,7 +145,7 @@ export function AppShell({
       icon: <HomeOutlined />,
       label: bootstrap.strings.dashboard,
     },
-    ...(insightsMenuItem ? [insightsMenuItem] : []),
+    insightsMenuItem,
     {
       key: bootstrap.urls.timeline,
       icon: <HistoryOutlined />,
@@ -413,9 +419,7 @@ export function AppShell({
         </Drawer>
       )}
       <Layout>
-        {(pageMeta.eyebrow ||
-          pageMeta.title ||
-          childSwitcher?.options?.length) && (
+        {(pageMeta.eyebrow || pageMeta.title) && (
           <Header className="ant-shell-header">
             <div
               style={{

@@ -86,6 +86,7 @@ def _build_ant_strings():
         "settings": _("Settings"),
         "logout": _("Logout"),
         "insights": _("Insights"),
+        "selectChildFirst": _("Select a child first"),
         "childDashboard": _("Child Dashboard"),
         "overview": _("Overview"),
         "born": _("Born"),
