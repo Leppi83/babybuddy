@@ -1,48 +1,65 @@
 import { describe, it, expect } from "vitest";
 import {
-  timeToAngle,
+  hourToAngle,
+  timeToFixedAngle,
   arcDasharray,
   pointOnCircle,
   hourLabels,
   dayBrightness,
   atmosphereStops,
   classifyActivities,
+  ARC_SPAN,
+  ARC_START,
 } from "../dial-utils.js";
 
 // Fixed reference point for deterministic tests
 const NOW = new Date("2024-01-15T12:00:00.000Z");
 
-describe("timeToAngle", () => {
-  it("returns 0° for now", () => {
-    expect(timeToAngle(NOW, NOW)).toBeCloseTo(0, 5);
+describe("hourToAngle", () => {
+  it("maps midnight (hour 0) to 225°", () => {
+    expect(hourToAngle(0)).toBeCloseTo(225, 5);
   });
 
-  it("returns 180° for 12h ago", () => {
-    const twelveHoursAgo = new Date(NOW.getTime() - 12 * 60 * 60 * 1000);
-    expect(timeToAngle(twelveHoursAgo, NOW)).toBeCloseTo(180, 5);
+  it("maps noon (hour 12) to 0° (top)", () => {
+    expect(hourToAngle(12)).toBeCloseTo(0, 5);
   });
 
-  it("returns 90° for 6h in the future (counter-clockwise = future right)", () => {
-    const sixHoursAhead = new Date(NOW.getTime() + 6 * 60 * 60 * 1000);
-    expect(timeToAngle(sixHoursAhead, NOW)).toBeCloseTo(90, 5);
+  it("maps hour 24 to 135°", () => {
+    expect(hourToAngle(24)).toBeCloseTo(135, 5);
   });
 
-  it("returns 270° for 6h ago", () => {
-    const sixHoursAgo = new Date(NOW.getTime() - 6 * 60 * 60 * 1000);
-    expect(timeToAngle(sixHoursAgo, NOW)).toBeCloseTo(270, 5);
+  it("maps hour 6 to 292.5°", () => {
+    expect(hourToAngle(6)).toBeCloseTo(292.5, 5);
   });
 
-  it("normalizes result to 0-360 range", () => {
-    // 13h in future → 13/24 * 360 = 195° (future is positive, wraps)
-    const thirteenHoursAhead = new Date(NOW.getTime() + 13 * 60 * 60 * 1000);
-    const angle = timeToAngle(thirteenHoursAhead, NOW);
-    expect(angle).toBeGreaterThanOrEqual(0);
-    expect(angle).toBeLessThan(360);
+  it("maps hour 18 to 67.5°", () => {
+    expect(hourToAngle(18)).toBeCloseTo(67.5, 5);
   });
 
-  it("handles exact 24h difference as 0° (full circle)", () => {
-    const twentyFourHoursAgo = new Date(NOW.getTime() - 24 * 60 * 60 * 1000);
-    expect(timeToAngle(twentyFourHoursAgo, NOW)).toBeCloseTo(0, 5);
+  it("always returns values in [0, 360)", () => {
+    for (let h = 0; h <= 24; h += 0.5) {
+      const angle = hourToAngle(h);
+      expect(angle).toBeGreaterThanOrEqual(0);
+      expect(angle).toBeLessThan(360);
+    }
+  });
+});
+
+describe("timeToFixedAngle", () => {
+  it("returns the correct angle for a known local time", () => {
+    // Create a date at local noon
+    const noon = new Date(2024, 0, 15, 12, 0, 0);
+    expect(timeToFixedAngle(noon)).toBeCloseTo(hourToAngle(12), 5);
+  });
+
+  it("returns the correct angle for local midnight", () => {
+    const midnight = new Date(2024, 0, 15, 0, 0, 0);
+    expect(timeToFixedAngle(midnight)).toBeCloseTo(hourToAngle(0), 5);
+  });
+
+  it("accounts for minutes", () => {
+    const sixThirty = new Date(2024, 0, 15, 6, 30, 0);
+    expect(timeToFixedAngle(sixThirty)).toBeCloseTo(hourToAngle(6.5), 5);
   });
 });
 
@@ -121,12 +138,12 @@ describe("pointOnCircle", () => {
 
 describe("hourLabels", () => {
   it("returns exactly 8 items", () => {
-    const labels = hourLabels(NOW);
+    const labels = hourLabels();
     expect(labels).toHaveLength(8);
   });
 
   it("each label has angle, x, y, and hour properties", () => {
-    const labels = hourLabels(NOW);
+    const labels = hourLabels();
     labels.forEach((label) => {
       expect(typeof label.angle).toBe("number");
       expect(typeof label.x).toBe("number");
@@ -136,21 +153,27 @@ describe("hourLabels", () => {
   });
 
   it("includes hours 0, 3, 6, 9, 12, 15, 18, 21", () => {
-    const labels = hourLabels(NOW);
+    const labels = hourLabels();
     const hours = labels.map((l) => l.hour).sort((a, b) => a - b);
     expect(hours).toEqual([0, 3, 6, 9, 12, 15, 18, 21]);
   });
 
   it("each label has a text property", () => {
-    const labels = hourLabels(NOW);
+    const labels = hourLabels();
     labels.forEach((label) => {
       expect(typeof label.text).toBe("string");
     });
   });
 
+  it("hour 0 label text is '24'", () => {
+    const labels = hourLabels();
+    const midnight = labels.find((l) => l.hour === 0);
+    expect(midnight.text).toBe("24");
+  });
+
   it("accepts custom radius, cx, cy", () => {
-    const labels1 = hourLabels(NOW, 125, 190, 190);
-    const labels2 = hourLabels(NOW, 100, 150, 150);
+    const labels1 = hourLabels(125, 190, 190);
+    const labels2 = hourLabels(100, 150, 150);
     // Different radii → different positions
     expect(labels1[0].x).not.toEqual(labels2[0].x);
   });
@@ -192,18 +215,18 @@ describe("dayBrightness", () => {
 });
 
 describe("atmosphereStops", () => {
-  it("returns 48 stops by default", () => {
-    const stops = atmosphereStops(NOW);
-    expect(stops).toHaveLength(48);
+  it("returns steps+1 stops by default (48+1=49)", () => {
+    const stops = atmosphereStops();
+    expect(stops).toHaveLength(49);
   });
 
   it("accepts custom step count", () => {
-    const stops = atmosphereStops(NOW, 24);
-    expect(stops).toHaveLength(24);
+    const stops = atmosphereStops(24);
+    expect(stops).toHaveLength(25);
   });
 
   it("each stop has angle, color, and opacity properties", () => {
-    const stops = atmosphereStops(NOW);
+    const stops = atmosphereStops();
     stops.forEach((stop) => {
       expect(typeof stop.angle).toBe("number");
       expect(typeof stop.color).toBe("string");
@@ -211,23 +234,21 @@ describe("atmosphereStops", () => {
     });
   });
 
-  it("angles span 0-360 evenly", () => {
-    const stops = atmosphereStops(NOW, 4);
-    expect(stops[0].angle).toBeCloseTo(0, 1);
-    expect(stops[1].angle).toBeCloseTo(90, 1);
-    expect(stops[2].angle).toBeCloseTo(180, 1);
-    expect(stops[3].angle).toBeCloseTo(270, 1);
+  it("first stop is at ARC_START (225°) and last is at ARC_START+ARC_SPAN (135°)", () => {
+    const stops = atmosphereStops(4);
+    expect(stops[0].angle).toBeCloseTo(225, 1);
+    expect(stops[stops.length - 1].angle).toBeCloseTo(135, 1);
   });
 
   it("color is a valid hex string", () => {
-    const stops = atmosphereStops(NOW);
+    const stops = atmosphereStops();
     stops.forEach((stop) => {
       expect(stop.color).toMatch(/^#[0-9a-fA-F]{6}$/);
     });
   });
 
   it("opacity is between 0 and 1", () => {
-    const stops = atmosphereStops(NOW);
+    const stops = atmosphereStops();
     stops.forEach((stop) => {
       expect(stop.opacity).toBeGreaterThanOrEqual(0);
       expect(stop.opacity).toBeLessThanOrEqual(1);
@@ -237,7 +258,7 @@ describe("atmosphereStops", () => {
 
 describe("classifyActivities", () => {
   it("returns { arcs, dots } structure", () => {
-    const result = classifyActivities([], NOW);
+    const result = classifyActivities([]);
     expect(result).toHaveProperty("arcs");
     expect(result).toHaveProperty("dots");
     expect(Array.isArray(result.arcs)).toBe(true);
@@ -251,7 +272,7 @@ describe("classifyActivities", () => {
         time: new Date(NOW.getTime() - 2 * 60 * 60 * 1000),
       },
     ];
-    const { arcs, dots } = classifyActivities(activities, NOW);
+    const { arcs, dots } = classifyActivities(activities);
     expect(dots).toHaveLength(1);
     expect(arcs).toHaveLength(0);
   });
@@ -264,7 +285,7 @@ describe("classifyActivities", () => {
         end: new Date(NOW.getTime() - 2 * 60 * 60 * 1000),
       },
     ];
-    const { arcs, dots } = classifyActivities(activities, NOW);
+    const { arcs, dots } = classifyActivities(activities);
     expect(arcs).toHaveLength(1);
     expect(dots).toHaveLength(0);
   });
@@ -277,7 +298,7 @@ describe("classifyActivities", () => {
         end: new Date(NOW.getTime() - 2.5 * 60 * 60 * 1000),
       },
     ];
-    const { arcs } = classifyActivities(activities, NOW);
+    const { arcs } = classifyActivities(activities);
     expect(arcs).toHaveLength(1);
     expect(arcs[0].type).toBe("feeding");
   });
@@ -290,7 +311,7 @@ describe("classifyActivities", () => {
         end: new Date(NOW.getTime() - 0.5 * 60 * 60 * 1000),
       },
     ];
-    const { arcs } = classifyActivities(activities, NOW);
+    const { arcs } = classifyActivities(activities);
     expect(arcs).toHaveLength(1);
     expect(arcs[0].type).toBe("pumping");
   });
@@ -303,7 +324,7 @@ describe("classifyActivities", () => {
         end: new Date(NOW.getTime() - 2 * 60 * 60 * 1000),
       },
     ];
-    const { arcs } = classifyActivities(activities, NOW);
+    const { arcs } = classifyActivities(activities);
     expect(typeof arcs[0].startAngle).toBe("number");
     expect(typeof arcs[0].endAngle).toBe("number");
     expect(arcs[0].type).toBe("sleep");
@@ -316,7 +337,7 @@ describe("classifyActivities", () => {
         time: new Date(NOW.getTime() - 1 * 60 * 60 * 1000),
       },
     ];
-    const { dots } = classifyActivities(activities, NOW);
+    const { dots } = classifyActivities(activities);
     expect(typeof dots[0].angle).toBe("number");
     expect(dots[0].type).toBe("diaper");
   });
@@ -338,13 +359,13 @@ describe("classifyActivities", () => {
         end: new Date(NOW.getTime() - 5.5 * 60 * 60 * 1000),
       },
     ];
-    const { arcs, dots } = classifyActivities(activities, NOW);
+    const { arcs, dots } = classifyActivities(activities);
     expect(dots).toHaveLength(1);
     expect(arcs).toHaveLength(2);
   });
 
   it("empty activities returns empty arcs and dots", () => {
-    const { arcs, dots } = classifyActivities([], NOW);
+    const { arcs, dots } = classifyActivities([]);
     expect(arcs).toHaveLength(0);
     expect(dots).toHaveLength(0);
   });
@@ -357,7 +378,7 @@ describe("classifyActivities", () => {
         end: new Date(NOW.getTime() - 2 * 60 * 60 * 1000),
       },
     ];
-    const { arcs } = classifyActivities(activities, NOW);
+    const { arcs } = classifyActivities(activities);
     expect(arcs[0].startAngle).toBeGreaterThanOrEqual(0);
     expect(arcs[0].startAngle).toBeLessThan(360);
     expect(arcs[0].endAngle).toBeGreaterThanOrEqual(0);
