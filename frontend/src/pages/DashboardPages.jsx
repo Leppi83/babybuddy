@@ -28,7 +28,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { EyeOutlined, ReloadOutlined } from "@ant-design/icons";
+import { EditOutlined, EyeOutlined, ReloadOutlined } from "@ant-design/icons";
 import ActivityDial from "../components/ActivityDial";
 import { DashboardInsightsCard } from "../components/DashboardInsightsCard";
 import {
@@ -1856,10 +1856,7 @@ function ChildDashboardPageV2({ bootstrap }) {
         </div>
         <div className="ant-shell-header-band__title">{childName}</div>
       </div>
-      <Row
-        gutter={[16, 16]}
-        style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}
-      >
+      <Row gutter={[16, 16]} style={{ width: "100%" }}>
         <Col xs={24} lg={14}>
           <Card
             className="ant-section-card"
@@ -1912,6 +1909,23 @@ function ChildDashboardPageV2({ bootstrap }) {
           />
         </Col>
       </Row>
+      <div style={{ marginTop: 16 }}>
+        <Button
+          type="primary"
+          size="large"
+          icon={<EditOutlined />}
+          block
+          style={{ maxWidth: 300, borderRadius: 14, height: 48 }}
+          onClick={() => {
+            const fab = document.querySelector(
+              'button[aria-label="Quick log entry"]',
+            );
+            if (fab) fab.click();
+          }}
+        >
+          {s.quickEntry || "Quick Entry"}
+        </Button>
+      </div>
     </>
   );
 }

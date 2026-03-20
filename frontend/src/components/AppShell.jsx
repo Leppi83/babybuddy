@@ -19,6 +19,7 @@ import {
   HeartOutlined,
   EllipsisOutlined,
   DesktopOutlined,
+  EditOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -145,6 +146,15 @@ export function AppShell({
       icon: <HomeOutlined />,
       label: bootstrap.strings.dashboard,
     },
+    ...(bootstrap.currentChild
+      ? [
+          {
+            key: "__quick_entry__",
+            icon: <EditOutlined />,
+            label: bootstrap.strings.quickEntry || "Quick Entry",
+          },
+        ]
+      : []),
     insightsMenuItem,
     {
       key: bootstrap.urls.timeline,
@@ -168,6 +178,10 @@ export function AppShell({
   function handleNavClick({ key }) {
     if (key === "__logout__") {
       handleLogout();
+      return;
+    }
+    if (key === "__quick_entry__") {
+      setSheetOpen(true);
       return;
     }
     if (key.startsWith("/")) {
