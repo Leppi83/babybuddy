@@ -54,13 +54,18 @@ function AtmosphereRing({ theme }) {
   const stops = useMemo(() => atmosphereStops(48, theme), [theme]);
 
   // Build a CSS conic-gradient string from the stops.
-  // The stops cover the 270° arc from ARC_START (225°) clockwise to ARC_START + ARC_SPAN (135°).
-  // CSS conic-gradient "from" rotates the 0-degree start point.
-  // Default CSS conic 0° is at 12 o'clock (top). Our angle convention also uses 0° = top.
-  // So "from 0deg" means our angles map directly to CSS conic angles.
+  // Stops wrap around 0° (225° → 360° → 0° → 135°) which confuses CSS.
+  // Fix: start the conic gradient at 225° and use relative offsets (0° → 270°).
   const gradientStr = useMemo(() => {
-    const parts = stops.map((s) => `${s.color} ${s.angle.toFixed(1)}deg`);
-    return `conic-gradient(from 0deg, ${parts.join(", ")})`;
+    const parts = stops.map((s) => {
+      // Convert absolute angle to offset from ARC_START (225°)
+      let offset = s.angle - 225;
+      if (offset < 0) offset += 360;
+      return `${s.color} ${offset.toFixed(1)}deg`;
+    });
+    // CSS conic "from" is relative to 12 o'clock (top), but CSS 0° = top.
+    // We want to start at 225° (bottom-left), so rotate from 225deg.
+    return `conic-gradient(from 225deg, ${parts.join(", ")})`;
   }, [stops]);
 
   const outerR = ATMO_R + ATMO_STROKE / 2;
@@ -135,12 +140,12 @@ function TickMarks() {
 /* ── Hour labels — fixed positions on the 270° arc ───────────── */
 function HourLabels() {
   const labels = useMemo(() => {
-    const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21];
+    const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 24];
     const labelR = ATMO_R; // center of the atmosphere ring
     return LABEL_HOURS.map((hour) => {
       const angle = hourToAngle(hour);
       const { x, y } = pointOnCircle(angle, labelR, CX, CY);
-      return { hour, angle, x, y };
+      return { hour, angle, x, y, text: String(hour).padStart(2, "0") };
     });
   }, []);
 
@@ -151,13 +156,13 @@ function HourLabels() {
         const opacity = 0.6 + brightness * 0.4;
         return (
           <text
-            key={l.hour}
+            key={`h${l.hour}`}
             x={l.x}
             y={l.y}
             className="activity-dial__label"
             opacity={opacity}
           >
-            {l.hour === 0 ? 24 : l.hour}
+            {l.text}
           </text>
         );
       })}
