@@ -290,8 +290,8 @@ export function AppShell({
       title: bootstrap.formPage?.title || bootstrap.strings.login,
     },
     "topic-detail": {
-      eyebrow: bootstrap.strings.insights || "Insights",
-      title: bootstrap.currentChild?.name || "",
+      eyebrow: null,
+      title: null,
     },
     insights: {
       eyebrow: null,
