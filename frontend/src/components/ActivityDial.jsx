@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   ARC_SPAN,
   ARC_START,
@@ -165,7 +166,7 @@ function HourLabels() {
   );
 }
 
-/* ── Day decoration — sun + distinct clouds (light theme only) ── */
+/* ── Day decoration — sun + crisp clouds (light theme only) ───── */
 function DayDecoration() {
   return (
     <div
@@ -175,46 +176,46 @@ function DayDecoration() {
         top: 0,
         left: 0,
         width: "100%",
-        height: "45%",
+        height: "40%",
         pointerEvents: "none",
         zIndex: 0,
         overflow: "hidden",
       }}
     >
       <svg
-        viewBox="0 0 400 110"
+        viewBox="0 0 420 100"
         xmlns="http://www.w3.org/2000/svg"
         style={{ width: "100%", height: "100%" }}
         preserveAspectRatio="xMidYMid slice"
       >
         <defs>
-          <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#FFE033" stopOpacity="1" />
-            <stop offset="55%" stopColor="#FFD700" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#FFB800" stopOpacity="0" />
+          <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#FFF176" />
+            <stop offset="40%" stopColor="#FFD600" />
+            <stop offset="100%" stopColor="#FFB300" stopOpacity="0" />
           </radialGradient>
-          <filter id="cloudBlur">
-            <feGaussianBlur stdDeviation="1.2" />
-          </filter>
         </defs>
-        {/* Sun — top-left glow + core */}
-        <circle cx="44" cy="42" r="40" fill="url(#sunGlow)" />
-        <circle cx="44" cy="42" r="22" fill="#FFD700" opacity="0.96" />
 
-        {/* Cloud 1 — small, just right of sun */}
-        <g fill="rgba(255,255,255,0.88)" filter="url(#cloudBlur)">
-          <ellipse cx="148" cy="48" rx="36" ry="14" />
-          <circle cx="128" cy="38" r="14" />
-          <circle cx="146" cy="32" r="17" />
-          <circle cx="165" cy="37" r="13" />
+        {/* Sun glow + core */}
+        <circle cx="40" cy="40" r="48" fill="url(#sunGrad)" opacity="0.7" />
+        <circle cx="40" cy="40" r="26" fill="#FFD600" opacity="0.95" />
+
+        {/* Cloud 1 — small, center-left */}
+        <g opacity="0.93">
+          <rect x="112" y="42" width="88" height="24" rx="12" fill="white" />
+          <circle cx="130" cy="40" r="16" fill="white" />
+          <circle cx="152" cy="32" r="20" fill="white" />
+          <circle cx="178" cy="38" r="15" fill="white" />
+          <ellipse cx="156" cy="66" rx="40" ry="5" fill="rgba(160,190,220,0.18)" />
         </g>
 
-        {/* Cloud 2 — larger, upper-right area, well separated */}
-        <g fill="rgba(255,255,255,0.80)" filter="url(#cloudBlur)">
-          <ellipse cx="308" cy="44" rx="46" ry="16" />
-          <circle cx="282" cy="32" r="16" />
-          <circle cx="303" cy="25" r="20" />
-          <circle cx="328" cy="30" r="15" />
+        {/* Cloud 2 — larger, right side */}
+        <g opacity="0.88">
+          <rect x="280" y="36" width="120" height="30" rx="15" fill="white" />
+          <circle cx="302" cy="33" r="20" fill="white" />
+          <circle cx="328" cy="22" r="26" fill="white" />
+          <circle cx="360" cy="30" r="20" fill="white" />
+          <ellipse cx="340" cy="66" rx="55" ry="6" fill="rgba(160,190,220,0.15)" />
         </g>
       </svg>
     </div>
@@ -570,21 +571,23 @@ export default function ActivityDial({
 
     if (theme === "light") {
       if (brightness > 0.7) {
-        // Daytime: sky-blue top → earth-green bottom, sun glow injected via DayDecoration
+        // Daytime: warm sun glow top-left → sky blue upper half → earth green lower half
         return {
           background:
-            "radial-gradient(ellipse at 11% 10%, rgba(255,220,30,0.55) 0%, transparent 36%), " +
-            "linear-gradient(180deg, #5BBDF5 0%, #82CEED 38%, #B2D98A 66%, #8A9858 100%)",
+            "radial-gradient(circle at 9% 8%, rgba(255,210,0,0.6) 0%, rgba(255,160,30,0.3) 20%, transparent 40%), " +
+            "linear-gradient(180deg, #6EC6F5 0%, #9ED8F7 22%, #C8EAFF 40%, #C5E09A 52%, #8FBD60 68%, #6B8F40 85%, #587535 100%)",
         };
       } else if (brightness > 0.3) {
+        // Twilight/dusk
         return {
           background:
-            "linear-gradient(135deg, #e8956a 0%, #6cb4e4 40%, #0f2848 70%, #4a7a6a 100%)",
+            "linear-gradient(180deg, #f4a65a 0%, #e07838 18%, #c4779a 38%, #7a6ab8 58%, #4a6a9a 78%, #3a5a7a 100%)",
         };
       } else {
+        // Night in light theme (rare)
         return {
           background:
-            "linear-gradient(135deg, #0e1f38 0%, #0a1428 50%, #0e1f38 100%)",
+            "linear-gradient(180deg, #1a2a4a 0%, #0e1a30 50%, #1a2a4a 100%)",
         };
       }
     } else {
@@ -667,18 +670,21 @@ export default function ActivityDial({
         />
       </svg>
 
-      {tooltip && (
-        <div
-          className="activity-dial__tooltip"
-          style={{
-            position: "fixed",
-            left: tooltip.x + 12,
-            top: tooltip.y - 8,
-          }}
-        >
-          {tooltip.text}
-        </div>
-      )}
+      {tooltip &&
+        createPortal(
+          <div
+            className="activity-dial__tooltip"
+            style={{
+              position: "fixed",
+              left: tooltip.x + 14,
+              top: tooltip.y - 36,
+              zIndex: 9999,
+            }}
+          >
+            {tooltip.text}
+          </div>,
+          document.body,
+        )}
 
       <Legend strings={strings} />
     </div>
