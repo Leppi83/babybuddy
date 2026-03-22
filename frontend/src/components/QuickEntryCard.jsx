@@ -18,6 +18,7 @@ import {
   Typography,
 } from "antd";
 import {
+  ACTIVITY_COLORS,
   APP_DATE_FORMAT,
   APP_TIME_FORMAT,
   createApiClient,
@@ -337,11 +338,11 @@ export function QuickEntryCard({ bootstrap }) {
   }
 
   const segmentColors = {
-    diaper: "var(--accent-diaper)",
-    sleep: "var(--accent-sleep)",
-    feeding: "var(--accent-feedings)",
-    breastfeeding: "var(--accent-feedings)",
-    pumping: "var(--accent-pumpings)",
+    sleep: ACTIVITY_COLORS.sleep,
+    diaper: ACTIVITY_COLORS.diaper,
+    feeding: ACTIVITY_COLORS.feeding,
+    breastfeeding: ACTIVITY_COLORS.feeding,
+    pumping: ACTIVITY_COLORS.pumping,
   };
 
   const segments = [

@@ -216,7 +216,7 @@ def _build_ant_strings():
         "tummyTimeToday": _("Tummy time today"),
         # Quick entry hint
         "napDurationHint": _("Duration < 90 min is saved as nap, ≥ 90 min as sleep"),
-        "saveTimer": _("Save timer"),
+        "saveTimer": _("Save Sleep"),
         # Hero card
         "overviewFor": _("Overview for"),
         # Quick log tile labels
