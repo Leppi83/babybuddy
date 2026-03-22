@@ -58,9 +58,9 @@ export function arcDasharray(startAngle, endAngle, circumference) {
   const start = normalizeAngle(startAngle);
   const end = normalizeAngle(endAngle);
 
-  // Arc length (handle wrap-around)
+  // Arc length (handle wrap-around, but not zero-duration)
   let spanDeg = end - start;
-  if (spanDeg <= 0) spanDeg += 360;
+  if (spanDeg < 0) spanDeg += 360;
 
   const arcLength = (spanDeg / 360) * circumference;
   const gapLength = circumference - arcLength;
@@ -178,11 +178,22 @@ export function classifyActivities(activities) {
 
   for (const activity of activities) {
     if (ARC_TYPES.has(activity.type)) {
-      arcs.push({
-        ...activity,
-        startAngle: timeToFixedAngle(activity.start),
-        endAngle: timeToFixedAngle(activity.end),
-      });
+      const durationMs = activity.end
+        ? activity.end.getTime() - activity.start.getTime()
+        : 0;
+      if (durationMs < 60_000) {
+        // Zero or sub-minute duration — render as an instant dot
+        dots.push({
+          ...activity,
+          angle: timeToFixedAngle(activity.start),
+        });
+      } else {
+        arcs.push({
+          ...activity,
+          startAngle: timeToFixedAngle(activity.start),
+          endAngle: timeToFixedAngle(activity.end),
+        });
+      }
     } else {
       dots.push({
         ...activity,
