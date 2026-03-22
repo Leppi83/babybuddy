@@ -142,12 +142,9 @@ function HourLabels() {
   const labels = useMemo(() => {
     const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 24];
     const labelR = ATMO_R; // center of the atmosphere ring
-    // Pull 00 and 24 inward so they sit fully inside the dark arc
-    const endpointR = ATMO_R - 30;
     return LABEL_HOURS.map((hour) => {
       const angle = hourToAngle(hour);
-      const r = hour === 0 || hour === 24 ? endpointR : labelR;
-      const { x, y } = pointOnCircle(angle, r, CX, CY);
+      const { x, y } = pointOnCircle(angle, labelR, CX, CY);
       return { hour, angle, x, y, text: String(hour).padStart(2, "0") };
     });
   }, []);
