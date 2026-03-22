@@ -31,6 +31,8 @@ class Settings(models.Model):
         ("card.feedings.method", _("Feedings - Last Feeding Method")),
         ("card.feedings.recent", _("Feedings - Recent Feedings")),
         ("card.feedings.breastfeeding", _("Feedings - Breastfeeding")),
+        ("card.breastfeeding.today", _("Breastfeeding - Today's Sessions")),
+        ("card.breastfeeding.last", _("Breastfeeding - Last Session")),
         ("card.pumpings.last", _("Pumpings - Last Pumping")),
         ("card.sleep.timers", _("Sleep - Timers")),
         ("card.sleep.last", _("Sleep - Last Sleep")),

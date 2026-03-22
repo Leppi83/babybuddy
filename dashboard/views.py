@@ -74,6 +74,7 @@ def _build_nav_urls(request):
         "settings": reverse("babybuddy:user-settings"),
         "logout": reverse("babybuddy:logout"),
         "addChild": reverse("core:child-add"),
+        "quickEntry": reverse("babybuddy:quick-entry"),
     }
 
 
@@ -135,6 +136,7 @@ def _build_ant_strings():
         "lastFeedingMethod": _("Last Feeding Method"),
         "recentFeedings": _("Recent Feedings"),
         "breastfeeding": _("Breastfeeding"),
+        "lastBreastfeeding": _("Last Breastfeeding"),
         "lastPumping": _("Last Pumping"),
         "timers": _("Timers"),
         "sleepTimer": _("Sleep Timer"),
@@ -756,11 +758,14 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         ],
         "feedings": [
             "card.feedings.quick_entry",
-            "card.feedings.breast_quick_entry",
             "card.feedings.last",
             "card.feedings.method",
             "card.feedings.recent",
-            "card.feedings.breastfeeding",
+        ],
+        "breastfeeding": [
+            "card.feedings.breast_quick_entry",
+            "card.breastfeeding.today",
+            "card.breastfeeding.last",
         ],
         "pumpings": [
             "card.pumpings.quick_entry",
@@ -787,6 +792,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         "quick_entry",
         "diaper",
         "feedings",
+        "breastfeeding",
         "pumpings",
         "sleep",
         "tummytime",

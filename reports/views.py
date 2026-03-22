@@ -26,6 +26,7 @@ def _nav_urls():
         "settings": reverse("babybuddy:user-settings"),
         "logout": reverse("babybuddy:logout"),
         "addChild": reverse("core:child-add"),
+        "quickEntry": reverse("babybuddy:quick-entry"),
     }
 
 

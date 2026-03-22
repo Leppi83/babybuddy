@@ -78,8 +78,8 @@ function AtmosphereRing({ theme }) {
   const arcMask = [
     // Radial mask for ring shape
     `radial-gradient(circle, transparent ${innerR}px, black ${innerR}px, black ${outerR}px, transparent ${outerR}px)`,
-    // Conic mask to hide the 90° gap at the bottom (135° → 225°)
-    `conic-gradient(from 0deg, black 0deg, black 135deg, transparent 135deg, transparent 225deg, black 225deg, black 360deg)`,
+    // Conic mask to hide the 90° gap at the bottom (135° → 225°), with soft fade at arc ends
+    `conic-gradient(from 0deg, black 0deg, black 125deg, transparent 145deg, transparent 215deg, black 235deg, black 360deg)`,
   ].join(", ");
 
   return (

@@ -63,6 +63,7 @@
   /* Activity accents — dimmed for dark theme */
   --accent-diaper: #cc5570;
   --accent-feedings: #28a67a;
+  --accent-breastfeeding: #1a9eaa;
   --accent-pumpings: #9a68cc;
   --accent-sleep: #c49820;
   --accent-tummytime: #cc50cc;
@@ -129,6 +130,7 @@
   /* Activity accents — full brightness for light theme */
   --accent-diaper: #ff6b8b;
   --accent-feedings: #34d399;
+  --accent-breastfeeding: #22d3ee;
   --accent-pumpings: #c084fc;
   --accent-sleep: #fbbf24;
   --accent-tummytime: #ff66ff;

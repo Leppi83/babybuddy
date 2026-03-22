@@ -39,6 +39,7 @@ import {
   createApiClient,
   getDashboardCardTitle,
   durationMinutesFromValue,
+  formatAppDate,
   formatAppDateTime,
   formatAppTime,
   formatDurationCompact,
@@ -2229,6 +2230,13 @@ export function ChildDashboardPage({ bootstrap }) {
       const lastPumping = pumpingItems[0];
       const lastSleep = sleepItems[0];
       const feedingsToday = feedingItems.filter((item) => isToday(item.start));
+      const breastfeedingItems = feedingItems.filter((item) =>
+        String(item.method || "").toLowerCase().includes("breast"),
+      );
+      const breastfeedingsToday = breastfeedingItems.filter((item) =>
+        isToday(item.start),
+      );
+      const lastBreastfeeding = breastfeedingItems[0];
       const napsToday = sleepItems.filter(
         (item) => isToday(item.start) && item.nap,
       );
@@ -2323,6 +2331,39 @@ export function ChildDashboardPage({ bootstrap }) {
               }
             />
           </Space>
+        ),
+        "card.breastfeeding.today": (
+          <Space direction="vertical" size={4}>
+            <Statistic
+              title={s.breastfeedingToday}
+              value={breastfeedingsToday.length}
+            />
+            <Text type="secondary">
+              {breastfeedingItems.length} {s.recentFeedingsLabel}
+            </Text>
+          </Space>
+        ),
+        "card.breastfeeding.last": lastBreastfeeding ? (
+          <Space direction="vertical" size={4}>
+            <Statistic
+              title={s.lastBreastfeeding}
+              value={formatAppTime(lastBreastfeeding.start)}
+            />
+            <Text type="secondary">{formatAppDate(lastBreastfeeding.start)}</Text>
+            {lastBreastfeeding.method && (
+              <Tag>{lastBreastfeeding.method}</Tag>
+            )}
+            {lastBreastfeeding.duration && (
+              <Text type="secondary">
+                {formatMinuteValue(durationMinutes(lastBreastfeeding.duration))} min
+              </Text>
+            )}
+          </Space>
+        ) : (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={bootstrap.strings.noData}
+          />
         ),
         "card.pumpings.last": lastPumping ? (
           <Space direction="vertical" size={4}>
