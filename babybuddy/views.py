@@ -1585,7 +1585,12 @@ class AppSettings(SiteSettings):
 
 class QuickEntryView(LoginRequiredMixin, View):
     def get(self, request):
-        from dashboard.views import _build_quick_status, _child_picture_url
+        from django.utils import timezone as tz
+        from dashboard.views import (
+            _build_ant_strings,
+            _build_quick_status,
+            _child_picture_url,
+        )
 
         children = core_models.Child.objects.all().order_by(
             "last_name", "first_name", "id"
@@ -1597,6 +1602,7 @@ class QuickEntryView(LoginRequiredMixin, View):
             child = children.filter(slug=child_slug).first() or child
 
         current_child = None
+        child_dashboard_url = None
         if child:
             current_child = {
                 "id": child.id,
@@ -1604,6 +1610,72 @@ class QuickEntryView(LoginRequiredMixin, View):
                 "name": str(child),
                 "pictureUrl": request.build_absolute_uri(_child_picture_url(child)),
             }
+            child_dashboard_url = reverse(
+                "dashboard:dashboard-child", kwargs={"slug": child.slug}
+            )
+
+        # Build sleep timer state from session (same logic as ChildDashboard)
+        timer_payload = {
+            "running": False,
+            "startIso": None,
+            "elapsedSeconds": 0,
+            "paused": False,
+            "pauseStartIso": None,
+            "frozenSeconds": 0,
+        }
+        if child:
+            child_id = child.id
+            key = f"sleep_timer_start_{child_id}"
+            breaks_key = f"sleep_timer_breaks_{child_id}"
+            pause_key = f"sleep_timer_pause_{child_id}"
+            start_raw = request.session.get(key)
+            if start_raw:
+                try:
+                    start_dt = tz.datetime.fromisoformat(start_raw)
+                    now = tz.now()
+                    breaks = request.session.get(breaks_key, [])
+                    total_break_secs = sum(
+                        int(
+                            (
+                                tz.datetime.fromisoformat(b["end"])
+                                - tz.datetime.fromisoformat(b["start"])
+                            ).total_seconds()
+                        )
+                        for b in breaks
+                        if "start" in b and "end" in b
+                    )
+                    pause_raw = request.session.get(pause_key)
+                    if pause_raw:
+                        pause_start_dt = tz.datetime.fromisoformat(pause_raw)
+                        frozen = max(
+                            0,
+                            int((pause_start_dt - start_dt).total_seconds())
+                            - total_break_secs,
+                        )
+                        timer_payload = {
+                            "running": True,
+                            "startIso": start_dt.isoformat(),
+                            "elapsedSeconds": frozen,
+                            "paused": True,
+                            "pauseStartIso": pause_raw,
+                            "frozenSeconds": frozen,
+                        }
+                    else:
+                        elapsed = max(
+                            0,
+                            int((now - start_dt).total_seconds()) - total_break_secs,
+                        )
+                        timer_payload = {
+                            "running": True,
+                            "startIso": start_dt.isoformat(),
+                            "elapsedSeconds": elapsed,
+                            "paused": False,
+                            "pauseStartIso": None,
+                            "frozenSeconds": 0,
+                        }
+                except (TypeError, ValueError):
+                    del request.session[key]
+                    request.session.modified = True
 
         bootstrap = {
             "pageType": "quick-entry",
@@ -1614,14 +1686,12 @@ class QuickEntryView(LoginRequiredMixin, View):
             "urls": {
                 **_nav_urls(),
                 "addChild": reverse("core:child-add"),
+                "current": child_dashboard_url,
             },
-            "strings": {
-                **_base_strings(),
-                "quickEntry": _("Quick Entry"),
-            },
+            "strings": _build_ant_strings(),
             "messages": _serialize_messages(request),
             "currentChild": current_child,
-            "quickStatus": _build_quick_status(child) if child else None,
+            "sleepTimer": timer_payload,
         }
 
         return render(

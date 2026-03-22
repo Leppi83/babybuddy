@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { QuickLogSheet } from "./QuickLogSheet";
+import React, { useState } from "react";
 import {
   Alert,
   Button,
@@ -67,14 +66,6 @@ export function AppShell({
   const screens = useBreakpoint();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
-
-  // Listen for custom event from dashboard Quick Entry button
-  useEffect(() => {
-    const handler = () => setSheetOpen(true);
-    window.addEventListener("open-quick-entry", handler);
-    return () => window.removeEventListener("open-quick-entry", handler);
-  }, []);
 
   function handleLogout() {
     const form = document.createElement("form");
@@ -502,17 +493,6 @@ export function AppShell({
           </Space>
         </Content>
       </Layout>
-
-      {/* FAB removed — Quick Entry accessible via nav item and dashboard button */}
-
-      <QuickLogSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        child={bootstrap.currentChild ?? null}
-        csrfToken={bootstrap.csrfToken}
-        quickStatus={bootstrap.quickStatus ?? null}
-        strings={bootstrap.strings}
-      />
 
       {!isDesktop && (
         <nav className="ant-bottom-nav">
