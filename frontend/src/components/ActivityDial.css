@@ -5,162 +5,27 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  padding: 24px 16px;
+  padding: 32px 24px;
   border-radius: 0;
   transition: background 2s ease;
   overflow: hidden;
   position: relative;
-  padding: 32px 24px;
-}
-
-/* ── Day theme: sun + clouds rendered via DayDecoration JSX ──── */
-
-/* ── Night theme: moon + stars ──────────────────────────────── */
-
-/* Moon crescent — dark theme only */
-:root:not([data-theme="light"]) .activity-dial::after {
-  content: "";
-  position: absolute;
-  top: 28px;
-  right: 40px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: transparent;
-  box-shadow:
-    -8px 2px 0 0 rgba(255, 255, 255, 0.85),
-    -6px 1px 8px 0 rgba(200, 220, 255, 0.3);
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* Night sky stars — dark theme only */
-:root:not([data-theme="light"]) .activity-dial::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(
-      1.5px 1.5px at 10% 15%,
-      rgba(255, 255, 255, 0.6) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 25% 8%,
-      rgba(255, 255, 255, 0.4) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1.5px 1.5px at 45% 22%,
-      rgba(255, 255, 255, 0.5) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 65% 5%,
-      rgba(255, 255, 255, 0.35) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      2px 2px at 80% 18%,
-      rgba(255, 255, 255, 0.55) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 90% 12%,
-      rgba(255, 255, 255, 0.4) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1.5px 1.5px at 15% 85%,
-      rgba(255, 255, 255, 0.45) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 35% 92%,
-      rgba(255, 255, 255, 0.35) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1.5px 1.5px at 55% 78%,
-      rgba(255, 255, 255, 0.5) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 75% 88%,
-      rgba(255, 255, 255, 0.4) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      2px 2px at 88% 82%,
-      rgba(255, 255, 255, 0.6) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 5% 50%,
-      rgba(255, 255, 255, 0.3) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1.5px 1.5px at 95% 45%,
-      rgba(255, 255, 255, 0.45) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 50% 3%,
-      rgba(255, 255, 255, 0.35) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 70% 95%,
-      rgba(255, 255, 255, 0.3) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      2px 2px at 20% 40%,
-      rgba(255, 255, 255, 0.5) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 40% 60%,
-      rgba(255, 255, 255, 0.35) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1.5px 1.5px at 60% 35%,
-      rgba(255, 255, 255, 0.45) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 82% 55%,
-      rgba(255, 255, 255, 0.3) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      2px 2px at 30% 70%,
-      rgba(255, 255, 255, 0.55) 50%,
-      transparent 50%
-    ),
-    radial-gradient(
-      1px 1px at 12% 65%,
-      rgba(255, 255, 255, 0.4) 50%,
-      transparent 50%
-    );
-  pointer-events: none;
-  z-index: 0;
-  animation: twinkle 4s ease-in-out infinite alternate;
-}
-
-@keyframes twinkle {
-  0% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
-  }
 }
 
 .activity-dial > * {
   position: relative;
   z-index: 1;
+}
+
+/* Star twinkle animation */
+.activity-dial__star {
+  animation: twinkle 4s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
 }
 
 .activity-dial__svg {
@@ -180,8 +45,8 @@
   pointer-events: none;
 }
 
-/* On light theme, use dark text for contrast against the bright gradient */
-:root[data-theme="light"] .activity-dial__label {
+/* Day mode: white text with subtle dark outline for readability on bright sky */
+.activity-dial.is-day .activity-dial__label {
   fill: rgba(255, 255, 255, 0.95);
   font-weight: 800;
   font-size: 14px;
@@ -231,18 +96,18 @@
   opacity: 0.7;
 }
 
-/* Outer activity ring baseline track — thin */
+/* Outer activity ring baseline track */
 .activity-dial__track {
   stroke: var(--app-card-border, #1e3a5f);
   opacity: 0.25;
 }
 
-/* Dot stroke — uses theme background for contrast */
+/* Dot stroke */
 .activity-dial__dot-stroke {
   stroke: var(--app-card-bg-start, #020617);
 }
 
-/* Legend — larger, readable */
+/* Legend */
 .activity-dial__legend {
   display: flex;
   flex-wrap: wrap;
@@ -273,29 +138,7 @@
   flex-shrink: 0;
 }
 
-/* Bedtime label below dial */
-.activity-dial__bedtime-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  color: #4a88b8;
-}
-
-.activity-dial__bedtime-title {
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.7;
-}
-
-.activity-dial__bedtime-time {
-  font-size: 15px;
-  font-weight: 700;
-}
-
-/* Custom tooltip — instant, styled */
+/* Tooltip */
 .activity-dial__tooltip {
   pointer-events: none;
   z-index: 1000;

@@ -163,6 +163,173 @@ export function atmosphereStops(steps = 48, theme = "dark") {
   });
 }
 
+/* ── Celestial position math ────────────────────────────────── */
+
+/**
+ * Compute lunar phase for a given date (synodic month approximation).
+ * Returns 0–1 where 0 = new moon, 0.5 = full moon, 1 = next new moon.
+ * Uses the known new-moon epoch 2000-01-06 12:14 UTC (Julian day 2451550.1).
+ */
+export function lunarPhase(date) {
+  const SYNODIC_MONTH = 29.53058770576;
+  const KNOWN_NEW_MOON_MS = Date.UTC(2000, 0, 6, 12, 14, 0); // 2000-01-06 12:14 UTC
+  const daysSinceNewMoon = (date.getTime() - KNOWN_NEW_MOON_MS) / 86_400_000;
+  const phase = ((daysSinceNewMoon % SYNODIC_MONTH) + SYNODIC_MONTH) % SYNODIC_MONTH;
+  return phase / SYNODIC_MONTH; // 0–1
+}
+
+/**
+ * Compute the position of the sun or moon in the sky.
+ *
+ * The celestial body arcs from bottom-left (rise) over the top (peak)
+ * to bottom-right (set). Position is expressed as:
+ *   progress: 0 (rise) → 1 (set)
+ *   altitude: 0 (horizon) → 1 (zenith), follows sin(progress * π)
+ *   x: 0 (left edge) → 1 (right edge)
+ *   y: 0 (top/zenith) → 1 (bottom/horizon), = 1 - altitude
+ *
+ * @param {Date}   now          - current time
+ * @param {number} sunriseHour  - fractional hour of sunrise (e.g. 6.5 = 06:30)
+ * @param {number} sunsetHour   - fractional hour of sunset (e.g. 19.75 = 19:45)
+ * @returns {{ body: "sun"|"moon"|"twilight", progress: number, altitude: number,
+ *             x: number, y: number, phase: number, isDaytime: boolean }}
+ */
+export function celestialPosition(now, sunriseHour = 6, sunsetHour = 18) {
+  const hour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+
+  // Twilight zone: 30 min before sunrise / after sunset
+  const TWILIGHT = 0.5; // half an hour
+
+  const dayLength = sunsetHour - sunriseHour;
+  const nightLength = 24 - dayLength;
+
+  if (hour >= sunriseHour && hour <= sunsetHour) {
+    // ── Daytime: sun visible ──
+    const progress = (hour - sunriseHour) / dayLength;
+    const altitude = Math.sin(progress * Math.PI);
+    return {
+      body: "sun",
+      progress,
+      altitude,
+      x: progress,
+      y: 1 - altitude,
+      phase: lunarPhase(now),
+      isDaytime: true,
+    };
+  }
+
+  // ── Twilight check ──
+  if (hour >= sunriseHour - TWILIGHT && hour < sunriseHour) {
+    // Pre-sunrise twilight: sun approaching from below horizon at left
+    const t = (hour - (sunriseHour - TWILIGHT)) / TWILIGHT; // 0→1
+    return {
+      body: "twilight",
+      progress: 0,
+      altitude: t * 0.1, // barely above horizon
+      x: 0,
+      y: 1 - t * 0.1,
+      phase: lunarPhase(now),
+      isDaytime: false,
+      twilightProgress: t, // 0 = dark, 1 = about to sunrise
+    };
+  }
+  if (hour > sunsetHour && hour <= sunsetHour + TWILIGHT) {
+    // Post-sunset twilight: sun just dropped below horizon at right
+    const t = 1 - (hour - sunsetHour) / TWILIGHT; // 1→0
+    return {
+      body: "twilight",
+      progress: 1,
+      altitude: t * 0.1,
+      x: 1,
+      y: 1 - t * 0.1,
+      phase: lunarPhase(now),
+      isDaytime: false,
+      twilightProgress: t,
+    };
+  }
+
+  // ── Nighttime: moon visible ──
+  // Moon rises at sunset, sets at sunrise (fills the entire night evenly).
+  // Night spans: sunsetHour → 24 → sunriseHour (wraps around midnight).
+  let nightElapsed;
+  if (hour > sunsetHour) {
+    nightElapsed = hour - sunsetHour;
+  } else {
+    nightElapsed = (24 - sunsetHour) + hour;
+  }
+  const moonProgress = Math.min(1, Math.max(0, nightElapsed / nightLength));
+  const moonAltitude = Math.sin(moonProgress * Math.PI);
+
+  return {
+    body: "moon",
+    progress: moonProgress,
+    altitude: moonAltitude,
+    x: moonProgress,
+    y: 1 - moonAltitude,
+    phase: lunarPhase(now),
+    isDaytime: false,
+  };
+}
+
+/**
+ * Generate a CSS background gradient string for the sky based on sun position.
+ *
+ * @param {object} celestial - output of celestialPosition()
+ * @returns {string} CSS background value
+ */
+export function skyGradient(celestial) {
+  const { body, altitude, x, phase } = celestial;
+
+  // Sun glow anchor point (percentage)
+  const glowX = Math.round(x * 100);
+  // Sun vertical: when altitude=1 (zenith) → 10% from top; altitude=0 (horizon) → 85%
+  const glowY = Math.round(85 - altitude * 75);
+
+  if (body === "sun") {
+    if (altitude > 0.6) {
+      // High sun: bright blue sky + green/brown earth
+      return (
+        `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,210,0,0.55) 0%, rgba(255,180,40,0.2) 18%, transparent 38%), ` +
+        "linear-gradient(180deg, #6EC6F5 0%, #9ED8F7 22%, #D8ECAA 40%, #B8D088 52%, #8CA854 66%, #6E8840 78%, #5A6E34 88%, #4A5828 100%)"
+      );
+    }
+    if (altitude > 0.25) {
+      // Mid-altitude sun: warm sky transitioning
+      return (
+        `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,200,20,0.5) 0%, rgba(255,160,40,0.2) 20%, transparent 40%), ` +
+        "linear-gradient(180deg, #78BBEA 0%, #A4D4F0 20%, #D8E8B8 38%, #C0D890 50%, #8CA854 66%, #6E8840 80%, #5A6E34 100%)"
+      );
+    }
+    // Low sun (golden hour near sunrise/sunset)
+    return (
+      `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,160,40,0.6) 0%, rgba(255,120,30,0.3) 18%, transparent 40%), ` +
+      "linear-gradient(180deg, #E8A060 0%, #D88848 15%, #C8789A 32%, #8A70B8 50%, #5A7A9A 70%, #4A6A4A 85%, #3A5A30 100%)"
+    );
+  }
+
+  if (body === "twilight") {
+    const t = celestial.twilightProgress ?? 0.5;
+    if (t > 0.5) {
+      // Brighter twilight (close to sunrise/sunset)
+      return (
+        "linear-gradient(180deg, #D88848 0%, #C87898 25%, #7A6AB8 50%, #4A5A8A 72%, #3A5A4A 88%, #2A4A2A 100%)"
+      );
+    }
+    // Darker twilight
+    return (
+      "linear-gradient(180deg, #4A3A60 0%, #2A2A50 30%, #1A2040 55%, #152030 75%, #0E1828 100%)"
+    );
+  }
+
+  // Night: deep navy with subtle moon glow
+  const moonGlowX = Math.round(x * 100);
+  const moonGlowY = Math.round(85 - altitude * 75);
+  return (
+    `radial-gradient(circle at ${moonGlowX}% ${moonGlowY}%, rgba(180,200,230,0.08) 0%, transparent 30%), ` +
+    "linear-gradient(180deg, #080d1e 0%, #0c1428 30%, #0a1020 60%, #060c18 100%)"
+  );
+}
+
 const ARC_TYPES = new Set(["sleep", "feeding", "breastfeeding", "pumping"]);
 
 /**

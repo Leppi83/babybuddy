@@ -4,12 +4,13 @@ import {
   ARC_SPAN,
   ARC_START,
   atmosphereStops,
-  dayBrightness,
   hourToAngle,
   pointOnCircle,
   timeToFixedAngle,
   arcDasharray,
   classifyActivities,
+  celestialPosition,
+  skyGradient,
 } from "../lib/dial-utils.js";
 import { ACTIVITY_COLORS } from "../lib/app-utils.jsx";
 import "./ActivityDial.css";
@@ -50,22 +51,230 @@ const SEVERITY_COLORS = {
   info: "var(--app-primary)",
 };
 
+/* ── Stars — fixed random positions, rendered as small circles ── */
+const STARS = [
+  { x: 10, y: 15, r: 1.2, o: 0.6 },
+  { x: 25, y: 8, r: 0.8, o: 0.4 },
+  { x: 45, y: 22, r: 1.2, o: 0.5 },
+  { x: 65, y: 5, r: 0.8, o: 0.35 },
+  { x: 80, y: 18, r: 1.5, o: 0.55 },
+  { x: 90, y: 12, r: 0.8, o: 0.4 },
+  { x: 15, y: 85, r: 1.1, o: 0.45 },
+  { x: 35, y: 92, r: 0.8, o: 0.35 },
+  { x: 55, y: 78, r: 1.2, o: 0.5 },
+  { x: 75, y: 88, r: 0.8, o: 0.4 },
+  { x: 88, y: 82, r: 1.5, o: 0.6 },
+  { x: 5, y: 50, r: 0.8, o: 0.3 },
+  { x: 95, y: 45, r: 1.1, o: 0.45 },
+  { x: 50, y: 3, r: 0.8, o: 0.35 },
+  { x: 70, y: 95, r: 0.8, o: 0.3 },
+  { x: 20, y: 40, r: 1.5, o: 0.5 },
+  { x: 40, y: 60, r: 0.8, o: 0.35 },
+  { x: 60, y: 35, r: 1.1, o: 0.45 },
+  { x: 82, y: 55, r: 0.8, o: 0.3 },
+  { x: 30, y: 70, r: 1.4, o: 0.55 },
+  { x: 12, y: 65, r: 0.8, o: 0.4 },
+];
+
+/* ── Celestial decoration — sun/moon/clouds positioned dynamically ── */
+function CelestialDecoration({ celestial }) {
+  const { body, x, altitude, phase } = celestial;
+
+  // Convert normalized position to pixel percentages
+  const pxLeft = `${Math.round(x * 100)}%`;
+  // altitude 0 = bottom, 1 = top. Map to CSS: altitude 1 → top 8%, altitude 0 → top 85%
+  const pxTop = `${Math.round(85 - altitude * 77)}%`;
+
+  if (body === "sun" || (body === "twilight" && (celestial.twilightProgress ?? 0) > 0.5)) {
+    // Sun element + clouds (daytime)
+    const sunScale = 0.7 + altitude * 0.3; // bigger when higher
+    const sunOpacity = body === "twilight" ? 0.5 : 0.95;
+    return (
+      <div
+        aria-hidden="true"
+        style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}
+      >
+        {/* Sun glow + core */}
+        <div
+          style={{
+            position: "absolute",
+            left: pxLeft,
+            top: pxTop,
+            transform: `translate(-50%, -50%) scale(${sunScale})`,
+            width: 80,
+            height: 80,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, #FFF176 0%, #FFD600 35%, rgba(255,179,0,0) 70%)",
+            opacity: sunOpacity * 0.7,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: pxLeft,
+            top: pxTop,
+            transform: "translate(-50%, -50%)",
+            width: 36,
+            height: 36,
+            borderRadius: "50%",
+            background: "#FFD600",
+            opacity: sunOpacity,
+            boxShadow: "0 0 20px 8px rgba(255,214,0,0.3)",
+          }}
+        />
+
+        {/* Clouds — only when sun is reasonably high */}
+        {altitude > 0.2 && (
+          <svg
+            viewBox="0 0 420 100"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "40%", opacity: 0.9 }}
+            preserveAspectRatio="xMidYMid slice"
+          >
+            {/* Cloud 1 */}
+            <g opacity="0.93">
+              <rect x="112" y="42" width="88" height="24" rx="12" fill="white" />
+              <circle cx="130" cy="40" r="16" fill="white" />
+              <circle cx="152" cy="32" r="20" fill="white" />
+              <circle cx="178" cy="38" r="15" fill="white" />
+              <ellipse cx="156" cy="66" rx="40" ry="5" fill="rgba(160,190,220,0.18)" />
+            </g>
+            {/* Cloud 2 */}
+            <g opacity="0.88">
+              <rect x="280" y="36" width="120" height="30" rx="15" fill="white" />
+              <circle cx="302" cy="33" r="20" fill="white" />
+              <circle cx="328" cy="22" r="26" fill="white" />
+              <circle cx="360" cy="30" r="20" fill="white" />
+              <ellipse cx="340" cy="66" rx="55" ry="6" fill="rgba(160,190,220,0.15)" />
+            </g>
+          </svg>
+        )}
+      </div>
+    );
+  }
+
+  if (body === "moon" || (body === "twilight" && (celestial.twilightProgress ?? 1) <= 0.5)) {
+    // Moon crescent + stars (nighttime)
+    // phase: 0 = new moon, 0.25 = first quarter, 0.5 = full, 0.75 = last quarter
+    const moonSize = 28;
+    // Crescent: use clip path. phase 0–0.5 → waxing, 0.5–1 → waning.
+    // Shadow offset: at new moon (0) fully shadowed, at full (0.5) no shadow.
+    const normalizedPhase = phase;
+    const isWaxing = normalizedPhase < 0.5;
+    const illumination = normalizedPhase <= 0.5
+      ? normalizedPhase * 2      // 0→1 during waxing
+      : (1 - normalizedPhase) * 2; // 1→0 during waning
+
+    // Shadow circle offset from center: 0 illumination = fully covering, 1 = no shadow
+    const shadowOffset = isWaxing
+      ? moonSize * (1 - illumination)   // shadow from right, shrinking left
+      : -moonSize * (1 - illumination); // shadow from left, shrinking right
+
+    return (
+      <div
+        aria-hidden="true"
+        style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}
+      >
+        {/* Stars */}
+        {STARS.map((star, i) => (
+          <div
+            key={i}
+            className="activity-dial__star"
+            style={{
+              position: "absolute",
+              left: `${star.x}%`,
+              top: `${star.y}%`,
+              width: star.r * 2,
+              height: star.r * 2,
+              borderRadius: "50%",
+              background: "white",
+              opacity: star.o,
+            }}
+          />
+        ))}
+
+        {/* Moon */}
+        <svg
+          style={{
+            position: "absolute",
+            left: pxLeft,
+            top: pxTop,
+            transform: "translate(-50%, -50%)",
+            width: moonSize + 20,
+            height: moonSize + 20,
+            overflow: "visible",
+          }}
+          viewBox={`0 0 ${moonSize + 20} ${moonSize + 20}`}
+        >
+          {/* Moon glow */}
+          <circle
+            cx={(moonSize + 20) / 2}
+            cy={(moonSize + 20) / 2}
+            r={moonSize * 0.9}
+            fill="none"
+            stroke="rgba(200,220,255,0.12)"
+            strokeWidth={8}
+          />
+          {/* Moon disc */}
+          <clipPath id="moonClip">
+            <circle cx={(moonSize + 20) / 2} cy={(moonSize + 20) / 2} r={moonSize / 2} />
+          </clipPath>
+          <g clipPath="url(#moonClip)">
+            {/* Lit surface */}
+            <circle
+              cx={(moonSize + 20) / 2}
+              cy={(moonSize + 20) / 2}
+              r={moonSize / 2}
+              fill="rgba(230,235,245,0.9)"
+            />
+            {/* Shadow — a circle offset to create the crescent */}
+            <circle
+              cx={(moonSize + 20) / 2 + shadowOffset}
+              cy={(moonSize + 20) / 2}
+              r={moonSize / 2}
+              fill="rgba(8,13,30,0.95)"
+            />
+          </g>
+        </svg>
+      </div>
+    );
+  }
+
+  // Deep twilight — just stars fading in/out
+  const starOpacity = 1 - (celestial.twilightProgress ?? 0.5);
+  return (
+    <div
+      aria-hidden="true"
+      style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}
+    >
+      {STARS.map((star, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: star.r * 2,
+            height: star.r * 2,
+            borderRadius: "50%",
+            background: "white",
+            opacity: star.o * starOpacity,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /* ── Atmosphere ring — CSS conic-gradient over 270° arc ──────── */
 function AtmosphereRing({ theme }) {
   const stops = useMemo(() => atmosphereStops(48, theme), [theme]);
-
-  // Build a CSS conic-gradient string from the stops.
-  // Stops wrap around 0° (225° → 360° → 0° → 135°) which confuses CSS.
-  // Fix: start the conic gradient at 225° and use relative offsets (0° → 270°).
   const gradientStr = useMemo(() => {
     const parts = stops.map((s) => {
-      // Convert absolute angle to offset from ARC_START (225°)
       let offset = s.angle - 225;
       if (offset < 0) offset += 360;
       return `${s.color} ${offset.toFixed(1)}deg`;
     });
-    // CSS conic "from" is relative to 12 o'clock (top), but CSS 0° = top.
-    // We want to start at 225° (bottom-left), so rotate from 225deg.
     return `conic-gradient(from 225deg, ${parts.join(", ")})`;
   }, [stops]);
 
@@ -73,13 +282,8 @@ function AtmosphereRing({ theme }) {
   const innerR = ATMO_R - ATMO_STROKE / 2;
   const size = outerR * 2;
 
-  // Create a mask that shows only the ring (radial) AND only the 270° arc (conic).
-  // The gap is from 135° to 225° (90° centered at bottom = 180°).
-  // In CSS conic-gradient terms: transparent from 135° to 225°, black elsewhere.
   const arcMask = [
-    // Radial mask for ring shape
     `radial-gradient(circle, transparent ${innerR}px, black ${innerR}px, black ${outerR}px, transparent ${outerR}px)`,
-    // Conic mask to hide the 90° gap at the bottom (135° → 225°), with soft fade at arc ends
     `conic-gradient(from 0deg, black 0deg, black 125deg, transparent 145deg, transparent 215deg, black 235deg, black 360deg)`,
   ].join(", ");
 
@@ -88,14 +292,10 @@ function AtmosphereRing({ theme }) {
       <div
         xmlns="http://www.w3.org/1999/xhtml"
         style={{
-          width: size,
-          height: size,
-          borderRadius: "50%",
+          width: size, height: size, borderRadius: "50%",
           background: gradientStr,
-          maskImage: arcMask,
-          maskComposite: "intersect",
-          WebkitMaskImage: arcMask,
-          WebkitMaskComposite: "source-in",
+          maskImage: arcMask, maskComposite: "intersect",
+          WebkitMaskImage: arcMask, WebkitMaskComposite: "source-in",
         }}
       />
     </foreignObject>
@@ -106,9 +306,8 @@ function AtmosphereRing({ theme }) {
 function TickMarks() {
   const ticks = useMemo(() => {
     const result = [];
-    // 96 ticks = every 15 minutes across 24 hours
     for (let i = 0; i <= 96; i++) {
-      const hour = (i * 15) / 60; // fractional hour 0–24
+      const hour = (i * 15) / 60;
       const angle = hourToAngle(hour);
       const isHour = i % 4 === 0;
       const innerR = ATMO_R - ATMO_STROKE / 2;
@@ -125,10 +324,7 @@ function TickMarks() {
       {ticks.map((t) => (
         <line
           key={t.key}
-          x1={t.inner.x}
-          y1={t.inner.y}
-          x2={t.outer.x}
-          y2={t.outer.y}
+          x1={t.inner.x} y1={t.inner.y} x2={t.outer.x} y2={t.outer.y}
           className="activity-dial__tick"
           strokeWidth={t.isHour ? 1.5 : 0.5}
           opacity={t.isHour ? 0.4 : 0.2}
@@ -138,11 +334,11 @@ function TickMarks() {
   );
 }
 
-/* ── Hour labels — fixed positions on the 270° arc ───────────── */
+/* ── Hour labels ─────────────────────────────────────────────── */
 function HourLabels() {
   const labels = useMemo(() => {
     const LABEL_HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 24];
-    const labelR = ATMO_R; // center of the atmosphere ring
+    const labelR = ATMO_R;
     return LABEL_HOURS.map((hour) => {
       const angle = hourToAngle(hour);
       const { x, y } = pointOnCircle(angle, labelR, CX, CY);
@@ -153,12 +349,7 @@ function HourLabels() {
   return (
     <g>
       {labels.map((l) => (
-        <text
-          key={`h${l.hour}`}
-          x={l.x}
-          y={l.y}
-          className="activity-dial__label"
-        >
+        <text key={`h${l.hour}`} x={l.x} y={l.y} className="activity-dial__label">
           {l.text}
         </text>
       ))}
@@ -166,71 +357,13 @@ function HourLabels() {
   );
 }
 
-/* ── Day decoration — sun + crisp clouds (light theme only) ───── */
-function DayDecoration() {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "40%",
-        pointerEvents: "none",
-        zIndex: 0,
-        overflow: "hidden",
-      }}
-    >
-      <svg
-        viewBox="0 0 420 100"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ width: "100%", height: "100%" }}
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <defs>
-          <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#FFF176" />
-            <stop offset="40%" stopColor="#FFD600" />
-            <stop offset="100%" stopColor="#FFB300" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-
-        {/* Sun glow + core */}
-        <circle cx="40" cy="40" r="48" fill="url(#sunGrad)" opacity="0.7" />
-        <circle cx="40" cy="40" r="26" fill="#FFD600" opacity="0.95" />
-
-        {/* Cloud 1 — small, center-left */}
-        <g opacity="0.93">
-          <rect x="112" y="42" width="88" height="24" rx="12" fill="white" />
-          <circle cx="130" cy="40" r="16" fill="white" />
-          <circle cx="152" cy="32" r="20" fill="white" />
-          <circle cx="178" cy="38" r="15" fill="white" />
-          <ellipse cx="156" cy="66" rx="40" ry="5" fill="rgba(160,190,220,0.18)" />
-        </g>
-
-        {/* Cloud 2 — larger, right side */}
-        <g opacity="0.88">
-          <rect x="280" y="36" width="120" height="30" rx="15" fill="white" />
-          <circle cx="302" cy="33" r="20" fill="white" />
-          <circle cx="328" cy="22" r="26" fill="white" />
-          <circle cx="360" cy="30" r="20" fill="white" />
-          <ellipse cx="340" cy="66" rx="55" ry="6" fill="rgba(160,190,220,0.15)" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-/* ── Bedtime marker — dashed line across atmosphere ring ─────── */
+/* ── Bedtime marker ──────────────────────────────────────────── */
 function BedtimeMarker({ bedtime, now }) {
   if (!bedtime) return null;
   const [hStr, mStr] = bedtime.split(":");
   const bedDate = new Date(now);
   bedDate.setHours(parseInt(hStr, 10), parseInt(mStr, 10), 0, 0);
   const angle = timeToFixedAngle(bedDate);
-
-  // Line marker across the atmosphere ring
   const innerR = ATMO_R - ATMO_STROKE / 2;
   const outerR = ATMO_R + ATMO_STROKE / 2;
   const inner = pointOnCircle(angle, innerR, CX, CY);
@@ -239,88 +372,46 @@ function BedtimeMarker({ bedtime, now }) {
   return (
     <g>
       <line
-        x1={inner.x}
-        y1={inner.y}
-        x2={outer.x}
-        y2={outer.y}
-        stroke="#4a88b8"
-        strokeWidth={2}
-        strokeDasharray="4 3"
-        strokeLinecap="round"
-        opacity={0.8}
+        x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y}
+        stroke="#4a88b8" strokeWidth={2} strokeDasharray="4 3" strokeLinecap="round" opacity={0.8}
       />
     </g>
   );
 }
 
-/* ── Red dot marking current time on the inner edge of atmosphere ring ── */
+/* ── Current time dot ────────────────────────────────────────── */
 function CurrentTimeDot({ now }) {
   const angle = timeToFixedAngle(now);
   const innerEdge = ATMO_R - ATMO_STROKE / 2;
   const { x, y } = pointOnCircle(angle, innerEdge, CX, CY);
-
-  return (
-    <circle cx={x} cy={y} r={5} fill="#ff4d4f" stroke="#020617" strokeWidth={2} />
-  );
+  return <circle cx={x} cy={y} r={5} fill="#ff4d4f" stroke="#020617" strokeWidth={2} />;
 }
 
 /* ── Center display ──────────────────────────────────────────── */
-function CenterDisplay({
-  now,
-  currentStatus,
-  showInsight,
-  topInsight,
-  onCenterClick,
-}) {
+function CenterDisplay({ now, currentStatus, showInsight, topInsight, onCenterClick }) {
   const hasInsight = Boolean(topInsight);
-  const insightColor = hasInsight
-    ? (SEVERITY_COLORS[topInsight.severity] ?? SEVERITY_COLORS.info)
-    : null;
+  const insightColor = hasInsight ? (SEVERITY_COLORS[topInsight.severity] ?? SEVERITY_COLORS.info) : null;
   const insightTitle = hasInsight
-    ? topInsight.title.length > 22
-      ? topInsight.title.slice(0, 21) + "\u2026"
-      : topInsight.title
+    ? topInsight.title.length > 22 ? topInsight.title.slice(0, 21) + "\u2026" : topInsight.title
     : null;
 
   return (
-    <g
-      onClick={hasInsight ? onCenterClick : undefined}
-      style={{ cursor: hasInsight ? "pointer" : "default" }}
-    >
-      <circle
-        cx={CX}
-        cy={CY}
-        r={CENTER_R}
-        className="activity-dial__center-bg"
-      />
+    <g onClick={hasInsight ? onCenterClick : undefined} style={{ cursor: hasInsight ? "pointer" : "default" }}>
+      <circle cx={CX} cy={CY} r={CENTER_R} className="activity-dial__center-bg" />
       {showInsight && hasInsight ? (
         <>
-          <text
-            x={CX}
-            y={CY - 8}
-            className="activity-dial__center-insight"
-            style={{ fill: insightColor }}
-          >
+          <text x={CX} y={CY - 8} className="activity-dial__center-insight" style={{ fill: insightColor }}>
             {insightTitle}
           </text>
-          <text
-            x={CX}
-            y={CY + 12}
-            className="activity-dial__center-hint"
-            style={{ fill: insightColor }}
-          >
+          <text x={CX} y={CY + 12} className="activity-dial__center-hint" style={{ fill: insightColor }}>
             {"\u2193"} Tap for details
           </text>
         </>
       ) : (
         <>
-          <text x={CX} y={CY - 4} className="activity-dial__center-time">
-            {formatTime(now)}
-          </text>
+          <text x={CX} y={CY - 4} className="activity-dial__center-time">{formatTime(now)}</text>
           {currentStatus && (
-            <text x={CX} y={CY + 16} className="activity-dial__center-status">
-              {currentStatus}
-            </text>
+            <text x={CX} y={CY + 16} className="activity-dial__center-status">{currentStatus}</text>
           )}
         </>
       )}
@@ -328,26 +419,13 @@ function CenterDisplay({
   );
 }
 
-/* ── Activity track — 270° arc baseline ─────────────────────── */
+/* ── Activity track ──────────────────────────────────────────── */
 function ActivityTrack() {
   const circumference = 2 * Math.PI * ACTIVITY_R;
-  const { dasharray, dashoffset } = arcDasharray(
-    ARC_START, // start at 225°
-    (ARC_START + ARC_SPAN) % 360, // end at 135°
-    circumference,
-  );
-
+  const { dasharray, dashoffset } = arcDasharray(ARC_START, (ARC_START + ARC_SPAN) % 360, circumference);
   return (
-    <circle
-      cx={CX}
-      cy={CY}
-      r={ACTIVITY_R}
-      fill="none"
-      className="activity-dial__track"
-      strokeWidth={TRACK_STROKE}
-      strokeDasharray={dasharray}
-      strokeDashoffset={dashoffset}
-    />
+    <circle cx={CX} cy={CY} r={ACTIVITY_R} fill="none" className="activity-dial__track"
+      strokeWidth={TRACK_STROKE} strokeDasharray={dasharray} strokeDashoffset={dashoffset} />
   );
 }
 
@@ -357,32 +435,13 @@ function ActivityArcs({ arcs, cx, cy, radius, strokeWidth, onHover }) {
   return (
     <g>
       {arcs.map((arc, i) => {
-        const { dasharray, dashoffset } = arcDasharray(
-          arc.startAngle,
-          arc.endAngle,
-          circumference,
-        );
+        const { dasharray, dashoffset } = arcDasharray(arc.startAngle, arc.endAngle, circumference);
         return (
-          <circle
-            key={i}
-            cx={cx}
-            cy={cy}
-            r={radius}
-            fill="none"
-            stroke={ACTIVITY_COLORS[arc.type]}
-            strokeWidth={strokeWidth}
-            strokeDasharray={dasharray}
-            strokeDashoffset={dashoffset}
-            strokeLinecap="round"
-            opacity={0.9}
-            style={{ cursor: "pointer" }}
-            onMouseEnter={(e) =>
-              onHover?.({
-                text: arc.tooltip || arc.type,
-                x: e.clientX,
-                y: e.clientY,
-              })
-            }
+          <circle key={i} cx={cx} cy={cy} r={radius} fill="none"
+            stroke={ACTIVITY_COLORS[arc.type]} strokeWidth={strokeWidth}
+            strokeDasharray={dasharray} strokeDashoffset={dashoffset}
+            strokeLinecap="round" opacity={0.9} style={{ cursor: "pointer" }}
+            onMouseEnter={(e) => onHover?.({ text: arc.tooltip || arc.type, x: e.clientX, y: e.clientY })}
             onMouseLeave={() => onHover?.(null)}
           />
         );
@@ -398,22 +457,10 @@ function ActivityDots({ dots, cx, cy, radius, onHover }) {
       {dots.map((dot, i) => {
         const { x, y } = pointOnCircle(dot.angle, radius, cx, cy);
         return (
-          <circle
-            key={i}
-            cx={x}
-            cy={y}
-            r={6}
-            fill={ACTIVITY_COLORS[dot.type]}
-            className="activity-dial__dot-stroke"
-            strokeWidth={2}
+          <circle key={i} cx={x} cy={y} r={6} fill={ACTIVITY_COLORS[dot.type]}
+            className="activity-dial__dot-stroke" strokeWidth={2}
             style={{ cursor: "pointer" }}
-            onMouseEnter={(e) =>
-              onHover?.({
-                text: dot.tooltip || dot.type,
-                x: e.clientX,
-                y: e.clientY,
-              })
-            }
+            onMouseEnter={(e) => onHover?.({ text: dot.tooltip || dot.type, x: e.clientX, y: e.clientY })}
             onMouseLeave={() => onHover?.(null)}
           />
         );
@@ -425,51 +472,20 @@ function ActivityDots({ dots, cx, cy, radius, onHover }) {
 /* ── Legend ───────────────────────────────────────────────────── */
 function Legend({ strings }) {
   const items = [
-    {
-      key: "sleep",
-      color: ACTIVITY_COLORS.sleep,
-      label: strings.sleep,
-      type: "line",
-    },
-    {
-      key: "feeding",
-      color: ACTIVITY_COLORS.feeding,
-      label: strings.feed,
-      type: "dot",
-    },
-    {
-      key: "breastfeeding",
-      color: ACTIVITY_COLORS.breastfeeding,
-      label: strings.breast || "Breast",
-      type: "dot",
-    },
-    {
-      key: "diaper",
-      color: ACTIVITY_COLORS.diaper,
-      label: strings.diaper,
-      type: "dot",
-    },
-    {
-      key: "pumping",
-      color: ACTIVITY_COLORS.pumping,
-      label: strings.pump,
-      type: "line",
-    },
+    { key: "sleep", color: ACTIVITY_COLORS.sleep, label: strings.sleep, type: "line" },
+    { key: "feeding", color: ACTIVITY_COLORS.feeding, label: strings.feed, type: "dot" },
+    { key: "breastfeeding", color: ACTIVITY_COLORS.breastfeeding, label: strings.breast || "Breast", type: "dot" },
+    { key: "diaper", color: ACTIVITY_COLORS.diaper, label: strings.diaper, type: "dot" },
+    { key: "pumping", color: ACTIVITY_COLORS.pumping, label: strings.pump, type: "line" },
   ];
   return (
     <div className="activity-dial__legend">
       {items.map((item) => (
         <span key={item.key} className="activity-dial__legend-item">
           {item.type === "line" ? (
-            <span
-              className="activity-dial__legend-line"
-              style={{ background: item.color }}
-            />
+            <span className="activity-dial__legend-line" style={{ background: item.color }} />
           ) : (
-            <span
-              className="activity-dial__legend-dot"
-              style={{ background: item.color }}
-            />
+            <span className="activity-dial__legend-dot" style={{ background: item.color }} />
           )}
           {item.label || item.key}
         </span>
@@ -487,24 +503,19 @@ export default function ActivityDial({
   insights = [],
   strings = {},
   referenceDate = null,
+  sunriseHour = 6,
+  sunsetHour = 18,
 }) {
   const [realNow, setRealNow] = useState(() => new Date());
   const [showInsight, setShowInsight] = useState(false);
   const [tooltip, setTooltip] = useState(null);
   const [theme, setTheme] = useState(getTheme);
 
-  // When viewing a past date, anchor the dial to that day's current-equivalent time
   const now = useMemo(() => {
     if (!referenceDate) return realNow;
-    const ref =
-      referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
+    const ref = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
     const anchored = new Date(ref);
-    anchored.setHours(
-      realNow.getHours(),
-      realNow.getMinutes(),
-      realNow.getSeconds(),
-      0,
-    );
+    anchored.setHours(realNow.getHours(), realNow.getMinutes(), realNow.getSeconds(), 0);
     return anchored;
   }, [referenceDate, realNow]);
 
@@ -515,18 +526,11 @@ export default function ActivityDial({
 
   useEffect(() => {
     const observer = new MutationObserver(() => setTheme(getTheme()));
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     return () => observer.disconnect();
   }, []);
 
-  const topInsight =
-    insights.find((i) => i.severity === "alert") ||
-    insights.find((i) => i.severity === "warning") ||
-    insights[0] ||
-    null;
+  const topInsight = insights.find((i) => i.severity === "alert") || insights.find((i) => i.severity === "warning") || insights[0] || null;
 
   useEffect(() => {
     if (!topInsight) return;
@@ -540,135 +544,53 @@ export default function ActivityDial({
   };
 
   const parsedActivities = useMemo(
-    () =>
-      activities.map((a) => {
-        if (a.type === "diaper") {
-          return { ...a, time: new Date(a.time) };
-        }
-        return {
-          ...a,
-          start: new Date(a.start),
-          end: a.end ? new Date(a.end) : new Date(),
-        };
-      }),
+    () => activities.map((a) => {
+      if (a.type === "diaper") return { ...a, time: new Date(a.time) };
+      return { ...a, start: new Date(a.start), end: a.end ? new Date(a.end) : new Date() };
+    }),
     [activities],
   );
 
-  const { arcs, dots } = useMemo(
-    () => classifyActivities(parsedActivities),
-    [parsedActivities],
+  const { arcs, dots } = useMemo(() => classifyActivities(parsedActivities), [parsedActivities]);
+
+  // ── Dynamic sky: celestial position drives everything ──
+  const celestial = useMemo(
+    () => celestialPosition(now, sunriseHour, sunsetHour),
+    [now, sunriseHour, sunsetHour],
   );
 
-  // Compute day/night background gradient based on current hour
-  const brightness = useMemo(() => {
-    const hour = now.getHours() + now.getMinutes() / 60;
-    return dayBrightness(hour);
-  }, [now]);
+  const bgStyle = useMemo(
+    () => ({ background: skyGradient(celestial) }),
+    [celestial],
+  );
 
-  const isNight = brightness < 0.3;
-
-  const bgStyle = useMemo(() => {
-    const hour = now.getHours() + now.getMinutes() / 60;
-    const b = dayBrightness(hour);
-
-    if (theme === "light") {
-      // Light theme = always daytime: sun, clouds, sky-to-earth. No hour branching.
-      return {
-        background:
-          "radial-gradient(circle at 9% 8%, rgba(255,210,0,0.6) 0%, rgba(255,160,30,0.3) 20%, transparent 40%), " +
-          "linear-gradient(180deg, #6EC6F5 0%, #9ED8F7 22%, #D8ECAA 40%, #B8D088 52%, #8CA854 66%, #6E8840 78%, #5A6E34 88%, #4A5828 100%)",
-      };
-    } else {
-      // Dark theme — night-sky palette regardless of time of day
-      if (b > 0.7) {
-        // Midday: deep cerulean-navy
-        return {
-          background:
-            "linear-gradient(135deg, #0d1f3c 0%, #0a1830 40%, #0e2240 65%, #0d1f3c 100%)",
-        };
-      } else if (b > 0.3) {
-        // Twilight: dusk indigo-navy
-        return {
-          background:
-            "linear-gradient(135deg, #1a0f30 0%, #0d1635 45%, #0a1428 75%, #1a0f30 100%)",
-        };
-      } else {
-        // Deep night: very dark navy
-        return {
-          background:
-            "linear-gradient(135deg, #060c18 0%, #090f20 50%, #060c18 100%)",
-        };
-      }
-    }
-  }, [now, theme]);
+  const isNight = !celestial.isDaytime;
 
   return (
     <div
       className={`activity-dial${isNight ? " is-night" : " is-day"}`}
       style={bgStyle}
     >
-      {theme === "light" && <DayDecoration />}
+      <CelestialDecoration celestial={celestial} />
       <svg
         className="activity-dial__svg"
         viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
         role="img"
         aria-label="24-hour activity dial"
       >
-        {/* Atmosphere gradient ring — 270° arc */}
         <AtmosphereRing theme={theme} />
-
-        {/* 15-minute tick marks along the arc */}
         <TickMarks />
-
-        {/* Outer activity ring — 270° baseline track */}
         <ActivityTrack />
-
-        {/* Activity arcs overlay the track */}
-        <ActivityArcs
-          arcs={arcs}
-          cx={CX}
-          cy={CY}
-          radius={ACTIVITY_R}
-          strokeWidth={ACTIVITY_STROKE}
-          onHover={setTooltip}
-        />
-
-        {/* Activity dots overlay the track */}
-        <ActivityDots
-          dots={dots}
-          cx={CX}
-          cy={CY}
-          radius={ACTIVITY_R}
-          onHover={setTooltip}
-        />
-
-        {/* Hour labels */}
+        <ActivityArcs arcs={arcs} cx={CX} cy={CY} radius={ACTIVITY_R} strokeWidth={ACTIVITY_STROKE} onHover={setTooltip} />
+        <ActivityDots dots={dots} cx={CX} cy={CY} radius={ACTIVITY_R} onHover={setTooltip} />
         <HourLabels />
-
-        {/* Red dot for current time */}
         <CurrentTimeDot now={now} />
-
-        {/* Center display */}
-        <CenterDisplay
-          now={now}
-          currentStatus={currentStatus}
-          showInsight={showInsight}
-          topInsight={topInsight}
-          onCenterClick={handleCenterClick}
-        />
+        <CenterDisplay now={now} currentStatus={currentStatus} showInsight={showInsight} topInsight={topInsight} onCenterClick={handleCenterClick} />
       </svg>
 
       {tooltip &&
         createPortal(
-          <div
-            className="activity-dial__tooltip"
-            style={{
-              position: "fixed",
-              left: tooltip.x + 14,
-              top: tooltip.y - 36,
-              zIndex: 9999,
-            }}
-          >
+          <div className="activity-dial__tooltip" style={{ position: "fixed", left: tooltip.x + 14, top: tooltip.y - 36, zIndex: 9999 }}>
             {tooltip.text}
           </div>,
           document.body,
