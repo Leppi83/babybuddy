@@ -272,16 +272,14 @@ class Dashboard(LoginRequiredMixin, TemplateView):
     # TODO: Use .card-deck in this template once BS4 is finalized.
     template_name = "babybuddy/ant_app.html"
 
-    # Show the overall dashboard or a child dashboard if one Child instance.
+    # Always redirect to a child dashboard; child selection is in the nav sidebar.
     def get(self, request, *args, **kwargs):
         children = Child.objects.count()
         if children == 0:
             return HttpResponseRedirect(reverse("babybuddy:welcome"))
-        elif children == 1:
-            return HttpResponseRedirect(
-                reverse("dashboard:dashboard-child", args={Child.objects.first().slug})
-            )
-        return super(Dashboard, self).get(request, *args, **kwargs)
+        return HttpResponseRedirect(
+            reverse("dashboard:dashboard-child", args={Child.objects.first().slug})
+        )
 
     def get_template_names(self):
         if _ant_dashboard_enabled():
