@@ -6,6 +6,7 @@ import {
   Grid,
   Layout,
   Menu,
+  Popover,
   Select,
   Space,
   Typography,
@@ -616,16 +617,53 @@ export function AppShell({
         <nav className="ant-bottom-nav">
           {[
             { key: bootstrap.urls.dashboard, icon: <HomeOutlined />, label: s.dashboard },
-            {
-              key: topicPages?.sleep || bootstrap.urls.dashboard,
-              icon: <BulbOutlined />,
-              label: s.insights || "Insights",
-            },
+            { key: "__insights__", icon: <BulbOutlined />, label: s.insights || "Insights" },
             { key: quickEntryUrl, icon: <EditOutlined />, label: s.quickEntry || "Quick Entry" },
             { key: bootstrap.urls.timeline, icon: <HistoryOutlined />, label: s.timeline },
             { key: "__more__", icon: <EllipsisOutlined />, label: "More" },
           ].map((item) => {
-            const isActive = item.key !== "__more__" && selectedKey === item.key;
+            const isInsightsActive = topicPages && selectedKey &&
+              Object.values(topicPages).some((url) => selectedKey === url);
+            const isActive = item.key === "__insights__"
+              ? isInsightsActive
+              : item.key !== "__more__" && selectedKey === item.key;
+
+            if (item.key === "__insights__" && topicPages) {
+              return (
+                <Popover
+                  key="__insights__"
+                  trigger="click"
+                  placement="top"
+                  content={
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 140 }}>
+                      {[
+                        { url: topicPages.sleep, label: s.sleepLabel || "Sleep" },
+                        { url: topicPages.feeding, label: s.feedingLabel || "Feeding" },
+                        { url: topicPages.diaper, label: s.diaperLabel || "Diaper" },
+                        { url: topicPages.pumping, label: s.pumpingLabel || "Pumping" },
+                      ].map((t) => (
+                        <Button
+                          key={t.url}
+                          type="text"
+                          size="small"
+                          block
+                          style={{ textAlign: "left", justifyContent: "flex-start" }}
+                          onClick={() => handleNavClick({ key: t.url })}
+                        >
+                          {t.label}
+                        </Button>
+                      ))}
+                    </div>
+                  }
+                >
+                  <button className={`ant-bottom-nav-item${isActive ? " is-active" : ""}`}>
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </button>
+                </Popover>
+              );
+            }
+
             return (
               <button
                 key={item.key}

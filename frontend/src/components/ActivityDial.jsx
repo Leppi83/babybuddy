@@ -298,39 +298,44 @@ function CelestialDecoration({ celestial, weather }) {
   );
 }
 
-/* ── Atmosphere ring — CSS conic-gradient over 270° arc ──────── */
+/* ── Atmosphere ring — pure SVG arcs (iOS-safe, no foreignObject) ── */
 function AtmosphereRing({ theme }) {
   const stops = useMemo(() => atmosphereStops(48, theme), [theme]);
-  const gradientStr = useMemo(() => {
-    const parts = stops.map((s) => {
-      let offset = s.angle - 225;
-      if (offset < 0) offset += 360;
-      return `${s.color} ${offset.toFixed(1)}deg`;
-    });
-    return `conic-gradient(from 225deg, ${parts.join(", ")})`;
+  const segments = useMemo(() => {
+    const circumference = 2 * Math.PI * ATMO_R;
+    const result = [];
+    for (let i = 0; i < stops.length - 1; i++) {
+      const s0 = stops[i];
+      const s1 = stops[i + 1];
+      const { dasharray, dashoffset } = arcDasharray(s0.angle, s1.angle, circumference);
+      result.push({
+        key: i,
+        color: s0.color,
+        opacity: s0.opacity,
+        dasharray,
+        dashoffset,
+      });
+    }
+    return result;
   }, [stops]);
 
-  const outerR = ATMO_R + ATMO_STROKE / 2;
-  const innerR = ATMO_R - ATMO_STROKE / 2;
-  const size = outerR * 2;
-
-  const arcMask = [
-    `radial-gradient(circle, transparent ${innerR}px, black ${innerR}px, black ${outerR}px, transparent ${outerR}px)`,
-    `conic-gradient(from 0deg, black 0deg, black 125deg, transparent 145deg, transparent 215deg, black 235deg, black 360deg)`,
-  ].join(", ");
-
   return (
-    <foreignObject x={CX - outerR} y={CY - outerR} width={size} height={size}>
-      <div
-        xmlns="http://www.w3.org/1999/xhtml"
-        style={{
-          width: size, height: size, borderRadius: "50%",
-          background: gradientStr,
-          maskImage: arcMask, maskComposite: "intersect",
-          WebkitMaskImage: arcMask, WebkitMaskComposite: "source-in",
-        }}
-      />
-    </foreignObject>
+    <g>
+      {segments.map((seg) => (
+        <circle
+          key={seg.key}
+          cx={CX}
+          cy={CY}
+          r={ATMO_R}
+          fill="none"
+          stroke={seg.color}
+          strokeWidth={ATMO_STROKE}
+          strokeDasharray={seg.dasharray}
+          strokeDashoffset={seg.dashoffset}
+          opacity={seg.opacity}
+        />
+      ))}
+    </g>
   );
 }
 
