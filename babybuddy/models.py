@@ -19,6 +19,7 @@ class Settings(models.Model):
         ("quick_entry", _("Quick Entry Card")),
         ("diaper", _("Diaper")),
         ("feedings", _("Feedings")),
+        ("breastfeeding", _("Breastfeeding")),
         ("pumpings", _("Pumpings")),
         ("sleep", _("Sleep")),
         ("tummytime", _("Tummy")),
@@ -244,16 +245,25 @@ class Settings(models.Model):
         return [section[0] for section in cls.DASHBOARD_SECTION_CHOICES]
 
     def dashboard_selected_items(self):
-        allowed = set(self.dashboard_default_visible_items())
+        defaults = self.dashboard_default_visible_items()
+        allowed = set(defaults)
         stored = [
             item for item in (self.dashboard_visible_items or []) if item in allowed
         ]
-        # If the user has never configured their dashboard, return all defaults.
-        # If they have saved a selection (even a subset), respect it exactly so
-        # that cards explicitly removed stay removed.
         if not self.dashboard_visible_items:
-            return self.dashboard_default_visible_items()
-        return stored
+            return defaults
+        # Insert any new default items not yet in the stored selection at their
+        # default position, so newly-added cards appear automatically.
+        result = list(stored)
+        for i, item in enumerate(defaults):
+            if item not in result:
+                insert_after = -1
+                for j in range(i - 1, -1, -1):
+                    if defaults[j] in result:
+                        insert_after = result.index(defaults[j])
+                        break
+                result.insert(insert_after + 1, item)
+        return result
 
     def dashboard_selected_section_order(self):
         defaults = self.dashboard_default_section_order()

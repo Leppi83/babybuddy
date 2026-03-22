@@ -191,7 +191,19 @@ export function AppShell({
     ? `${bootstrap.urls.quickEntry}?child=${selectedSlug}`
     : bootstrap.urls.quickEntry;
 
-  const topicPages = bootstrap.urls.topicPages;
+  // Build topic URLs: prefer bootstrap.urls.topicPages (dashboard page);
+  // fall back to constructing from selectedSlug (all other pages).
+  const topicPages =
+    bootstrap.urls.topicPages ||
+    (selectedSlug
+      ? {
+          sleep: `/children/${selectedSlug}/topics/sleep/`,
+          feeding: `/children/${selectedSlug}/topics/feeding/`,
+          diaper: `/children/${selectedSlug}/topics/diaper/`,
+          pumping: `/children/${selectedSlug}/topics/pumping/`,
+        }
+      : null);
+
   const insightsMenuItem = {
     key: "insights-menu",
     icon: <BulbOutlined />,
@@ -278,6 +290,10 @@ export function AppShell({
     }
   }
 
+  // Strip query string for path matching so /quick-entry/?child=x matches the nav key
+  const currentPathBase = bootstrap.currentPath.split("?")[0];
+  const keyPathOf = (key) => key?.split?.("?")?.[0] ?? key;
+
   const selectedKey =
     bootstrap.activeNavKey === null
       ? null
@@ -288,7 +304,7 @@ export function AppShell({
               for (const child of item.children) {
                 if (
                   child.key !== "__logout__" &&
-                  bootstrap.currentPath.startsWith(child.key)
+                  currentPathBase.startsWith(keyPathOf(child.key))
                 ) {
                   return child.key;
                 }
@@ -296,7 +312,7 @@ export function AppShell({
             } else if (
               item.key !== "__logout__" &&
               item.key?.startsWith?.("/") &&
-              bootstrap.currentPath.startsWith(item.key)
+              currentPathBase.startsWith(keyPathOf(item.key))
             ) {
               return item.key;
             }

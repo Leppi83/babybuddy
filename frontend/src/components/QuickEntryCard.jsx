@@ -341,7 +341,7 @@ export function QuickEntryCard({ bootstrap }) {
     sleep: ACTIVITY_COLORS.sleep,
     diaper: ACTIVITY_COLORS.diaper,
     feeding: ACTIVITY_COLORS.feeding,
-    breastfeeding: ACTIVITY_COLORS.feeding,
+    breastfeeding: ACTIVITY_COLORS.breastfeeding,
     pumping: ACTIVITY_COLORS.pumping,
   };
 

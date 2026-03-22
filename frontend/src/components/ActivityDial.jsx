@@ -386,7 +386,7 @@ function Legend({ strings }) {
       key: "feeding",
       color: ACTIVITY_COLORS.feeding,
       label: strings.feed,
-      type: "line",
+      type: "dot",
     },
     {
       key: "diaper",
