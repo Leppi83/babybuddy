@@ -13,43 +13,7 @@
   padding: 32px 24px;
 }
 
-/* ── Day theme: sun + clouds ─────────────────────────────────── */
-
-/* Sun — top-left corner, light theme only */
-:root[data-theme="light"] .activity-dial::after {
-  content: "";
-  position: absolute;
-  top: 24px;
-  left: 36px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #ffd666;
-  box-shadow:
-    0 0 12px 4px rgba(255, 214, 102, 0.5),
-    0 0 28px 8px rgba(255, 214, 102, 0.2);
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* Clouds — small decorative shapes, light theme only */
-:root[data-theme="light"] .activity-dial::before {
-  content: "";
-  position: absolute;
-  top: 32px;
-  left: 80px;
-  width: 48px;
-  height: 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.6);
-  box-shadow:
-    14px -6px 0 6px rgba(255, 255, 255, 0.5),
-    -8px -2px 0 4px rgba(255, 255, 255, 0.45),
-    60px 10px 0 8px rgba(255, 255, 255, 0.4),
-    80px 4px 0 4px rgba(255, 255, 255, 0.35);
-  z-index: 1;
-  pointer-events: none;
-}
+/* ── Day theme: sun + clouds rendered via DayDecoration JSX ──── */
 
 /* ── Night theme: moon + stars ──────────────────────────────── */
 
@@ -339,7 +303,7 @@
   color: #f1f5f9;
   padding: 8px 14px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);

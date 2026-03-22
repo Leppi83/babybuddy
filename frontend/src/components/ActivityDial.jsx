@@ -165,6 +165,62 @@ function HourLabels() {
   );
 }
 
+/* ── Day decoration — sun + distinct clouds (light theme only) ── */
+function DayDecoration() {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "45%",
+        pointerEvents: "none",
+        zIndex: 0,
+        overflow: "hidden",
+      }}
+    >
+      <svg
+        viewBox="0 0 400 110"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ width: "100%", height: "100%" }}
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#FFE033" stopOpacity="1" />
+            <stop offset="55%" stopColor="#FFD700" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#FFB800" stopOpacity="0" />
+          </radialGradient>
+          <filter id="cloudBlur">
+            <feGaussianBlur stdDeviation="1.2" />
+          </filter>
+        </defs>
+        {/* Sun — top-left glow + core */}
+        <circle cx="44" cy="42" r="40" fill="url(#sunGlow)" />
+        <circle cx="44" cy="42" r="22" fill="#FFD700" opacity="0.96" />
+
+        {/* Cloud 1 — small, just right of sun */}
+        <g fill="rgba(255,255,255,0.88)" filter="url(#cloudBlur)">
+          <ellipse cx="148" cy="48" rx="36" ry="14" />
+          <circle cx="128" cy="38" r="14" />
+          <circle cx="146" cy="32" r="17" />
+          <circle cx="165" cy="37" r="13" />
+        </g>
+
+        {/* Cloud 2 — larger, upper-right area, well separated */}
+        <g fill="rgba(255,255,255,0.80)" filter="url(#cloudBlur)">
+          <ellipse cx="308" cy="44" rx="46" ry="16" />
+          <circle cx="282" cy="32" r="16" />
+          <circle cx="303" cy="25" r="20" />
+          <circle cx="328" cy="30" r="15" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 /* ── Bedtime marker — dashed line across atmosphere ring ─────── */
 function BedtimeMarker({ bedtime, now }) {
   if (!bedtime) return null;
@@ -191,9 +247,7 @@ function BedtimeMarker({ bedtime, now }) {
         strokeDasharray="4 3"
         strokeLinecap="round"
         opacity={0.8}
-      >
-        <title>{`Bedtime: ${hStr}:${mStr}`}</title>
-      </line>
+      />
     </g>
   );
 }
@@ -205,9 +259,7 @@ function CurrentTimeDot({ now }) {
   const { x, y } = pointOnCircle(angle, innerEdge, CX, CY);
 
   return (
-    <circle cx={x} cy={y} r={5} fill="#ff4d4f" stroke="#020617" strokeWidth={2}>
-      <title>Now</title>
-    </circle>
+    <circle cx={x} cy={y} r={5} fill="#ff4d4f" stroke="#020617" strokeWidth={2} />
   );
 }
 
@@ -331,9 +383,7 @@ function ActivityArcs({ arcs, cx, cy, radius, strokeWidth, onHover }) {
               })
             }
             onMouseLeave={() => onHover?.(null)}
-          >
-            <title>{arc.tooltip || arc.type}</title>
-          </circle>
+          />
         );
       })}
     </g>
@@ -364,9 +414,7 @@ function ActivityDots({ dots, cx, cy, radius, onHover }) {
               })
             }
             onMouseLeave={() => onHover?.(null)}
-          >
-            <title>{dot.tooltip || dot.type}</title>
-          </circle>
+          />
         );
       })}
     </g>
@@ -521,11 +569,12 @@ export default function ActivityDial({
     const brightness = dayBrightness(hour);
 
     if (theme === "light") {
-      // Light theme keeps vivid day-sky colors
       if (brightness > 0.7) {
+        // Daytime: sky-blue top → earth-green bottom, sun glow injected via DayDecoration
         return {
           background:
-            "linear-gradient(135deg, #FFD700 0%, #87CEEB 30%, #6BB3E0 55%, #7BC67E 100%)",
+            "radial-gradient(ellipse at 11% 10%, rgba(255,220,30,0.55) 0%, transparent 36%), " +
+            "linear-gradient(180deg, #5BBDF5 0%, #82CEED 38%, #B2D98A 66%, #8A9858 100%)",
         };
       } else if (brightness > 0.3) {
         return {
@@ -567,6 +616,7 @@ export default function ActivityDial({
       className={`activity-dial${isNight ? " is-night" : " is-day"}`}
       style={bgStyle}
     >
+      {theme === "light" && !isNight && <DayDecoration />}
       <svg
         className="activity-dial__svg"
         viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
