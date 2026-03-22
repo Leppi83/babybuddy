@@ -185,6 +185,13 @@ class Settings(models.Model):
         verbose_name=_("AI API key"),
     )
 
+    # Location (set by client-side geolocation for sunrise/sunset + weather)
+    latitude = models.FloatField(null=True, blank=True, verbose_name=_("Latitude"))
+    longitude = models.FloatField(null=True, blank=True, verbose_name=_("Longitude"))
+    location_updated_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Location last updated")
+    )
+
     language = models.CharField(
         choices=settings.LANGUAGES,
         default=settings.LANGUAGE_CODE,

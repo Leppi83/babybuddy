@@ -353,6 +353,17 @@ def _build_insights_for_bootstrap(child):
     ]
 
 
+def _build_celestial_data(user):
+    """Build celestial + weather data for the dashboard dial."""
+    from babybuddy.weather import get_celestial_data
+
+    try:
+        user_settings = user.settings
+    except Exception:
+        user_settings = None
+    return get_celestial_data(user_settings)
+
+
 def _build_dial_activities(child):
     """Serialize last 24h of activities for the activity dial."""
     now = timezone.now()
@@ -1293,6 +1304,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     if self.object.usual_bedtime
                     else None
                 ),
+                "celestial": _build_celestial_data(self.request.user),
             }
         return context
 

@@ -1583,6 +1583,25 @@ class AppSettings(SiteSettings):
         return self._render_form(request, form, title=title)
 
 
+class GeolocationView(LoginRequiredMixin, View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            lat = float(data.get("latitude"))
+            lng = float(data.get("longitude"))
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return JsonResponse({"error": "Invalid data"}, status=400)
+
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            return JsonResponse({"error": "Coordinates out of range"}, status=400)
+
+        from babybuddy.weather import save_location
+
+        user_settings, _ = UserSettingsModel.objects.get_or_create(user=request.user)
+        save_location(user_settings, lat, lng)
+        return JsonResponse({"ok": True})
+
+
 class QuickEntryView(LoginRequiredMixin, View):
     def get(self, request):
         from django.utils import timezone as tz

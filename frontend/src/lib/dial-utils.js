@@ -277,30 +277,36 @@ export function celestialPosition(now, sunriseHour = 6, sunsetHour = 18) {
  * @param {object} celestial - output of celestialPosition()
  * @returns {string} CSS background value
  */
-export function skyGradient(celestial) {
+export function skyGradient(celestial, weather = "sunny") {
   const { body, altitude, x, phase } = celestial;
 
-  // Sun glow anchor point (percentage)
   const glowX = Math.round(x * 100);
-  // Sun vertical: when altitude=1 (zenith) → 10% from top; altitude=0 (horizon) → 85%
   const glowY = Math.round(85 - altitude * 75);
 
   if (body === "sun") {
+    // Overcast/rainy/snowy daytime: muted grey-blue sky
+    if (weather === "cloudy") {
+      return "linear-gradient(180deg, #8BA4B8 0%, #A0B8C8 20%, #B8C8B0 40%, #A0B898 55%, #7A9860 70%, #5A7840 85%, #4A6830 100%)";
+    }
+    if (weather === "rainy") {
+      return "linear-gradient(180deg, #6A7A8A 0%, #7A8A98 18%, #8A98A0 35%, #90A090 50%, #6A8858 68%, #4A6838 82%, #3A5828 100%)";
+    }
+    if (weather === "snowy") {
+      return "linear-gradient(180deg, #8898A8 0%, #98A8B8 20%, #B0C0C8 38%, #C0C8C0 52%, #A0B098 68%, #8A9A80 82%, #788A70 100%)";
+    }
+    // Sunny weather
     if (altitude > 0.6) {
-      // High sun: bright blue sky + green/brown earth
       return (
         `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,210,0,0.55) 0%, rgba(255,180,40,0.2) 18%, transparent 38%), ` +
         "linear-gradient(180deg, #6EC6F5 0%, #9ED8F7 22%, #D8ECAA 40%, #B8D088 52%, #8CA854 66%, #6E8840 78%, #5A6E34 88%, #4A5828 100%)"
       );
     }
     if (altitude > 0.25) {
-      // Mid-altitude sun: warm sky transitioning
       return (
         `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,200,20,0.5) 0%, rgba(255,160,40,0.2) 20%, transparent 40%), ` +
         "linear-gradient(180deg, #78BBEA 0%, #A4D4F0 20%, #D8E8B8 38%, #C0D890 50%, #8CA854 66%, #6E8840 80%, #5A6E34 100%)"
       );
     }
-    // Low sun (golden hour near sunrise/sunset)
     return (
       `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,160,40,0.6) 0%, rgba(255,120,30,0.3) 18%, transparent 40%), ` +
       "linear-gradient(180deg, #E8A060 0%, #D88848 15%, #C8789A 32%, #8A70B8 50%, #5A7A9A 70%, #4A6A4A 85%, #3A5A30 100%)"
@@ -310,15 +316,9 @@ export function skyGradient(celestial) {
   if (body === "twilight") {
     const t = celestial.twilightProgress ?? 0.5;
     if (t > 0.5) {
-      // Brighter twilight (close to sunrise/sunset)
-      return (
-        "linear-gradient(180deg, #D88848 0%, #C87898 25%, #7A6AB8 50%, #4A5A8A 72%, #3A5A4A 88%, #2A4A2A 100%)"
-      );
+      return "linear-gradient(180deg, #D88848 0%, #C87898 25%, #7A6AB8 50%, #4A5A8A 72%, #3A5A4A 88%, #2A4A2A 100%)";
     }
-    // Darker twilight
-    return (
-      "linear-gradient(180deg, #4A3A60 0%, #2A2A50 30%, #1A2040 55%, #152030 75%, #0E1828 100%)"
-    );
+    return "linear-gradient(180deg, #4A3A60 0%, #2A2A50 30%, #1A2040 55%, #152030 75%, #0E1828 100%)";
   }
 
   // Night: deep navy with subtle moon glow

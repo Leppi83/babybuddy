@@ -76,164 +76,207 @@ const STARS = [
   { x: 12, y: 65, r: 0.8, o: 0.4 },
 ];
 
-/* ── Celestial decoration — sun/moon/clouds positioned dynamically ── */
-function CelestialDecoration({ celestial }) {
+/* ── Cloud shapes (reusable for sunny + cloudy + rainy) ─────── */
+function CloudSVG({ opacity = 0.9 }) {
+  return (
+    <svg
+      viewBox="0 0 420 100"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "40%", opacity }}
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <g opacity="0.93">
+        <rect x="112" y="42" width="88" height="24" rx="12" fill="white" />
+        <circle cx="130" cy="40" r="16" fill="white" />
+        <circle cx="152" cy="32" r="20" fill="white" />
+        <circle cx="178" cy="38" r="15" fill="white" />
+        <ellipse cx="156" cy="66" rx="40" ry="5" fill="rgba(160,190,220,0.18)" />
+      </g>
+      <g opacity="0.88">
+        <rect x="280" y="36" width="120" height="30" rx="15" fill="white" />
+        <circle cx="302" cy="33" r="20" fill="white" />
+        <circle cx="328" cy="22" r="26" fill="white" />
+        <circle cx="360" cy="30" r="20" fill="white" />
+        <ellipse cx="340" cy="66" rx="55" ry="6" fill="rgba(160,190,220,0.15)" />
+      </g>
+    </svg>
+  );
+}
+
+/* ── Overcast clouds (darker, more coverage) ──────────────── */
+function OvercastClouds() {
+  return (
+    <svg
+      viewBox="0 0 420 140"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "55%", opacity: 0.85 }}
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <g opacity="0.9">
+        <rect x="30" y="50" width="100" height="28" rx="14" fill="rgba(180,190,200,0.95)" />
+        <circle cx="52" cy="46" r="18" fill="rgba(180,190,200,0.95)" />
+        <circle cx="78" cy="36" r="22" fill="rgba(190,200,210,0.95)" />
+        <circle cx="108" cy="44" r="16" fill="rgba(180,190,200,0.95)" />
+      </g>
+      <g opacity="0.85">
+        <rect x="140" y="35" width="130" height="32" rx="16" fill="rgba(170,180,195,0.9)" />
+        <circle cx="165" cy="30" r="22" fill="rgba(170,180,195,0.9)" />
+        <circle cx="198" cy="20" r="28" fill="rgba(180,190,200,0.9)" />
+        <circle cx="240" cy="28" r="22" fill="rgba(170,180,195,0.9)" />
+      </g>
+      <g opacity="0.8">
+        <rect x="280" y="45" width="110" height="28" rx="14" fill="rgba(160,170,185,0.9)" />
+        <circle cx="300" cy="40" r="20" fill="rgba(160,170,185,0.9)" />
+        <circle cx="328" cy="32" r="24" fill="rgba(170,180,190,0.9)" />
+        <circle cx="368" cy="38" r="18" fill="rgba(160,170,185,0.9)" />
+      </g>
+    </svg>
+  );
+}
+
+/* ── Rain streaks ──────────────────────────────────────────── */
+function RainStreaks() {
+  const drops = useMemo(() => {
+    const result = [];
+    for (let i = 0; i < 18; i++) {
+      result.push({
+        x: 8 + (i * 5.2) % 84,
+        delay: (i * 0.3) % 2,
+        length: 12 + (i % 3) * 4,
+        opacity: 0.25 + (i % 4) * 0.08,
+      });
+    }
+    return result;
+  }, []);
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+      {drops.map((d, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            left: `${d.x}%`,
+            top: "40%",
+            width: 1.5,
+            height: d.length,
+            background: `rgba(150,180,220,${d.opacity})`,
+            borderRadius: 1,
+            animation: `rainFall 1.2s ${d.delay}s linear infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ── Snowflakes ────────────────────────────────────────────── */
+function Snowflakes() {
+  const flakes = useMemo(() => {
+    const result = [];
+    for (let i = 0; i < 15; i++) {
+      result.push({
+        x: 5 + (i * 6.8) % 90,
+        delay: (i * 0.4) % 3,
+        size: 3 + (i % 3) * 1.5,
+        opacity: 0.4 + (i % 3) * 0.15,
+      });
+    }
+    return result;
+  }, []);
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+      {flakes.map((f, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            left: `${f.x}%`,
+            top: "30%",
+            width: f.size,
+            height: f.size,
+            background: `rgba(255,255,255,${f.opacity})`,
+            borderRadius: "50%",
+            animation: `snowFall 3s ${f.delay}s linear infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ── Celestial decoration — sun/moon/clouds + weather ──────── */
+function CelestialDecoration({ celestial, weather }) {
   const { body, x, altitude, phase } = celestial;
 
-  // Convert normalized position to pixel percentages
   const pxLeft = `${Math.round(x * 100)}%`;
-  // altitude 0 = bottom, 1 = top. Map to CSS: altitude 1 → top 8%, altitude 0 → top 85%
   const pxTop = `${Math.round(85 - altitude * 77)}%`;
 
   if (body === "sun" || (body === "twilight" && (celestial.twilightProgress ?? 0) > 0.5)) {
-    // Sun element + clouds (daytime)
-    const sunScale = 0.7 + altitude * 0.3; // bigger when higher
+    const sunScale = 0.7 + altitude * 0.3;
     const sunOpacity = body === "twilight" ? 0.5 : 0.95;
+    const showSun = weather !== "cloudy" && weather !== "rainy" && weather !== "snowy";
     return (
-      <div
-        aria-hidden="true"
-        style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}
-      >
-        {/* Sun glow + core */}
-        <div
-          style={{
-            position: "absolute",
-            left: pxLeft,
-            top: pxTop,
-            transform: `translate(-50%, -50%) scale(${sunScale})`,
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, #FFF176 0%, #FFD600 35%, rgba(255,179,0,0) 70%)",
-            opacity: sunOpacity * 0.7,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            left: pxLeft,
-            top: pxTop,
-            transform: "translate(-50%, -50%)",
-            width: 36,
-            height: 36,
-            borderRadius: "50%",
-            background: "#FFD600",
-            opacity: sunOpacity,
-            boxShadow: "0 0 20px 8px rgba(255,214,0,0.3)",
-          }}
-        />
-
-        {/* Clouds — only when sun is reasonably high */}
-        {altitude > 0.2 && (
-          <svg
-            viewBox="0 0 420 100"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "40%", opacity: 0.9 }}
-            preserveAspectRatio="xMidYMid slice"
-          >
-            {/* Cloud 1 */}
-            <g opacity="0.93">
-              <rect x="112" y="42" width="88" height="24" rx="12" fill="white" />
-              <circle cx="130" cy="40" r="16" fill="white" />
-              <circle cx="152" cy="32" r="20" fill="white" />
-              <circle cx="178" cy="38" r="15" fill="white" />
-              <ellipse cx="156" cy="66" rx="40" ry="5" fill="rgba(160,190,220,0.18)" />
-            </g>
-            {/* Cloud 2 */}
-            <g opacity="0.88">
-              <rect x="280" y="36" width="120" height="30" rx="15" fill="white" />
-              <circle cx="302" cy="33" r="20" fill="white" />
-              <circle cx="328" cy="22" r="26" fill="white" />
-              <circle cx="360" cy="30" r="20" fill="white" />
-              <ellipse cx="340" cy="66" rx="55" ry="6" fill="rgba(160,190,220,0.15)" />
-            </g>
-          </svg>
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+        {/* Sun glow + core (hidden behind clouds in overcast/rain/snow) */}
+        {showSun && (
+          <>
+            <div style={{
+              position: "absolute", left: pxLeft, top: pxTop,
+              transform: `translate(-50%, -50%) scale(${sunScale})`,
+              width: 80, height: 80, borderRadius: "50%",
+              background: "radial-gradient(circle, #FFF176 0%, #FFD600 35%, rgba(255,179,0,0) 70%)",
+              opacity: sunOpacity * 0.7,
+            }} />
+            <div style={{
+              position: "absolute", left: pxLeft, top: pxTop,
+              transform: "translate(-50%, -50%)",
+              width: 36, height: 36, borderRadius: "50%",
+              background: "#FFD600", opacity: sunOpacity,
+              boxShadow: "0 0 20px 8px rgba(255,214,0,0.3)",
+            }} />
+          </>
         )}
+        {/* Clouds based on weather */}
+        {weather === "sunny" && altitude > 0.2 && <CloudSVG opacity={0.9} />}
+        {weather === "cloudy" && <OvercastClouds />}
+        {(weather === "rainy" || weather === "snowy") && <OvercastClouds />}
+        {weather === "rainy" && <RainStreaks />}
+        {weather === "snowy" && <Snowflakes />}
       </div>
     );
   }
 
   if (body === "moon" || (body === "twilight" && (celestial.twilightProgress ?? 1) <= 0.5)) {
-    // Moon crescent + stars (nighttime)
-    // phase: 0 = new moon, 0.25 = first quarter, 0.5 = full, 0.75 = last quarter
     const moonSize = 28;
-    // Crescent: use clip path. phase 0–0.5 → waxing, 0.5–1 → waning.
-    // Shadow offset: at new moon (0) fully shadowed, at full (0.5) no shadow.
-    const normalizedPhase = phase;
-    const isWaxing = normalizedPhase < 0.5;
-    const illumination = normalizedPhase <= 0.5
-      ? normalizedPhase * 2      // 0→1 during waxing
-      : (1 - normalizedPhase) * 2; // 1→0 during waning
-
-    // Shadow circle offset from center: 0 illumination = fully covering, 1 = no shadow
+    const isWaxing = phase < 0.5;
+    const illumination = phase <= 0.5 ? phase * 2 : (1 - phase) * 2;
     const shadowOffset = isWaxing
-      ? moonSize * (1 - illumination)   // shadow from right, shrinking left
-      : -moonSize * (1 - illumination); // shadow from left, shrinking right
+      ? moonSize * (1 - illumination)
+      : -moonSize * (1 - illumination);
 
     return (
-      <div
-        aria-hidden="true"
-        style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}
-      >
-        {/* Stars */}
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
         {STARS.map((star, i) => (
-          <div
-            key={i}
-            className="activity-dial__star"
-            style={{
-              position: "absolute",
-              left: `${star.x}%`,
-              top: `${star.y}%`,
-              width: star.r * 2,
-              height: star.r * 2,
-              borderRadius: "50%",
-              background: "white",
-              opacity: star.o,
-            }}
-          />
+          <div key={i} className="activity-dial__star" style={{
+            position: "absolute", left: `${star.x}%`, top: `${star.y}%`,
+            width: star.r * 2, height: star.r * 2, borderRadius: "50%",
+            background: "white", opacity: star.o,
+          }} />
         ))}
-
-        {/* Moon */}
-        <svg
-          style={{
-            position: "absolute",
-            left: pxLeft,
-            top: pxTop,
-            transform: "translate(-50%, -50%)",
-            width: moonSize + 20,
-            height: moonSize + 20,
-            overflow: "visible",
-          }}
-          viewBox={`0 0 ${moonSize + 20} ${moonSize + 20}`}
-        >
-          {/* Moon glow */}
-          <circle
-            cx={(moonSize + 20) / 2}
-            cy={(moonSize + 20) / 2}
-            r={moonSize * 0.9}
-            fill="none"
-            stroke="rgba(200,220,255,0.12)"
-            strokeWidth={8}
-          />
-          {/* Moon disc */}
+        <svg style={{
+          position: "absolute", left: pxLeft, top: pxTop,
+          transform: "translate(-50%, -50%)",
+          width: moonSize + 20, height: moonSize + 20, overflow: "visible",
+        }} viewBox={`0 0 ${moonSize + 20} ${moonSize + 20}`}>
+          <circle cx={(moonSize + 20) / 2} cy={(moonSize + 20) / 2} r={moonSize * 0.9}
+            fill="none" stroke="rgba(200,220,255,0.12)" strokeWidth={8} />
           <clipPath id="moonClip">
             <circle cx={(moonSize + 20) / 2} cy={(moonSize + 20) / 2} r={moonSize / 2} />
           </clipPath>
           <g clipPath="url(#moonClip)">
-            {/* Lit surface */}
-            <circle
-              cx={(moonSize + 20) / 2}
-              cy={(moonSize + 20) / 2}
-              r={moonSize / 2}
-              fill="rgba(230,235,245,0.9)"
-            />
-            {/* Shadow — a circle offset to create the crescent */}
-            <circle
-              cx={(moonSize + 20) / 2 + shadowOffset}
-              cy={(moonSize + 20) / 2}
-              r={moonSize / 2}
-              fill="rgba(8,13,30,0.95)"
-            />
+            <circle cx={(moonSize + 20) / 2} cy={(moonSize + 20) / 2} r={moonSize / 2} fill="rgba(230,235,245,0.9)" />
+            <circle cx={(moonSize + 20) / 2 + shadowOffset} cy={(moonSize + 20) / 2}
+              r={moonSize / 2} fill="rgba(8,13,30,0.95)" />
           </g>
         </svg>
       </div>
@@ -243,24 +286,13 @@ function CelestialDecoration({ celestial }) {
   // Deep twilight — just stars fading in/out
   const starOpacity = 1 - (celestial.twilightProgress ?? 0.5);
   return (
-    <div
-      aria-hidden="true"
-      style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}
-    >
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
       {STARS.map((star, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: star.r * 2,
-            height: star.r * 2,
-            borderRadius: "50%",
-            background: "white",
-            opacity: star.o * starOpacity,
-          }}
-        />
+        <div key={i} style={{
+          position: "absolute", left: `${star.x}%`, top: `${star.y}%`,
+          width: star.r * 2, height: star.r * 2, borderRadius: "50%",
+          background: "white", opacity: star.o * starOpacity,
+        }} />
       ))}
     </div>
   );
@@ -505,6 +537,7 @@ export default function ActivityDial({
   referenceDate = null,
   sunriseHour = 6,
   sunsetHour = 18,
+  weatherCondition = "sunny",
 }) {
   const [realNow, setRealNow] = useState(() => new Date());
   const [showInsight, setShowInsight] = useState(false);
@@ -560,8 +593,8 @@ export default function ActivityDial({
   );
 
   const bgStyle = useMemo(
-    () => ({ background: skyGradient(celestial) }),
-    [celestial],
+    () => ({ background: skyGradient(celestial, weatherCondition) }),
+    [celestial, weatherCondition],
   );
 
   const isNight = !celestial.isDaytime;
@@ -571,7 +604,7 @@ export default function ActivityDial({
       className={`activity-dial${isNight ? " is-night" : " is-day"}`}
       style={bgStyle}
     >
-      <CelestialDecoration celestial={celestial} />
+      <CelestialDecoration celestial={celestial} weather={weatherCondition} />
       <svg
         className="activity-dial__svg"
         viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}

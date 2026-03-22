@@ -1742,9 +1742,34 @@ function NightSleepCircleCard({
 }
 
 function ChildDashboardPageV2({ bootstrap }) {
-  const { insights, dialActivities, bedtime, strings, quickStatus } = bootstrap;
+  const { insights, dialActivities, bedtime, strings, quickStatus, celestial } = bootstrap;
   const s = strings || {};
   const api = useRef(createApiClient(bootstrap.csrfToken));
+  const geoSentRef = useRef(false);
+
+  // Request client-side geolocation once per session, save to server
+  useEffect(() => {
+    if (geoSentRef.current || !navigator.geolocation) return;
+    if (celestial?.hasLocation) return; // already have fresh location
+    geoSentRef.current = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        fetch("/api/geolocation/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": bootstrap.csrfToken,
+          },
+          body: JSON.stringify({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          }),
+        }).catch(() => {});
+      },
+      () => {}, // silently fail
+      { timeout: 10000, maximumAge: 86400000 },
+    );
+  }, []);
   const childId = bootstrap.currentChild?.id;
 
   const [selectedDate, setSelectedDate] = useState(() => dayjs());
@@ -1890,6 +1915,9 @@ function ChildDashboardPageV2({ bootstrap }) {
               currentStatus={statusText}
               insights={isToday ? insights || [] : []}
               referenceDate={isToday ? null : selectedDate.toDate()}
+              sunriseHour={celestial?.sunriseHour ?? 6}
+              sunsetHour={celestial?.sunsetHour ?? 18}
+              weatherCondition={celestial?.weatherCondition ?? "sunny"}
               strings={{
                 sleep: s.sleepLabel || "Sleep",
                 feed: s.feedingLabel || "Feed",

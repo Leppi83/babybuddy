@@ -53,6 +53,7 @@ app_patterns = [
 urlpatterns = [
     path("sw.js", views.ServiceWorkerView.as_view(), name="service-worker"),
     path("api/quick-log/<str:entry_type>/", QuickLogView.as_view(), name="quick-log"),
+    path("api/geolocation/", views.GeolocationView.as_view(), name="geolocation"),
     path(
         "api/insights/summary/",
         InsightsSummaryView.as_view(),
