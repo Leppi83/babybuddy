@@ -575,7 +575,7 @@ export default function ActivityDial({
         return {
           background:
             "radial-gradient(circle at 9% 8%, rgba(255,210,0,0.6) 0%, rgba(255,160,30,0.3) 20%, transparent 40%), " +
-            "linear-gradient(180deg, #6EC6F5 0%, #9ED8F7 22%, #C8EAFF 40%, #C5E09A 52%, #8FBD60 68%, #6B8F40 85%, #587535 100%)",
+            "linear-gradient(180deg, #6EC6F5 0%, #9ED8F7 22%, #D8ECAA 40%, #C5E09A 52%, #8FBD60 68%, #6B8F40 85%, #587535 100%)",
         };
       } else if (brightness > 0.3) {
         // Twilight/dusk

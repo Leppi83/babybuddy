@@ -354,10 +354,16 @@ export function AppShell({
     </div>
   );
 
+  const defaultOpenKeys =
+    bootstrap.pageType === "topic-detail" || bootstrap.pageType === "insights"
+      ? ["insights-menu"]
+      : [];
+
   const menu = (
     <Menu
       mode="inline"
       selectedKeys={selectedKey ? [selectedKey] : []}
+      defaultOpenKeys={defaultOpenKeys}
       items={navItems}
       onClick={handleNavClick}
       className="ant-shell-menu"
@@ -414,8 +420,14 @@ export function AppShell({
       eyebrow: bootstrap.formPage?.kicker || s.welcome,
       title: bootstrap.formPage?.title || s.login,
     },
-    "topic-detail": { eyebrow: null, title: null },
-    insights: { eyebrow: null, title: null },
+    "topic-detail": {
+      eyebrow: s.insights || "Insights",
+      title:
+        bootstrap.topicPage?.topic
+          ? s[`${bootstrap.topicPage.topic}Label`] || bootstrap.topicPage.topic
+          : s.insights || "Insights",
+    },
+    insights: { eyebrow: s.overview || "Overview", title: s.insights || "Insights" },
     "quick-entry": {
       eyebrow: s.quickEntry || "Quick Actions",
       title: bootstrap.currentChild?.name || s.quickEntry || "Quick Entry",
