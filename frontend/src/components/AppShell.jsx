@@ -172,14 +172,24 @@ export function AppShell({
   function handleChildChange(slug) {
     const pageType = bootstrap.pageType;
     const urls = bootstrap.urls;
+    const child = navChildren.find((c) => c.slug === slug);
     if (pageType === "dashboard-child") {
       const template = urls.childDashboardTemplate;
       const url = template
         ? template.replace("__CHILD_SLUG__", slug)
-        : navChildren.find((c) => c.slug === slug)?.dashboardUrl;
+        : child?.dashboardUrl;
       if (url) window.location.assign(url);
     } else if (pageType === "quick-entry") {
       window.location.assign(`${urls.quickEntry}?child=${slug}`);
+    } else if (pageType === "topic-detail" && urls.topicTemplate) {
+      const topic = bootstrap.topicPage?.topic || "sleep";
+      const url = urls.topicTemplate
+        .replace("__CHILD_SLUG__", slug)
+        .replace("__TOPIC__", topic);
+      window.location.assign(url);
+    } else if (pageType === "insights" && urls.insightsTemplate && child) {
+      const url = urls.insightsTemplate.replace("__CHILD_ID__", String(child.id));
+      window.location.assign(url);
     } else {
       // For non-child-specific pages (timeline, settings, lists, forms)
       // just update the stored selection; no nav needed.

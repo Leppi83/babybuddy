@@ -713,6 +713,10 @@ class ChildTopicView(LoginRequiredMixin, DetailView):
                     ),
                     "graphJs": "/static/babybuddy/js/graph.js",
                     "topicPages": topic_urls,
+                    "topicTemplate": reverse(
+                        "dashboard:child-topic",
+                        kwargs={"slug": "__CHILD_SLUG__", "topic": "__TOPIC__"},
+                    ),
                 },
                 "currentChild": {
                     "id": child.id,
@@ -721,7 +725,7 @@ class ChildTopicView(LoginRequiredMixin, DetailView):
                     "birthDateLabel": _format_full_date(child.birth_date),
                     "pictureUrl": request.build_absolute_uri(_child_picture_url(child)),
                 },
-                "childSwitcher": _build_child_switcher(request, current_child=child),
+                "children": _serialize_children(request, Child.objects.all()),
                 "strings": {
                     **_build_ant_strings(),
                     "overview": str(_("Overview")),
@@ -1338,8 +1342,18 @@ class ChildInsightsView(PermissionRequiredMixin, DetailView):
                     "dashboard:dashboard-child", kwargs={"slug": child.slug}
                 ),
                 "addChild": reverse("core:child-add"),
+                "insightsTemplate": reverse(
+                    "dashboard:child-insights",
+                    kwargs={"pk": 0},
+                ).replace("0", "__CHILD_ID__"),
             },
             "messages": _serialize_messages(self.request),
+            "children": _serialize_children(self.request, Child.objects.all()),
+            "currentChild": {
+                "id": child.id,
+                "slug": child.slug,
+                "name": str(child),
+            },
             "child": {
                 "id": child.id,
                 "name": str(child),
