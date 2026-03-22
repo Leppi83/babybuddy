@@ -572,21 +572,12 @@ export default function ActivityDial({
     const b = dayBrightness(hour);
 
     if (theme === "light") {
-      // Light theme always stays bright — daytime sky or warm sunset, never dark navy.
-      if (b > 0.45) {
-        // Daytime: warm sun glow top-left → sky blue → green earth bottom
-        return {
-          background:
-            "radial-gradient(circle at 9% 8%, rgba(255,210,0,0.6) 0%, rgba(255,160,30,0.3) 20%, transparent 40%), " +
-            "linear-gradient(180deg, #6EC6F5 0%, #9ED8F7 22%, #D8ECAA 40%, #C5E09A 52%, #8FBD60 68%, #6B8F40 85%, #587535 100%)",
-        };
-      } else {
-        // Dusk / evening / early morning — warm orange sky fading to soft blue-green
-        return {
-          background:
-            "linear-gradient(180deg, #f4a65a 0%, #e07838 18%, #c4779a 38%, #7a6ab8 58%, #5a7a9a 78%, #4a6a7a 100%)",
-        };
-      }
+      // Light theme = always daytime: sun, clouds, sky-to-earth. No hour branching.
+      return {
+        background:
+          "radial-gradient(circle at 9% 8%, rgba(255,210,0,0.6) 0%, rgba(255,160,30,0.3) 20%, transparent 40%), " +
+          "linear-gradient(180deg, #6EC6F5 0%, #9ED8F7 22%, #D8ECAA 40%, #B8D088 52%, #8CA854 66%, #6E8840 78%, #5A6E34 88%, #4A5828 100%)",
+      };
     } else {
       // Dark theme — night-sky palette regardless of time of day
       if (b > 0.7) {
@@ -616,7 +607,7 @@ export default function ActivityDial({
       className={`activity-dial${isNight ? " is-night" : " is-day"}`}
       style={bgStyle}
     >
-      {theme === "light" && brightness > 0.45 && <DayDecoration />}
+      {theme === "light" && <DayDecoration />}
       <svg
         className="activity-dial__svg"
         viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
