@@ -560,45 +560,42 @@ export default function ActivityDial({
   );
 
   // Compute day/night background gradient based on current hour
-  const isNight = useMemo(() => {
+  const brightness = useMemo(() => {
     const hour = now.getHours() + now.getMinutes() / 60;
-    return dayBrightness(hour) < 0.3;
+    return dayBrightness(hour);
   }, [now]);
+
+  const isNight = brightness < 0.3;
 
   const bgStyle = useMemo(() => {
     const hour = now.getHours() + now.getMinutes() / 60;
-    const brightness = dayBrightness(hour);
+    const b = dayBrightness(hour);
 
     if (theme === "light") {
-      if (brightness > 0.7) {
-        // Daytime: warm sun glow top-left → sky blue upper half → earth green lower half
+      // Light theme always stays bright — daytime sky or warm sunset, never dark navy.
+      if (b > 0.45) {
+        // Daytime: warm sun glow top-left → sky blue → green earth bottom
         return {
           background:
             "radial-gradient(circle at 9% 8%, rgba(255,210,0,0.6) 0%, rgba(255,160,30,0.3) 20%, transparent 40%), " +
             "linear-gradient(180deg, #6EC6F5 0%, #9ED8F7 22%, #D8ECAA 40%, #C5E09A 52%, #8FBD60 68%, #6B8F40 85%, #587535 100%)",
         };
-      } else if (brightness > 0.3) {
-        // Twilight/dusk
-        return {
-          background:
-            "linear-gradient(180deg, #f4a65a 0%, #e07838 18%, #c4779a 38%, #7a6ab8 58%, #4a6a9a 78%, #3a5a7a 100%)",
-        };
       } else {
-        // Night in light theme (rare)
+        // Dusk / evening / early morning — warm orange sky fading to soft blue-green
         return {
           background:
-            "linear-gradient(180deg, #1a2a4a 0%, #0e1a30 50%, #1a2a4a 100%)",
+            "linear-gradient(180deg, #f4a65a 0%, #e07838 18%, #c4779a 38%, #7a6ab8 58%, #5a7a9a 78%, #4a6a7a 100%)",
         };
       }
     } else {
       // Dark theme — night-sky palette regardless of time of day
-      if (brightness > 0.7) {
+      if (b > 0.7) {
         // Midday: deep cerulean-navy
         return {
           background:
             "linear-gradient(135deg, #0d1f3c 0%, #0a1830 40%, #0e2240 65%, #0d1f3c 100%)",
         };
-      } else if (brightness > 0.3) {
+      } else if (b > 0.3) {
         // Twilight: dusk indigo-navy
         return {
           background:
@@ -619,7 +616,7 @@ export default function ActivityDial({
       className={`activity-dial${isNight ? " is-night" : " is-day"}`}
       style={bgStyle}
     >
-      {theme === "light" && !isNight && <DayDecoration />}
+      {theme === "light" && brightness > 0.45 && <DayDecoration />}
       <svg
         className="activity-dial__svg"
         viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}

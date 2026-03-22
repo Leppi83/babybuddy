@@ -173,28 +173,7 @@ export function InsightsPage({ bootstrap }) {
   const categories = Object.keys(byCategory).sort();
 
   return (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: "16px 16px 80px" }}>
-      {/* Header */}
-      <div className="ant-shell-header-band" style={{ marginBottom: 20 }}>
-        <div className="ant-shell-header-band__eyebrow">
-          {child.name} · {child.ageWeeks}w
-        </div>
-        <div className="ant-shell-header-band__title">
-          {strings?.["insights.title"] ?? "Insights"}
-        </div>
-      </div>
-
-      {/* Back link */}
-      <div style={{ marginBottom: 16 }}>
-        <Button
-          type="link"
-          href={urls.childDashboard}
-          style={{ color: "var(--app-link)", padding: 0 }}
-        >
-          ← {strings?.["insights.backToDashboard"] ?? "Back to dashboard"}
-        </Button>
-      </div>
-
+    <div style={{ maxWidth: 640 }}>
       {/* AI summary button */}
       {showAI && (
         <>
