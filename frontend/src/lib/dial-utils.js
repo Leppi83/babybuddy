@@ -163,7 +163,7 @@ export function atmosphereStops(steps = 48, theme = "dark") {
   });
 }
 
-const ARC_TYPES = new Set(["sleep", "feeding", "pumping"]);
+const ARC_TYPES = new Set(["sleep", "feeding", "breastfeeding", "pumping"]);
 
 /**
  * Split activities into arcs (duration-based) and dots (instant events).

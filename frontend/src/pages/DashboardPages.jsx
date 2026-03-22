@@ -1893,6 +1893,7 @@ function ChildDashboardPageV2({ bootstrap }) {
               strings={{
                 sleep: s.sleepLabel || "Sleep",
                 feed: s.feedingLabel || "Feed",
+                breast: s.breastfeedingShort || "Breast",
                 diaper: s.diaperLabel || "Diaper",
                 pump: s.pumpingLabel || "Pump",
               }}

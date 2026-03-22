@@ -389,6 +389,12 @@ function Legend({ strings }) {
       type: "dot",
     },
     {
+      key: "breastfeeding",
+      color: ACTIVITY_COLORS.breastfeeding,
+      label: strings.breast || "Breast",
+      type: "dot",
+    },
+    {
       key: "diaper",
       color: ACTIVITY_COLORS.diaper,
       label: strings.diaper,
@@ -514,22 +520,47 @@ export default function ActivityDial({
     const hour = now.getHours() + now.getMinutes() / 60;
     const brightness = dayBrightness(hour);
 
-    if (brightness > 0.7) {
-      return {
-        background:
-          "linear-gradient(135deg, #FFD700 0%, #87CEEB 30%, #6BB3E0 55%, #7BC67E 100%)",
-      };
-    } else if (brightness > 0.3) {
-      return {
-        background:
-          "linear-gradient(135deg, #e8956a 0%, #0a1e3a 40%, #0f2848 70%, #3a5a3a 100%)",
-      };
+    if (theme === "light") {
+      // Light theme keeps vivid day-sky colors
+      if (brightness > 0.7) {
+        return {
+          background:
+            "linear-gradient(135deg, #FFD700 0%, #87CEEB 30%, #6BB3E0 55%, #7BC67E 100%)",
+        };
+      } else if (brightness > 0.3) {
+        return {
+          background:
+            "linear-gradient(135deg, #e8956a 0%, #6cb4e4 40%, #0f2848 70%, #4a7a6a 100%)",
+        };
+      } else {
+        return {
+          background:
+            "linear-gradient(135deg, #0e1f38 0%, #0a1428 50%, #0e1f38 100%)",
+        };
+      }
     } else {
-      return {
-        background: "var(--app-bg-start)",
-      };
+      // Dark theme — night-sky palette regardless of time of day
+      if (brightness > 0.7) {
+        // Midday: deep cerulean-navy
+        return {
+          background:
+            "linear-gradient(135deg, #0d1f3c 0%, #0a1830 40%, #0e2240 65%, #0d1f3c 100%)",
+        };
+      } else if (brightness > 0.3) {
+        // Twilight: dusk indigo-navy
+        return {
+          background:
+            "linear-gradient(135deg, #1a0f30 0%, #0d1635 45%, #0a1428 75%, #1a0f30 100%)",
+        };
+      } else {
+        // Deep night: very dark navy
+        return {
+          background:
+            "linear-gradient(135deg, #060c18 0%, #090f20 50%, #060c18 100%)",
+        };
+      }
     }
-  }, [now]);
+  }, [now, theme]);
 
   return (
     <div

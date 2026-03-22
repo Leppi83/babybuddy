@@ -136,6 +136,7 @@ def _build_ant_strings():
         "lastFeedingMethod": _("Last Feeding Method"),
         "recentFeedings": _("Recent Feedings"),
         "breastfeeding": _("Breastfeeding"),
+        "breastfeedingShort": _("Breast"),
         "lastBreastfeeding": _("Last Breastfeeding"),
         "lastPumping": _("Last Pumping"),
         "timers": _("Timers"),
@@ -374,13 +375,16 @@ def _build_dial_activities(child):
         method = f.method or ""
         end_str = f.end.isoformat() if f.end else None
         end_display = f.end.strftime("%H:%M") if f.end else "?"
+        is_breast = "breast" in method.lower()
+        activity_type = "breastfeeding" if is_breast else "feeding"
+        label = "Breast" if is_breast else "Feed"
         activities.append(
             {
-                "type": "feeding",
+                "type": activity_type,
                 "start": f.start.isoformat(),
                 "end": end_str,
                 "details": method,
-                "tooltip": f"Feed: {f.start.strftime('%H:%M')}\u2013{end_display} ({method})",
+                "tooltip": f"{label}: {f.start.strftime('%H:%M')}\u2013{end_display} ({method})",
             }
         )
 

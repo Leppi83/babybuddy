@@ -86,13 +86,12 @@ function ThemeSwitcher({ themeMode, onThemeModeChange, compact = false }) {
 }
 
 /* ── Child selector in sidebar ─────────────────────────────────── */
-function ChildNavSelector({ children, selectedSlug, collapsed }) {
+function ChildNavSelector({ children, selectedSlug, collapsed, onChildChange }) {
   if (!children.length) return null;
 
   function onChange(slug) {
     writeSelectedSlug(slug);
-    const child = children.find((c) => c.slug === slug);
-    if (child?.dashboardUrl) window.location.assign(child.dashboardUrl);
+    onChildChange(slug);
   }
 
   if (collapsed) {
@@ -168,6 +167,23 @@ export function AppShell({
     if (bootstrap.children?.length) writeChildrenCache(bootstrap.children);
     if (bootstrap.currentChild?.slug) writeSelectedSlug(bootstrap.currentChild.slug);
   }, []);
+
+  function handleChildChange(slug) {
+    const pageType = bootstrap.pageType;
+    const urls = bootstrap.urls;
+    if (pageType === "dashboard-child") {
+      const template = urls.childDashboardTemplate;
+      const url = template
+        ? template.replace("__CHILD_SLUG__", slug)
+        : navChildren.find((c) => c.slug === slug)?.dashboardUrl;
+      if (url) window.location.assign(url);
+    } else if (pageType === "quick-entry") {
+      window.location.assign(`${urls.quickEntry}?child=${slug}`);
+    } else {
+      // For non-child-specific pages (timeline, settings, lists, forms)
+      // just update the stored selection; no nav needed.
+    }
+  }
 
   function handleLogout() {
     const form = document.createElement("form");
@@ -460,6 +476,7 @@ export function AppShell({
               children={navChildren}
               selectedSlug={selectedSlug}
               collapsed={collapsed}
+              onChildChange={handleChildChange}
             />
             {menu}
             <ThemeSwitcher
@@ -485,8 +502,7 @@ export function AppShell({
                 value={selectedSlug || undefined}
                 onChange={(slug) => {
                   writeSelectedSlug(slug);
-                  const child = navChildren.find((c) => c.slug === slug);
-                  if (child?.dashboardUrl) window.location.assign(child.dashboardUrl);
+                  handleChildChange(slug);
                 }}
                 options={navChildren.map((c) => ({ value: c.slug, label: c.name }))}
                 style={{ width: "100%" }}
