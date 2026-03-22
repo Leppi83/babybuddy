@@ -254,6 +254,11 @@ function CelestialDecoration({ celestial, weather }) {
       ? moonSize * (1 - illumination)
       : -moonSize * (1 - illumination);
 
+    // Push moon further out — halfway between outer ring and card edge
+    // altitude 0 → near bottom edge, altitude 1 → near top edge
+    const moonTop = `${Math.round(92 - altitude * 88)}%`;
+    const moonLeft = `${Math.round(x * 100)}%`;
+
     return (
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
         {STARS.map((star, i) => (
@@ -264,18 +269,16 @@ function CelestialDecoration({ celestial, weather }) {
           }} />
         ))}
         <svg style={{
-          position: "absolute", left: pxLeft, top: pxTop,
+          position: "absolute", left: moonLeft, top: moonTop,
           transform: "translate(-50%, -50%)",
-          width: moonSize + 20, height: moonSize + 20, overflow: "visible",
-        }} viewBox={`0 0 ${moonSize + 20} ${moonSize + 20}`}>
-          <circle cx={(moonSize + 20) / 2} cy={(moonSize + 20) / 2} r={moonSize * 0.9}
-            fill="none" stroke="rgba(200,220,255,0.12)" strokeWidth={8} />
+          width: moonSize, height: moonSize, overflow: "visible",
+        }} viewBox={`0 0 ${moonSize} ${moonSize}`}>
           <clipPath id="moonClip">
-            <circle cx={(moonSize + 20) / 2} cy={(moonSize + 20) / 2} r={moonSize / 2} />
+            <circle cx={moonSize / 2} cy={moonSize / 2} r={moonSize / 2} />
           </clipPath>
           <g clipPath="url(#moonClip)">
-            <circle cx={(moonSize + 20) / 2} cy={(moonSize + 20) / 2} r={moonSize / 2} fill="rgba(230,235,245,0.9)" />
-            <circle cx={(moonSize + 20) / 2 + shadowOffset} cy={(moonSize + 20) / 2}
+            <circle cx={moonSize / 2} cy={moonSize / 2} r={moonSize / 2} fill="rgba(230,235,245,0.9)" />
+            <circle cx={moonSize / 2 + shadowOffset} cy={moonSize / 2}
               r={moonSize / 2} fill="rgba(8,13,30,0.95)" />
           </g>
         </svg>
@@ -549,13 +552,22 @@ export default function ActivityDial({
   const [tooltip, setTooltip] = useState(null);
   const [theme, setTheme] = useState(getTheme);
 
+  // ── Debug overrides (temporary) ──
+  const [debugHour, setDebugHour] = useState(null); // null = live
+  const [debugWeather, setDebugWeather] = useState(null); // null = real
+
   const now = useMemo(() => {
+    if (debugHour !== null) {
+      const d = new Date();
+      d.setHours(Math.floor(debugHour), (debugHour % 1) * 60, 0, 0);
+      return d;
+    }
     if (!referenceDate) return realNow;
     const ref = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
     const anchored = new Date(ref);
     anchored.setHours(realNow.getHours(), realNow.getMinutes(), realNow.getSeconds(), 0);
     return anchored;
-  }, [referenceDate, realNow]);
+  }, [referenceDate, realNow, debugHour]);
 
   useEffect(() => {
     const id = setInterval(() => setRealNow(new Date()), 60_000);
@@ -597,9 +609,11 @@ export default function ActivityDial({
     [now, sunriseHour, sunsetHour],
   );
 
+  const effectiveWeather = debugWeather || weatherCondition;
+
   const bgStyle = useMemo(
-    () => ({ background: skyGradient(celestial, weatherCondition) }),
-    [celestial, weatherCondition],
+    () => ({ background: skyGradient(celestial, effectiveWeather) }),
+    [celestial, effectiveWeather],
   );
 
   const isNight = !celestial.isDaytime;
@@ -609,7 +623,43 @@ export default function ActivityDial({
       className={`activity-dial${isNight ? " is-night" : " is-day"}`}
       style={bgStyle}
     >
-      <CelestialDecoration celestial={celestial} weather={weatherCondition} />
+      <CelestialDecoration celestial={celestial} weather={effectiveWeather} />
+
+      {/* ── Debug toolbar (temporary — remove when done testing) ── */}
+      <div style={{
+        position: "relative", zIndex: 10, display: "flex", flexWrap: "wrap",
+        gap: 8, alignItems: "center", fontSize: 11, opacity: 0.85,
+        background: "rgba(0,0,0,0.5)", borderRadius: 8, padding: "6px 10px",
+      }}>
+        <label style={{ color: "#fff", display: "flex", alignItems: "center", gap: 4 }}>
+          Hour:
+          <input type="range" min="0" max="24" step="0.5"
+            value={debugHour ?? now.getHours() + now.getMinutes() / 60}
+            onChange={(e) => setDebugHour(parseFloat(e.target.value))}
+            style={{ width: 100 }}
+          />
+          <span style={{ color: "#ffd666", minWidth: 32 }}>
+            {(debugHour ?? now.getHours() + now.getMinutes() / 60).toFixed(1)}
+          </span>
+        </label>
+        <label style={{ color: "#fff", display: "flex", alignItems: "center", gap: 4 }}>
+          Weather:
+          <select value={debugWeather || ""} onChange={(e) => setDebugWeather(e.target.value || null)}
+            style={{ background: "#1a1a2e", color: "#fff", border: "1px solid #333", borderRadius: 4, fontSize: 11 }}>
+            <option value="">Live ({weatherCondition})</option>
+            <option value="sunny">Sunny</option>
+            <option value="cloudy">Cloudy</option>
+            <option value="rainy">Rainy</option>
+            <option value="snowy">Snowy</option>
+          </select>
+        </label>
+        {(debugHour !== null || debugWeather !== null) && (
+          <button onClick={() => { setDebugHour(null); setDebugWeather(null); }}
+            style={{ background: "#ff4d4f", color: "#fff", border: "none", borderRadius: 4, padding: "2px 8px", fontSize: 11, cursor: "pointer" }}>
+            Reset
+          </button>
+        )}
+      </div>
       <svg
         className="activity-dial__svg"
         viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
