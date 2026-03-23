@@ -24,20 +24,11 @@ const { Title } = Typography;
 /* ── Topic SVG icons ──────────────────────────────────────────── */
 
 function SleepIcon() {
+  /* Based on tabler:bed — bed with pillow and person silhouette */
   return (
-    <svg viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      {/* Bed frame */}
-      <rect x="2" y="20" width="28" height="8" rx="2" />
-      {/* Headboard */}
-      <rect x="2" y="11" width="4" height="13" rx="2" />
-      {/* Footboard */}
-      <rect x="26" y="15" width="4" height="9" rx="2" />
-      {/* Mattress top */}
-      <rect x="6" y="16" width="20" height="5" rx="1.5" opacity="0.4" />
-      {/* Pillow */}
-      <rect x="8" y="14" width="7" height="4" rx="2" opacity="0.6" />
-      {/* Zzz */}
-      <text x="19" y="10" fontSize="7" fontWeight="bold" opacity="0.85" fill="currentColor">zzz</text>
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 9a2 2 0 1 0 4 0a2 2 0 1 0-4 0" />
+      <path d="M22 17v-3H2m0-6v9m10-3h10v-2a3 3 0 0 0-3-3h-7z" />
     </svg>
   );
 }

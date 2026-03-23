@@ -187,34 +187,37 @@ function Snowflakes() {
   );
 }
 
-/* ── Celestial position → clamped to card margin (outside ring) ── */
-function celestialToMarginPos(x, altitude) {
-  // The dial ring occupies roughly the center 70% of the card (15%–85%).
-  // We map celestial bodies to an elliptical arc in the MARGIN zone:
-  // - left edge (x=0) → 3%, right edge (x=1) → 97%
-  // - top (altitude=1) → 4%, bottom (altitude=0) → 92%
-  // Then we push the path outward so it always stays outside the ring.
-  const rawLeft = 3 + x * 94; // 3% to 97%
-  const rawTop = 92 - altitude * 88; // 92% to 4%
+/* ── Celestial position → elliptical orbit outside the dial ring ── */
+function celestialToMarginPos(progress, altitude) {
+  // The celestial body follows an elliptical arc OUTSIDE the dial ring.
+  // progress: 0 = rise (bottom-left), 0.5 = zenith (top-center), 1 = set (bottom-right)
+  // altitude: 0..1 (sine curve, peaks at progress=0.5)
+  //
+  // Strategy: map progress to an angle on an ellipse that hugs the card edges,
+  // staying well outside the dial ring which occupies the center ~80% of the card.
+  //
+  // The ellipse center is at (50%, 50%) of the card.
+  // Semi-axes: rx=48% (horizontal), ry=46% (vertical) — fills nearly to card edge.
+  // The arc goes from bottom-left (210°) over top (90°) to bottom-right (330°).
+  const startAngle = 210; // bottom-left
+  const endAngle = 330;   // bottom-right
+  const arcSpan = endAngle - startAngle; // 120° doesn't cover enough
 
-  // Distance from center (50%, 48%) as fraction of half-size
-  const dx = (rawLeft - 50) / 50;
-  const dy = (rawTop - 48) / 48;
-  const dist = Math.sqrt(dx * dx + dy * dy);
+  // Map progress 0→1 to angle 210°→-30° (going counter-clockwise over the top)
+  // 210° = bottom-left, 90° = top, -30° (=330°) = bottom-right
+  const angleDeg = 210 - progress * 240; // 210 to -30
+  const angleRad = (angleDeg * Math.PI) / 180;
 
-  // If the body would land inside the ring zone (dist < 0.62), push it outward
-  if (dist < 0.62 && dist > 0) {
-    const scale = 0.62 / dist;
-    const pushedLeft = 50 + dx * 50 * scale;
-    const pushedTop = 48 + dy * 48 * scale;
-    return {
-      left: `${Math.round(Math.max(2, Math.min(98, pushedLeft)))}%`,
-      top: `${Math.round(Math.max(2, Math.min(96, pushedTop)))}%`,
-    };
-  }
+  // Ellipse semi-axes (as % of card)
+  const rx = 48;
+  const ry = 46;
+
+  const left = 50 + rx * Math.cos(angleRad);
+  const top = 50 - ry * Math.sin(angleRad);
+
   return {
-    left: `${Math.round(Math.max(2, Math.min(98, rawLeft)))}%`,
-    top: `${Math.round(Math.max(2, Math.min(96, rawTop)))}%`,
+    left: `${Math.round(Math.max(2, Math.min(98, left)))}%`,
+    top: `${Math.round(Math.max(2, Math.min(96, top)))}%`,
   };
 }
 
