@@ -1882,6 +1882,23 @@ function ChildDashboardPageV2({ bootstrap }) {
         </div>
         <div className="ant-shell-header-band__title">{childName}</div>
       </div>
+      <div style={{ marginBottom: 12 }}>
+        <Button
+          type="primary"
+          size="large"
+          icon={<EditOutlined />}
+          href="/quick-entry/"
+          style={{
+            borderRadius: 14,
+            height: 48,
+            paddingInline: 28,
+            fontSize: 15,
+            fontWeight: 600,
+          }}
+        >
+          {s.quickEntry || "Quick Entry"}
+        </Button>
+      </div>
       <Row gutter={[16, 16]} style={{ width: "100%" }}>
         <Col xs={24} lg={14}>
           <Card
@@ -1942,23 +1959,6 @@ function ChildDashboardPageV2({ bootstrap }) {
           />
         </Col>
       </Row>
-      <div style={{ marginTop: 16 }}>
-        <Button
-          type="primary"
-          size="large"
-          icon={<EditOutlined />}
-          href="/quick-entry/"
-          style={{
-            borderRadius: 14,
-            height: 48,
-            paddingInline: 28,
-            fontSize: 15,
-            fontWeight: 600,
-          }}
-        >
-          {s.quickEntry || "Quick Entry"}
-        </Button>
-      </div>
     </>
   );
 }
