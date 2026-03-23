@@ -565,22 +565,13 @@ export default function ActivityDial({
   const [tooltip, setTooltip] = useState(null);
   const [theme, setTheme] = useState(getTheme);
 
-  // ── Debug overrides (temporary) ──
-  const [debugHour, setDebugHour] = useState(null); // null = live
-  const [debugWeather, setDebugWeather] = useState(null); // null = real
-
   const now = useMemo(() => {
-    if (debugHour !== null) {
-      const d = new Date();
-      d.setHours(Math.floor(debugHour), (debugHour % 1) * 60, 0, 0);
-      return d;
-    }
     if (!referenceDate) return realNow;
     const ref = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
     const anchored = new Date(ref);
     anchored.setHours(realNow.getHours(), realNow.getMinutes(), realNow.getSeconds(), 0);
     return anchored;
-  }, [referenceDate, realNow, debugHour]);
+  }, [referenceDate, realNow]);
 
   useEffect(() => {
     const id = setInterval(() => setRealNow(new Date()), 60_000);
@@ -622,7 +613,7 @@ export default function ActivityDial({
     [now, sunriseHour, sunsetHour],
   );
 
-  const effectiveWeather = debugWeather || weatherCondition;
+  const effectiveWeather = weatherCondition;
 
   const bgStyle = useMemo(
     () => ({ background: skyGradient(celestial, effectiveWeather) }),
@@ -638,41 +629,6 @@ export default function ActivityDial({
     >
       <CelestialDecoration celestial={celestial} weather={effectiveWeather} />
 
-      {/* ── Debug toolbar (temporary — remove when done testing) ── */}
-      <div style={{
-        position: "relative", zIndex: 10, display: "flex", flexWrap: "wrap",
-        gap: 8, alignItems: "center", fontSize: 11, opacity: 0.85,
-        background: "rgba(0,0,0,0.5)", borderRadius: 8, padding: "6px 10px",
-      }}>
-        <label style={{ color: "#fff", display: "flex", alignItems: "center", gap: 4 }}>
-          Hour:
-          <input type="range" min="0" max="24" step="0.5"
-            value={debugHour ?? now.getHours() + now.getMinutes() / 60}
-            onChange={(e) => setDebugHour(parseFloat(e.target.value))}
-            style={{ width: 100 }}
-          />
-          <span style={{ color: "#ffd666", minWidth: 32 }}>
-            {(debugHour ?? now.getHours() + now.getMinutes() / 60).toFixed(1)}
-          </span>
-        </label>
-        <label style={{ color: "#fff", display: "flex", alignItems: "center", gap: 4 }}>
-          Weather:
-          <select value={debugWeather || ""} onChange={(e) => setDebugWeather(e.target.value || null)}
-            style={{ background: "#1a1a2e", color: "#fff", border: "1px solid #333", borderRadius: 4, fontSize: 11 }}>
-            <option value="">Live ({weatherCondition})</option>
-            <option value="sunny">Sunny</option>
-            <option value="cloudy">Cloudy</option>
-            <option value="rainy">Rainy</option>
-            <option value="snowy">Snowy</option>
-          </select>
-        </label>
-        {(debugHour !== null || debugWeather !== null) && (
-          <button onClick={() => { setDebugHour(null); setDebugWeather(null); }}
-            style={{ background: "#ff4d4f", color: "#fff", border: "none", borderRadius: 4, padding: "2px 8px", fontSize: 11, cursor: "pointer" }}>
-            Reset
-          </button>
-        )}
-      </div>
       <svg
         className="activity-dial__svg"
         viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
