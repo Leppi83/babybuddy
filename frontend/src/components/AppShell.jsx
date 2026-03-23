@@ -555,6 +555,15 @@ export function AppShell({
                 {s.addChild}
               </Button>
             )}
+            <Button
+              type="text"
+              icon={<SettingOutlined />}
+              href={bootstrap.urls.settings}
+              block
+              style={{ textAlign: "left", justifyContent: "flex-start" }}
+            >
+              {s.settings}
+            </Button>
             <ThemeSwitcher
               themeMode={themeMode}
               onThemeModeChange={onThemeModeChange}
