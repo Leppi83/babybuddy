@@ -76,43 +76,60 @@ const STARS = [
   { x: 12, y: 65, r: 0.8, o: 0.4 },
 ];
 
-/* ── Cloud shapes — organic cubic-bezier paths ─────────────── */
+/* ── Cloud shapes (reusable for sunny + cloudy + rainy) ─────── */
 function CloudSVG({ opacity = 0.9 }) {
   return (
     <svg
-      viewBox="0 0 500 120"
+      viewBox="0 0 420 100"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "38%", opacity }}
+      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "40%", opacity }}
       preserveAspectRatio="xMidYMid slice"
     >
-      {/* Small wispy cloud, upper-left */}
-      <path opacity="0.85" fill="white"
-        d="M100,65 Q110,40 135,42 Q148,22 170,32 Q190,20 205,38 Q225,30 232,48 Q245,44 248,58 Q252,68 240,72 L108,72 Q95,72 100,65 Z" />
-      {/* Larger fluffy cloud, right side */}
-      <path opacity="0.9" fill="white"
-        d="M290,68 Q298,48 318,50 Q325,28 350,35 Q368,18 388,30 Q408,22 415,42 Q432,38 435,55 Q440,68 428,72 L298,72 Q285,72 290,68 Z" />
+      <g opacity="0.93">
+        <rect x="112" y="42" width="88" height="24" rx="12" fill="white" />
+        <circle cx="130" cy="40" r="16" fill="white" />
+        <circle cx="152" cy="32" r="20" fill="white" />
+        <circle cx="178" cy="38" r="15" fill="white" />
+        <ellipse cx="156" cy="66" rx="40" ry="5" fill="rgba(160,190,220,0.18)" />
+      </g>
+      <g opacity="0.88">
+        <rect x="280" y="36" width="120" height="30" rx="15" fill="white" />
+        <circle cx="302" cy="33" r="20" fill="white" />
+        <circle cx="328" cy="22" r="26" fill="white" />
+        <circle cx="360" cy="30" r="20" fill="white" />
+        <ellipse cx="340" cy="66" rx="55" ry="6" fill="rgba(160,190,220,0.15)" />
+      </g>
     </svg>
   );
 }
 
-/* ── Overcast clouds — layered organic paths ──────────────── */
+/* ── Overcast clouds (darker, more coverage) ──────────────── */
 function OvercastClouds() {
   return (
     <svg
-      viewBox="0 0 500 160"
+      viewBox="0 0 420 140"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "50%", opacity: 0.88 }}
+      style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "55%", opacity: 0.85 }}
       preserveAspectRatio="xMidYMid slice"
     >
-      {/* Background layer — wide, soft */}
-      <path opacity="0.7" fill="rgba(160,170,185,0.9)"
-        d="M-20,90 Q0,55 40,60 Q55,35 85,42 Q110,20 140,35 Q165,15 195,30 Q220,18 248,35 Q275,22 300,38 Q325,25 350,40 Q380,28 405,45 Q430,35 455,50 Q480,42 510,58 L520,100 L-20,100 Z" />
-      {/* Middle layer — more defined bumps */}
-      <path opacity="0.8" fill="rgba(175,185,198,0.92)"
-        d="M-10,95 Q15,62 50,68 Q68,42 100,48 Q125,28 155,42 Q180,30 210,45 Q238,32 265,48 Q292,35 320,50 Q348,38 375,52 Q400,42 425,56 Q448,48 475,62 L520,95 L-10,95 Z" />
-      {/* Foreground layer — darkest, closest */}
-      <path opacity="0.85" fill="rgba(185,195,208,0.95)"
-        d="M-15,100 Q10,75 45,80 Q62,58 95,65 Q118,48 148,58 Q172,45 200,58 Q228,48 255,62 Q282,50 310,65 Q338,55 365,68 Q390,58 418,70 Q442,62 470,75 L520,100 L-15,100 Z" />
+      <g opacity="0.9">
+        <rect x="30" y="50" width="100" height="28" rx="14" fill="rgba(180,190,200,0.95)" />
+        <circle cx="52" cy="46" r="18" fill="rgba(180,190,200,0.95)" />
+        <circle cx="78" cy="36" r="22" fill="rgba(190,200,210,0.95)" />
+        <circle cx="108" cy="44" r="16" fill="rgba(180,190,200,0.95)" />
+      </g>
+      <g opacity="0.85">
+        <rect x="140" y="35" width="130" height="32" rx="16" fill="rgba(170,180,195,0.9)" />
+        <circle cx="165" cy="30" r="22" fill="rgba(170,180,195,0.9)" />
+        <circle cx="198" cy="20" r="28" fill="rgba(180,190,200,0.9)" />
+        <circle cx="240" cy="28" r="22" fill="rgba(170,180,195,0.9)" />
+      </g>
+      <g opacity="0.8">
+        <rect x="280" y="45" width="110" height="28" rx="14" fill="rgba(160,170,185,0.9)" />
+        <circle cx="300" cy="40" r="20" fill="rgba(160,170,185,0.9)" />
+        <circle cx="328" cy="32" r="24" fill="rgba(170,180,190,0.9)" />
+        <circle cx="368" cy="38" r="18" fill="rgba(160,170,185,0.9)" />
+      </g>
     </svg>
   );
 }
@@ -187,42 +204,12 @@ function Snowflakes() {
   );
 }
 
-/* ── Celestial position → clamped to card margin (outside ring) ── */
-function celestialToMarginPos(x, altitude) {
-  // The dial ring occupies roughly the center 70% of the card (15%–85%).
-  // We map celestial bodies to an elliptical arc in the MARGIN zone:
-  // - left edge (x=0) → 3%, right edge (x=1) → 97%
-  // - top (altitude=1) → 4%, bottom (altitude=0) → 92%
-  // Then we push the path outward so it always stays outside the ring.
-  const rawLeft = 3 + x * 94; // 3% to 97%
-  const rawTop = 92 - altitude * 88; // 92% to 4%
-
-  // Distance from center (50%, 48%) as fraction of half-size
-  const dx = (rawLeft - 50) / 50;
-  const dy = (rawTop - 48) / 48;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-
-  // If the body would land inside the ring zone (dist < 0.62), push it outward
-  if (dist < 0.62 && dist > 0) {
-    const scale = 0.62 / dist;
-    const pushedLeft = 50 + dx * 50 * scale;
-    const pushedTop = 48 + dy * 48 * scale;
-    return {
-      left: `${Math.round(Math.max(2, Math.min(98, pushedLeft)))}%`,
-      top: `${Math.round(Math.max(2, Math.min(96, pushedTop)))}%`,
-    };
-  }
-  return {
-    left: `${Math.round(Math.max(2, Math.min(98, rawLeft)))}%`,
-    top: `${Math.round(Math.max(2, Math.min(96, rawTop)))}%`,
-  };
-}
-
 /* ── Celestial decoration — sun/moon/clouds + weather ──────── */
 function CelestialDecoration({ celestial, weather }) {
   const { body, x, altitude, phase } = celestial;
 
-  const sunPos = celestialToMarginPos(x, altitude);
+  const pxLeft = `${Math.round(x * 100)}%`;
+  const pxTop = `${Math.round(85 - altitude * 77)}%`;
 
   if (body === "sun" || (body === "twilight" && (celestial.twilightProgress ?? 0) > 0.5)) {
     const sunScale = 0.7 + altitude * 0.3;
@@ -234,14 +221,14 @@ function CelestialDecoration({ celestial, weather }) {
         {showSun && (
           <>
             <div style={{
-              position: "absolute", left: sunPos.left, top: sunPos.top,
+              position: "absolute", left: pxLeft, top: pxTop,
               transform: `translate(-50%, -50%) scale(${sunScale})`,
               width: 80, height: 80, borderRadius: "50%",
               background: "radial-gradient(circle, #FFF176 0%, #FFD600 35%, rgba(255,179,0,0) 70%)",
               opacity: sunOpacity * 0.7,
             }} />
             <div style={{
-              position: "absolute", left: sunPos.left, top: sunPos.top,
+              position: "absolute", left: pxLeft, top: pxTop,
               transform: "translate(-50%, -50%)",
               width: 36, height: 36, borderRadius: "50%",
               background: "#FFD600", opacity: sunOpacity,
@@ -267,7 +254,10 @@ function CelestialDecoration({ celestial, weather }) {
       ? moonSize * (1 - illumination)
       : -moonSize * (1 - illumination);
 
-    const moonPos = celestialToMarginPos(x, altitude);
+    // Push moon further out — halfway between outer ring and card edge
+    // altitude 0 → near bottom edge, altitude 1 → near top edge
+    const moonTop = `${Math.round(92 - altitude * 88)}%`;
+    const moonLeft = `${Math.round(x * 100)}%`;
 
     return (
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
@@ -279,7 +269,7 @@ function CelestialDecoration({ celestial, weather }) {
           }} />
         ))}
         <svg style={{
-          position: "absolute", left: moonPos.left, top: moonPos.top,
+          position: "absolute", left: moonLeft, top: moonTop,
           transform: "translate(-50%, -50%)",
           width: moonSize, height: moonSize, overflow: "visible",
         }} viewBox={`0 0 ${moonSize} ${moonSize}`}>
