@@ -316,7 +316,7 @@ function CelestialDecoration({ celestial, weather }) {
 
 /* ── Atmosphere ring — pure SVG arcs (iOS-safe, no foreignObject) ── */
 function AtmosphereRing({ theme }) {
-  const stops = useMemo(() => atmosphereStops(48, theme), [theme]);
+  const stops = useMemo(() => atmosphereStops(180, theme), [theme]);
   const segments = useMemo(() => {
     const circumference = 2 * Math.PI * ATMO_R;
     const result = [];
