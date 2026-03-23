@@ -43,62 +43,33 @@ function SleepIcon() {
 }
 
 function FeedingIcon() {
+  /* Based on hugeicons:baby-bottle — adapted for filled style */
   return (
-    <svg viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      {/* Baby bottle — tilted slightly for recognizability */}
-      {/* Nipple */}
-      <path d="M14 4 Q16 2 18 4 L17.5 7 L14.5 7 Z" opacity="0.75" />
-      {/* Cap ring */}
-      <rect x="13.5" y="7" width="5" height="2" rx="0.8" opacity="0.6" />
-      {/* Bottle body — rounded rectangle */}
-      <rect x="12" y="9" width="8" height="18" rx="4" />
-      {/* Milk fill */}
-      <rect x="12" y="18" width="8" height="9" rx="4" opacity="0.35" />
-      {/* Measurement marks */}
-      <line x1="13" y1="14" x2="15.5" y2="14" stroke="white" strokeWidth="0.7" opacity="0.4" />
-      <line x1="13" y1="17" x2="15" y2="17" stroke="white" strokeWidth="0.7" opacity="0.3" />
-      <line x1="13" y1="20" x2="15.5" y2="20" stroke="white" strokeWidth="0.7" opacity="0.4" />
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 10.5s1 2.5 1 5.75c0 1.171-.13 2.245-.296 3.14c-.209 1.124-.313 1.686-.869 2.148S15.617 22 14.292 22H9.708c-1.325 0-1.987 0-2.543-.462s-.66-1.024-.869-2.149A17.3 17.3 0 0 1 6 16.25C6 13 7 10.5 7 10.5" />
+      <path d="M7 10.51h10c.148-.815-.079-2.388-2.04-3.01c-.465-.148-1.01-.424-1.256-.888a1.64 1.64 0 0 1 .007-1.587a2.067 2.067 0 0 0-1.229-2.938A1.7 1.7 0 0 0 12 2a1.7 1.7 0 0 0-.515.087a2.067 2.067 0 0 0-1.23 2.938c.327.618.225 1.175.008 1.587c-.238.45-.756.85-1.24 1.003C7.672 8.045 6.74 9.068 7 10.51" />
+      <path d="M15 14h2.5M15 18h2.5" />
     </svg>
   );
 }
 
 function DiaperIcon() {
+  /* Based on tabler:diaper — open diaper with side tabs */
   return (
-    <svg viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      {/* Open diaper — front-facing, recognizable shape */}
-      {/* Back panel (wide top) */}
-      <path d="M4 8 L28 8 L28 14 Q16 13 4 14 Z" opacity="0.8" />
-      {/* Front panel (narrower, folds up between legs) */}
-      <path d="M8 14 Q16 28 24 14 L28 14 Q16 32 4 14 Z" />
-      {/* Waistband elastic line */}
-      <path d="M5 9.5 L27 9.5" stroke="white" strokeWidth="0.7" opacity="0.3" fill="none" />
-      {/* Left adhesive tab */}
-      <path d="M4 10 L1 12 L4 14" fill="currentColor" opacity="0.65" />
-      {/* Right adhesive tab */}
-      <path d="M28 10 L31 12 L28 14" fill="currentColor" opacity="0.65" />
-      {/* Inner lining suggestion */}
-      <path d="M10 15 Q16 25 22 15" stroke="white" strokeWidth="0.6" opacity="0.2" fill="none" />
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 8.323c0-.579 0-.868.044-1.11a2.7 2.7 0 0 1 2.17-2.169C5.453 5 5.743 5 6.323 5h11.353c.579 0 .868 0 1.11.044a2.7 2.7 0 0 1 2.169 2.17c.044.24.044.53.044 1.11V11a9 9 0 0 1-18 0z" />
+      <path d="M17 9h4M3 9h4" />
+      <path d="M14.25 19.7v-1.4a6.3 6.3 0 0 1 6.3-6.3m-10.8 7.7v-1.4a6.3 6.3 0 0 0-6.3-6.3" />
     </svg>
   );
 }
 
 function PumpingIcon() {
+  /* Based on icon-park-outline:breast-pump — pump with bottle and handle */
   return (
-    <svg viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      {/* Breast pump — single side, recognizable */}
-      {/* Breast shield / flange (funnel shape) */}
-      <path d="M8 6 Q16 4 20 6 L18 14 L10 14 Z" opacity="0.7" />
-      {/* Connector */}
-      <rect x="11" y="14" width="6" height="3" rx="1" opacity="0.85" />
-      {/* Collection bottle */}
-      <rect x="10" y="17" width="8" height="11" rx="3" />
-      {/* Milk level */}
-      <rect x="10" y="22" width="8" height="6" rx="3" opacity="0.35" />
-      {/* Handle / pump lever */}
-      <path d="M20 8 Q24 8 24 12 L24 16 Q24 18 22 18 L21 18 L21 14 Q21 11 20 10 Z" opacity="0.6" />
-      {/* Measurement lines */}
-      <line x1="11" y1="21" x2="13.5" y2="21" stroke="white" strokeWidth="0.6" opacity="0.35" />
-      <line x1="11" y1="24" x2="13" y2="24" stroke="white" strokeWidth="0.6" opacity="0.3" />
+    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M35 25c0-4-6-6-6-6v-5H17v5s-6 2-6 6v19h24z" />
+      <path d="M20 4l-7 6m10 4l-6-7m9 1h9v7l6 5" />
     </svg>
   );
 }
