@@ -102,7 +102,7 @@ function AskAIModal({ childId, open, onClose, strings }) {
       try {
         setError(JSON.parse(e.data));
       } catch {
-        setError("Connection error");
+        setError(strings.connectionError || "Connection error");
       }
       es.close();
     });
@@ -110,7 +110,7 @@ function AskAIModal({ childId, open, onClose, strings }) {
       if (loadingRef.current) {
         setLoading(false);
         loadingRef.current = false;
-        setError("Connection lost");
+        setError(strings.connectionError || "Connection lost");
       }
       es.close();
     };
@@ -173,7 +173,7 @@ export function InsightsPage({ bootstrap }) {
   const categories = Object.keys(byCategory).sort();
 
   return (
-    <div style={{ maxWidth: 640 }}>
+    <div style={{ maxWidth: 640, width: "100%" }}>
       {/* AI summary button */}
       {showAI && (
         <>

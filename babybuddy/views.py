@@ -273,6 +273,27 @@ def _base_strings():
         "password": _("Password"),
         "login": _("Login"),
         "welcome": _("Welcome"),
+        # Theme switcher
+        "lightTheme": _("Light theme"),
+        "darkTheme": _("Dark theme"),
+        "systemTheme": _("System theme"),
+        # Mobile nav
+        "more": _("More"),
+        # Insights / topics
+        "insights": _("Insights"),
+        "quickEntry": _("Quick Entry"),
+        "addChild": _("Add Child"),
+        "selectChild": _("Select child"),
+        "history": _("History"),
+        "charts": _("Charts"),
+        "dismiss": _("Dismiss"),
+        "connectionError": _("Connection error"),
+        # Activity labels
+        "sleepLabel": _("Sleep"),
+        "feedingLabel": _("Feeding"),
+        "diaperLabel": _("Diaper"),
+        "pumpingLabel": _("Pumping"),
+        "breastfeedingShort": _("Breast"),
     }
 
 

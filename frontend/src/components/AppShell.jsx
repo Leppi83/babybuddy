@@ -63,11 +63,11 @@ function writeSelectedSlug(slug) {
 }
 
 /* ── Theme switcher ────────────────────────────────────────────── */
-function ThemeSwitcher({ themeMode, onThemeModeChange, compact = false }) {
+function ThemeSwitcher({ themeMode, onThemeModeChange, compact = false, strings: ts = {} }) {
   const modes = [
-    { key: "light", icon: <SunOutlined />, label: "Light theme" },
-    { key: "dark", icon: <MoonOutlined />, label: "Dark theme" },
-    { key: "system", icon: <DesktopOutlined />, label: "System theme" },
+    { key: "light", icon: <SunOutlined />, label: ts.lightTheme || "Light theme" },
+    { key: "dark", icon: <MoonOutlined />, label: ts.darkTheme || "Dark theme" },
+    { key: "system", icon: <DesktopOutlined />, label: ts.systemTheme || "System theme" },
   ];
   return (
     <div className={`ant-theme-switcher ${compact ? "is-compact" : ""}`}>
@@ -506,6 +506,7 @@ export function AppShell({
               themeMode={themeMode}
               onThemeModeChange={onThemeModeChange}
               compact={collapsed}
+              strings={s}
             />
           </div>
         </Sider>
@@ -557,6 +558,7 @@ export function AppShell({
             <ThemeSwitcher
               themeMode={themeMode}
               onThemeModeChange={onThemeModeChange}
+              strings={s}
             />
             <Button danger icon={<LogoutOutlined />} onClick={handleLogout} block>
               {s.logout}
@@ -601,7 +603,7 @@ export function AppShell({
                       value: option.value,
                       label: option.label,
                     }))}
-                    style={{ minWidth: isDesktop ? 220 : 180 }}
+                    style={{ minWidth: isDesktop ? 220 : "clamp(120px, 40vw, 180px)" }}
                   />
                 </Space>
               ) : null}
@@ -630,7 +632,7 @@ export function AppShell({
             { key: "__insights__", icon: <BulbOutlined />, label: s.insights || "Insights" },
             { key: quickEntryUrl, icon: <EditOutlined />, label: s.quickEntry || "Quick Entry" },
             { key: bootstrap.urls.timeline, icon: <HistoryOutlined />, label: s.timeline },
-            { key: "__more__", icon: <EllipsisOutlined />, label: "More" },
+            { key: "__more__", icon: <EllipsisOutlined />, label: s.more || "More" },
           ].map((item) => {
             const isInsightsActive = topicPages && selectedKey &&
               Object.values(topicPages).some((url) => selectedKey === url);

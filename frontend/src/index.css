@@ -1043,7 +1043,7 @@ body {
   }
 
   .ant-night-sleep-center {
-    padding: 74px;
+    padding: clamp(40px, 12vw, 74px);
   }
 
   .ant-night-sleep-total {
