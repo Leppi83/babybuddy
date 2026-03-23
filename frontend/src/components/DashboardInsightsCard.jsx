@@ -61,10 +61,10 @@ function InsightRow({ insight, onDismiss, strings }) {
         }}
       >
         <Tag
-          color={meta.color}
           style={{
-            color: "var(--app-text-primary)",
-            border: "none",
+            background: `color-mix(in srgb, ${meta.color} 20%, transparent)`,
+            color: meta.color,
+            border: `1px solid ${meta.color}`,
             fontWeight: 600,
             fontSize: 11,
           }}

@@ -45,17 +45,19 @@ function SleepIcon() {
 function FeedingIcon() {
   return (
     <svg viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      {/* Bottle body */}
-      <rect x="11" y="13" width="10" height="15" rx="5" />
-      {/* Bottle neck */}
-      <rect x="13" y="7" width="6" height="8" rx="2" />
+      {/* Baby bottle — tilted slightly for recognizability */}
       {/* Nipple */}
-      <ellipse cx="16" cy="6" rx="3" ry="2.5" opacity="0.7" />
-      {/* Milk level inside bottle */}
-      <rect x="12" y="21" width="8" height="6" rx="4" opacity="0.3" />
-      {/* Measurement lines */}
-      <line x1="12" y1="17" x2="14" y2="17" stroke="white" strokeWidth="0.8" opacity="0.4" />
-      <line x1="12" y1="20" x2="14" y2="20" stroke="white" strokeWidth="0.8" opacity="0.4" />
+      <path d="M14 4 Q16 2 18 4 L17.5 7 L14.5 7 Z" opacity="0.75" />
+      {/* Cap ring */}
+      <rect x="13.5" y="7" width="5" height="2" rx="0.8" opacity="0.6" />
+      {/* Bottle body — rounded rectangle */}
+      <rect x="12" y="9" width="8" height="18" rx="4" />
+      {/* Milk fill */}
+      <rect x="12" y="18" width="8" height="9" rx="4" opacity="0.35" />
+      {/* Measurement marks */}
+      <line x1="13" y1="14" x2="15.5" y2="14" stroke="white" strokeWidth="0.7" opacity="0.4" />
+      <line x1="13" y1="17" x2="15" y2="17" stroke="white" strokeWidth="0.7" opacity="0.3" />
+      <line x1="13" y1="20" x2="15.5" y2="20" stroke="white" strokeWidth="0.7" opacity="0.4" />
     </svg>
   );
 }
@@ -63,14 +65,19 @@ function FeedingIcon() {
 function DiaperIcon() {
   return (
     <svg viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      {/* Main diaper body — hourglass shape */}
-      <path d="M4 10 C4 10 10 12 16 10 C22 8 28 10 28 10 L28 22 C28 22 22 20 16 22 C10 24 4 22 4 22 Z" />
-      {/* Left tab */}
-      <rect x="1" y="9" width="7" height="5" rx="2.5" opacity="0.7" />
-      {/* Right tab */}
-      <rect x="24" y="9" width="7" height="5" rx="2.5" opacity="0.7" />
-      {/* Center fold crease */}
-      <line x1="10" y1="16" x2="22" y2="16" stroke="white" strokeWidth="1" opacity="0.25" />
+      {/* Open diaper — front-facing, recognizable shape */}
+      {/* Back panel (wide top) */}
+      <path d="M4 8 L28 8 L28 14 Q16 13 4 14 Z" opacity="0.8" />
+      {/* Front panel (narrower, folds up between legs) */}
+      <path d="M8 14 Q16 28 24 14 L28 14 Q16 32 4 14 Z" />
+      {/* Waistband elastic line */}
+      <path d="M5 9.5 L27 9.5" stroke="white" strokeWidth="0.7" opacity="0.3" fill="none" />
+      {/* Left adhesive tab */}
+      <path d="M4 10 L1 12 L4 14" fill="currentColor" opacity="0.65" />
+      {/* Right adhesive tab */}
+      <path d="M28 10 L31 12 L28 14" fill="currentColor" opacity="0.65" />
+      {/* Inner lining suggestion */}
+      <path d="M10 15 Q16 25 22 15" stroke="white" strokeWidth="0.6" opacity="0.2" fill="none" />
     </svg>
   );
 }
@@ -78,17 +85,20 @@ function DiaperIcon() {
 function PumpingIcon() {
   return (
     <svg viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      {/* Left breast shield (funnel/cone) */}
-      <path d="M2 9 L10 15 L10 21 L2 23 Z" opacity="0.85" />
-      <rect x="10" y="16" width="3" height="3" rx="1" opacity="0.7" />
-      {/* Right breast shield */}
-      <path d="M30 9 L22 15 L22 21 L30 23 Z" opacity="0.85" />
-      <rect x="19" y="16" width="3" height="3" rx="1" opacity="0.7" />
-      {/* Connecting tube */}
-      <path d="M13 17.5 C15 14 17 14 19 17.5" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.5" />
-      {/* Collection bottle (center bottom) */}
-      <rect x="13" y="22" width="6" height="7" rx="2" opacity="0.8" />
-      <rect x="14" y="20" width="4" height="4" rx="1" opacity="0.6" />
+      {/* Breast pump — single side, recognizable */}
+      {/* Breast shield / flange (funnel shape) */}
+      <path d="M8 6 Q16 4 20 6 L18 14 L10 14 Z" opacity="0.7" />
+      {/* Connector */}
+      <rect x="11" y="14" width="6" height="3" rx="1" opacity="0.85" />
+      {/* Collection bottle */}
+      <rect x="10" y="17" width="8" height="11" rx="3" />
+      {/* Milk level */}
+      <rect x="10" y="22" width="8" height="6" rx="3" opacity="0.35" />
+      {/* Handle / pump lever */}
+      <path d="M20 8 Q24 8 24 12 L24 16 Q24 18 22 18 L21 18 L21 14 Q21 11 20 10 Z" opacity="0.6" />
+      {/* Measurement lines */}
+      <line x1="11" y1="21" x2="13.5" y2="21" stroke="white" strokeWidth="0.6" opacity="0.35" />
+      <line x1="11" y1="24" x2="13" y2="24" stroke="white" strokeWidth="0.6" opacity="0.3" />
     </svg>
   );
 }
