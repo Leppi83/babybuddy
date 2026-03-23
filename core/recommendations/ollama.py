@@ -99,7 +99,7 @@ def _build_prompt(bundle):
 
 def _call_openai_compat(bundle):
     """Call OpenAI-compatible API (e.g. Open WebUI)."""
-    base_url = os.environ.get("AI_URL", "http://192.168.2.198:3000").rstrip("/")
+    base_url = os.environ.get("AI_URL", "http://localhost:11434").rstrip("/")
     model = os.environ.get("AI_MODEL", "mistral:7b-instruct")
     timeout_s = float(os.environ.get("AI_TIMEOUT_S", "10"))
     api_key = os.environ.get("AI_API_KEY", "")
