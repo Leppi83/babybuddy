@@ -8,9 +8,8 @@
 .env.local
 .env.*.local
 
-# Docker Compose (may contain secrets)
+# Docker Compose (dev — may contain secrets)
 docker-compose.yml
-docker-compose.prod.yml
 
 # Agent / IDE local config
 AGENTS.md
