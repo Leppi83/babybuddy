@@ -1253,7 +1253,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                         "elapsedSeconds": elapsed,
                         "paused": False,
                         "pauseStartIso": None,
-                        "frozenSeconds": 0,
+                        "frozenSeconds": elapsed,
                     }
             except (TypeError, ValueError):
                 del self.request.session[key]

@@ -1711,7 +1711,7 @@ class QuickEntryView(LoginRequiredMixin, View):
                             "elapsedSeconds": elapsed,
                             "paused": False,
                             "pauseStartIso": None,
-                            "frozenSeconds": 0,
+                            "frozenSeconds": elapsed,
                         }
                 except (TypeError, ValueError):
                     del request.session[key]
