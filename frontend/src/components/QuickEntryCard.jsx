@@ -402,7 +402,7 @@ export function QuickEntryCard({ bootstrap }) {
       {selectedSegment === "sleep" && (
         <Row gutter={[24, 16]}>
           <Col xs={24} md={11}>
-            <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 12, width: "100%" }}>
               {renderDateTimeInputs({
                 startDate: sleepEntryStartDate,
                 setStartDate: setSleepEntryStartDate,
@@ -413,6 +413,7 @@ export function QuickEntryCard({ bootstrap }) {
                 endTime: sleepEntryEndTime,
                 setEndTime: setSleepEntryEndTime,
               })}
+              <div style={{ flex: 1 }} />
               <Text type="secondary" style={{ fontSize: "12px" }}>
                 {s.napDurationHint}
               </Text>
@@ -425,7 +426,7 @@ export function QuickEntryCard({ bootstrap }) {
               >
                 {s.save}
               </Button>
-            </Space>
+            </div>
           </Col>
           <Col xs={0} md={1}>
             <div style={{ width: "1px", height: "100%", backgroundColor: "rgba(255, 255, 255, 0.1)" }} />
@@ -434,7 +435,7 @@ export function QuickEntryCard({ bootstrap }) {
             <Divider style={{ margin: "0" }} />
           </Col>
           <Col xs={24} md={12}>
-            <Space direction="vertical" size={12} className="ant-sleep-timer-card" style={{ width: "100%" }}>
+            <div className="ant-sleep-timer-card" style={{ display: "flex", flexDirection: "column", height: "100%", gap: 12, width: "100%" }}>
               <Row gutter={16}>
                 <Col xs={sleepTimer.running && sleepTimerPaused ? 12 : 24}>
                   <Statistic
@@ -485,6 +486,7 @@ export function QuickEntryCard({ bootstrap }) {
               >
                 {!sleepTimer.running ? s.startTimer : sleepTimerPaused ? s.resume : s.pause}
               </Button>
+              <div style={{ flex: 1 }} />
               {sleepTimer.running && (
                 <Row gutter={[8, 8]}>
                   <Col xs={24} md={12}>
@@ -520,7 +522,7 @@ export function QuickEntryCard({ bootstrap }) {
                   </Col>
                 </Row>
               )}
-            </Space>
+            </div>
           </Col>
         </Row>
       )}
