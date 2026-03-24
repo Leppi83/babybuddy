@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from faker import Faker
 
-from core.models import Child, DiaperChange, Feeding, Pumping, Sleep
+from core.models import Child, DiaperChange, Feeding, Pumping, Sleep, SleepTimer
 
 
 class ViewsTestCase(TestCase):
@@ -88,9 +88,7 @@ class ViewsTestCase(TestCase):
             follow=True,
         )
         self.assertEqual(start_response.status_code, 200)
-
-        session = self.c.session
-        self.assertIn(f"sleep_timer_start_{child.id}", session)
+        self.assertTrue(SleepTimer.objects.filter(child=child).exists())
 
         stop_response = self.c.post(
             f"/children/{child.slug}/dashboard/",
@@ -98,10 +96,51 @@ class ViewsTestCase(TestCase):
             follow=True,
         )
         self.assertEqual(stop_response.status_code, 200)
+        self.assertFalse(SleepTimer.objects.filter(child=child).exists())
 
         sleep = Sleep.objects.order_by("-id").first()
         self.assertIsNotNone(sleep)
         self.assertEqual(sleep.child, child)
+
+    def test_dashboard_sleep_timer_pause_resume(self):
+        call_command("fake", verbosity=0, children=1, days=1)
+        child = Child.objects.first()
+
+        self.c.post(f"/children/{child.slug}/dashboard/", data={"sleep_timer_action": "start"})
+        self.c.post(f"/children/{child.slug}/dashboard/", data={"sleep_timer_action": "pause"})
+
+        timer = SleepTimer.objects.get(child=child)
+        self.assertIsNotNone(timer.paused_at)
+
+        self.c.post(f"/children/{child.slug}/dashboard/", data={"sleep_timer_action": "resume"})
+
+        timer.refresh_from_db()
+        self.assertIsNone(timer.paused_at)
+        self.assertEqual(len(timer.breaks), 1)
+
+    def test_dashboard_sleep_timer_cancel(self):
+        call_command("fake", verbosity=0, children=1, days=1)
+        child = Child.objects.first()
+        sleep_count_before = Sleep.objects.filter(child=child).count()
+
+        self.c.post(f"/children/{child.slug}/dashboard/", data={"sleep_timer_action": "start"})
+        self.assertTrue(SleepTimer.objects.filter(child=child).exists())
+
+        self.c.post(f"/children/{child.slug}/dashboard/", data={"sleep_timer_action": "cancel"})
+        self.assertFalse(SleepTimer.objects.filter(child=child).exists())
+        self.assertEqual(Sleep.objects.filter(child=child).count(), sleep_count_before)
+
+    def test_dashboard_sleep_timer_persists_across_requests(self):
+        """Timer state comes from DB, not session — survives any request."""
+        call_command("fake", verbosity=0, children=1, days=1)
+        child = Child.objects.first()
+
+        self.c.post(f"/children/{child.slug}/dashboard/", data={"sleep_timer_action": "start"})
+
+        # Bootstrap on dashboard GET should include running timer
+        response = self.c.get(f"/children/{child.slug}/dashboard/")
+        bootstrap = response.context["ant_bootstrap"]
+        self.assertTrue(bootstrap["sleepTimer"]["running"])
 
     def test_dashboard_manual_sleep_entry(self):
         child = Child.objects.create(
