@@ -18,13 +18,23 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testIgnore: "**/mobile.spec.js",
+    },
+    {
+      name: "mobile-chrome",
+      use: { ...devices["Pixel 7"] },
+      testMatch: "**/mobile.spec.js",
+    },
+    {
+      name: "mobile-safari",
+      use: { ...devices["iPhone 15"] },
+      testMatch: "**/mobile.spec.js",
     },
   ],
   globalSetup: "./e2e/global-setup.js",
   globalTeardown: "./e2e/global-teardown.js",
   webServer: {
-    command:
-      ".venv/bin/python manage.py runserver 8765 --noreload",
+    command: ".venv/bin/python manage.py runserver 8765 --noreload",
     url: "http://localhost:8765/login/",
     reuseExistingServer: true,
     timeout: 20000,
