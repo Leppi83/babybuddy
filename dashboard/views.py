@@ -220,6 +220,10 @@ def _build_ant_strings():
         # Quick entry hint
         "napDurationHint": _("Duration < 90 min is saved as nap, ≥ 90 min as sleep"),
         "saveTimer": _("Save Sleep"),
+        "startTimer": _("Start Timer"),
+        "cancelTimer": _("Cancel Timer"),
+        "cancelTimerTitle": _("Cancel timer?"),
+        "cancelTimerConfirm": _("Are you sure? The elapsed time will not be saved."),
         # Hero card
         "overviewFor": _("Overview for"),
         # Quick log tile labels
@@ -1096,6 +1100,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                 timer.save(update_fields=["breaks", "paused_at"])
             except SleepTimer.DoesNotExist:
                 pass
+
+        elif action == "cancel":
+            SleepTimer.objects.filter(child=child).delete()
 
         elif action in ("stop", "save"):
             try:

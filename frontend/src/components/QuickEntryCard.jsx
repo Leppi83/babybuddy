@@ -146,6 +146,12 @@ export function QuickEntryCard({ bootstrap }) {
         setSleepTimerResumeMs(null);
         setSleepTimerPauseStartMs(null);
         ant.message.success(s.sleepEntrySaved);
+      } else if (action === "cancel") {
+        setSleepTimer({ running: false, startIso: null, elapsedSeconds: 0, paused: false, pauseStartIso: null, frozenSeconds: 0 });
+        setSleepTimerPaused(false);
+        setSleepTimerFrozenSeconds(0);
+        setSleepTimerResumeMs(null);
+        setSleepTimerPauseStartMs(null);
       }
     } finally {
       setSubmittingSleepTimer(false);
@@ -477,18 +483,42 @@ export function QuickEntryCard({ bootstrap }) {
                 }}
                 className="ant-dashboard-action-btn"
               >
-                {!sleepTimer.running ? s.start : sleepTimerPaused ? s.resume : s.pause}
+                {!sleepTimer.running ? s.startTimer : sleepTimerPaused ? s.resume : s.pause}
               </Button>
               {sleepTimer.running && (
-                <Button
-                  type="default"
-                  size="large"
-                  loading={submittingSleepTimer}
-                  onClick={() => submitSleepTimerAction("save")}
-                  className="ant-dashboard-action-btn"
-                >
-                  {s.saveTimer}
-                </Button>
+                <Row gutter={[8, 8]}>
+                  <Col xs={24} md={12}>
+                    <Button
+                      type="default"
+                      size="large"
+                      loading={submittingSleepTimer}
+                      onClick={() => submitSleepTimerAction("save")}
+                      className="ant-dashboard-action-btn"
+                    >
+                      {s.saveTimer}
+                    </Button>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Button
+                      danger
+                      size="large"
+                      loading={submittingSleepTimer}
+                      onClick={() => {
+                        ant.modal.confirm({
+                          title: s.cancelTimerTitle,
+                          content: s.cancelTimerConfirm,
+                          okText: s.cancelTimer,
+                          okType: "danger",
+                          cancelText: s.cancel,
+                          onOk: () => submitSleepTimerAction("cancel"),
+                        });
+                      }}
+                      className="ant-dashboard-action-btn"
+                    >
+                      {s.cancelTimer}
+                    </Button>
+                  </Col>
+                </Row>
               )}
             </Space>
           </Col>
