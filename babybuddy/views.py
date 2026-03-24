@@ -99,6 +99,7 @@ class ServiceWorkerView(View):
 
 
 from core import models as core_models, forms as core_forms
+from core.models import SleepTimer
 
 _QUICK_LOG_FORM_MAP = {
     "diaper": {
@@ -1654,8 +1655,8 @@ class QuickEntryView(LoginRequiredMixin, View):
                 "dashboard:dashboard-child", kwargs={"slug": child.slug}
             )
 
-        # Build sleep timer state from session (same logic as ChildDashboard)
-        timer_payload = {
+        # Build sleep timer state from DB (persists across logout/login)
+        _not_running = {
             "running": False,
             "startIso": None,
             "elapsedSeconds": 0,
@@ -1663,59 +1664,12 @@ class QuickEntryView(LoginRequiredMixin, View):
             "pauseStartIso": None,
             "frozenSeconds": 0,
         }
+        timer_payload = _not_running
         if child:
-            child_id = child.id
-            key = f"sleep_timer_start_{child_id}"
-            breaks_key = f"sleep_timer_breaks_{child_id}"
-            pause_key = f"sleep_timer_pause_{child_id}"
-            start_raw = request.session.get(key)
-            if start_raw:
-                try:
-                    start_dt = tz.datetime.fromisoformat(start_raw)
-                    now = tz.now()
-                    breaks = request.session.get(breaks_key, [])
-                    total_break_secs = sum(
-                        int(
-                            (
-                                tz.datetime.fromisoformat(b["end"])
-                                - tz.datetime.fromisoformat(b["start"])
-                            ).total_seconds()
-                        )
-                        for b in breaks
-                        if "start" in b and "end" in b
-                    )
-                    pause_raw = request.session.get(pause_key)
-                    if pause_raw:
-                        pause_start_dt = tz.datetime.fromisoformat(pause_raw)
-                        frozen = max(
-                            0,
-                            int((pause_start_dt - start_dt).total_seconds())
-                            - total_break_secs,
-                        )
-                        timer_payload = {
-                            "running": True,
-                            "startIso": start_dt.isoformat(),
-                            "elapsedSeconds": frozen,
-                            "paused": True,
-                            "pauseStartIso": pause_raw,
-                            "frozenSeconds": frozen,
-                        }
-                    else:
-                        elapsed = max(
-                            0,
-                            int((now - start_dt).total_seconds()) - total_break_secs,
-                        )
-                        timer_payload = {
-                            "running": True,
-                            "startIso": start_dt.isoformat(),
-                            "elapsedSeconds": elapsed,
-                            "paused": False,
-                            "pauseStartIso": None,
-                            "frozenSeconds": elapsed,
-                        }
-                except (TypeError, ValueError):
-                    del request.session[key]
-                    request.session.modified = True
+            try:
+                timer_payload = child.sleep_timer.to_bootstrap_payload()
+            except SleepTimer.DoesNotExist:
+                pass
 
         bootstrap = {
             "pageType": "quick-entry",

@@ -817,3 +817,67 @@ class WeightPercentile(models.Model):
 
     def __str__(self):
         return f"Sex: {self.sex}, Age: {self.age_in_days} days, p3: {self.p3_weight} kg, p15: {self.p15_weight} kg, p50: {self.p50_weight} kg, p85: {self.p85_weight} kg, p97: {self.p97_weight} kg"
+
+
+class SleepTimer(models.Model):
+    """Persistent sleep timer for a child. Survives logout/login and browser close."""
+
+    child = models.OneToOneField(
+        "Child",
+        on_delete=models.CASCADE,
+        related_name="sleep_timer",
+        verbose_name=_("Child"),
+    )
+    start = models.DateTimeField(verbose_name=_("Start time"))
+    paused_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Paused at")
+    )
+    breaks = JSONField(default=list, verbose_name=_("Breaks"))
+
+    class Meta:
+        verbose_name = _("Sleep timer")
+        verbose_name_plural = _("Sleep timers")
+
+    def __str__(self):
+        return f"SleepTimer for {self.child}"
+
+    def total_break_seconds(self):
+        return sum(
+            int(
+                (
+                    timezone.datetime.fromisoformat(b["end"])
+                    - timezone.datetime.fromisoformat(b["start"])
+                ).total_seconds()
+            )
+            for b in self.breaks
+            if "start" in b and "end" in b
+        )
+
+    def frozen_seconds(self):
+        """Elapsed seconds at pause time (if paused) or current elapsed (if running)."""
+        if self.paused_at:
+            return max(
+                0,
+                int((self.paused_at - self.start).total_seconds())
+                - self.total_break_seconds(),
+            )
+        return self.elapsed_seconds()
+
+    def elapsed_seconds(self):
+        """Net elapsed seconds excluding all pauses."""
+        ref = self.paused_at if self.paused_at else timezone.now()
+        return max(
+            0,
+            int((ref - self.start).total_seconds()) - self.total_break_seconds(),
+        )
+
+    def to_bootstrap_payload(self):
+        frozen = self.frozen_seconds()
+        return {
+            "running": True,
+            "startIso": self.start.isoformat(),
+            "elapsedSeconds": frozen,
+            "paused": self.paused_at is not None,
+            "pauseStartIso": self.paused_at.isoformat() if self.paused_at else None,
+            "frozenSeconds": frozen,
+        }

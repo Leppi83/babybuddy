@@ -27,7 +27,7 @@ from django.core.cache import cache
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from babybuddy.views import _serialize_messages
 from core.views import _build_child_switcher
-from core.models import Child, DiaperChange, Feeding, Pumping, Sleep, Timer
+from core.models import Child, DiaperChange, Feeding, Pumping, Sleep, SleepTimer, Timer
 from core.insights import build_insights_data, run_rules
 
 
@@ -818,10 +818,6 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     ]
 
     @staticmethod
-    def _timer_session_key(child_id):
-        return f"sleep_timer_start_{child_id}"
-
-    @staticmethod
     def _parse_local_datetime(date_value, time_value):
         entry_date = datetime.date.fromisoformat(date_value)
         entry_time = datetime.time.fromisoformat(time_value)
@@ -1078,82 +1074,55 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             return JsonResponse({"ok": ok, "error": error})
 
         action = request.POST.get("sleep_timer_action")
-        child_id = self.object.id
-        key = self._timer_session_key(child_id)  # overall start time
-        breaks_key = f"sleep_timer_breaks_{child_id}"  # completed pauses
-        pause_key = f"sleep_timer_pause_{child_id}"  # current pause start
+        child = self.object
 
         if action == "start":
-            now_iso = timezone.now().isoformat()
-            request.session[key] = now_iso
-            request.session[breaks_key] = []
-            if pause_key in request.session:
-                del request.session[pause_key]
-            request.session.modified = True
+            SleepTimer.objects.filter(child=child).delete()
+            SleepTimer.objects.create(child=child, start=timezone.now(), breaks=[])
 
         elif action == "pause":
-            request.session[pause_key] = timezone.now().isoformat()
-            request.session.modified = True
+            SleepTimer.objects.filter(child=child, paused_at__isnull=True).update(
+                paused_at=timezone.now()
+            )
 
         elif action == "resume":
-            pause_start_raw = request.session.get(pause_key)
-            if pause_start_raw:
-                try:
-                    pause_start = timezone.datetime.fromisoformat(pause_start_raw)
-                    pause_end = timezone.now()
-                    breaks = request.session.setdefault(breaks_key, [])
-                    breaks.append(
-                        {"start": pause_start.isoformat(), "end": pause_end.isoformat()}
-                    )
-                    del request.session[pause_key]
-                    request.session.modified = True
-                except (TypeError, ValueError) as exc:
-                    return JsonResponse(
-                        {"ok": False, "error": f"Unable to record pause: {exc}"}
-                    )
+            try:
+                timer = SleepTimer.objects.get(child=child, paused_at__isnull=False)
+                pause_end = timezone.now()
+                timer.breaks.append(
+                    {"start": timer.paused_at.isoformat(), "end": pause_end.isoformat()}
+                )
+                timer.paused_at = None
+                timer.save(update_fields=["breaks", "paused_at"])
+            except SleepTimer.DoesNotExist:
+                pass
 
         elif action in ("stop", "save"):
-            start_raw = request.session.get(key)
-            if start_raw:
-                try:
-                    start_dt = timezone.datetime.fromisoformat(start_raw)
-                    end_dt = timezone.now()
-                    breaks = request.session.get(breaks_key, [])
-                    total_break_secs = sum(
-                        int(
-                            (
-                                timezone.datetime.fromisoformat(b["end"])
-                                - timezone.datetime.fromisoformat(b["start"])
-                            ).total_seconds()
-                        )
-                        for b in breaks
-                        if "start" in b and "end" in b
-                    )
-                    net_secs = max(
-                        0, int((end_dt - start_dt).total_seconds()) - total_break_secs
-                    )
-                    nap = self._classify_sleep_nap(start_dt, net_secs)
-                    sleep = Sleep(
-                        child=self.object,
-                        start=start_dt,
-                        end=end_dt,
-                        nap=nap,
-                        net_duration=datetime.timedelta(seconds=net_secs),
-                        breaks=breaks,
-                    )
-                    sleep.full_clean()
-                    sleep.save()
-                except (TypeError, ValueError, ValidationError) as exc:
-                    return JsonResponse(
-                        {
-                            "ok": False,
-                            "error": f"Unable to save sleep entry: {self._validation_error_text(exc) if isinstance(exc, ValidationError) else exc}",
-                        }
-                    )
-            for k in [key, breaks_key, pause_key]:
-                if k in request.session:
-                    del request.session[k]
-            request.session.modified = True
+            try:
+                timer = SleepTimer.objects.get(child=child)
+                end_dt = timezone.now()
+                net_secs = timer.elapsed_seconds()
+                nap = self._classify_sleep_nap(timer.start, net_secs)
+                sleep = Sleep(
+                    child=child,
+                    start=timer.start,
+                    end=end_dt,
+                    nap=nap,
+                    net_duration=datetime.timedelta(seconds=net_secs),
+                    breaks=timer.breaks,
+                )
+                sleep.full_clean()
+                sleep.save()
+                timer.delete()
+            except SleepTimer.DoesNotExist:
+                pass
+            except (TypeError, ValueError, ValidationError) as exc:
+                return JsonResponse(
+                    {
+                        "ok": False,
+                        "error": f"Unable to save sleep entry: {self._validation_error_text(exc) if isinstance(exc, ValidationError) else exc}",
+                    }
+                )
 
         return JsonResponse({"ok": True})
 
@@ -1198,12 +1167,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         context["dashboard_section_order"] = visible_sections
         context["dashboard_hidden_sections"] = hidden_sections
         children = Child.objects.all().order_by("last_name", "first_name", "id")
-        child_id = self.object.id
-        key = self._timer_session_key(child_id)
-        breaks_key = f"sleep_timer_breaks_{child_id}"
-        pause_key = f"sleep_timer_pause_{child_id}"
-        start_raw = self.request.session.get(key)
-        timer_payload = {
+        _not_running = {
             "running": False,
             "startIso": None,
             "elapsedSeconds": 0,
@@ -1211,53 +1175,10 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "pauseStartIso": None,
             "frozenSeconds": 0,
         }
-        if start_raw:
-            try:
-                start_dt = timezone.datetime.fromisoformat(start_raw)
-                now = timezone.now()
-                breaks = self.request.session.get(breaks_key, [])
-                total_break_secs = sum(
-                    int(
-                        (
-                            timezone.datetime.fromisoformat(b["end"])
-                            - timezone.datetime.fromisoformat(b["start"])
-                        ).total_seconds()
-                    )
-                    for b in breaks
-                    if "start" in b and "end" in b
-                )
-                pause_raw = self.request.session.get(pause_key)
-                if pause_raw:
-                    pause_start_dt = timezone.datetime.fromisoformat(pause_raw)
-                    frozen = max(
-                        0,
-                        int((pause_start_dt - start_dt).total_seconds())
-                        - total_break_secs,
-                    )
-                    timer_payload = {
-                        "running": True,
-                        "startIso": start_dt.isoformat(),
-                        "elapsedSeconds": frozen,
-                        "paused": True,
-                        "pauseStartIso": pause_raw,
-                        "frozenSeconds": frozen,
-                    }
-                else:
-                    elapsed = max(
-                        0,
-                        int((now - start_dt).total_seconds()) - total_break_secs,
-                    )
-                    timer_payload = {
-                        "running": True,
-                        "startIso": start_dt.isoformat(),
-                        "elapsedSeconds": elapsed,
-                        "paused": False,
-                        "pauseStartIso": None,
-                        "frozenSeconds": elapsed,
-                    }
-            except (TypeError, ValueError):
-                del self.request.session[key]
-                self.request.session.modified = True
+        try:
+            timer_payload = self.object.sleep_timer.to_bootstrap_payload()
+        except SleepTimer.DoesNotExist:
+            timer_payload = _not_running
         if _ant_dashboard_enabled():
             context["ant_page_title"] = _("Dashboard")
             context["ant_bootstrap"] = {
