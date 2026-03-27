@@ -14,14 +14,3 @@ A buddy for babies! Helps caregivers track sleep, feedings, diaper changes,
 tummy time and more to learn about and predict baby's needs without (_as much_)
 guess work.
 
-### Other
-
-- [Grafana Dashboard](https://github.com/babybuddy/babybuddy/discussions/607)
-- [Sandstorm app](https://github.com/babybuddy/babybuddy-sandstorm)
-- Newborn parenting software series (API, buttons, LCD information screen!)
-  - [part 1](https://lutzky.net/2021/10/03/software-parenting-1/)
-  - [part 2](https://lutzky.net/2021/10/05/software-parenting-2/)
-  - [part 3](https://lutzky.net/2021/10/10/software-parenting-3/)
-- [High Level Developer Documentation (AI-Generated)](https://wiki.mutable.ai/babybuddy/babybuddy)
-- [Example custom TypeScript frontend](https://github.com/jkjustjoshing/maddie-buddy) (based on [Remix](https://remix.run/))
-
