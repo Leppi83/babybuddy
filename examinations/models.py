@@ -23,8 +23,8 @@ class ExaminationType(models.Model):
     )
     code = models.CharField(max_length=10, verbose_name=_("Code"))
     name = models.CharField(max_length=200, verbose_name=_("Name"))
-    age_min_days = models.IntegerField(verbose_name=_("Minimum age (days)"))
-    age_max_days = models.IntegerField(verbose_name=_("Maximum age (days)"))
+    age_min_days = models.PositiveIntegerField(verbose_name=_("Minimum age (days)"))
+    age_max_days = models.PositiveIntegerField(verbose_name=_("Maximum age (days)"))
     order = models.IntegerField(default=0, verbose_name=_("Order"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
 

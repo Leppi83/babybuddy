@@ -1,4 +1,5 @@
 import datetime
+from django.db import IntegrityError
 from django.test import TestCase
 from core.models import Child
 from examinations.models import (
@@ -113,7 +114,6 @@ class ExaminationRecordTest(TestCase):
             date=datetime.date(2024, 2, 1),
             answers={},
         )
-        from django.db import IntegrityError
         with self.assertRaises(IntegrityError):
             ExaminationRecord.objects.create(
                 child=self.child,
