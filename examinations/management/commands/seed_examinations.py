@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from examinations.models import ExaminationProgram, ExaminationType, ExaminationQuestion
 
 GERMANY_DATA = {
@@ -235,6 +235,11 @@ GERMANY_DATA = {
 }
 
 
+COUNTRY_DATA_MAP = {
+    "de": GERMANY_DATA,
+}
+
+
 class Command(BaseCommand):
     help = "Seed examination programs and questions. Use --country de to seed Germany."
 
@@ -253,14 +258,21 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         country = options["country"]
-        data = GERMANY_DATA if country == "de" else None
+        data = COUNTRY_DATA_MAP.get(country)
+        if data is None:
+            raise CommandError(f"No seed data available for country '{country}'.")
 
         if options["clear"]:
-            deleted, _ = ExaminationProgram.objects.filter(
-                country_code=country
-            ).delete()
+            ExaminationProgram.objects.filter(country_code=country).delete()
             self.stdout.write(f"Deleted existing program for country '{country}'")
 
+        program = self._seed_program(data)
+        for type_data in data["types"]:
+            self._seed_type(program, type_data)
+
+        self.stdout.write(self.style.SUCCESS(f"Done seeding '{country}' examinations."))
+
+    def _seed_program(self, data):
         program, created = ExaminationProgram.objects.get_or_create(
             country_code=data["country_code"],
             defaults={"name": data["name"]},
@@ -269,27 +281,26 @@ class Command(BaseCommand):
             self.stdout.write(f"Created program: {program.name}")
         else:
             self.stdout.write(f"Program already exists: {program.name}")
+        return program
 
-        for type_data in data["types"]:
-            questions = type_data.get("questions", [])
-            type_defaults = {k: v for k, v in type_data.items() if k != "questions"}
-            exam_type, _ = ExaminationType.objects.update_or_create(
-                program=program,
-                code=type_defaults["code"],
-                defaults={k: v for k, v in type_defaults.items() if k != "code"},
+    def _seed_type(self, program, type_data):
+        questions = type_data.get("questions", [])
+        type_defaults = {k: v for k, v in type_data.items() if k != "questions"}
+        exam_type, _ = ExaminationType.objects.update_or_create(
+            program=program,
+            code=type_defaults["code"],
+            defaults={k: v for k, v in type_defaults.items() if k != "code"},
+        )
+        for q_data in questions:
+            ExaminationQuestion.objects.update_or_create(
+                examination_type=exam_type,
+                order=q_data["order"],
+                defaults={
+                    "category": q_data["category"],
+                    "text": q_data["text"],
+                    "doctor_only": q_data.get("doctor_only", False),
+                    "answer_type": q_data.get("answer_type", "boolean"),
+                    "choices": q_data.get("choices"),
+                },
             )
-            for q_data in questions:
-                ExaminationQuestion.objects.update_or_create(
-                    examination_type=exam_type,
-                    order=q_data["order"],
-                    defaults={
-                        "category": q_data["category"],
-                        "text": q_data["text"],
-                        "doctor_only": q_data.get("doctor_only", False),
-                        "answer_type": q_data.get("answer_type", "boolean"),
-                        "choices": q_data.get("choices"),
-                    },
-                )
-            self.stdout.write(f"  Seeded {len(questions)} questions for {exam_type.code}")
-
-        self.stdout.write(self.style.SUCCESS(f"Done seeding '{country}' examinations."))
+        self.stdout.write(f"  Seeded {len(questions)} questions for {exam_type.code}")
