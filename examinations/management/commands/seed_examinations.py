@@ -271,20 +271,25 @@ class Command(BaseCommand):
             self.stdout.write(f"Program already exists: {program.name}")
 
         for type_data in data["types"]:
-            questions = type_data.pop("questions")
+            questions = type_data.get("questions", [])
+            type_defaults = {k: v for k, v in type_data.items() if k != "questions"}
             exam_type, _ = ExaminationType.objects.update_or_create(
                 program=program,
-                code=type_data["code"],
-                defaults=type_data,
+                code=type_defaults["code"],
+                defaults={k: v for k, v in type_defaults.items() if k != "code"},
             )
-            # Only seed questions if none exist yet
-            if not exam_type.questions.exists():
-                for q_data in questions:
-                    ExaminationQuestion.objects.create(
-                        examination_type=exam_type, **q_data
-                    )
-                self.stdout.write(f"  Seeded {len(questions)} questions for {exam_type.code}")
-            else:
-                self.stdout.write(f"  Questions already exist for {exam_type.code}, skipping")
+            for q_data in questions:
+                ExaminationQuestion.objects.update_or_create(
+                    examination_type=exam_type,
+                    order=q_data["order"],
+                    defaults={
+                        "category": q_data["category"],
+                        "text": q_data["text"],
+                        "doctor_only": q_data.get("doctor_only", False),
+                        "answer_type": q_data.get("answer_type", "boolean"),
+                        "choices": q_data.get("choices"),
+                    },
+                )
+            self.stdout.write(f"  Seeded {len(questions)} questions for {exam_type.code}")
 
         self.stdout.write(self.style.SUCCESS(f"Done seeding '{country}' examinations."))
