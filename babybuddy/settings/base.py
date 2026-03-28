@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "api",
     "babybuddy.apps.BabyBuddyConfig",
     "core.apps.CoreConfig",
+    "examinations.apps.ExaminationsConfig",
     "corsheaders",
     "dashboard",
     "reports",
@@ -101,6 +102,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "babybuddy.views.build_hash_context",
+                "babybuddy.views.vapid_context",
             ],
         },
     },
@@ -414,3 +416,9 @@ BABY_BUDDY = {
 ENABLE_HOME_ASSISTANT_SUPPORT = bool(
     strtobool(os.environ.get("ENABLE_HOME_ASSISTANT_SUPPORT") or "False")
 )
+
+# Web Push Notifications (VAPID)
+# Generate keys: python -c "from pywebpush import webpush; from py_vapid import Vapid; v=Vapid(); v.generate_keys(); print(v.private_pem()); print(v.public_key)"
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_CLAIMS_EMAIL = os.environ.get("VAPID_CLAIMS_EMAIL", "")
