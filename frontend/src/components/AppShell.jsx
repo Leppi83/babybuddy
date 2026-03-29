@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Alert,
   Button,
@@ -12,7 +12,9 @@ import {
   Typography,
 } from "antd";
 import {
+  BellOutlined,
   BulbOutlined,
+  CloseOutlined,
   PlusOutlined,
   HomeOutlined,
   HistoryOutlined,
@@ -28,6 +30,12 @@ import {
   UnorderedListOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import {
+  isPushSupported,
+  getPermissionState,
+  getExistingSubscription,
+  subscribeToPush,
+} from "../lib/push-utils";
 
 const { Content, Sider } = Layout;
 const { Text } = Typography;
@@ -136,6 +144,69 @@ function ChildNavSelector({ children, selectedSlug, collapsed, onChildChange }) 
         </Text>
       )}
     </div>
+  );
+}
+
+/* ── Push notification prompt banner ──────────────────────────── */
+const PUSH_DISMISSED_KEY = "bb_push_prompt_dismissed";
+
+function PushPromptBanner({ bootstrap }) {
+  const s = bootstrap.strings;
+  const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isPushSupported() || !bootstrap.vapidPublicKey) return;
+    if (getPermissionState() !== "default") return;
+    try {
+      if (localStorage.getItem(PUSH_DISMISSED_KEY) === "1") return;
+    } catch {}
+    getExistingSubscription().then((sub) => {
+      if (!sub) setVisible(true);
+    });
+  }, [bootstrap.vapidPublicKey]);
+
+  const handleEnable = useCallback(async () => {
+    setLoading(true);
+    const result = await subscribeToPush(
+      bootstrap.vapidPublicKey,
+      bootstrap.csrfToken,
+      bootstrap.urls.pushSubscribe,
+    );
+    setLoading(false);
+    setVisible(false);
+    if (!result.ok) {
+      try { localStorage.setItem(PUSH_DISMISSED_KEY, "1"); } catch {}
+    }
+  }, [bootstrap]);
+
+  const handleDismiss = useCallback(() => {
+    setVisible(false);
+    try { localStorage.setItem(PUSH_DISMISSED_KEY, "1"); } catch {}
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <Alert
+      type="info"
+      showIcon
+      icon={<BellOutlined />}
+      message={s.pushPromptTitle || "Stay in the loop"}
+      description={s.pushPromptBody || "Enable notifications to get timer reminders."}
+      action={
+        <Space direction="vertical" size={4}>
+          <Button size="small" type="primary" loading={loading} onClick={handleEnable}>
+            {s.pushEnable || "Enable"}
+          </Button>
+          <Button size="small" type="text" onClick={handleDismiss}>
+            {s.pushNotNow || "Not now"}
+          </Button>
+        </Space>
+      }
+      closable
+      onClose={handleDismiss}
+    />
   );
 }
 
@@ -629,6 +700,7 @@ export function AppShell({
                 message={message.message}
               />
             ))}
+            <PushPromptBanner bootstrap={bootstrap} />
             {children}
           </Space>
         </Content>
