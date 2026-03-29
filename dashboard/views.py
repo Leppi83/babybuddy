@@ -441,8 +441,8 @@ def _build_exam_insight(child):
                     "title": f"{et.code} {_('in')} {days_until} {_('days')}",
                     "body": f"{et.name} · {_('window opens')} {st['due_from'].strftime('%Y-%m-%d')}",
                     "url": reverse(
-                        "examinations:list",
-                        kwargs={"slug": child.slug},
+                        "examinations:form",
+                        kwargs={"slug": child.slug, "code": et.code},
                     ),
                 }
     return None

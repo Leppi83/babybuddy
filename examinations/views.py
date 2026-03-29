@@ -44,6 +44,8 @@ def _exam_strings():
         "saveExamination": _("Save examination"),
         "examSaved": _("Examination saved."),
         "dateRequired": _("Please enter the date of the examination."),
+        "yes": _("Yes"),
+        "no": _("No"),
     }
 
 

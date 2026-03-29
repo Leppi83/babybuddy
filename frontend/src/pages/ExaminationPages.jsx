@@ -284,7 +284,7 @@ function QuestionRow({ question, value, onChange, strings }) {
   );
 }
 
-function QuestionInput({ question, value, onChange }) {
+function QuestionInput({ question, value, onChange, strings }) {
   if (question.answer_type === "boolean") {
     return (
       <Radio.Group
@@ -293,8 +293,8 @@ function QuestionInput({ question, value, onChange }) {
         buttonStyle="solid"
         size="small"
       >
-        <Radio.Button value={true}>Ja</Radio.Button>
-        <Radio.Button value={false}>Nein</Radio.Button>
+        <Radio.Button value={true}>{strings.yes || "Ja"}</Radio.Button>
+        <Radio.Button value={false}>{strings.no || "Nein"}</Radio.Button>
       </Radio.Group>
     );
   }

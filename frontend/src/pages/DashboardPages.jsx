@@ -3895,6 +3895,13 @@ export function ChildDashboardPage({ bootstrap }) {
               {data.name}
             </Typography.Text>
           </div>
+          {(data.status === "due" || data.status === "overdue") && data.days_remaining !== undefined && (
+            <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginTop: 4 }}>
+              {data.status === "overdue"
+                ? (bootstrap.strings.examOverdue || "Overdue")
+                : `${data.days_remaining} ${bootstrap.strings.days || "days"} ${bootstrap.strings.left || "left"}`}
+            </Typography.Text>
+          )}
           {data.status === "upcoming" && (
             <Typography.Text
               type="secondary"
