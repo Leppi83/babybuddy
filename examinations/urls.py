@@ -19,4 +19,9 @@ urlpatterns = [
         views.ExaminationSaveView.as_view(),
         name="save",
     ),
+    path(
+        "children/<str:slug>/examinations/<str:code>/toggle/",
+        views.ExaminationToggleView.as_view(),
+        name="toggle",
+    ),
 ]

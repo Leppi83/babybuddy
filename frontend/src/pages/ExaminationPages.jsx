@@ -11,6 +11,7 @@ import {
   Row,
   Select,
   Space,
+  Switch,
   Tag,
   Timeline,
   Typography,
@@ -40,7 +41,25 @@ const STATUS_ICON = {
 };
 
 export function ExaminationListPage({ bootstrap }) {
-  const { examinations = [], strings = {}, childDetail = {} } = bootstrap;
+  const { examinations = [], strings = {}, childDetail = {}, csrfToken = "" } = bootstrap;
+  const [examList, setExamList] = useState(examinations);
+
+  function handleToggle(code, toggleUrl) {
+    fetch(toggleUrl, {
+      method: "POST",
+      headers: { "X-CSRFToken": csrfToken, "Content-Type": "application/json" },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        setExamList((prev) =>
+          prev.map((e) =>
+            e.code === code
+              ? { ...e, status: data.status, completed_date: data.completed_date }
+              : e
+          )
+        );
+      });
+  }
 
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "16px 12px 80px" }}>
@@ -52,11 +71,16 @@ export function ExaminationListPage({ bootstrap }) {
       </Text>
 
       <Timeline
-        items={examinations.map((exam) => ({
+        items={examList.map((exam) => ({
           color: STATUS_COLOR[exam.status] || "#888",
           dot: STATUS_ICON[exam.status],
           children: (
-            <ExaminationRow exam={exam} strings={strings} key={exam.code} />
+            <ExaminationRow
+              exam={exam}
+              strings={strings}
+              onToggle={() => handleToggle(exam.code, exam.toggleUrl)}
+              key={exam.code}
+            />
           ),
         }))}
       />
@@ -64,7 +88,9 @@ export function ExaminationListPage({ bootstrap }) {
   );
 }
 
-function ExaminationRow({ exam, strings }) {
+function ExaminationRow({ exam, strings, onToggle }) {
+  const [toggling, setToggling] = useState(false);
+
   const statusLabel = {
     completed: strings.examCompleted || "Completed",
     due: strings.examDue || "Due",
@@ -72,14 +98,13 @@ function ExaminationRow({ exam, strings }) {
     upcoming: strings.examUpcoming || "Upcoming",
   }[exam.status] || exam.status;
 
-  const actionLabel =
-    exam.status === "completed"
-      ? strings.viewEdit || "View / Edit"
-      : exam.status === "upcoming"
-      ? strings.examUpcoming || "Upcoming"
-      : strings.fillIn || "Fill in";
+  const isCompleted = exam.status === "completed";
+  const isUpcoming = exam.status === "upcoming";
 
-  const isDisabled = exam.status === "upcoming";
+  function handleSwitch() {
+    setToggling(true);
+    Promise.resolve(onToggle()).finally(() => setToggling(false));
+  }
 
   return (
     <Card
@@ -108,14 +133,25 @@ function ExaminationRow({ exam, strings }) {
           </Space>
         </Col>
         <Col>
-          <Button
-            size="small"
-            type={exam.status === "due" || exam.status === "overdue" ? "primary" : "default"}
-            disabled={isDisabled}
-            href={isDisabled ? undefined : exam.url}
-          >
-            {actionLabel}
-          </Button>
+          <Space size={8}>
+            <Switch
+              checked={isCompleted}
+              loading={toggling}
+              disabled={isUpcoming}
+              onChange={handleSwitch}
+              size="small"
+              style={isCompleted ? { backgroundColor: STATUS_COLOR.completed } : undefined}
+            />
+            {!isUpcoming && (
+              <Button
+                size="small"
+                type={!isCompleted ? "primary" : "default"}
+                href={exam.url}
+              >
+                {isCompleted ? strings.viewEdit || "View / Edit" : strings.fillIn || "Fill in"}
+              </Button>
+            )}
+          </Space>
         </Col>
       </Row>
     </Card>

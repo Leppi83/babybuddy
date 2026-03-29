@@ -2,7 +2,7 @@ import datetime
 import json
 
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -15,6 +15,7 @@ from core.views import _nav_urls, _list_strings, _build_child_switcher, _display
 from examinations.models import (
     ExaminationProgram,
     ExaminationType,
+    ExaminationQuestion,
     ExaminationRecord,
 )
 from examinations.status import calculate_examination_statuses
@@ -89,6 +90,10 @@ class ExaminationListView(LoginRequiredMixin, TemplateView):
                 "completed_date": _fmt_date(st.get("completed_date")),
                 "url": reverse(
                     "examinations:form",
+                    kwargs={"slug": child.slug, "code": et.code},
+                ),
+                "toggleUrl": reverse(
+                    "examinations:toggle",
                     kwargs={"slug": child.slug, "code": et.code},
                 ),
             })
@@ -238,3 +243,41 @@ class ExaminationSaveView(LoginRequiredMixin, View):
         )
         messages.success(request, _("Examination saved."))
         return HttpResponseRedirect(list_url)
+
+
+class ExaminationToggleView(LoginRequiredMixin, View):
+    def post(self, request, slug, code):
+        child = get_object_or_404(Child, slug=slug)
+        program = _get_program_for_child(child)
+        if program is None:
+            return JsonResponse({"error": "No program"}, status=404)
+        exam_type = get_object_or_404(
+            ExaminationType, program=program, code=code
+        )
+
+        existing = ExaminationRecord.objects.filter(
+            child=child, examination_type=exam_type
+        ).first()
+
+        if existing:
+            existing.delete()
+            all_types = list(
+                ExaminationType.objects.filter(program=program).order_by("order")
+            )
+            statuses = calculate_examination_statuses(child, [exam_type], [])
+            st = statuses.get(exam_type.pk, {})
+            return JsonResponse({
+                "status": st.get("status", "upcoming"),
+                "completed_date": None,
+            })
+        else:
+            ExaminationRecord.objects.create(
+                child=child,
+                examination_type=exam_type,
+                date=None,
+                answers={},
+            )
+            return JsonResponse({
+                "status": "completed",
+                "completed_date": None,
+            })
