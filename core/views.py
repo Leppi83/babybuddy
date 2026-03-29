@@ -60,6 +60,8 @@ def _nav_urls():
         "logout": reverse("babybuddy:logout"),
         "addChild": reverse("core:child-add"),
         "quickEntry": reverse("babybuddy:quick-entry"),
+        "pushSubscribe": reverse("push-subscribe"),
+        "pushUnsubscribe": reverse("push-unsubscribe"),
     }
 
 
@@ -164,7 +166,13 @@ def _build_ant_child_detail_bootstrap(
         "locale": getattr(request, "LANGUAGE_CODE", "en"),
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
-        "urls": {**_nav_urls(), "self": request.get_full_path()},
+        "urls": {
+            **_nav_urls(),
+            "self": request.get_full_path(),
+            "examinations": reverse(
+                "examinations:list", kwargs={"slug": child.slug}
+            ),
+        },
         "childSwitcher": _build_child_switcher(request, current_child=child),
         "strings": {
             **_list_strings(),
@@ -180,6 +188,7 @@ def _build_ant_child_detail_bootstrap(
             "duration": _("Duration"),
             "sincePrevious": _("since previous"),
             "childActions": _("Child actions"),
+            "examinations": _("Examinations"),
         },
         "childDetail": {
             "name": str(child),

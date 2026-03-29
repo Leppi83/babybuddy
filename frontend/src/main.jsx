@@ -11,6 +11,7 @@ if (!mountNode || !bootstrapNode) {
 }
 
 const bootstrap = JSON.parse(bootstrapNode.textContent);
+bootstrap.vapidPublicKey = mountNode.dataset.vapidPublicKey || "";
 
 createRoot(mountNode).render(
   <React.StrictMode>

@@ -210,6 +210,14 @@ class Child(models.Model):
     picture = models.ImageField(
         blank=True, null=True, upload_to="child/picture/", verbose_name=_("Picture")
     )
+    examination_program = models.ForeignKey(
+        "examinations.ExaminationProgram",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="children",
+        verbose_name=_("Examination program"),
+    )
 
     objects = models.Manager()
 

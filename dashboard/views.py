@@ -75,6 +75,8 @@ def _build_nav_urls(request):
         "logout": reverse("babybuddy:logout"),
         "addChild": reverse("core:child-add"),
         "quickEntry": reverse("babybuddy:quick-entry"),
+        "pushSubscribe": reverse("push-subscribe"),
+        "pushUnsubscribe": reverse("push-unsubscribe"),
     }
 
 
@@ -246,6 +248,19 @@ def _build_ant_strings():
         "insightsBannerViewAll": _("View all"),
         "insightsBannerSuffix": _("insight(s) detected"),
         "aiSummaryTitle": _("AI Summary"),
+        # Examinations
+        "examinations": _("Examinations"),
+        "examCompleted": _("All examinations completed"),
+        "examDue": _("Due"),
+        "examOverdue": _("Overdue"),
+        "examUpcoming": _("Upcoming"),
+        "viewEdit": _("View / Edit"),
+        "fillIn": _("Fill in"),
+        "saveExamination": _("Save examination"),
+        "dateOfExamination": _("Date of examination"),
+        "ageWindow": _("Age window"),
+        "doctorOnly": _("Assessed by your doctor"),
+        "notes": _("Notes"),
     }
 
 
@@ -343,7 +358,7 @@ def _build_insights_for_bootstrap(child):
         insights = run_rules(child, data)
         cache.set(cache_key, insights, 300)
 
-    return [
+    result = [
         {
             "id": ins.id,
             "severity": ins.severity,
@@ -355,6 +370,88 @@ def _build_insights_for_bootstrap(child):
         }
         for ins in insights
     ]
+
+    exam_insight = _build_exam_insight(child)
+    if exam_insight:
+        result.append(
+            {
+                "id": f"exam_{child.id}",
+                "severity": exam_insight["priority"],
+                "category": "examinations",
+                "title": exam_insight["title"],
+                "body": exam_insight["body"],
+                "actionLabel": _("View"),
+                "actionUrl": exam_insight["url"],
+            }
+        )
+
+    return result
+
+
+def _load_exam_statuses(child):
+    """Return (exam_types, statuses) for a child, or ([], {}) if no program."""
+    from examinations.views import _get_program_for_child
+    from examinations.models import ExaminationType, ExaminationRecord
+    from examinations.status import calculate_examination_statuses
+
+    program = _get_program_for_child(child)
+    if not program:
+        return [], {}
+    exam_types = list(
+        ExaminationType.objects.filter(program=program).order_by("order")
+    )
+    records = list(ExaminationRecord.objects.filter(child=child))
+    statuses = calculate_examination_statuses(child, exam_types, records)
+    return exam_types, statuses
+
+
+def _build_exam_insight(child):
+    """Return an insight dict if a U-exam is due within 14 days, or None."""
+    exam_types, statuses = _load_exam_statuses(child)
+    if not exam_types:
+        return None
+    today = datetime.date.today()
+
+    for et in exam_types:
+        st = statuses.get(et.pk, {})
+        status = st.get("status")
+        if status == "overdue":
+            return {
+                "type": "exam_due",
+                "priority": "high",
+                "title": f"{et.code} {_('is overdue')}",
+                "body": f"{et.name} · {st['due_from'].strftime('%Y-%m-%d')} – {st['due_to'].strftime('%Y-%m-%d')}",
+                "url": reverse(
+                    "examinations:form",
+                    kwargs={"slug": child.slug, "code": et.code},
+                ),
+            }
+        if status == "due":
+            days_left = (st["due_to"] - today).days
+            return {
+                "type": "exam_due",
+                "priority": "medium",
+                "title": f"{et.code} {_('is due')} · {days_left} {_('days left')}",
+                "body": f"{et.name} · {st['due_from'].strftime('%Y-%m-%d')} – {st['due_to'].strftime('%Y-%m-%d')}",
+                "url": reverse(
+                    "examinations:form",
+                    kwargs={"slug": child.slug, "code": et.code},
+                ),
+            }
+        if status == "upcoming":
+            days_until = (st["due_from"] - today).days
+            if days_until <= 14:
+                return {
+                    "type": "exam_upcoming",
+                    "priority": "low",
+                    "title": f"{et.code} {_('in')} {days_until} {_('days')}",
+                    "body": f"{et.name} · {_('window opens')} {st['due_from'].strftime('%Y-%m-%d')}",
+                    "url": reverse(
+                        "examinations:form",
+                        kwargs={"slug": child.slug, "code": et.code},
+                    ),
+                }
+    return None
 
 
 def _build_celestial_data(user):
@@ -437,6 +534,49 @@ def _build_dial_activities(child):
         )
 
     return activities
+
+
+def _build_next_exam_card(child):
+    """Return data for the 'next U-exam' dashboard card or None if no program."""
+    exam_types, statuses = _load_exam_statuses(child)
+    if not exam_types:
+        return None
+
+    next_exam = None
+    for et in exam_types:
+        st = statuses.get(et.pk, {})
+        if st.get("status") in ("due", "overdue", "upcoming"):
+            next_exam = (et, st)
+            break
+
+    if not next_exam:
+        return {"allCompleted": True}
+
+    et, st = next_exam
+    today = datetime.date.today()
+    due_from = st["due_from"]
+    due_to = st["due_to"]
+
+    if st["status"] == "upcoming":
+        days_label = str((due_from - today).days)
+    elif st["status"] == "due":
+        days_label = str((due_to - today).days)
+    else:
+        days_label = "0"
+
+    return {
+        "allCompleted": False,
+        "code": et.code,
+        "name": et.name,
+        "status": st["status"],
+        "due_from": due_from.strftime("%Y-%m-%d"),
+        "due_to": due_to.strftime("%Y-%m-%d"),
+        "days_remaining": days_label,
+        "url": reverse(
+            "examinations:list",
+            kwargs={"slug": child.slug},
+        ),
+    }
 
 
 VALID_TOPICS = {"sleep", "feeding", "diaper", "pumping"}
@@ -810,6 +950,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         "tummytime": [
             "card.tummytime.day",
         ],
+        "examinations": [
+            "card.examinations.next",
+        ],
     }
     SECTION_ORDER = [
         "quick_entry",
@@ -819,6 +962,7 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         "pumpings",
         "sleep",
         "tummytime",
+        "examinations",
     ]
 
     @staticmethod
@@ -1237,6 +1381,11 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     else None
                 ),
                 "celestial": _build_celestial_data(self.request.user),
+                "examinationCardData": (
+                    _build_next_exam_card(self.object)
+                    if "card.examinations.next" in visible_items
+                    else None
+                ),
             }
         return context
 

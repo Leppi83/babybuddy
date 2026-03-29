@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import {
   App as AntApp,
@@ -46,6 +46,13 @@ import {
   formatElapsedSeconds,
   SECTION_META,
 } from "../lib/app-utils";
+import {
+  isPushSupported,
+  getPermissionState,
+  getExistingSubscription,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from "../lib/push-utils";
 
 const { Text, Title } = Typography;
 
@@ -359,6 +366,78 @@ function SettingsCardPicker({
       <Text type="secondary" style={{ display: "block", marginTop: 12 }}>
         {statusText}
       </Text>
+    </Card>
+  );
+}
+
+function PushNotificationsCard({ bootstrap }) {
+  const s = bootstrap.strings;
+  const supported = isPushSupported();
+  const [permState, setPermState] = useState(getPermissionState);
+  const [subscribed, setSubscribed] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!supported) {
+      setLoading(false);
+      return;
+    }
+    getExistingSubscription().then((sub) => {
+      setSubscribed(!!sub);
+      setLoading(false);
+    });
+  }, [supported]);
+
+  async function handleToggle(checked) {
+    setLoading(true);
+    if (checked) {
+      const result = await subscribeToPush(
+        bootstrap.vapidPublicKey,
+        bootstrap.csrfToken,
+        bootstrap.urls.pushSubscribe,
+      );
+      if (result.ok) {
+        setSubscribed(true);
+        setPermState("granted");
+      } else {
+        setPermState(getPermissionState());
+      }
+    } else {
+      await unsubscribeFromPush(
+        bootstrap.csrfToken,
+        bootstrap.urls.pushUnsubscribe,
+      );
+      setSubscribed(false);
+    }
+    setLoading(false);
+  }
+
+  const denied = permState === "denied";
+  const noVapid = !bootstrap.vapidPublicKey;
+
+  return (
+    <Card className="ant-section-card" title={s.pushNotifications}>
+      {!supported ? (
+        <Text type="secondary">{s.pushNotSupported}</Text>
+      ) : noVapid ? (
+        <Text type="secondary">{s.pushNotConfigured}</Text>
+      ) : denied ? (
+        <Text type="secondary">{s.pushDenied}</Text>
+      ) : (
+        <Space direction="vertical" size={8}>
+          <Space>
+            <Switch
+              checked={subscribed}
+              onChange={handleToggle}
+              loading={loading}
+            />
+            <Text>{subscribed ? s.pushEnabled : s.pushDisabled}</Text>
+          </Space>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {s.pushDescription}
+          </Text>
+        </Space>
+      )}
     </Card>
   );
 }
@@ -682,6 +761,9 @@ export function SettingsPage({ bootstrap }) {
             </Col>
             <Col xs={24} xl={12}>
               <AiAssistantCard bootstrap={bootstrap} />
+            </Col>
+            <Col xs={24} xl={12}>
+              <PushNotificationsCard bootstrap={bootstrap} />
             </Col>
             <Col xs={24}>
               <SettingsCardPicker
@@ -3772,6 +3854,65 @@ export function ChildDashboardPage({ bootstrap }) {
   }
 
   function renderCardContent(cardKey) {
+    if (cardKey === "card.examinations.next") {
+      const data = bootstrap.examinationCardData;
+      if (!data) return null;
+      if (data.allCompleted) {
+        return (
+          <Card size="small" style={{ borderColor: "#52c41a" }}>
+            <Typography.Text type="success">
+              {bootstrap.strings.examCompleted || "All examinations completed"}
+            </Typography.Text>
+          </Card>
+        );
+      }
+      const statusColor =
+        data.status === "due"
+          ? "#4db6ff"
+          : data.status === "overdue"
+            ? "#ff4d4f"
+            : "#888";
+      return (
+        <Card
+          size="small"
+          title={bootstrap.strings.examinations || "Examinations"}
+          extra={
+            <a href={data.url} style={{ color: "#4db6ff", fontSize: 13 }}>
+              {bootstrap.strings.viewEdit || "View"}
+            </a>
+          }
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Tag color={statusColor}>
+              {bootstrap.strings[
+                "exam" +
+                  data.status.charAt(0).toUpperCase() +
+                  data.status.slice(1)
+              ] || data.status}
+            </Tag>
+            <Typography.Text strong>{data.code}</Typography.Text>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {data.name}
+            </Typography.Text>
+          </div>
+          {(data.status === "due" || data.status === "overdue") && data.days_remaining !== undefined && (
+            <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginTop: 4 }}>
+              {data.status === "overdue"
+                ? (bootstrap.strings.examOverdue || "Overdue")
+                : `${data.days_remaining} ${bootstrap.strings.days || "days"} ${bootstrap.strings.left || "left"}`}
+            </Typography.Text>
+          )}
+          {data.status === "upcoming" && (
+            <Typography.Text
+              type="secondary"
+              style={{ fontSize: 12, display: "block", marginTop: 4 }}
+            >
+              {`${bootstrap.strings.examDue || "Due"}: ${data.due_from}`}
+            </Typography.Text>
+          )}
+        </Card>
+      );
+    }
     if (cardKey === "card.quick_entry.consolidated")
       return renderQuickEntryCard();
     if (cardKey === "card.sleep.timeline_day") return renderSleepTimelineCard();

@@ -46,6 +46,7 @@ class Settings(models.Model):
         ("card.sleep.week_chart", _("Sleep - Sleep This Week")),
         ("card.sleep.list", _("Sleep - Sleep List")),
         ("card.tummytime.day", _("Tummy - Today's Tummy Time")),
+        ("card.examinations.next", _("Examinations - Next U-Exam")),
     ]
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -301,6 +302,25 @@ class Settings(models.Model):
             for section in (self.dashboard_hidden_sections or [])
             if section in allowed
         ]
+
+
+class PushSubscription(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="push_subscriptions",
+    )
+    endpoint = models.URLField(max_length=500, unique=True)
+    p256dh = models.CharField(max_length=200)
+    auth = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Push Subscription")
+        verbose_name_plural = _("Push Subscriptions")
+
+    def __str__(self):
+        return f"{self.user} — {self.endpoint[:50]}"
 
 
 @receiver(post_save, sender=get_user_model())

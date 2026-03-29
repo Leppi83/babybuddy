@@ -91,6 +91,16 @@ const QuickEntryPage = lazy(() =>
     default: module.QuickEntryPage,
   })),
 );
+const ExaminationListPage = lazy(() =>
+  import("./pages/ExaminationPages").then((module) => ({
+    default: module.ExaminationListPage,
+  })),
+);
+const ExaminationFormPage = lazy(() =>
+  import("./pages/ExaminationPages").then((module) => ({
+    default: module.ExaminationFormPage,
+  })),
+);
 
 const THEME_MODE_KEY = "babybuddy.theme.mode";
 
@@ -163,6 +173,12 @@ function RoutedPage({ bootstrap }) {
   }
   if (bootstrap.pageType === "quick-entry") {
     return <QuickEntryPage bootstrap={bootstrap} />;
+  }
+  if (bootstrap.pageType === "examination-list") {
+    return <ExaminationListPage bootstrap={bootstrap} />;
+  }
+  if (bootstrap.pageType === "examination-form") {
+    return <ExaminationFormPage bootstrap={bootstrap} />;
   }
   return <ChildDashboardPage bootstrap={bootstrap} />;
 }

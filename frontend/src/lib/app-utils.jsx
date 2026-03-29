@@ -75,6 +75,7 @@ export function getDashboardCardTitle(key, strings) {
     "card.sleep.week_chart": strings.sleepWeekChart,
     "card.sleep.list": strings.sleepList,
     "card.tummytime.day": strings.todaysTummyTime,
+    "card.examinations.next": strings.examinations || "Next U-Exam",
   };
   return map[key] || strings.migrationPending;
 }
