@@ -14,13 +14,15 @@ class ExaminationViewsTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="pass")
         self.client = Client()
-        self.client.login(username="testuser", password="pass")
+        self.client.force_login(self.user)
 
-        self.child = Child.objects.create(
-            first_name="Baby", birth_date=datetime.date(2024, 1, 1)
-        )
         self.program = ExaminationProgram.objects.create(
-            country_code="de", name="Deutschland – Vorsorgeuntersuchungen"
+            country_code="test", name="Test Program"
+        )
+        self.child = Child.objects.create(
+            first_name="Baby",
+            birth_date=datetime.date(2024, 1, 1),
+            examination_program=self.program,
         )
         self.u3 = ExaminationType.objects.create(
             program=self.program, code="U3", name="U3 – Test",
@@ -31,7 +33,7 @@ class ExaminationViewsTest(TestCase):
         url = reverse("examinations:list", kwargs={"slug": self.child.slug})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"ant_bootstrap", response.content)
+        self.assertIn(b"ant-app-bootstrap", response.content)
 
     def test_examination_form_view(self):
         url = reverse("examinations:form", kwargs={
