@@ -10,6 +10,13 @@ def build_hash_context(request):
     return {"BUILD_HASH": os.environ.get("BUILD_HASH", "dev")}
 
 
+def vapid_context(request):
+    """Inject VAPID public key into templates for push notification setup."""
+    from django.conf import settings as django_settings
+
+    return {"VAPID_PUBLIC_KEY": django_settings.VAPID_PUBLIC_KEY or ""}
+
+
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.contrib.auth import get_user_model
