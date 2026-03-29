@@ -441,6 +441,15 @@ export function ChildDetailPage({ bootstrap }) {
                 >
                   {bootstrap.strings.reports}
                 </Button>
+                {bootstrap.urls.examinations && (
+                  <Button
+                    href={bootstrap.urls.examinations}
+                    type="default"
+                    size="small"
+                  >
+                    {bootstrap.strings.examinations || "Examinations"}
+                  </Button>
+                )}
                 <Button href={child.actions.edit} icon={<EditOutlined />}>
                   {bootstrap.strings.edit}
                 </Button>

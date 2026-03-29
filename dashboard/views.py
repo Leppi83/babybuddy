@@ -358,7 +358,7 @@ def _build_insights_for_bootstrap(child):
         insights = run_rules(child, data)
         cache.set(cache_key, insights, 300)
 
-    return [
+    result = [
         {
             "id": ins.id,
             "severity": ins.severity,
@@ -370,6 +370,82 @@ def _build_insights_for_bootstrap(child):
         }
         for ins in insights
     ]
+
+    exam_insight = _build_exam_insight(child)
+    if exam_insight:
+        result.append(
+            {
+                "id": f"exam_{child.id}",
+                "severity": exam_insight["priority"],
+                "category": "examinations",
+                "title": exam_insight["title"],
+                "body": exam_insight["body"],
+                "actionLabel": _("View"),
+                "actionUrl": exam_insight["url"],
+            }
+        )
+
+    return result
+
+
+def _build_exam_insight(child):
+    """Return an insight dict if a U-exam is due within 14 days, or None."""
+    import datetime
+    from examinations.views import _get_program_for_child
+    from examinations.models import ExaminationType, ExaminationRecord
+    from examinations.status import calculate_examination_statuses
+
+    program = _get_program_for_child(child)
+    if not program:
+        return None
+
+    exam_types = list(
+        ExaminationType.objects.filter(program=program).order_by("order")
+    )
+    records = list(ExaminationRecord.objects.filter(child=child))
+    statuses = calculate_examination_statuses(child, exam_types, records)
+    today = datetime.date.today()
+
+    for et in exam_types:
+        st = statuses.get(et.pk, {})
+        status = st.get("status")
+        if status == "overdue":
+            return {
+                "type": "exam_due",
+                "priority": "high",
+                "title": f"{et.code} {_('is overdue')}",
+                "body": f"{et.name} · {st['due_from'].strftime('%Y-%m-%d')} – {st['due_to'].strftime('%Y-%m-%d')}",
+                "url": reverse(
+                    "examinations:form",
+                    kwargs={"slug": child.slug, "code": et.code},
+                ),
+            }
+        if status == "due":
+            days_left = (st["due_to"] - today).days
+            return {
+                "type": "exam_due",
+                "priority": "medium",
+                "title": f"{et.code} {_('is due')} · {days_left} {_('days left')}",
+                "body": f"{et.name} · {st['due_from'].strftime('%Y-%m-%d')} – {st['due_to'].strftime('%Y-%m-%d')}",
+                "url": reverse(
+                    "examinations:form",
+                    kwargs={"slug": child.slug, "code": et.code},
+                ),
+            }
+        if status == "upcoming":
+            days_until = (st["due_from"] - today).days
+            if days_until <= 14:
+                return {
+                    "type": "exam_upcoming",
+                    "priority": "low",
+                    "title": f"{et.code} {_('in')} {days_until} {_('days')}",
+                    "body": f"{et.name} · {_('window opens')} {st['due_from'].strftime('%Y-%m-%d')}",
+                    "url": reverse(
+                        "examinations:list",
+                        kwargs={"slug": child.slug},
+                    ),
+                }
+    return None
 
 
 def _build_celestial_data(user):
