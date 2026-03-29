@@ -75,8 +75,6 @@ def _build_nav_urls(request):
         "logout": reverse("babybuddy:logout"),
         "addChild": reverse("core:child-add"),
         "quickEntry": reverse("babybuddy:quick-entry"),
-        "pushSubscribe": reverse("push-subscribe"),
-        "pushUnsubscribe": reverse("push-unsubscribe"),
     }
 
 

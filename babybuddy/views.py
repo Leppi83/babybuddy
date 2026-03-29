@@ -302,6 +302,11 @@ def _base_strings():
         "diaperLabel": _("Diaper"),
         "pumpingLabel": _("Pumping"),
         "breastfeedingShort": _("Breast"),
+        # Push notifications
+        "pushPromptTitle": _("Stay in the loop"),
+        "pushPromptBody": _("Enable notifications to get timer reminders."),
+        "pushEnable": _("Enable"),
+        "pushNotNow": _("Not now"),
     }
 
 
@@ -732,6 +737,22 @@ def _build_settings_bootstrap(request, form_user, form_settings):
             "aiApiKey": _("AI API key"),
             "aiApiKeySet": _("API key is set"),
             "aiApiKeyPlaceholder": _("Enter new API key to update"),
+            # Push notifications
+            "pushNotifications": _("Push Notifications"),
+            "pushEnabled": _("Notifications enabled"),
+            "pushDisabled": _("Notifications disabled"),
+            "pushDenied": _(
+                "Notifications are blocked in your browser settings."
+            ),
+            "pushNotSupported": _(
+                "Push notifications are not supported on this device."
+            ),
+            "pushNotConfigured": _(
+                "Push notifications are not configured on this server."
+            ),
+            "pushDescription": _(
+                "Receive reminders when a timer has been running too long."
+            ),
         },
     }
 
