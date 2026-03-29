@@ -293,8 +293,8 @@ function QuestionInput({ question, value, onChange, strings }) {
         buttonStyle="solid"
         size="small"
       >
-        <Radio.Button value={true}>{strings.yes || "Ja"}</Radio.Button>
-        <Radio.Button value={false}>{strings.no || "Nein"}</Radio.Button>
+        <Radio.Button value={true}>{strings.yes || "Yes"}</Radio.Button>
+        <Radio.Button value={false}>{strings.no || "No"}</Radio.Button>
       </Radio.Group>
     );
   }

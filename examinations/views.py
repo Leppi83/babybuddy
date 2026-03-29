@@ -118,6 +118,9 @@ class ExaminationFormView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         child = get_object_or_404(Child, slug=self.kwargs["slug"])
         program = _get_program_for_child(child)
+        if program is None:
+            from django.http import Http404
+            raise Http404("No examination program found for this child.")
         exam_type = get_object_or_404(
             ExaminationType, program=program, code=self.kwargs["code"]
         )
@@ -194,6 +197,10 @@ class ExaminationSaveView(LoginRequiredMixin, View):
     def post(self, request, slug, code):
         child = get_object_or_404(Child, slug=slug)
         program = _get_program_for_child(child)
+        if program is None:
+            return HttpResponseRedirect(
+                reverse("core:child", kwargs={"slug": slug})
+            )
         exam_type = get_object_or_404(
             ExaminationType, program=program, code=code
         )

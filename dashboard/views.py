@@ -388,22 +388,28 @@ def _build_insights_for_bootstrap(child):
     return result
 
 
-def _build_exam_insight(child):
-    """Return an insight dict if a U-exam is due within 14 days, or None."""
-    import datetime
+def _load_exam_statuses(child):
+    """Return (exam_types, statuses) for a child, or ([], {}) if no program."""
     from examinations.views import _get_program_for_child
     from examinations.models import ExaminationType, ExaminationRecord
     from examinations.status import calculate_examination_statuses
 
     program = _get_program_for_child(child)
     if not program:
-        return None
-
+        return [], {}
     exam_types = list(
         ExaminationType.objects.filter(program=program).order_by("order")
     )
     records = list(ExaminationRecord.objects.filter(child=child))
     statuses = calculate_examination_statuses(child, exam_types, records)
+    return exam_types, statuses
+
+
+def _build_exam_insight(child):
+    """Return an insight dict if a U-exam is due within 14 days, or None."""
+    exam_types, statuses = _load_exam_statuses(child)
+    if not exam_types:
+        return None
     today = datetime.date.today()
 
     for et in exam_types:
@@ -532,20 +538,9 @@ def _build_dial_activities(child):
 
 def _build_next_exam_card(child):
     """Return data for the 'next U-exam' dashboard card or None if no program."""
-    import datetime
-    from examinations.views import _get_program_for_child
-    from examinations.models import ExaminationType, ExaminationRecord
-    from examinations.status import calculate_examination_statuses
-
-    program = _get_program_for_child(child)
-    if not program:
+    exam_types, statuses = _load_exam_statuses(child)
+    if not exam_types:
         return None
-
-    exam_types = list(
-        ExaminationType.objects.filter(program=program).order_by("order")
-    )
-    records = list(ExaminationRecord.objects.filter(child=child))
-    statuses = calculate_examination_statuses(child, exam_types, records)
 
     next_exam = None
     for et in exam_types:
