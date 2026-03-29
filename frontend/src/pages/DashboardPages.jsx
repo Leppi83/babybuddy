@@ -28,7 +28,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { EditOutlined, EyeOutlined, ReloadOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EyeOutlined, ReloadOutlined } from "@ant-design/icons";
 import ActivityDial from "../components/ActivityDial";
 import { DashboardInsightsCard } from "../components/DashboardInsightsCard";
 import {
@@ -117,6 +117,71 @@ function InsightsBanner({ insights, urls, childId, strings }) {
       onClose={handleDismiss}
       style={{ marginBottom: 12, borderRadius: 12 }}
     />
+  );
+}
+
+function RecentEntriesTable({ items, renderLabel, editUrl, deleteApiUrl, onDeleted, csrfToken }) {
+  const [deletingId, setDeletingId] = useState(null);
+  if (!items || items.length === 0) return null;
+
+  async function handleDelete(item) {
+    setDeletingId(item.id);
+    try {
+      await fetch(deleteApiUrl(item), {
+        method: "DELETE",
+        credentials: "same-origin",
+        headers: { "X-CSRFToken": csrfToken, "X-Requested-With": "XMLHttpRequest" },
+      });
+      onDeleted();
+    } catch {
+      // silently ignore
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  return (
+    <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 8, marginTop: 4 }}>
+      {items.map((item) => (
+        <div
+          key={item.id}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 0" }}
+        >
+          <Text
+            style={{
+              fontSize: 12, color: "rgba(255,255,255,0.45)", flex: 1, minWidth: 0,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}
+          >
+            {renderLabel(item)}
+          </Text>
+          <Space size={0} style={{ flexShrink: 0, marginLeft: 8 }}>
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined style={{ fontSize: 12 }} />}
+              href={editUrl(item)}
+              style={{ padding: "0 4px", height: 22, color: "#4db6ff" }}
+            />
+            <Popconfirm
+              title="Delete this entry?"
+              onConfirm={() => handleDelete(item)}
+              okButtonProps={{ danger: true, size: "small" }}
+              cancelButtonProps={{ size: "small" }}
+            >
+              <Button
+                type="text"
+                size="small"
+                danger
+                loading={deletingId === item.id}
+                icon={deletingId === item.id ? null : <DeleteOutlined style={{ fontSize: 12 }} />}
+                style={{ padding: "0 4px", height: 22 }}
+              />
+            </Popconfirm>
+          </Space>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -2365,22 +2430,38 @@ export function ChildDashboardPage({ bootstrap }) {
       )[0];
 
       setCards({
-        "card.diaper.last": lastChange ? (
-          <Space direction="vertical" size={4}>
-            <Statistic
-              title={s.lastRecorded}
-              value={formatAppDateTime(lastChange.time)}
+        "card.diaper.last": (
+          <Space direction="vertical" size={4} style={{ width: "100%" }}>
+            {lastChange ? (
+              <>
+                <Statistic
+                  title={s.lastRecorded}
+                  value={formatAppDateTime(lastChange.time)}
+                />
+                <Space wrap>
+                  <Tag color={lastChange.wet ? "blue" : "default"}>{s.wet}</Tag>
+                  <Tag color={lastChange.solid ? "gold" : "default"}>{s.solid}</Tag>
+                </Space>
+              </>
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={bootstrap.strings.noData}
+              />
+            )}
+            <RecentEntriesTable
+              items={changeItems.slice(0, 5)}
+              renderLabel={(item) =>
+                [formatAppDateTime(item.time),
+                 [item.wet && s.wet, item.solid && s.solid].filter(Boolean).join(", "),
+                ].filter(Boolean).join(" · ")
+              }
+              editUrl={(item) => `/changes/${item.id}/`}
+              deleteApiUrl={(item) => `/api/changes/${item.id}/`}
+              onDeleted={() => loadDashboardData(selectedChildId, { background: true })}
+              csrfToken={bootstrap.csrfToken}
             />
-            <Space wrap>
-              <Tag color={lastChange.wet ? "blue" : "default"}>{s.wet}</Tag>
-              <Tag color={lastChange.solid ? "gold" : "default"}>{s.solid}</Tag>
-            </Space>
           </Space>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={bootstrap.strings.noData}
-          />
         ),
         "card.diaper.types": (
           <Space direction="vertical" size={6}>
@@ -2393,20 +2474,37 @@ export function ChildDashboardPage({ bootstrap }) {
             </Text>
           </Space>
         ),
-        "card.feedings.last": lastFeeding ? (
-          <Space direction="vertical" size={4}>
-            <Statistic
-              title={s.duration}
-              value={formatMinuteValue(durationMinutes(lastFeeding.duration))}
-              suffix="min"
+        "card.feedings.last": (
+          <Space direction="vertical" size={4} style={{ width: "100%" }}>
+            {lastFeeding ? (
+              <>
+                <Statistic
+                  title={s.duration}
+                  value={formatMinuteValue(durationMinutes(lastFeeding.duration))}
+                  suffix="min"
+                />
+                <Text type="secondary">{formatAppDateTime(lastFeeding.start)}</Text>
+              </>
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={bootstrap.strings.noData}
+              />
+            )}
+            <RecentEntriesTable
+              items={feedingItems.slice(0, 5)}
+              renderLabel={(item) =>
+                [formatAppDateTime(item.start),
+                 durationMinutes(item.duration) > 0 ? `${formatMinuteValue(durationMinutes(item.duration))} min` : null,
+                 item.method || item.type || null,
+                ].filter(Boolean).join(" · ")
+              }
+              editUrl={(item) => `/feedings/${item.id}/`}
+              deleteApiUrl={(item) => `/api/feedings/${item.id}/`}
+              onDeleted={() => loadDashboardData(selectedChildId, { background: true })}
+              csrfToken={bootstrap.csrfToken}
             />
-            <Text type="secondary">{formatAppDateTime(lastFeeding.start)}</Text>
           </Space>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={bootstrap.strings.noData}
-          />
         ),
         "card.feedings.method": topMethod ? (
           <Space direction="vertical" size={4}>
@@ -2476,21 +2574,39 @@ export function ChildDashboardPage({ bootstrap }) {
             description={bootstrap.strings.noData}
           />
         ),
-        "card.pumpings.last": lastPumping ? (
-          <Space direction="vertical" size={4}>
-            <Statistic
-              title={s.lastPumpingDuration}
-              value={formatMinuteValue(durationMinutes(lastPumping.duration))}
-              suffix="min"
+        "card.pumpings.last": (
+          <Space direction="vertical" size={4} style={{ width: "100%" }}>
+            {lastPumping ? (
+              <>
+                <Statistic
+                  title={s.lastPumpingDuration}
+                  value={formatMinuteValue(durationMinutes(lastPumping.duration))}
+                  suffix="min"
+                />
+                <Text type="secondary">{formatAppDateTime(lastPumping.start)}</Text>
+                {lastPumping.side ? <Tag>{lastPumping.side}</Tag> : null}
+              </>
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={bootstrap.strings.noData}
+              />
+            )}
+            <RecentEntriesTable
+              items={pumpingItems.slice(0, 5)}
+              renderLabel={(item) =>
+                [formatAppDateTime(item.start),
+                 durationMinutes(item.duration) > 0 ? `${formatMinuteValue(durationMinutes(item.duration))} min` : null,
+                 item.amount ? `${item.amount} ml` : null,
+                 item.side || null,
+                ].filter(Boolean).join(" · ")
+              }
+              editUrl={(item) => `/pumping/${item.id}/`}
+              deleteApiUrl={(item) => `/api/pumping/${item.id}/`}
+              onDeleted={() => loadDashboardData(selectedChildId, { background: true })}
+              csrfToken={bootstrap.csrfToken}
             />
-            <Text type="secondary">{formatAppDateTime(lastPumping.start)}</Text>
-            {lastPumping.side ? <Tag>{lastPumping.side}</Tag> : null}
           </Space>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={bootstrap.strings.noData}
-          />
         ),
         "card.sleep.timers": (
           <Space direction="vertical" size={4}>
@@ -2508,23 +2624,41 @@ export function ChildDashboardPage({ bootstrap }) {
         "card.feedings.breast_quick_entry": null,
         "card.pumpings.quick_entry": null,
         "card.sleep.quick_timer": null,
-        "card.sleep.last": lastSleep ? (
-          <Space direction="vertical" size={4}>
-            <Statistic
-              title={lastSleep.nap ? s.nap : s.sleep}
-              value={formatMinuteValue(durationMinutes(lastSleep.duration))}
-              suffix="min"
+        "card.sleep.last": (
+          <Space direction="vertical" size={4} style={{ width: "100%" }}>
+            {lastSleep ? (
+              <>
+                <Statistic
+                  title={lastSleep.nap ? s.nap : s.sleep}
+                  value={formatMinuteValue(durationMinutes(lastSleep.duration))}
+                  suffix="min"
+                />
+                <Text type="secondary">
+                  {formatAppDateTime(lastSleep.start)} -{" "}
+                  {formatAppDateTime(lastSleep.end)}
+                </Text>
+              </>
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={bootstrap.strings.noData}
+              />
+            )}
+            <RecentEntriesTable
+              items={sleepItems.slice(0, 5)}
+              renderLabel={(item) =>
+                [formatAppDateTime(item.start),
+                 item.end ? formatAppDateTime(item.end) : null,
+                 durationMinutes(item.duration) > 0 ? `${formatMinuteValue(durationMinutes(item.duration))} min` : null,
+                 item.nap ? s.nap : s.sleep,
+                ].filter(Boolean).join(" · ")
+              }
+              editUrl={(item) => `/sleep/${item.id}/`}
+              deleteApiUrl={(item) => `/api/sleep/${item.id}/`}
+              onDeleted={() => loadDashboardData(selectedChildId, { background: true })}
+              csrfToken={bootstrap.csrfToken}
             />
-            <Text type="secondary">
-              {formatAppDateTime(lastSleep.start)} -{" "}
-              {formatAppDateTime(lastSleep.end)}
-            </Text>
           </Space>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={bootstrap.strings.noData}
-          />
         ),
         "card.sleep.recent": (
           <Space direction="vertical" size={4}>
@@ -2569,7 +2703,7 @@ export function ChildDashboardPage({ bootstrap }) {
         ),
         "card.sleep.timeline_day": null,
         "card.tummytime.day": (
-          <Space direction="vertical" size={4}>
+          <Space direction="vertical" size={4} style={{ width: "100%" }}>
             <Statistic
               title={s.tummyTimeToday}
               value={tummyItems
@@ -2580,6 +2714,19 @@ export function ChildDashboardPage({ bootstrap }) {
             <Text type="secondary">
               {tummyItems.length} {s.recentEntries}
             </Text>
+            <RecentEntriesTable
+              items={tummyItems.slice(0, 5)}
+              renderLabel={(item) =>
+                [formatAppDateTime(item.start),
+                 durationMinutes(item.duration) > 0 ? `${formatMinuteValue(durationMinutes(item.duration))} min` : null,
+                 item.milestone || null,
+                ].filter(Boolean).join(" · ")
+              }
+              editUrl={(item) => `/tummy-time/${item.id}/`}
+              deleteApiUrl={(item) => `/api/tummy-times/${item.id}/`}
+              onDeleted={() => loadDashboardData(selectedChildId, { background: true })}
+              csrfToken={bootstrap.csrfToken}
+            />
           </Space>
         ),
       });

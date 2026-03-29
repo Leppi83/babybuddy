@@ -142,15 +142,17 @@ function ExaminationRow({ exam, strings, onToggle }) {
               size="small"
               style={isCompleted ? { backgroundColor: STATUS_COLOR.completed } : undefined}
             />
-            {!isUpcoming && (
-              <Button
-                size="small"
-                type={!isCompleted ? "primary" : "default"}
-                href={exam.url}
-              >
-                {isCompleted ? strings.viewEdit || "View / Edit" : strings.fillIn || "Fill in"}
-              </Button>
-            )}
+            <Button
+              size="small"
+              type={!isCompleted && !isUpcoming ? "primary" : "default"}
+              href={exam.url}
+            >
+              {isCompleted
+                ? strings.viewEdit || "View / Edit"
+                : isUpcoming
+                ? strings.view || "View"
+                : strings.fillIn || "Fill in"}
+            </Button>
           </Space>
         </Col>
       </Row>
