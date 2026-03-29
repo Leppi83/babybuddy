@@ -91,7 +91,7 @@ class ExaminationRecord(models.Model):
         on_delete=models.CASCADE,
         related_name="records",
     )
-    date = models.DateField(verbose_name=_("Date of examination"))
+    date = models.DateField(null=True, blank=True, verbose_name=_("Date of examination"))
     answers = models.JSONField(default=dict, verbose_name=_("Answers"))
     notes = models.TextField(blank=True, verbose_name=_("Notes"))
     created_at = models.DateTimeField(auto_now_add=True)
@@ -104,4 +104,5 @@ class ExaminationRecord(models.Model):
         verbose_name_plural = _("Examination Records")
 
     def __str__(self):
-        return f"{self.child} – {self.examination_type.code} ({self.date})"
+        date_str = self.date.isoformat() if self.date else "no date"
+        return f"{self.child} – {self.examination_type.code} ({date_str})"

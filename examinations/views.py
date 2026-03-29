@@ -210,15 +210,13 @@ class ExaminationSaveView(LoginRequiredMixin, View):
         )
 
         date_str = request.POST.get("date", "").strip()
-        if not date_str:
-            messages.error(request, _("Please enter the date of the examination."))
-            return HttpResponseRedirect(form_url)
-
-        try:
-            date = datetime.date.fromisoformat(date_str)
-        except ValueError:
-            messages.error(request, _("Invalid date format."))
-            return HttpResponseRedirect(form_url)
+        date = None
+        if date_str:
+            try:
+                date = datetime.date.fromisoformat(date_str)
+            except ValueError:
+                messages.error(request, _("Invalid date format."))
+                return HttpResponseRedirect(form_url)
 
         try:
             answers = json.loads(request.POST.get("answers", "{}"))
