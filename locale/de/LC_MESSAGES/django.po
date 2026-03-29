@@ -3661,3 +3661,148 @@ msgstr "WHO Gewichts-Perzentile für Mädchen in kg"
 
 #~ msgid "<b>Feeding Pattern</b>"
 #~ msgstr "<b>Mahlzeitenrhythmus</b>"
+
+# Push Notifications
+msgid "Push Notifications"
+msgstr "Push-Benachrichtigungen"
+
+msgid "Stay in the loop"
+msgstr "Bleib auf dem Laufenden"
+
+msgid "Enable notifications to get timer reminders."
+msgstr "Aktiviere Benachrichtigungen für Timer-Erinnerungen."
+
+msgid "Enable"
+msgstr "Aktivieren"
+
+msgid "Not now"
+msgstr "Nicht jetzt"
+
+msgid "Notifications enabled"
+msgstr "Benachrichtigungen aktiviert"
+
+msgid "Notifications disabled"
+msgstr "Benachrichtigungen deaktiviert"
+
+msgid "Notifications are blocked in your browser settings."
+msgstr "Benachrichtigungen sind in deinen Browser-Einstellungen blockiert."
+
+msgid "Push notifications are not supported on this device."
+msgstr "Push-Benachrichtigungen werden auf diesem Gerät nicht unterstützt."
+
+msgid "Push notifications are not configured on this server."
+msgstr "Push-Benachrichtigungen sind auf diesem Server nicht konfiguriert."
+
+msgid "Receive reminders when a timer has been running too long."
+msgstr "Erhalte Erinnerungen, wenn ein Timer zu lange läuft."
+
+msgid "Examination Program"
+msgstr "Untersuchungsprogramm"
+
+msgid "Examination Programs"
+msgstr "Untersuchungsprogramme"
+
+msgid "Examination Type"
+msgstr "Untersuchungstyp"
+
+msgid "Examination Types"
+msgstr "Untersuchungstypen"
+
+msgid "Examination Question"
+msgstr "Untersuchungsfrage"
+
+msgid "Examination Questions"
+msgstr "Untersuchungsfragen"
+
+msgid "Examination Record"
+msgstr "Untersuchungsprotokoll"
+
+msgid "Examination Records"
+msgstr "Untersuchungsprotokolle"
+
+msgid "Country code"
+msgstr "Ländercode"
+
+msgid "Minimum age (days)"
+msgstr "Mindestalter (Tage)"
+
+msgid "Maximum age (days)"
+msgstr "Höchstalter (Tage)"
+
+msgid "Doctor only"
+msgstr "Nur für Arzt"
+
+msgid "Answer type"
+msgstr "Antworttyp"
+
+msgid "Date of examination"
+msgstr "Datum der Untersuchung"
+
+msgid "Examinations"
+msgstr "Vorsorgeuntersuchungen"
+
+msgid "Assessed by your doctor"
+msgstr "Vom Arzt bewertet"
+
+msgid "Fill in"
+msgstr "Ausfüllen"
+
+msgid "View / Edit"
+msgstr "Ansehen / Bearbeiten"
+
+msgid "Due"
+msgstr "Fällig"
+
+msgid "Overdue"
+msgstr "Überfällig"
+
+msgid "Upcoming"
+msgstr "Bevorstehend"
+
+msgid "Completed"
+msgstr "Abgeschlossen"
+
+msgid "Age window"
+msgstr "Altersfenster"
+
+msgid "Save examination"
+msgstr "Untersuchung speichern"
+
+msgid "Examination saved."
+msgstr "Untersuchung gespeichert."
+
+msgid "Please enter the date of the examination."
+msgstr "Bitte geben Sie das Datum der Untersuchung ein."
+
+msgid "Invalid date format."
+msgstr "Ungültiges Datumsformat."
+
+msgid "Next U-Exam"
+msgstr "Nächste Vorsorge"
+
+msgid "Examinations - Next U-Exam"
+msgstr "Vorsorge - Nächste Untersuchung"
+
+msgid "All examinations completed"
+msgstr "Alle Vorsorgeuntersuchungen abgeschlossen"
+
+msgid "is overdue"
+msgstr "ist überfällig"
+
+msgid "is due"
+msgstr "ist fällig"
+
+msgid "days left"
+msgstr "Tage verbleibend"
+
+msgid "in"
+msgstr "in"
+
+msgid "days"
+msgstr "Tagen"
+
+msgid "window opens"
+msgstr "Fenster öffnet sich am"
+
+msgid "Examination program"
+msgstr "Untersuchungsprogramm"
