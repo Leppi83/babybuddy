@@ -1923,6 +1923,29 @@ function ChildDashboardPageV2({ bootstrap }) {
   const [activities, setActivities] = useState(dialActivities || []);
   const isToday = selectedDate.isSame(dayjs(), "day");
 
+  const [recentChanges, setRecentChanges] = useState([]);
+  const [recentFeedings, setRecentFeedings] = useState([]);
+  const [recentSleeps, setRecentSleeps] = useState([]);
+  const [recentTummyTimes, setRecentTummyTimes] = useState([]);
+
+  const loadRecentEntries = useCallback(() => {
+    if (!childId) return;
+    const q = `child=${childId}&limit=5`;
+    Promise.all([
+      api.current.get(`/api/changes/?${q}`),
+      api.current.get(`/api/feedings/?${q}`),
+      api.current.get(`/api/sleep/?${q}`),
+      api.current.get(`/api/tummy-times/?${q}`),
+    ]).then(([c, f, sl, t]) => {
+      setRecentChanges(asItems(c));
+      setRecentFeedings(asItems(f));
+      setRecentSleeps(asItems(sl));
+      setRecentTummyTimes(asItems(t));
+    }).catch(() => {});
+  }, [childId]);
+
+  useEffect(() => { loadRecentEntries(); }, [loadRecentEntries]);
+
   // Fetch activities when date changes
   useEffect(() => {
     if (isToday) {
@@ -2105,6 +2128,84 @@ function ChildDashboardPageV2({ bootstrap }) {
             }}
           />
         </Col>
+      </Row>
+
+      <Row gutter={[12, 12]} style={{ width: "100%", marginTop: 0 }}>
+        {[
+          {
+            title: s.diaperLabel || "Diaper",
+            items: recentChanges,
+            renderLabel: (item) =>
+              [
+                formatAppDateTime(item.time),
+                [item.wet && (s.wet || "wet"), item.solid && (s.solid || "solid")]
+                  .filter(Boolean)
+                  .join(", "),
+              ]
+                .filter(Boolean)
+                .join(" · "),
+            editUrl: (item) => `/changes/${item.id}/`,
+            deleteApiUrl: (item) => `/api/changes/${item.id}/`,
+          },
+          {
+            title: s.feedingLabel || "Feedings",
+            items: recentFeedings,
+            renderLabel: (item) =>
+              [
+                formatAppDateTime(item.start),
+                item.method || item.type || null,
+              ]
+                .filter(Boolean)
+                .join(" · "),
+            editUrl: (item) => `/feedings/${item.id}/`,
+            deleteApiUrl: (item) => `/api/feedings/${item.id}/`,
+          },
+          {
+            title: s.sleepLabel || "Sleep",
+            items: recentSleeps,
+            renderLabel: (item) =>
+              [
+                formatAppDateTime(item.start),
+                item.end
+                  ? `${Math.round((new Date(item.end) - new Date(item.start)) / 60000)} min`
+                  : s.ongoing || "ongoing",
+              ]
+                .filter(Boolean)
+                .join(" · "),
+            editUrl: (item) => `/sleep/${item.id}/`,
+            deleteApiUrl: (item) => `/api/sleep/${item.id}/`,
+          },
+          {
+            title: s.tummytimeLabel || "Tummy Time",
+            items: recentTummyTimes,
+            renderLabel: (item) =>
+              [
+                formatAppDateTime(item.start),
+                item.duration
+                  ? `${Math.round(item.duration / 60)}s`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · "),
+            editUrl: (item) => `/tummy-time/${item.id}/`,
+            deleteApiUrl: (item) => `/api/tummy-times/${item.id}/`,
+          },
+        ]
+          .filter((col) => col.items.length > 0)
+          .map((col) => (
+            <Col xs={24} sm={12} lg={6} key={col.title}>
+              <Card size="small" title={col.title}>
+                <RecentEntriesTable
+                  items={col.items}
+                  renderLabel={col.renderLabel}
+                  editUrl={col.editUrl}
+                  deleteApiUrl={col.deleteApiUrl}
+                  onDeleted={loadRecentEntries}
+                  csrfToken={bootstrap.csrfToken}
+                />
+              </Card>
+            </Col>
+          ))}
       </Row>
     </>
   );
