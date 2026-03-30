@@ -180,3 +180,27 @@ class ProfileView(views.APIView):
         )
         serializer = self.serializer_class(settings)
         return Response(serializer.data)
+
+
+class PushSubscribeView(views.APIView):
+    def post(self, request):
+        serializer = serializers.PushSubscriptionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        babybuddy_models.PushSubscription.objects.update_or_create(
+            endpoint=serializer.validated_data["endpoint"],
+            defaults={
+                "user": request.user,
+                "p256dh": serializer.validated_data["p256dh"],
+                "auth": serializer.validated_data["auth"],
+            },
+        )
+        return Response({"ok": True}, status=201)
+
+
+class PushUnsubscribeView(views.APIView):
+    def post(self, request):
+        endpoint = request.data.get("endpoint", "")
+        deleted, _ = babybuddy_models.PushSubscription.objects.filter(
+            user=request.user, endpoint=endpoint
+        ).delete()
+        return Response({"ok": True, "deleted": deleted > 0})

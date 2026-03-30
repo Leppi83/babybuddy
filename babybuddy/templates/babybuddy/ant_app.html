@@ -11,7 +11,7 @@
 {% endblock %}
 {% block page %}
     {{ ant_bootstrap|json_script:"ant-app-bootstrap" }}
-    <div id="ant-app-root"></div>
+    <div id="ant-app-root" data-vapid-public-key="{{ VAPID_PUBLIC_KEY }}"></div>
 {% endblock %}
 {% block javascript %}
     <script type="module"

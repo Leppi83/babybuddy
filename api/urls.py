@@ -78,4 +78,10 @@ app_name = "api"
 urlpatterns = [
     path("api/", include(router.urls)),
     path("api/auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path("api/push/subscribe/", views.PushSubscribeView.as_view(), name="push-subscribe"),
+    path(
+        "api/push/unsubscribe/",
+        views.PushUnsubscribeView.as_view(),
+        name="push-unsubscribe",
+    ),
 ]

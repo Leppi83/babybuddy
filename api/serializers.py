@@ -318,3 +318,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             "api_key",
         )
         extra_kwargs = {k: {"read_only": True} for k in fields}
+
+
+class PushSubscriptionSerializer(serializers.Serializer):
+    endpoint = serializers.URLField(max_length=500)
+    p256dh = serializers.CharField(max_length=200)
+    auth = serializers.CharField(max_length=200)
