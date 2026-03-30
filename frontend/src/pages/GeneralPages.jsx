@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Col,
+  Dropdown,
   Empty,
   Form,
   Input,
@@ -25,6 +26,7 @@ import {
   EditOutlined,
   HistoryOutlined,
   LineChartOutlined,
+  PlusOutlined,
   ReloadOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -166,48 +168,60 @@ export function AntFormPage({ bootstrap, deleteMode = false }) {
             title={fieldset.label || bootstrap.strings.form}
           >
             <Row gutter={[16, 16]}>
-              {fieldset.fields.map((field) => (
-                <Col
-                  xs={24}
-                  md={field.type === "textarea" ? 24 : 12}
-                  key={`${fieldset.key}-${field.name}`}
-                >
-                  <div className="ant-form-field">
-                    <div className="ant-form-field__label">
-                      <Text strong>{field.label}</Text>
-                      <Text type="secondary">
-                        {field.required
-                          ? bootstrap.strings.required
-                          : bootstrap.strings.optional}
-                      </Text>
-                    </div>
-                    <AntFieldControl
-                      field={field}
-                      value={values[field.name]}
-                      onChange={(nextValue) =>
-                        updateValue(field.name, nextValue)
-                      }
+              {fieldset.fields.map((field) => {
+                if (field.type === "hidden") {
+                  return (
+                    <input
+                      key={field.name}
+                      type="hidden"
+                      name={field.name}
+                      value={field.value != null ? String(field.value) : ""}
                     />
-                    <HiddenFieldInput
-                      field={field}
-                      value={values[field.name]}
-                    />
-                    {field.helpText ? (
-                      <Text type="secondary" className="ant-form-field__help">
-                        {field.helpText}
-                      </Text>
-                    ) : null}
-                    {field.errors.length ? (
-                      <Alert
-                        type="error"
-                        showIcon
-                        message={field.errors[0]}
-                        className="ant-form-field__error"
+                  );
+                }
+                return (
+                  <Col
+                    xs={24}
+                    md={field.type === "textarea" ? 24 : 12}
+                    key={`${fieldset.key}-${field.name}`}
+                  >
+                    <div className="ant-form-field">
+                      <div className="ant-form-field__label">
+                        <Text strong>{field.label}</Text>
+                        <Text type="secondary">
+                          {field.required
+                            ? bootstrap.strings.required
+                            : bootstrap.strings.optional}
+                        </Text>
+                      </div>
+                      <AntFieldControl
+                        field={field}
+                        value={values[field.name]}
+                        onChange={(nextValue) =>
+                          updateValue(field.name, nextValue)
+                        }
                       />
-                    ) : null}
-                  </div>
-                </Col>
-              ))}
+                      <HiddenFieldInput
+                        field={field}
+                        value={values[field.name]}
+                      />
+                      {field.helpText ? (
+                        <Text type="secondary" className="ant-form-field__help">
+                          {field.helpText}
+                        </Text>
+                      ) : null}
+                      {field.errors.length ? (
+                        <Alert
+                          type="error"
+                          showIcon
+                          message={field.errors[0]}
+                          className="ant-form-field__error"
+                        />
+                      ) : null}
+                    </div>
+                  </Col>
+                );
+              })}
             </Row>
           </Card>
         ))}
@@ -459,6 +473,22 @@ export function ChildDetailPage({ bootstrap }) {
                   >
                     {bootstrap.strings.examinations || "Examinations"}
                   </Button>
+                )}
+                {(bootstrap.urls.addWeight || bootstrap.urls.addHeight || bootstrap.urls.addMilestone || bootstrap.urls.addNote) && (
+                  <Dropdown
+                    menu={{
+                      items: [
+                        bootstrap.urls.addWeight && { key: "weight", label: bootstrap.strings.weight || "Weight", onClick: () => window.location.assign(bootstrap.urls.addWeight) },
+                        bootstrap.urls.addHeight && { key: "height", label: bootstrap.strings.height || "Height", onClick: () => window.location.assign(bootstrap.urls.addHeight) },
+                        bootstrap.urls.addMilestone && { key: "milestone", label: bootstrap.strings.milestone || "Milestone", onClick: () => window.location.assign(bootstrap.urls.addMilestone) },
+                        bootstrap.urls.addNote && { key: "note", label: bootstrap.strings.note || "Note", onClick: () => window.location.assign(bootstrap.urls.addNote) },
+                      ].filter(Boolean),
+                    }}
+                  >
+                    <Button icon={<PlusOutlined />}>
+                      {bootstrap.strings.addEntry || "Add entry"}
+                    </Button>
+                  </Dropdown>
                 )}
                 <Button href={child.actions.edit} icon={<EditOutlined />}>
                   {bootstrap.strings.edit}

@@ -207,6 +207,17 @@ class Child(models.Model):
         unique=True,
         verbose_name=_("Slug"),
     )
+    SEX_CHOICES = [
+        ("male", _("Male")),
+        ("female", _("Female")),
+        ("unknown", _("Unknown")),
+    ]
+    sex = models.CharField(
+        max_length=10,
+        choices=SEX_CHOICES,
+        default="unknown",
+        verbose_name=_("Sex"),
+    )
     picture = models.ImageField(
         blank=True, null=True, upload_to="child/picture/", verbose_name=_("Picture")
     )

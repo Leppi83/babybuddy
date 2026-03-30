@@ -259,6 +259,7 @@ def _base_strings():
     return {
         "dashboard": _("Dashboard"),
         "timeline": _("Timeline"),
+        "profileTimeline": _("Profile Timeline"),
         "children": _("Children"),
         "settings": _("Settings"),
         "logout": _("Logout"),

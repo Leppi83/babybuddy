@@ -338,6 +338,7 @@ export function AntFieldControl({ field, value, onChange }) {
     return (
       <DatePicker
         style={{ width: "100%" }}
+        format="DD.MM.YYYY"
         value={parsePickerValue("date", value)}
         onChange={(nextValue) =>
           onChange(nextValue ? nextValue.format("YYYY-MM-DD") : "")
@@ -365,6 +366,7 @@ export function AntFieldControl({ field, value, onChange }) {
       <DatePicker
         style={{ width: "100%" }}
         showTime
+        format="DD.MM.YYYY HH:mm"
         value={parsePickerValue("datetime-local", value)}
         onChange={(nextValue) =>
           onChange(nextValue ? nextValue.format("YYYY-MM-DDTHH:mm:ss") : "")

@@ -68,6 +68,7 @@ def _list_strings():
     return {
         "dashboard": _("Dashboard"),
         "timeline": _("Timeline"),
+        "profileTimeline": _("Profile Timeline"),
         "settings": _("Settings"),
         "logout": _("Logout"),
         "children": _("Children"),
@@ -171,6 +172,10 @@ def _build_ant_child_detail_bootstrap(
             "examinations": reverse(
                 "examinations:list", kwargs={"slug": child.slug}
             ),
+            "addWeight": reverse("core:weight-add") + f"?child={child.slug}",
+            "addHeight": reverse("core:height-add") + f"?child={child.slug}",
+            "addMilestone": reverse("core:milestone-add") + f"?child={child.slug}",
+            "addNote": reverse("core:note-add") + f"?child={child.slug}",
         },
         "childSwitcher": _build_child_switcher(request, current_child=child),
         "strings": {
@@ -189,6 +194,11 @@ def _build_ant_child_detail_bootstrap(
             "childActions": _("Child actions"),
             "examinations": _("Examinations"),
             "profileTimeline": _("Profile Timeline"),
+            "addEntry": _("Add entry"),
+            "weight": _("Weight"),
+            "height": _("Height"),
+            "milestone": _("Milestone"),
+            "note": _("Note"),
         },
         "childDetail": {
             "name": str(child),
@@ -2803,6 +2813,24 @@ class MilestoneAdd(AntFormMixin, CoreAddView):
     ant_title = _("Add Milestone")
     ant_kicker = _("Entry Form")
 
+    def get_ant_cancel_url(self):
+        slug = self.request.GET.get("child")
+        if slug:
+            return reverse("core:child-profile-timeline", kwargs={"slug": slug})
+        return str(self.success_url)
+
+    def get_success_url(self):
+        return reverse(
+            "core:child-profile-timeline",
+            kwargs={"slug": self.object.child.slug},
+        )
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if self.request.GET.get("child"):
+            form.fields["child"].widget = django_forms.HiddenInput()
+        return form
+
 
 class MilestoneUpdate(AntFormMixin, CoreUpdateView):
     model = models.Milestone
@@ -2918,6 +2946,7 @@ class ChildProfileTimeline(LoginRequiredMixin, DetailView):
                 "slug": child.slug,
                 "birthDate": birth_date.isoformat() if birth_date else None,
                 "photoUrl": _child_image_url(self.request, child),
+                "sex": child.sex,
             },
             "heightMeasurements": height_measurements,
             "examinationMarkers": exam_markers,

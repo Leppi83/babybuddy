@@ -261,6 +261,10 @@ export function AppShell({
     } else if (pageType === "insights" && urls.insightsTemplate && child) {
       const url = urls.insightsTemplate.replace("__CHILD_ID__", String(child.id));
       window.location.assign(url);
+    } else if (pageType === "child-profile-timeline") {
+      window.location.assign(`/children/${slug}/profile-timeline/`);
+    } else if (pageType === "child-detail") {
+      window.location.assign(`/children/${slug}/`);
     } else {
       // For non-child-specific pages (timeline, settings, lists, forms)
       // just update the stored selection; no nav needed.
@@ -283,6 +287,11 @@ export function AppShell({
   const isDesktop = Boolean(screens.md);
   const isAuthLayout = bootstrap.layout === "auth";
   const s = bootstrap.strings;
+
+  // Profile Timeline URL: per-child when a child is selected
+  const profileTimelineUrl = selectedSlug
+    ? `/children/${selectedSlug}/profile-timeline/`
+    : bootstrap.urls.timeline;
 
   // Quick Entry URL: append selected child slug when available
   const quickEntryUrl = selectedSlug
@@ -335,9 +344,9 @@ export function AppShell({
     },
     insightsMenuItem,
     {
-      key: bootstrap.urls.timeline,
+      key: profileTimelineUrl,
       icon: <HistoryOutlined />,
-      label: s.timeline,
+      label: s.profileTimeline || s.timeline,
     },
     ...(bootstrap.urls.childrenList
       ? [
@@ -510,6 +519,7 @@ export function AppShell({
           : s.insights || "Insights",
     },
     insights: { eyebrow: s.overview || "Overview", title: s.insights || "Insights" },
+    "child-profile-timeline": { eyebrow: null, title: null },
     "quick-entry": {
       eyebrow: s.quickEntry || "Quick Actions",
       title: bootstrap.currentChild?.name || s.quickEntry || "Quick Entry",
@@ -712,7 +722,7 @@ export function AppShell({
             { key: bootstrap.urls.dashboard, icon: <HomeOutlined />, label: s.dashboard },
             { key: "__insights__", icon: <BulbOutlined />, label: s.insights || "Insights" },
             { key: quickEntryUrl, icon: <EditOutlined />, label: s.quickEntry || "Quick Entry" },
-            { key: bootstrap.urls.timeline, icon: <HistoryOutlined />, label: s.timeline },
+            { key: profileTimelineUrl, icon: <HistoryOutlined />, label: s.profileTimeline || s.timeline },
             { key: "__more__", icon: <EllipsisOutlined />, label: s.more || "More" },
           ].map((item) => {
             const isInsightsActive = topicPages && selectedKey &&

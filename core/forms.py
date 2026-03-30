@@ -204,6 +204,7 @@ class ChildForm(forms.ModelForm):
             "last_name",
             "birth_date",
             "birth_time",
+            "sex",
             "usual_bedtime",
         ]
         if settings.BABY_BUDDY["ALLOW_UPLOADS"]:
