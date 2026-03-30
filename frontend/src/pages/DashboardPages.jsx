@@ -141,15 +141,16 @@ function RecentEntriesTable({ items, renderLabel, editUrl, deleteApiUrl, onDelet
   }
 
   return (
-    <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 8, marginTop: 4 }}>
+    <div style={{ paddingTop: 4 }}>
       {items.map((item) => (
         <div
           key={item.id}
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 0" }}
         >
           <Text
+            type="secondary"
             style={{
-              fontSize: 12, color: "rgba(255,255,255,0.45)", flex: 1, minWidth: 0,
+              fontSize: 12, flex: 1, minWidth: 0,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}
           >
@@ -2130,83 +2131,75 @@ function ChildDashboardPageV2({ bootstrap }) {
         </Col>
       </Row>
 
-      <Row gutter={[12, 12]} style={{ width: "100%", marginTop: 0 }}>
-        {[
-          {
-            title: s.diaperLabel || "Diaper",
-            items: recentChanges,
-            renderLabel: (item) =>
-              [
-                formatAppDateTime(item.time),
-                [item.wet && (s.wet || "wet"), item.solid && (s.solid || "solid")]
-                  .filter(Boolean)
-                  .join(", "),
-              ]
-                .filter(Boolean)
-                .join(" · "),
-            editUrl: (item) => `/changes/${item.id}/`,
-            deleteApiUrl: (item) => `/api/changes/${item.id}/`,
-          },
-          {
-            title: s.feedingLabel || "Feedings",
-            items: recentFeedings,
-            renderLabel: (item) =>
-              [
-                formatAppDateTime(item.start),
-                item.method || item.type || null,
-              ]
-                .filter(Boolean)
-                .join(" · "),
-            editUrl: (item) => `/feedings/${item.id}/`,
-            deleteApiUrl: (item) => `/api/feedings/${item.id}/`,
-          },
-          {
-            title: s.sleepLabel || "Sleep",
-            items: recentSleeps,
-            renderLabel: (item) =>
-              [
-                formatAppDateTime(item.start),
-                item.end
-                  ? `${Math.round((new Date(item.end) - new Date(item.start)) / 60000)} min`
-                  : s.ongoing || "ongoing",
-              ]
-                .filter(Boolean)
-                .join(" · "),
-            editUrl: (item) => `/sleep/${item.id}/`,
-            deleteApiUrl: (item) => `/api/sleep/${item.id}/`,
-          },
-          {
-            title: s.tummytimeLabel || "Tummy Time",
-            items: recentTummyTimes,
-            renderLabel: (item) =>
-              [
-                formatAppDateTime(item.start),
-                item.duration
-                  ? `${Math.round(item.duration / 60)}s`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · "),
-            editUrl: (item) => `/tummy-time/${item.id}/`,
-            deleteApiUrl: (item) => `/api/tummy-times/${item.id}/`,
-          },
+      {(() => {
+        const combined = [
+          ...recentChanges.map((item) => ({
+            ...item,
+            _type: "diaper",
+            _sortKey: item.time,
+            _label: [
+              formatAppDateTime(item.time),
+              s.diaperLabel || "Diaper",
+              [item.wet && (s.wet || "wet"), item.solid && (s.solid || "solid")].filter(Boolean).join(", "),
+            ].filter(Boolean).join(" · "),
+            _editUrl: `/changes/${item.id}/`,
+            _deleteApiUrl: `/api/changes/${item.id}/`,
+          })),
+          ...recentFeedings.map((item) => ({
+            ...item,
+            _type: "feeding",
+            _sortKey: item.start,
+            _label: [
+              formatAppDateTime(item.start),
+              s.feedingLabel || "Feeding",
+              item.method || item.type || null,
+            ].filter(Boolean).join(" · "),
+            _editUrl: `/feedings/${item.id}/`,
+            _deleteApiUrl: `/api/feedings/${item.id}/`,
+          })),
+          ...recentSleeps.map((item) => ({
+            ...item,
+            _type: "sleep",
+            _sortKey: item.start,
+            _label: [
+              formatAppDateTime(item.start),
+              s.sleepLabel || "Sleep",
+              item.end
+                ? `${Math.round((new Date(item.end) - new Date(item.start)) / 60000)} min`
+                : s.ongoing || "ongoing",
+            ].filter(Boolean).join(" · "),
+            _editUrl: `/sleep/${item.id}/`,
+            _deleteApiUrl: `/api/sleep/${item.id}/`,
+          })),
+          ...recentTummyTimes.map((item) => ({
+            ...item,
+            _type: "tummy",
+            _sortKey: item.start,
+            _label: [
+              formatAppDateTime(item.start),
+              s.tummytimeLabel || "Tummy Time",
+            ].filter(Boolean).join(" · "),
+            _editUrl: `/tummy-time/${item.id}/`,
+            _deleteApiUrl: `/api/tummy-times/${item.id}/`,
+          })),
         ]
-          .filter((col) => col.items.length > 0)
-          .map((col) => (
-            <Col xs={24} sm={12} lg={6} key={col.title}>
-              <Card size="small" title={col.title}>
-                <RecentEntriesTable
-                  items={col.items}
-                  renderLabel={col.renderLabel}
-                  editUrl={col.editUrl}
-                  deleteApiUrl={col.deleteApiUrl}
-                  onDeleted={loadRecentEntries}
-                  csrfToken={bootstrap.csrfToken}
-                />
-              </Card>
-            </Col>
-          ))}
-      </Row>
+          .sort((a, b) => new Date(b._sortKey) - new Date(a._sortKey))
+          .slice(0, 5);
+
+        if (combined.length === 0) return null;
+        return (
+          <Card size="small" title={s.recentActivity || "Recent Activity"}>
+            <RecentEntriesTable
+              items={combined}
+              renderLabel={(item) => item._label}
+              editUrl={(item) => item._editUrl}
+              deleteApiUrl={(item) => item._deleteApiUrl}
+              onDeleted={loadRecentEntries}
+              csrfToken={bootstrap.csrfToken}
+            />
+          </Card>
+        );
+      })()}
     </>
   );
 }
