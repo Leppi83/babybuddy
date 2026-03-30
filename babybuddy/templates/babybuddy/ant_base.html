@@ -52,14 +52,10 @@
         {% block page %}{% endblock %}
         {% block javascript %}{% endblock %}
         <script>
-            // Unregister any existing service worker — PWA caching disabled during development
+            // Register push-only service worker (no caching/fetch interception)
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    registrations.forEach(function(registration) {
-                        registration.unregister();
-                    });
-                });
-                // Also clear all SW caches
+                navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                // Clean up any legacy caches from the old caching SW
                 if ('caches' in window) {
                     caches.keys().then(function(names) {
                         names.forEach(function(name) { caches.delete(name); });
