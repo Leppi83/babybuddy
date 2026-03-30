@@ -127,4 +127,9 @@ urlpatterns = [
     path("bmi/add/", views.BMIAdd.as_view(), name="bmi-add"),
     path("bmi/<int:pk>/", views.BMIUpdate.as_view(), name="bmi-update"),
     path("bmi/<int:pk>/delete/", views.BMIDelete.as_view(), name="bmi-delete"),
+    path("milestones/", views.MilestoneList.as_view(), name="milestone-list"),
+    path("milestones/add/", views.MilestoneAdd.as_view(), name="milestone-add"),
+    path("milestones/<int:pk>/", views.MilestoneUpdate.as_view(), name="milestone-update"),
+    path("milestones/<int:pk>/delete/", views.MilestoneDelete.as_view(), name="milestone-delete"),
+    path("children/<str:slug>/profile-timeline/", views.ChildProfileTimeline.as_view(), name="child-profile-timeline"),
 ]

@@ -892,3 +892,57 @@ class SleepTimer(models.Model):
             "pauseStartIso": self.paused_at.isoformat() if self.paused_at else None,
             "frozenSeconds": frozen,
         }
+
+
+class Milestone(models.Model):
+    MILESTONE_TYPE_CHOICES = [
+        ("first_word", _("First word")),
+        ("first_turn", _("First turn")),
+        ("first_walk", _("First walk")),
+        ("first_smile", _("First smile")),
+        ("first_tooth", _("First tooth")),
+        ("custom", _("Custom")),
+    ]
+
+    model_name = "milestone"
+
+    child = models.ForeignKey(
+        "Child",
+        on_delete=models.CASCADE,
+        related_name="milestones",
+        verbose_name=_("Child"),
+    )
+    date = models.DateField(
+        blank=False,
+        default=timezone.localdate,
+        null=False,
+        verbose_name=_("Date"),
+    )
+    milestone_type = models.CharField(
+        max_length=20,
+        choices=MILESTONE_TYPE_CHOICES,
+        default="custom",
+        verbose_name=_("Type"),
+    )
+    title = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Title"),
+    )
+    notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
+
+    objects = models.Manager()
+
+    class Meta:
+        default_permissions = ("view", "add", "change", "delete")
+        ordering = ["date"]
+        verbose_name = _("Milestone")
+        verbose_name_plural = _("Milestones")
+
+    def __str__(self):
+        if self.title:
+            return self.title
+        return self.get_milestone_type_display()
+
+    def clean(self):
+        validate_date(self.date, "date")

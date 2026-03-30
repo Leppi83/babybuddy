@@ -16,6 +16,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext as _
 from django.views.generic.base import RedirectView, TemplateView, View
 from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -187,6 +188,7 @@ def _build_ant_child_detail_bootstrap(
             "sincePrevious": _("since previous"),
             "childActions": _("Child actions"),
             "examinations": _("Examinations"),
+            "profileTimeline": _("Profile Timeline"),
         },
         "childDetail": {
             "name": str(child),
@@ -214,6 +216,7 @@ def _build_ant_child_detail_bootstrap(
                     "dashboard:dashboard-child", kwargs={"slug": child.slug}
                 ),
                 "timeline": reverse("core:child", kwargs={"slug": child.slug}),
+                "profileTimeline": reverse("core:child-profile-timeline", kwargs={"slug": child.slug}),
                 "reports": reverse("reports:report-list", kwargs={"slug": child.slug}),
                 "edit": reverse("core:child-update", kwargs={"slug": child.slug}),
                 "delete": reverse("core:child-delete", kwargs={"slug": child.slug}),
@@ -2746,3 +2749,178 @@ class QuickLogView(LoginRequiredMixin, View):
             return dt
         except (ValueError, TypeError):
             return None
+
+
+# ── Milestone CRUD ────────────────────────────────────────────────────────────
+
+class MilestoneList(PermissionRequiredMixin, BabyBuddyPaginatedView, ListView):
+    model = models.Milestone
+    template_name = "babybuddy/ant_app.html"
+    permission_required = ("core.view_milestone",)
+    paginate_by = 100
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        columns = [
+            {"key": "date", "title": str(_("Date"))},
+            {"key": "child", "title": str(_("Child"))},
+            {"key": "type", "title": str(_("Type"))},
+            {"key": "title", "title": str(_("Title"))},
+            {"key": "actions", "title": str(_("Actions"))},
+        ]
+        rows = []
+        for item in context["object_list"]:
+            rows.append({
+                "date": str(item.date),
+                "child": str(item.child),
+                "type": item.get_milestone_type_display(),
+                "title": item.title or "",
+                "actions": _build_actions([
+                    {"label": str(_("Edit")), "href": reverse("core:milestone-update", kwargs={"pk": item.id})}
+                    if self.request.user.has_perm("core.change_milestone") else None,
+                    {"label": str(_("Delete")), "href": reverse("core:milestone-delete", kwargs={"pk": item.id}), "danger": True}
+                    if self.request.user.has_perm("core.delete_milestone") else None,
+                ]),
+            })
+        context["ant_bootstrap"] = {
+            "pageType": "list",
+            "currentPath": self.request.path,
+            "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
+            "csrfToken": get_token(self.request),
+            "user": {"displayName": _display_name(self.request.user)},
+            "urls": {**_nav_urls(), "add": reverse("core:milestone-add")},
+            "strings": {**_list_strings(), "pageTitle": str(_("Milestones"))},
+            "listPage": {"columns": columns, "rows": rows, "pageTitle": str(_("Milestones"))},
+        }
+        return context
+
+
+class MilestoneAdd(AntFormMixin, CoreAddView):
+    model = models.Milestone
+    permission_required = ("core.add_milestone",)
+    form_class = forms.MilestoneForm
+    success_url = reverse_lazy("core:milestone-list")
+    ant_title = _("Add Milestone")
+    ant_kicker = _("Entry Form")
+
+
+class MilestoneUpdate(AntFormMixin, CoreUpdateView):
+    model = models.Milestone
+    permission_required = ("core.change_milestone",)
+    form_class = forms.MilestoneForm
+    success_url = reverse_lazy("core:milestone-list")
+    ant_title = _("Update Milestone")
+    ant_kicker = _("Entry Form")
+
+
+class MilestoneDelete(AntDeleteMixin, CoreDeleteView):
+    model = models.Milestone
+    permission_required = ("core.delete_milestone",)
+    success_url = reverse_lazy("core:milestone-list")
+    ant_title = _("Delete Milestone")
+
+
+# ── Child Profile Timeline ────────────────────────────────────────────────────
+
+class ChildProfileTimeline(LoginRequiredMixin, DetailView):
+    model = models.Child
+    template_name = "babybuddy/ant_app.html"
+
+    def get_object(self):
+        return models.Child.objects.get(slug=self.kwargs["slug"])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        child = self.object
+        from examinations.models import ExaminationType, ExaminationRecord
+        from examinations.status import calculate_examination_statuses
+
+        program = getattr(child, "examination_program", None)
+        exam_markers = []
+        if program:
+            exam_types = list(
+                ExaminationType.objects.filter(program=program).order_by("order")
+            )
+            records = list(ExaminationRecord.objects.filter(child=child))
+            statuses = calculate_examination_statuses(child, exam_types, records)
+            six_years_days = 6 * 365
+            for et in exam_types:
+                if et.age_min_days > six_years_days:
+                    continue
+                st = statuses.get(et.pk, {})
+                completed_date = st.get("completed_date")
+                exam_markers.append({
+                    "code": et.code,
+                    "name": et.name,
+                    "status": st.get("status", "upcoming"),
+                    "ageMinDays": et.age_min_days,
+                    "ageMaxDays": et.age_max_days,
+                    "completedDate": completed_date.isoformat() if completed_date else None,
+                    "url": reverse("examinations:form", kwargs={"slug": child.slug, "code": et.code}),
+                })
+
+        height_measurements = [
+            {"date": h.date.isoformat(), "cm": h.height}
+            for h in child.height.order_by("date")
+        ]
+
+        milestones = [
+            {
+                "id": m.pk,
+                "date": m.date.isoformat(),
+                "type": m.milestone_type,
+                "title": str(m),
+                "notes": m.notes or "",
+                "editUrl": reverse("core:milestone-update", kwargs={"pk": m.pk}),
+                "deleteUrl": reverse("core:milestone-delete", kwargs={"pk": m.pk}),
+            }
+            for m in child.milestones.order_by("date")
+        ]
+
+        birth_date = child.birth_date
+        context["ant_bootstrap"] = {
+            "pageType": "child-profile-timeline",
+            "currentPath": self.request.path,
+            "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
+            "csrfToken": get_token(self.request),
+            "user": {"displayName": _display_name(self.request.user)},
+            "urls": {
+                **_nav_urls(),
+                "addMilestone": reverse("core:milestone-add") + f"?child={child.slug}",
+                "childDetail": reverse("core:child", kwargs={"slug": child.slug}),
+            },
+            "childSwitcher": _build_child_switcher(self.request, current_child=child),
+            "strings": {
+                **_list_strings(),
+                "profileTimeline": _("Profile Timeline"),
+                "milestones": _("Milestones"),
+                "examinations": _("Examinations"),
+                "addMilestone": _("Add milestone"),
+                "firstWord": _("First word"),
+                "firstTurn": _("First turn"),
+                "firstWalk": _("First walk"),
+                "firstSmile": _("First smile"),
+                "firstTooth": _("First tooth"),
+                "custom": _("Custom"),
+                "height": _("Height"),
+                "noData": _("No data recorded yet"),
+                "edit": _("Edit"),
+                "delete": _("Delete"),
+                "completed": _("Completed"),
+                "due": _("Due"),
+                "overdue": _("Overdue"),
+                "upcoming": _("Upcoming"),
+                "today": _("Today"),
+                "years": _("years"),
+            },
+            "childDetail": {
+                "name": str(child),
+                "slug": child.slug,
+                "birthDate": birth_date.isoformat() if birth_date else None,
+                "photoUrl": _child_image_url(self.request, child),
+            },
+            "heightMeasurements": height_measurements,
+            "examinationMarkers": exam_markers,
+            "milestones": milestones,
+        }
+        return context

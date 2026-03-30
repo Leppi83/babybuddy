@@ -23,6 +23,7 @@ import {
   DashboardOutlined,
   DeleteOutlined,
   EditOutlined,
+  HistoryOutlined,
   LineChartOutlined,
   ReloadOutlined,
   UserOutlined,
@@ -441,6 +442,15 @@ export function ChildDetailPage({ bootstrap }) {
                 >
                   {bootstrap.strings.reports}
                 </Button>
+                {child.actions.profileTimeline && (
+                  <Button
+                    href={child.actions.profileTimeline}
+                    icon={<HistoryOutlined />}
+                    type="primary"
+                  >
+                    {bootstrap.strings.profileTimeline || "Profile Timeline"}
+                  </Button>
+                )}
                 {bootstrap.urls.examinations && (
                   <Button
                     href={bootstrap.urls.examinations}

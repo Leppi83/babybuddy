@@ -101,6 +101,11 @@ const ExaminationFormPage = lazy(() =>
     default: module.ExaminationFormPage,
   })),
 );
+const ChildProfileTimelinePage = lazy(() =>
+  import("./pages/ProfileTimelinePages").then((module) => ({
+    default: module.ChildProfileTimelinePage,
+  })),
+);
 
 const THEME_MODE_KEY = "babybuddy.theme.mode";
 
@@ -179,6 +184,9 @@ function RoutedPage({ bootstrap }) {
   }
   if (bootstrap.pageType === "examination-form") {
     return <ExaminationFormPage bootstrap={bootstrap} />;
+  }
+  if (bootstrap.pageType === "child-profile-timeline") {
+    return <ChildProfileTimelinePage bootstrap={bootstrap} />;
   }
   return <ChildDashboardPage bootstrap={bootstrap} />;
 }

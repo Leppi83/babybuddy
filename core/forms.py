@@ -460,3 +460,23 @@ class WeightForm(CoreModelForm, TaggableModelForm):
             "date": DateInput(),
             "notes": forms.Textarea(attrs={"rows": 5}),
         }
+
+
+
+class MilestoneForm(CoreModelForm):
+    fieldsets = [
+        {
+            "fields": ["child", "date", "milestone_type", "title"],
+            "layout": "required",
+        },
+        {"fields": ["notes"], "layout": "advanced"},
+    ]
+
+    class Meta:
+        model = models.Milestone
+        fields = ["child", "date", "milestone_type", "title", "notes"]
+        widgets = {
+            "child": ChildRadioSelect,
+            "date": DateInput(),
+            "notes": forms.Textarea(attrs={"rows": 5}),
+        }
