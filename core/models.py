@@ -841,6 +841,9 @@ class SleepTimer(models.Model):
         null=True, blank=True, verbose_name=_("Paused at")
     )
     breaks = JSONField(default=list, verbose_name=_("Breaks"))
+    notified_14h_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("14h notification sent at")
+    )
 
     class Meta:
         verbose_name = _("Sleep timer")

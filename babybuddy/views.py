@@ -626,7 +626,10 @@ def _build_settings_bootstrap(request, form_user, form_settings):
             **_nav_urls(),
             "self": reverse("babybuddy:user-settings"),
             "addChild": reverse("core:child-add"),
+            "pushSubscribe": reverse("api:push-subscribe"),
+            "pushUnsubscribe": reverse("api:push-unsubscribe"),
         },
+        "vapidPublicKey": settings.VAPID_PUBLIC_KEY or "",
         "messages": _serialize_messages(request),
         "settings": {
             "profile": {

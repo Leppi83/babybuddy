@@ -25,6 +25,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from babybuddy.push import send_push_notification
 from babybuddy.views import _serialize_messages
 from core.views import _build_child_switcher
 from core.models import Child, DiaperChange, Feeding, Pumping, Sleep, SleepTimer, Timer
@@ -971,6 +972,29 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         return timezone.make_aware(naive_dt, timezone.get_current_timezone())
 
     @staticmethod
+    def _maybe_send_14h_notification(self, timer):
+        """Send a push notification if the sleep timer has been running for > 14 hours
+        and no notification has been sent yet for this timer session."""
+        threshold = 14 * 3600  # 14 hours in seconds
+        if timer.paused_at is not None:
+            return  # paused — no alert
+        if timer.notified_14h_at is not None:
+            return  # already notified
+        if timer.elapsed_seconds() < threshold:
+            return  # not yet at 14h
+
+        child = self.object
+        title = str(child)
+        body = _("Sleep timer has been running for over 14 hours.")
+        try:
+            send_push_notification(self.request.user, title, body)
+        except Exception:
+            pass  # never let a notification error break the page load
+
+        timer.notified_14h_at = timezone.now()
+        timer.save(update_fields=["notified_14h_at"])
+
+    @staticmethod
     def _classify_sleep_nap(start_dt, net_duration_secs):
         """Return True (nap) or False (sleep). Night = 17:00–07:00 → always sleep."""
         local_start = timezone.localtime(start_dt)
@@ -1224,7 +1248,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
 
         if action == "start":
             SleepTimer.objects.filter(child=child).delete()
-            SleepTimer.objects.create(child=child, start=timezone.now(), breaks=[])
+            SleepTimer.objects.create(
+                child=child, start=timezone.now(), breaks=[], notified_14h_at=None
+            )
 
         elif action == "pause":
             SleepTimer.objects.filter(child=child, paused_at__isnull=True).update(
@@ -1325,8 +1351,11 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             "frozenSeconds": 0,
         }
         try:
-            timer_payload = self.object.sleep_timer.to_bootstrap_payload()
+            sleep_timer_obj = self.object.sleep_timer
+            timer_payload = sleep_timer_obj.to_bootstrap_payload()
+            self._maybe_send_14h_notification(sleep_timer_obj)
         except SleepTimer.DoesNotExist:
+            sleep_timer_obj = None
             timer_payload = _not_running
         if _ant_dashboard_enabled():
             context["ant_page_title"] = _("Dashboard")
