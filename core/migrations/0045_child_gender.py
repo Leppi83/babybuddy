@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="child",
-            name="sex",
+            name="gender",
             field=models.CharField(
                 choices=[
                     ("male", "Male"),
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ],
                 default="unknown",
                 max_length=10,
-                verbose_name="Sex",
+                verbose_name="Gender",
             ),
         ),
     ]

@@ -151,9 +151,9 @@ function ChildFemale({ scale, color }) {
   );
 }
 
-function ChildSilhouette({ heightPx, color = "rgba(77,182,255,0.35)", ageMonths = 36, sex = "unknown" }) {
+function ChildSilhouette({ heightPx, color = "rgba(77,182,255,0.35)", ageMonths = 36, gender = "unknown" }) {
   const scale = heightPx / 100;
-  const isFemale = sex === "female";
+  const isFemale = gender === "female";
 
   if (ageMonths < 6) {
     return <SwaddledBaby scale={scale} color={color} />;
@@ -232,7 +232,7 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
     ? Math.max(...heightMeasurements.map((h) => h.cm))
     : 0;
   const refCm = Math.max(maxMeasuredCm, 60);
-  const sex = childDetail.sex || "unknown";
+  const gender = childDetail.gender || "unknown";
 
   return (
     <div ref={containerRef} style={{ width: "100%", overflowX: "auto" }}>
@@ -278,7 +278,7 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
                     heightPx={hPx}
                     color={`rgba(77,182,255,${alpha.toFixed(2)})`}
                     ageMonths={ageAtMeasure}
-                    sex={sex}
+                    gender={gender}
                   />
                 </g>
                 <text x={cx} y={silTop - 4} textAnchor="middle" fontSize={9} fill="#4db6ff">

@@ -2946,7 +2946,7 @@ class ChildProfileTimeline(LoginRequiredMixin, DetailView):
                 "slug": child.slug,
                 "birthDate": birth_date.isoformat() if birth_date else None,
                 "photoUrl": _child_image_url(self.request, child),
-                "sex": child.sex,
+                "gender": child.gender,
             },
             "heightMeasurements": height_measurements,
             "examinationMarkers": exam_markers,
