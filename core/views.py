@@ -2863,7 +2863,8 @@ class ChildProfileTimeline(LoginRequiredMixin, DetailView):
         from examinations.models import ExaminationType, ExaminationRecord
         from examinations.status import calculate_examination_statuses
 
-        program = getattr(child, "examination_program", None)
+        from examinations.views import _get_program_for_child
+        program = _get_program_for_child(child)
         exam_markers = []
         if program:
             exam_types = list(

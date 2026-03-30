@@ -44,6 +44,7 @@ const { useBreakpoint } = Grid;
 /* ── localStorage helpers ──────────────────────────────────────── */
 const CHILDREN_CACHE_KEY = "bb_nav_children";
 const SELECTED_SLUG_KEY = "bb_selected_child";
+const LAST_NAV_KEY = "bb_last_nav_key";
 
 function readChildrenCache() {
   try {
@@ -393,6 +394,7 @@ export function AppShell({
       return;
     }
     if (key.startsWith("/")) {
+      saveLastNavKey(key);
       window.location.assign(key);
     }
   }
@@ -401,31 +403,42 @@ export function AppShell({
   const currentPathBase = bootstrap.currentPath.split("?")[0];
   const keyPathOf = (key) => key?.split?.("?")?.[0] ?? key;
 
-  const selectedKey =
-    bootstrap.activeNavKey === null
-      ? null
-      : bootstrap.activeNavKey ||
-        (() => {
-          for (const item of navItems) {
-            if (item.children) {
-              for (const child of item.children) {
-                if (
-                  child.key !== "__logout__" &&
-                  currentPathBase.startsWith(keyPathOf(child.key))
-                ) {
-                  return child.key;
-                }
-              }
-            } else if (
-              item.key !== "__logout__" &&
-              item.key?.startsWith?.("/") &&
-              currentPathBase.startsWith(keyPathOf(item.key))
-            ) {
-              return item.key;
-            }
+  function readLastNavKey() {
+    try { return localStorage.getItem(LAST_NAV_KEY) || null; } catch { return null; }
+  }
+  function saveLastNavKey(key) {
+    try { localStorage.setItem(LAST_NAV_KEY, key); } catch {}
+  }
+
+  const selectedKey = (() => {
+    if (bootstrap.activeNavKey === null) return null;
+    if (bootstrap.activeNavKey) {
+      saveLastNavKey(bootstrap.activeNavKey);
+      return bootstrap.activeNavKey;
+    }
+    for (const item of navItems) {
+      if (item.children) {
+        for (const child of item.children) {
+          if (
+            child.key !== "__logout__" &&
+            currentPathBase.startsWith(keyPathOf(child.key))
+          ) {
+            saveLastNavKey(child.key);
+            return child.key;
           }
-          return bootstrap.urls.dashboard;
-        })();
+        }
+      } else if (
+        item.key !== "__logout__" &&
+        item.key?.startsWith?.("/") &&
+        currentPathBase.startsWith(keyPathOf(item.key))
+      ) {
+        saveLastNavKey(item.key);
+        return item.key;
+      }
+    }
+    // No match — use last known nav key, falling back to dashboard
+    return readLastNavKey() || bootstrap.urls.dashboard;
+  })();
 
   const childSwitcher = bootstrap.childSwitcher;
 
