@@ -2072,49 +2072,115 @@ function ChildDashboardPageV2({ bootstrap }) {
       </div>
       <Row gutter={[16, 16]} style={{ width: "100%" }}>
         <Col xs={24} lg={14}>
-          <Card
-            className="ant-section-card"
-            styles={{ body: { padding: 0 } }}
-            style={{ overflow: "hidden" }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                alignItems: "center",
-                padding: "16px 20px",
-                position: "relative",
-                zIndex: 2,
-                background: "var(--app-card-bg-start)",
-                borderBottom: "1px solid var(--app-card-border)",
-              }}
+          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+            <Card
+              className="ant-section-card"
+              styles={{ body: { padding: 0 } }}
+              style={{ overflow: "hidden" }}
             >
-              <DatePicker
-                value={selectedDate}
-                onChange={(d) => d && setSelectedDate(d)}
-                size="small"
-                style={{ width: 140 }}
-                allowClear={false}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  alignItems: "center",
+                  padding: "16px 20px",
+                  position: "relative",
+                  zIndex: 2,
+                  background: "var(--app-card-bg-start)",
+                  borderBottom: "1px solid var(--app-card-border)",
+                }}
+              >
+                <DatePicker
+                  value={selectedDate}
+                  onChange={(d) => d && setSelectedDate(d)}
+                  size="small"
+                  style={{ width: 140 }}
+                  allowClear={false}
+                />
+              </div>
+              <ActivityDial
+                activities={activities}
+                bedtime={bedtime}
+                currentStatus={statusText}
+                insights={isToday ? insights || [] : []}
+                referenceDate={isToday ? null : selectedDate.toDate()}
+                sunriseHour={celestial?.sunriseHour ?? 6}
+                sunsetHour={celestial?.sunsetHour ?? 18}
+                weatherCondition={celestial?.weatherCondition ?? "sunny"}
+                strings={{
+                  sleep: s.sleepLabel || "Sleep",
+                  feed: s.feedingLabel || "Feed",
+                  breast: s.breastfeedingShort || "Breast",
+                  diaper: s.diaperLabel || "Diaper",
+                  pump: s.pumpingLabel || "Pump",
+                }}
               />
-            </div>
-            <ActivityDial
-              activities={activities}
-              bedtime={bedtime}
-              currentStatus={statusText}
-              insights={isToday ? insights || [] : []}
-              referenceDate={isToday ? null : selectedDate.toDate()}
-              sunriseHour={celestial?.sunriseHour ?? 6}
-              sunsetHour={celestial?.sunsetHour ?? 18}
-              weatherCondition={celestial?.weatherCondition ?? "sunny"}
-              strings={{
-                sleep: s.sleepLabel || "Sleep",
-                feed: s.feedingLabel || "Feed",
-                breast: s.breastfeedingShort || "Breast",
-                diaper: s.diaperLabel || "Diaper",
-                pump: s.pumpingLabel || "Pump",
-              }}
-            />
-          </Card>
+            </Card>
+            {(() => {
+              const combined = [
+                ...recentChanges.map((item) => ({
+                  ...item,
+                  _sortKey: item.time,
+                  _label: [
+                    formatAppDateTime(item.time),
+                    s.diaperLabel || "Diaper",
+                    [item.wet && (s.wet || "wet"), item.solid && (s.solid || "solid")].filter(Boolean).join(", "),
+                  ].filter(Boolean).join(" · "),
+                  _editUrl: `/changes/${item.id}/`,
+                  _deleteApiUrl: `/api/changes/${item.id}/`,
+                })),
+                ...recentFeedings.map((item) => ({
+                  ...item,
+                  _sortKey: item.start,
+                  _label: [
+                    formatAppDateTime(item.start),
+                    s.feedingLabel || "Feeding",
+                    item.method || item.type || null,
+                  ].filter(Boolean).join(" · "),
+                  _editUrl: `/feedings/${item.id}/`,
+                  _deleteApiUrl: `/api/feedings/${item.id}/`,
+                })),
+                ...recentSleeps.map((item) => ({
+                  ...item,
+                  _sortKey: item.start,
+                  _label: [
+                    formatAppDateTime(item.start),
+                    s.sleepLabel || "Sleep",
+                    item.end
+                      ? `${Math.round((new Date(item.end) - new Date(item.start)) / 60000)} min`
+                      : s.ongoing || "ongoing",
+                  ].filter(Boolean).join(" · "),
+                  _editUrl: `/sleep/${item.id}/`,
+                  _deleteApiUrl: `/api/sleep/${item.id}/`,
+                })),
+                ...recentTummyTimes.map((item) => ({
+                  ...item,
+                  _sortKey: item.start,
+                  _label: [
+                    formatAppDateTime(item.start),
+                    s.tummytimeLabel || "Tummy Time",
+                  ].filter(Boolean).join(" · "),
+                  _editUrl: `/tummy-time/${item.id}/`,
+                  _deleteApiUrl: `/api/tummy-times/${item.id}/`,
+                })),
+              ]
+                .sort((a, b) => new Date(b._sortKey) - new Date(a._sortKey))
+                .slice(0, 5);
+              if (combined.length === 0) return null;
+              return (
+                <Card size="small" title={s.recentActivity || "Recent Activity"}>
+                  <RecentEntriesTable
+                    items={combined}
+                    renderLabel={(item) => item._label}
+                    editUrl={(item) => item._editUrl}
+                    deleteApiUrl={(item) => item._deleteApiUrl}
+                    onDeleted={loadRecentEntries}
+                    csrfToken={bootstrap.csrfToken}
+                  />
+                </Card>
+              );
+            })()}
+          </Space>
         </Col>
         <Col xs={24} lg={10}>
           <DashboardInsightsCard
@@ -2130,76 +2196,6 @@ function ChildDashboardPageV2({ bootstrap }) {
           />
         </Col>
       </Row>
-
-      {(() => {
-        const combined = [
-          ...recentChanges.map((item) => ({
-            ...item,
-            _type: "diaper",
-            _sortKey: item.time,
-            _label: [
-              formatAppDateTime(item.time),
-              s.diaperLabel || "Diaper",
-              [item.wet && (s.wet || "wet"), item.solid && (s.solid || "solid")].filter(Boolean).join(", "),
-            ].filter(Boolean).join(" · "),
-            _editUrl: `/changes/${item.id}/`,
-            _deleteApiUrl: `/api/changes/${item.id}/`,
-          })),
-          ...recentFeedings.map((item) => ({
-            ...item,
-            _type: "feeding",
-            _sortKey: item.start,
-            _label: [
-              formatAppDateTime(item.start),
-              s.feedingLabel || "Feeding",
-              item.method || item.type || null,
-            ].filter(Boolean).join(" · "),
-            _editUrl: `/feedings/${item.id}/`,
-            _deleteApiUrl: `/api/feedings/${item.id}/`,
-          })),
-          ...recentSleeps.map((item) => ({
-            ...item,
-            _type: "sleep",
-            _sortKey: item.start,
-            _label: [
-              formatAppDateTime(item.start),
-              s.sleepLabel || "Sleep",
-              item.end
-                ? `${Math.round((new Date(item.end) - new Date(item.start)) / 60000)} min`
-                : s.ongoing || "ongoing",
-            ].filter(Boolean).join(" · "),
-            _editUrl: `/sleep/${item.id}/`,
-            _deleteApiUrl: `/api/sleep/${item.id}/`,
-          })),
-          ...recentTummyTimes.map((item) => ({
-            ...item,
-            _type: "tummy",
-            _sortKey: item.start,
-            _label: [
-              formatAppDateTime(item.start),
-              s.tummytimeLabel || "Tummy Time",
-            ].filter(Boolean).join(" · "),
-            _editUrl: `/tummy-time/${item.id}/`,
-            _deleteApiUrl: `/api/tummy-times/${item.id}/`,
-          })),
-        ]
-          .sort((a, b) => new Date(b._sortKey) - new Date(a._sortKey))
-          .slice(0, 5);
-
-        if (combined.length === 0) return null;
-        return (
-          <Card size="small" title={s.recentActivity || "Recent Activity"}>
-            <RecentEntriesTable
-              items={combined}
-              renderLabel={(item) => item._label}
-              editUrl={(item) => item._editUrl}
-              deleteApiUrl={(item) => item._deleteApiUrl}
-              onDeleted={loadRecentEntries}
-              csrfToken={bootstrap.csrfToken}
-            />
-          </Card>
-        );
-      })()}
     </>
   );
 }
