@@ -15,7 +15,12 @@ export function AppShell({ bootstrap, children }) {
   const navItems = [
     { icon: <Home size={20} />, label: s.dashboard || "Dashboard", href: urls.dashboard },
     { icon: <Edit2 size={20} />, label: s.quickEntry || "Quick Entry", href: urls.quickEntry },
-    { icon: <Lightbulb size={20} />, label: s.insights || "Insights", href: "#insights" }, // Simplified for Phase 1
+    { icon: <Lightbulb size={20} />, label: s.insights || "Insights", href: "#", isMenu: true, children: [
+        { label: "Reports Home", href: bootstrap.currentChild ? `/children/${bootstrap.currentChild.slug}/reports` : "/reports" },
+        { label: "Sleep Patterns", href: bootstrap.currentChild ? `/children/${bootstrap.currentChild.slug}/reports/sleep/pattern/` : "#" },
+        { label: "Feeding Amounts", href: bootstrap.currentChild ? `/children/${bootstrap.currentChild.slug}/reports/feeding/amounts/` : "#" },
+        { label: "Diaper Changes", href: bootstrap.currentChild ? `/children/${bootstrap.currentChild.slug}/reports/changes/amounts/` : "#" }
+    ]},
     { icon: <History size={20} />, label: s.timeline || "Timeline", href: urls.timeline },
   ];
 
@@ -78,9 +83,40 @@ export function AppShell({ bootstrap, children }) {
           {navItems.map((item, i) => {
             if (!item.href) return null;
             // Best effort active state matching
-            const isActive = activePath.startsWith(item.href) && item.href !== "/";
+            const isActive = activePath.startsWith(item.href) && item.href !== "/" && item.href !== "#";
             const isExactHome = activePath === "/" && item.href === urls.dashboard;
             const active = isActive || isExactHome;
+
+            if (item.isMenu) {
+              return (
+                <div key={i} className="flex flex-col">
+                  <button
+                    onClick={() => {
+                        const el = document.getElementById(`submenu-${i}`);
+                        if(el.style.display === "none") el.style.display = "block";
+                        else el.style.display = "none";
+                    }}
+                    className={`w-full flex justify-between items-center px-4 py-3 rounded-2xl transition-all duration-200 text-slate-400 hover:bg-white/5 hover:text-slate-200 focus:outline-none`}
+                    title={collapsed ? item.label : ""}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div>{item.icon}</div>
+                      {!collapsed && <span className="font-semibold text-sm tracking-wide truncate">{item.label}</span>}
+                    </div>
+                    {!collapsed && <ChevronDown size={16} />}
+                  </button>
+                  {!collapsed && item.children && (
+                     <div id={`submenu-${i}`} style={{ display: "none" }} className="pl-12 pr-4 pt-1 space-y-1">
+                        {item.children.map((child, j) => (
+                          <a key={j} href={child.href} className="block w-full text-left px-4 py-2 rounded-xl text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 text-sm font-medium transition-colors">
+                            {child.label}
+                          </a>
+                        ))}
+                     </div>
+                  )}
+                </div>
+              );
+            }
 
             return (
               <a

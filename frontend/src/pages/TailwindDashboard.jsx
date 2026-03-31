@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Moon, Droplet, Utensils, Activity, MoreHorizontal, Plus, Baby, Save } from 'lucide-react';
+import { Moon, Baby, Milk, Activity, Play, MoreHorizontal, Plus, Save } from 'lucide-react';
 import dayjs from "dayjs";
 import ActivityDial from '../components/ActivityDial';
 import { createApiClient } from '../lib/app-utils';
@@ -68,21 +68,35 @@ export function ChildDashboardPage({ bootstrap }) {
          </div>
       </header>
 
-      {/* Hero Stats (Mocked Presentation for Phase 1 Tailwind Release) */}
+      {/* Hero Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
          <StatCard title={s.lastSleep || "Last Sleep"} value="2h 45m" subtitle="Finished at 1:30 PM" icon={<Moon />} color="text-indigo-400" bg="bg-indigo-500/10" border="border-indigo-500/20" />
-         <StatCard title={s.lastFeeding || "Last Feeding"} value="4.5 oz" subtitle="Formula at 4:15 PM" icon={<Utensils />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
-         <StatCard title={s.lastDiaper || "Last Diaper"} value="Wet" subtitle="Changed at 3:00 PM" icon={<Droplet />} color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" />
-         <StatCard title={s.tummyTime || "Tummy Time"} value="15m" subtitle="Today total: 30m" icon={<Activity />} color="text-amber-400" bg="bg-amber-500/10" border="border-amber-500/20" />
+         <StatCard title={s.lastFeeding || "Last Feeding"} value="4.5 oz" subtitle="Formula at 4:15 PM" icon={<Milk />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
+         <StatCard title={s.lastDiaper || "Last Diaper"} value="Wet" subtitle="Changed at 3:00 PM" icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 8 Q12 12 21 8 C21 16 16 22 12 22 C8 22 3 16 3 8 Z" />
+              <path d="M6 13 L8 13" />
+              <path d="M18 13 L16 13" />
+            </svg>
+         } color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" />
+         <StatCard title={s.tummyTime || "Tummy Time"} value="15m" subtitle="Today total: 30m" icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="18" cy="8" r="3" />
+              <path d="M15 10 L10 14 L4 14" />
+              <path d="M10 14 L8 20" />
+              <path d="M12 14 L12 20" />
+            </svg>
+         } color="text-amber-400" bg="bg-amber-500/10" border="border-amber-500/20" />
       </div>
 
       {/* Main Content Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
          {/* Center Activity Dial Mockup Area */}
-         <div className="lg:col-span-2 glass-card p-8 flex flex-col min-h-[400px]">
-           <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold tracking-tight text-white">{s.dailySummary || "Daily Summary"}</h3>
-              <button className="text-slate-400 hover:text-white"><MoreHorizontal /></button>
+         <div className="lg:col-span-2 glass-card p-8 flex flex-col min-h-[500px] overflow-hidden relative group block group hover:bg-white/5 transition-all">
+           <div className="absolute -left-10 -bottom-10 w-96 h-96 rounded-full blur-[100px] bg-sky-500/10 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full blur-[80px] bg-sky-500/5 opacity-50 group-hover:opacity-100 transition-opacity z-0 pointer-events-none"></div>
+           <div className="flex justify-between items-center mb-6 z-10">
+              <h3 className="text-2xl font-bold tracking-tight text-white">{s.dailySummary || "Daily Summary"}</h3>
            </div>
            <div className="flex-1 flex flex-col items-center justify-center w-full">
               <ActivityDial

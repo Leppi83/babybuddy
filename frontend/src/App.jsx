@@ -13,6 +13,7 @@ const ListPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ defaul
 const MessagePage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.MessagePage })));
 const DeviceAccessPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.DeviceAccessPage })));
 const AntFormPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.AntFormPage })));
+const QuickEntryPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.QuickEntryPage })));
 const ReportListPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.ReportListPage })));
 const ExaminationListPage = () => <div className="p-8 text-slate-400 text-center italic">Examination List (Migrated to General Form UI)</div>;
 const ExaminationFormPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.AntFormPage })));
@@ -41,6 +42,7 @@ function RoutedPage({ bootstrap }) {
   if (bootstrap.pageType === "examination-list") return <ExaminationListPage bootstrap={bootstrap} />;
   if (bootstrap.pageType === "examination-form") return <ExaminationFormPage bootstrap={bootstrap} />;
   if (bootstrap.pageType === "report-list") return <ReportListPage bootstrap={bootstrap} />;
+  if (bootstrap.pageType === "quick-entry") return <QuickEntryPage bootstrap={bootstrap} />;
 
   // Default to Dashboard
   return <ChildDashboardPage bootstrap={bootstrap} />;

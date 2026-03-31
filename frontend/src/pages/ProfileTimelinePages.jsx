@@ -102,7 +102,7 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
   for (let m = 0; m <= totalMonths + 6; m += 6) {
     const td = birthDate.add(m, "month");
     if (td.isAfter(endDate.add(1, "day"))) break;
-    sixMonthTicks.push({ x: dateToX(td), label: m === 0 ? (strings.born || "Birth") : `${td.format("DD.MM.YY")} (${m}m)` });
+    sixMonthTicks.push({ x: dateToX(td), label: m === 0 ? (strings.born || "Birth") : `${td.format("DD.MM.YY")} (${m} months)` });
   }
 
   const maxMeasuredCm = heightMeasurements.length ? Math.max(...heightMeasurements.map((h) => h.cm)) : 0;
