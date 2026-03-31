@@ -3006,29 +3006,41 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
 
         from core.models import HeightPercentile, WeightPercentile
 
-        def _serialize_perc(row):
+        def _serialize_h_perc(row):
             td = row["age_in_days"]
             days = td.days if hasattr(td, "days") else int(td)
             return {
                 "days": days,
-                "p3": row["p3"],
-                "p15": row["p15"],
-                "p50": row["p50"],
-                "p85": row["p85"],
-                "p97": row["p97"],
+                "p3": row["p3_height"],
+                "p15": row["p15_height"],
+                "p50": row["p50_height"],
+                "p85": row["p85_height"],
+                "p97": row["p97_height"],
+            }
+
+        def _serialize_w_perc(row):
+            td = row["age_in_days"]
+            days = td.days if hasattr(td, "days") else int(td)
+            return {
+                "days": days,
+                "p3": row["p3_weight"],
+                "p15": row["p15_weight"],
+                "p50": row["p50_weight"],
+                "p85": row["p85_weight"],
+                "p97": row["p97_weight"],
             }
 
         h_perc = list(
             HeightPercentile.objects.filter(sex=sex)
             .filter(age_in_days__lte=timedelta(days=max_days))
             .order_by("age_in_days")
-            .values("age_in_days", "p3", "p15", "p50", "p85", "p97")
+            .values("age_in_days", "p3_height", "p15_height", "p50_height", "p85_height", "p97_height")
         )
         w_perc = list(
             WeightPercentile.objects.filter(sex=sex)
             .filter(age_in_days__lte=timedelta(days=max_days))
             .order_by("age_in_days")
-            .values("age_in_days", "p3", "p15", "p50", "p85", "p97")
+            .values("age_in_days", "p3_weight", "p15_weight", "p50_weight", "p85_weight", "p97_weight")
         )
 
         context["ant_bootstrap"] = {
@@ -3065,7 +3077,7 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
             "heights": heights,
             "weights": weights,
             "bmiEntries": bmi_entries,
-            "heightPercentiles": [_serialize_perc(r) for r in h_perc],
-            "weightPercentiles": [_serialize_perc(r) for r in w_perc],
+            "heightPercentiles": [_serialize_h_perc(r) for r in h_perc],
+            "weightPercentiles": [_serialize_w_perc(r) for r in w_perc],
         }
         return context

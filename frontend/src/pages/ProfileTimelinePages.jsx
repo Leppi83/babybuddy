@@ -200,8 +200,10 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
   const hasHeightData = heightMeasurements.length > 0;
   const silhouetteMaxH = 120;
   // axisY: vertical position of the timeline axis line
-  // When no height data, collapse silhouette area to just header space for exam labels
-  const axisY = hasHeightData ? silhouetteMaxH + 60 : 60;
+  // Needs enough space for: exam labels (staggered at examY-20 and examY-33 above examY=axisY-28)
+  // Min needed: axisY - 28 - 33 = axisY - 61 >= 10 → axisY >= 71
+  // When no height data, just reserve space for exam labels + today text
+  const axisY = hasHeightData ? silhouetteMaxH + 60 : 80;
   const pad = { left: 48, right: 32, top: 10, bottom: 60 };
   const usableW = svgWidth - pad.left - pad.right;
   const examY = axisY - 28;
@@ -356,9 +358,6 @@ export function ChildProfileTimelinePage({ bootstrap }) {
   const [milestones, setMilestones] = useState(initialMilestones);
 
   const birthDate = childDetail.birthDate ? dayjs(childDetail.birthDate) : null;
-  const today = dayjs();
-  const ageYears = birthDate ? today.diff(birthDate, "year") : null;
-  const ageMonths = birthDate ? today.diff(birthDate, "month") % 12 : null;
 
   async function handleDeleteMilestone(id) {
     const m = milestones.find((x) => x.id === id);
@@ -373,23 +372,6 @@ export function ChildProfileTimelinePage({ bootstrap }) {
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px 12px 80px" }}>
-      {/* Header */}
-      <Space style={{ marginBottom: 20, width: "100%", justifyContent: "space-between", flexWrap: "wrap" }}>
-        <div>
-          <Title level={3} style={{ margin: 0 }}>
-            {childDetail.name}
-          </Title>
-          {birthDate && (
-            <Text type="secondary">
-              {ageYears !== null ? `${ageYears}y ${ageMonths}m` : ""}
-            </Text>
-          )}
-        </div>
-        <Button type="link" href={urls.childDetail} style={{ padding: 0 }}>
-          &larr; {strings.back || "Back"}
-        </Button>
-      </Space>
-
       {/* Legend */}
       <Space wrap style={{ marginBottom: 12 }}>
         {Object.entries(STATUS_COLOR).map(([status, color]) => (
@@ -748,15 +730,6 @@ export function ChildGeneralPage({ bootstrap }) {
 
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "16px 12px 80px" }}>
-      <Space style={{ marginBottom: 20, width: "100%", justifyContent: "space-between" }}>
-        <Typography.Title level={3} style={{ margin: 0 }}>
-          {childDetail.name}
-        </Typography.Title>
-        <Button type="link" href={urls.childDetail} style={{ padding: 0 }}>
-          &larr; {strings.back || "Back"}
-        </Button>
-      </Space>
-
       <Card size="small">
         <Tabs items={tabItems} />
       </Card>

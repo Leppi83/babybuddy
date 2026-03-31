@@ -321,11 +321,11 @@ export function AppShell({
     label: s.insights || "Insights",
     children: topicPages
       ? [
+          { key: topicPages.general, label: s.generalLabel || "General" },
           { key: topicPages.sleep, label: s.sleepLabel || "Sleep" },
           { key: topicPages.feeding, label: s.feedingLabel || "Feeding" },
           { key: topicPages.diaper, label: s.diaperLabel || "Diaper" },
           { key: topicPages.pumping, label: s.pumpingLabel || "Pumping" },
-          { key: topicPages.general, label: s.generalLabel || "General" },
         ]
       : [
           {
@@ -536,8 +536,14 @@ export function AppShell({
           : s.insights || "Insights",
     },
     insights: { eyebrow: s.overview || "Overview", title: s.insights || "Insights" },
-    "child-profile-timeline": { eyebrow: null, title: null },
-    "child-general": { eyebrow: null, title: null },
+    "child-profile-timeline": {
+      eyebrow: bootstrap.childDetail?.name || null,
+      title: s.profileTimeline || s.timeline || "Timeline",
+    },
+    "child-general": {
+      eyebrow: bootstrap.childDetail?.name || null,
+      title: s.generalLabel || "General",
+    },
     "quick-entry": {
       eyebrow: s.quickEntry || "Quick Actions",
       title: bootstrap.currentChild?.name || s.quickEntry || "Quick Entry",
@@ -758,11 +764,11 @@ export function AppShell({
                   content={
                     <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 140 }}>
                       {[
+                        { url: topicPages.general, label: s.generalLabel || "General" },
                         { url: topicPages.sleep, label: s.sleepLabel || "Sleep" },
                         { url: topicPages.feeding, label: s.feedingLabel || "Feeding" },
                         { url: topicPages.diaper, label: s.diaperLabel || "Diaper" },
                         { url: topicPages.pumping, label: s.pumpingLabel || "Pumping" },
-                        { url: topicPages.general, label: s.generalLabel || "General" },
                       ].map((t) => (
                         <Button
                           key={t.url}
