@@ -259,7 +259,7 @@ def _base_strings():
     return {
         "dashboard": _("Dashboard"),
         "timeline": _("Timeline"),
-        "profileTimeline": _("Profile Timeline"),
+        "profileTimeline": _("Timeline"),
         "children": _("Children"),
         "settings": _("Settings"),
         "logout": _("Logout"),
@@ -302,6 +302,7 @@ def _base_strings():
         "feedingLabel": _("Feeding"),
         "diaperLabel": _("Diaper"),
         "pumpingLabel": _("Pumping"),
+        "generalLabel": _("General"),
         "breastfeedingShort": _("Breast"),
         # Push notifications
         "pushPromptTitle": _("Stay in the loop"),

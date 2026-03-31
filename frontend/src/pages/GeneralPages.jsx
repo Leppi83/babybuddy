@@ -26,6 +26,7 @@ import {
   EditOutlined,
   HistoryOutlined,
   LineChartOutlined,
+  MedicineBoxOutlined,
   PlusOutlined,
   ReloadOutlined,
   UserOutlined,
@@ -438,38 +439,10 @@ export function ChildDetailPage({ bootstrap }) {
                 </Tag>
               </Space>
               <Space wrap>
-                <Button
-                  href={child.actions.dashboard}
-                  icon={<DashboardOutlined />}
-                >
-                  {bootstrap.strings.dashboard}
-                </Button>
-                <Button
-                  href={child.actions.timeline}
-                  icon={<CalendarOutlined />}
-                >
-                  {bootstrap.strings.timeline}
-                </Button>
-                <Button
-                  href={child.actions.reports}
-                  icon={<LineChartOutlined />}
-                >
-                  {bootstrap.strings.reports}
-                </Button>
-                {child.actions.profileTimeline && (
-                  <Button
-                    href={child.actions.profileTimeline}
-                    icon={<HistoryOutlined />}
-                    type="primary"
-                  >
-                    {bootstrap.strings.profileTimeline || "Profile Timeline"}
-                  </Button>
-                )}
                 {bootstrap.urls.examinations && (
                   <Button
                     href={bootstrap.urls.examinations}
-                    type="default"
-                    size="small"
+                    icon={<MedicineBoxOutlined />}
                   >
                     {bootstrap.strings.examinations || "Examinations"}
                   </Button>

@@ -7,7 +7,9 @@ import {
   Popconfirm,
   Row,
   Space,
+  Table,
   Tag,
+  Tabs,
   Tooltip,
   Typography,
 } from "antd";
@@ -186,20 +188,22 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
 
   const birthDate = dayjs(childDetail.birthDate);
   const today = dayjs();
-  const maxDate = birthDate.add(6, "year");
-  const endDate = today.isBefore(maxDate) ? today : maxDate;
+  const endDate = today.add(2, "month");
   const totalDays = endDate.diff(birthDate, "day");
   const ageMonthsTotal = today.diff(birthDate, "month");
 
-  // Min-width: at least 120px per year of age (so a 6-year-old gets 720px min)
-  // Proportional to age so younger children still get reasonable space.
-  const minWidth = Math.max(600, Math.ceil(ageMonthsTotal * 12));
+  // Min-width proportional to age shown
+  const totalMonths = endDate.diff(birthDate, "month");
+  const minWidth = Math.max(600, Math.ceil(totalMonths * 14));
   const svgWidth = Math.max(containerW, minWidth);
 
-  const pad = { left: 48, right: 32, top: 150, bottom: 60 };
-  const usableW = svgWidth - pad.left - pad.right;
+  const hasHeightData = heightMeasurements.length > 0;
   const silhouetteMaxH = 120;
-  const axisY = pad.top + silhouetteMaxH + 10;
+  // axisY: vertical position of the timeline axis line
+  // When no height data, collapse silhouette area to just header space for exam labels
+  const axisY = hasHeightData ? silhouetteMaxH + 60 : 60;
+  const pad = { left: 48, right: 32, top: 10, bottom: 60 };
+  const usableW = svgWidth - pad.left - pad.right;
   const examY = axisY - 28;
   const milestoneY = axisY + 32;
   const svgH = axisY + 110;
@@ -211,20 +215,16 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
 
   const todayX = dateToX(today);
 
-  // Year ticks
-  const yearTicks = [];
-  for (let y = 0; y <= 6; y++) {
-    const tickDate = birthDate.add(y, "year");
-    if (tickDate.isAfter(endDate.add(10, "day"))) break;
-    yearTicks.push({ x: dateToX(tickDate), label: y === 0 ? strings.born || "Birth" : `${y}y` });
-  }
-
-  // Quarter ticks
-  const quarterTicks = [];
-  for (let m = 3; m <= 72; m += 3) {
+  // 6-month ticks with actual date labels
+  const sixMonthTicks = [];
+  for (let m = 0; m <= totalMonths + 6; m += 6) {
     const td = birthDate.add(m, "month");
-    if (td.isAfter(endDate)) break;
-    quarterTicks.push(dateToX(td));
+    if (td.isAfter(endDate.add(1, "day"))) break;
+    const label =
+      m === 0
+        ? strings.born || "Birth"
+        : `${td.format("DD.MM.YY")} (${m}m)`;
+    sixMonthTicks.push({ x: dateToX(td), label });
   }
 
   // Silhouette reference height
@@ -237,29 +237,31 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
   return (
     <div ref={containerRef} style={{ width: "100%", overflowX: "auto" }}>
       <svg width={svgWidth} height={svgH} style={{ display: "block", minWidth }}>
-        {/* Quarter sub-ticks */}
-        {quarterTicks.map((tx, i) => (
-          <line key={i} x1={tx} y1={axisY - 4} x2={tx} y2={axisY + 4} stroke="#333" strokeWidth={0.5} />
-        ))}
-
         {/* Main axis */}
         <line x1={pad.left} y1={axisY} x2={pad.left + usableW} y2={axisY} stroke="#555" strokeWidth={1.5} />
 
-        {/* Year ticks + labels */}
-        {yearTicks.map((t, i) => (
+        {/* 6-month ticks + labels */}
+        {sixMonthTicks.map((t, i) => (
           <g key={i}>
             <line x1={t.x} y1={axisY - 8} x2={t.x} y2={axisY + 8} stroke="#888" strokeWidth={1} />
-            <text x={t.x} y={axisY + 22} textAnchor="middle" fontSize={11} fill="#888">{t.label}</text>
+            <text
+              x={t.x}
+              y={axisY + 22}
+              textAnchor="middle"
+              fontSize={i === 0 ? 11 : 10}
+              fill="#888"
+              transform={i > 0 ? `rotate(-35, ${t.x}, ${axisY + 22})` : undefined}
+            >
+              {t.label}
+            </text>
           </g>
         ))}
 
         {/* Today marker */}
-        {today.isBefore(maxDate) && (
-          <g>
-            <line x1={todayX} y1={pad.top - 14} x2={todayX} y2={axisY + 44} stroke="#4db6ff" strokeWidth={1} strokeDasharray="4,3" />
-            <text x={todayX} y={pad.top - 18} textAnchor="middle" fontSize={10} fill="#4db6ff">{strings.today || "Today"}</text>
-          </g>
-        )}
+        <g>
+          <line x1={todayX} y1={pad.top} x2={todayX} y2={axisY + 44} stroke="#4db6ff" strokeWidth={1} strokeDasharray="4,3" />
+          <text x={todayX} y={Math.max(axisY - silhouetteMaxH - 6, pad.top + 12)} textAnchor="middle" fontSize={10} fill="#4db6ff">{strings.today || "Today"}</text>
+        </g>
 
         {/* Silhouettes at each height measurement — bottom-anchored to axis */}
         {heightMeasurements.map((h, i) => {
@@ -477,6 +479,286 @@ export function ChildProfileTimelinePage({ bootstrap }) {
             ))}
           </Space>
         )}
+      </Card>
+    </div>
+  );
+}
+
+// ── General Growth / Percentile Page ────────────────────────────────────────
+
+const PERC_COLORS = {
+  p3:  { stroke: "#666", dash: "4,3", label: "P3" },
+  p15: { stroke: "#4db6ff", dash: "3,2", label: "P15" },
+  p50: { stroke: "#52c41a", dash: null, label: "P50" },
+  p85: { stroke: "#4db6ff", dash: "3,2", label: "P85" },
+  p97: { stroke: "#666", dash: "4,3", label: "P97" },
+};
+
+function PercentileChart({ title, percData, measurements, birthDate, yLabel, color = "#ffd666" }) {
+  const containerRef = useRef(null);
+  const [containerW, setContainerW] = useState(600);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setContainerW(el.clientWidth || 600));
+    ro.observe(el);
+    setContainerW(el.clientWidth || 600);
+    return () => ro.disconnect();
+  }, []);
+
+  if (!percData || percData.length === 0) return null;
+
+  const birth = dayjs(birthDate);
+  const svgW = containerW;
+  const svgH = 260;
+  const pad = { left: 52, right: 20, top: 16, bottom: 44 };
+  const usableW = svgW - pad.left - pad.right;
+  const usableH = svgH - pad.top - pad.bottom;
+
+  // X domain: 0 to max days in percentile data
+  const maxDays = percData[percData.length - 1].days;
+  const maxMonths = Math.ceil(maxDays / 30.44);
+
+  // Y domain: min p3 to max p97
+  const allValues = percData.flatMap((r) => [r.p3, r.p97]);
+  const measValues = measurements.map((m) => m.value);
+  const yMin = Math.floor(Math.min(...allValues, ...measValues) * 0.97);
+  const yMax = Math.ceil(Math.max(...allValues, ...measValues) * 1.02);
+
+  function xScale(days) {
+    return pad.left + (days / maxDays) * usableW;
+  }
+  function yScale(val) {
+    return pad.top + usableH - ((val - yMin) / (yMax - yMin)) * usableH;
+  }
+
+  function polyline(key) {
+    return percData.map((r) => `${xScale(r.days).toFixed(1)},${yScale(r[key]).toFixed(1)}`).join(" ");
+  }
+
+  // X-axis ticks: every 6 months
+  const xTicks = [];
+  for (let m = 0; m <= maxMonths; m += 6) {
+    const days = m * 30.44;
+    if (days > maxDays + 15) break;
+    xTicks.push({ x: xScale(days), label: m === 0 ? "0" : `${m}m` });
+  }
+
+  // Y-axis ticks: ~5 ticks
+  const yStep = Math.ceil((yMax - yMin) / 5 / 5) * 5;
+  const yTicks = [];
+  for (let v = Math.ceil(yMin / yStep) * yStep; v <= yMax; v += yStep) {
+    yTicks.push({ y: yScale(v), label: v });
+  }
+
+  // Shade band between p15 and p85
+  const bandPoints =
+    percData.map((r) => `${xScale(r.days).toFixed(1)},${yScale(r.p85).toFixed(1)}`).join(" ") +
+    " " +
+    [...percData].reverse().map((r) => `${xScale(r.days).toFixed(1)},${yScale(r.p15).toFixed(1)}`).join(" ");
+
+  return (
+    <div ref={containerRef} style={{ width: "100%" }}>
+      <div style={{ marginBottom: 4, fontWeight: 600, fontSize: 13 }}>{title}</div>
+      <svg width={svgW} height={svgH} style={{ display: "block" }}>
+        {/* P15–P85 shaded band */}
+        <polygon points={bandPoints} fill={color} opacity={0.10} />
+
+        {/* Percentile curves */}
+        {["p3", "p15", "p50", "p85", "p97"].map((k) => {
+          const cfg = PERC_COLORS[k];
+          return (
+            <polyline
+              key={k}
+              points={polyline(k)}
+              fill="none"
+              stroke={cfg.stroke}
+              strokeWidth={k === "p50" ? 1.5 : 1}
+              strokeDasharray={cfg.dash || undefined}
+              opacity={0.7}
+            />
+          );
+        })}
+
+        {/* Measurement dots */}
+        {measurements.map((m, i) => {
+          const ageDays = dayjs(m.date).diff(birth, "day");
+          const cx = xScale(ageDays);
+          const cy = yScale(m.value);
+          return (
+            <Tooltip key={i} title={`${m.value} ${yLabel} — ${dayjs(m.date).format("DD.MM.YYYY")}`}>
+              <circle cx={cx} cy={cy} r={4} fill={color} stroke="#fff" strokeWidth={1} style={{ cursor: "default" }} />
+            </Tooltip>
+          );
+        })}
+        {/* Connect measurement dots */}
+        {measurements.length > 1 && (
+          <polyline
+            points={measurements
+              .map((m) => {
+                const ageDays = dayjs(m.date).diff(birth, "day");
+                return `${xScale(ageDays).toFixed(1)},${yScale(m.value).toFixed(1)}`;
+              })
+              .join(" ")}
+            fill="none"
+            stroke={color}
+            strokeWidth={1.5}
+            opacity={0.8}
+          />
+        )}
+
+        {/* X-axis */}
+        <line x1={pad.left} y1={pad.top + usableH} x2={pad.left + usableW} y2={pad.top + usableH} stroke="#555" strokeWidth={1} />
+        {xTicks.map((t, i) => (
+          <g key={i}>
+            <line x1={t.x} y1={pad.top + usableH} x2={t.x} y2={pad.top + usableH + 4} stroke="#666" />
+            <text x={t.x} y={pad.top + usableH + 16} textAnchor="middle" fontSize={10} fill="#888">{t.label}</text>
+          </g>
+        ))}
+
+        {/* Y-axis */}
+        <line x1={pad.left} y1={pad.top} x2={pad.left} y2={pad.top + usableH} stroke="#555" strokeWidth={1} />
+        {yTicks.map((t, i) => (
+          <g key={i}>
+            <line x1={pad.left - 4} y1={t.y} x2={pad.left} y2={t.y} stroke="#666" />
+            <text x={pad.left - 6} y={t.y + 4} textAnchor="end" fontSize={10} fill="#888">{t.label}</text>
+          </g>
+        ))}
+
+        {/* Percentile labels at right edge */}
+        {["p3", "p15", "p50", "p85", "p97"].map((k) => {
+          const last = percData[percData.length - 1];
+          const cfg = PERC_COLORS[k];
+          return (
+            <text key={k} x={pad.left + usableW + 3} y={yScale(last[k]) + 4} fontSize={9} fill={cfg.stroke}>
+              {cfg.label}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+export function ChildGeneralPage({ bootstrap }) {
+  const {
+    childDetail = {},
+    heights = [],
+    weights = [],
+    bmiEntries = [],
+    heightPercentiles = [],
+    weightPercentiles = [],
+    strings = {},
+    urls = {},
+  } = bootstrap;
+
+  const birthDate = childDetail.birthDate;
+
+  const heightMeas = heights.map((h) => ({ date: h.date, value: h.cm }));
+  const weightMeas = weights.map((w) => ({ date: w.date, value: w.kg }));
+  const bmiMeas = bmiEntries.map((b) => ({ date: b.date, value: b.bmi }));
+
+  const heightColumns = [
+    { title: strings.date || "Date", dataIndex: "date", key: "date", render: (v) => dayjs(v).format("DD.MM.YYYY") },
+    { title: strings.cm || "cm", dataIndex: "cm", key: "cm", render: (v) => v.toFixed(1) },
+  ];
+  const weightColumns = [
+    { title: strings.date || "Date", dataIndex: "date", key: "date", render: (v) => dayjs(v).format("DD.MM.YYYY") },
+    { title: strings.kg || "kg", dataIndex: "kg", key: "kg", render: (v) => v.toFixed(2) },
+  ];
+  const bmiColumns = [
+    { title: strings.date || "Date", dataIndex: "date", key: "date", render: (v) => dayjs(v).format("DD.MM.YYYY") },
+    { title: "BMI", dataIndex: "bmi", key: "bmi" },
+  ];
+
+  const tabItems = [
+    {
+      key: "height",
+      label: strings.height || "Height",
+      children: (
+        <Space direction="vertical" style={{ width: "100%" }} size={16}>
+          {birthDate && heightPercentiles.length > 0 && (
+            <PercentileChart
+              title={`${strings.height || "Height"} (cm) — ${strings.percentiles || "Percentiles"}`}
+              percData={heightPercentiles}
+              measurements={heightMeas}
+              birthDate={birthDate}
+              yLabel="cm"
+              color="#4db6ff"
+            />
+          )}
+          <Table
+            dataSource={heights}
+            columns={heightColumns}
+            rowKey="date"
+            size="small"
+            pagination={false}
+            locale={{ emptyText: strings.noData || "No data" }}
+          />
+        </Space>
+      ),
+    },
+    {
+      key: "weight",
+      label: strings.weight || "Weight",
+      children: (
+        <Space direction="vertical" style={{ width: "100%" }} size={16}>
+          {birthDate && weightPercentiles.length > 0 && (
+            <PercentileChart
+              title={`${strings.weight || "Weight"} (kg) — ${strings.percentiles || "Percentiles"}`}
+              percData={weightPercentiles}
+              measurements={weightMeas}
+              birthDate={birthDate}
+              yLabel="kg"
+              color="#69b1ff"
+            />
+          )}
+          <Table
+            dataSource={weights}
+            columns={weightColumns}
+            rowKey="date"
+            size="small"
+            pagination={false}
+            locale={{ emptyText: strings.noData || "No data" }}
+          />
+        </Space>
+      ),
+    },
+    {
+      key: "bmi",
+      label: "BMI",
+      children: (
+        <Space direction="vertical" style={{ width: "100%" }} size={16}>
+          {bmiEntries.length === 0 ? (
+            <Typography.Text type="secondary">{strings.noData || "No data recorded yet."}</Typography.Text>
+          ) : (
+            <Table
+              dataSource={bmiEntries}
+              columns={bmiColumns}
+              rowKey="date"
+              size="small"
+              pagination={false}
+            />
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "16px 12px 80px" }}>
+      <Space style={{ marginBottom: 20, width: "100%", justifyContent: "space-between" }}>
+        <Typography.Title level={3} style={{ margin: 0 }}>
+          {childDetail.name}
+        </Typography.Title>
+        <Button type="link" href={urls.childDetail} style={{ padding: 0 }}>
+          &larr; {strings.back || "Back"}
+        </Button>
+      </Space>
+
+      <Card size="small">
+        <Tabs items={tabItems} />
       </Card>
     </div>
   );

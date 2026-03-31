@@ -68,7 +68,7 @@ def _list_strings():
     return {
         "dashboard": _("Dashboard"),
         "timeline": _("Timeline"),
-        "profileTimeline": _("Profile Timeline"),
+        "profileTimeline": _("Timeline"),
         "settings": _("Settings"),
         "logout": _("Logout"),
         "children": _("Children"),
@@ -177,7 +177,7 @@ def _build_ant_child_detail_bootstrap(
             "addMilestone": reverse("core:milestone-add") + f"?child={child.slug}",
             "addNote": reverse("core:note-add") + f"?child={child.slug}",
         },
-        "childSwitcher": _build_child_switcher(request, current_child=child),
+        "childSwitcher": None,
         "strings": {
             **_list_strings(),
             "child": _("Child"),
@@ -193,7 +193,7 @@ def _build_ant_child_detail_bootstrap(
             "sincePrevious": _("since previous"),
             "childActions": _("Child actions"),
             "examinations": _("Examinations"),
-            "profileTimeline": _("Profile Timeline"),
+            "profileTimeline": _("Timeline"),
             "addEntry": _("Add entry"),
             "weight": _("Weight"),
             "height": _("Height"),
@@ -2864,17 +2864,23 @@ class ChildProfileTimeline(LoginRequiredMixin, DetailView):
         from examinations.status import calculate_examination_statuses
 
         from examinations.views import _get_program_for_child
+        from datetime import date as _date
         program = _get_program_for_child(child)
         exam_markers = []
+        child_age_days = (
+            (_date.today() - child.birth_date).days
+            if child.birth_date
+            else 0
+        )
+        cutoff_days = child_age_days + 60
         if program:
             exam_types = list(
                 ExaminationType.objects.filter(program=program).order_by("order")
             )
             records = list(ExaminationRecord.objects.filter(child=child))
             statuses = calculate_examination_statuses(child, exam_types, records)
-            six_years_days = 6 * 365
             for et in exam_types:
-                if et.age_min_days > six_years_days:
+                if et.age_min_days > cutoff_days:
                     continue
                 st = statuses.get(et.pk, {})
                 completed_date = st.get("completed_date")
@@ -2921,7 +2927,7 @@ class ChildProfileTimeline(LoginRequiredMixin, DetailView):
             "childSwitcher": _build_child_switcher(self.request, current_child=child),
             "strings": {
                 **_list_strings(),
-                "profileTimeline": _("Profile Timeline"),
+                "profileTimeline": _("Timeline"),
                 "milestones": _("Milestones"),
                 "examinations": _("Examinations"),
                 "addMilestone": _("Add milestone"),
@@ -2952,5 +2958,114 @@ class ChildProfileTimeline(LoginRequiredMixin, DetailView):
             "heightMeasurements": height_measurements,
             "examinationMarkers": exam_markers,
             "milestones": milestones,
+        }
+        return context
+
+
+# ── Child General (Growth / Percentile) Page ─────────────────────────────────
+
+class ChildGeneralPage(LoginRequiredMixin, DetailView):
+    model = models.Child
+    template_name = "babybuddy/ant_app.html"
+
+    def get_object(self):
+        return models.Child.objects.get(slug=self.kwargs["slug"])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        child = self.object
+        from datetime import date as _date, timedelta
+        sex = "girl" if child.gender == "female" else "boy"
+        birth_date = child.birth_date
+        today_date = _date.today()
+        child_age_days = (today_date - birth_date).days if birth_date else 0
+        max_days = child_age_days + 120
+
+        heights = [
+            {"date": h.date.isoformat(), "cm": float(h.height)}
+            for h in child.height.order_by("date")
+        ]
+        weights = [
+            {"date": w.date.isoformat(), "kg": float(w.weight)}
+            for w in child.weight.order_by("date")
+        ]
+
+        # BMI: pair each weight with nearest height entry
+        height_list = [
+            (h.date, float(h.height)) for h in child.height.order_by("date")
+        ]
+        bmi_entries = []
+        for w in child.weight.order_by("date"):
+            if not height_list:
+                break
+            closest_h = min(height_list, key=lambda x: abs((x[0] - w.date).days))
+            h_cm = closest_h[1]
+            if h_cm > 0:
+                bmi = float(w.weight) / (h_cm / 100) ** 2
+                bmi_entries.append({"date": w.date.isoformat(), "bmi": round(bmi, 1)})
+
+        from core.models import HeightPercentile, WeightPercentile
+
+        def _serialize_perc(row):
+            td = row["age_in_days"]
+            days = td.days if hasattr(td, "days") else int(td)
+            return {
+                "days": days,
+                "p3": row["p3"],
+                "p15": row["p15"],
+                "p50": row["p50"],
+                "p85": row["p85"],
+                "p97": row["p97"],
+            }
+
+        h_perc = list(
+            HeightPercentile.objects.filter(sex=sex)
+            .filter(age_in_days__lte=timedelta(days=max_days))
+            .order_by("age_in_days")
+            .values("age_in_days", "p3", "p15", "p50", "p85", "p97")
+        )
+        w_perc = list(
+            WeightPercentile.objects.filter(sex=sex)
+            .filter(age_in_days__lte=timedelta(days=max_days))
+            .order_by("age_in_days")
+            .values("age_in_days", "p3", "p15", "p50", "p85", "p97")
+        )
+
+        context["ant_bootstrap"] = {
+            "pageType": "child-general",
+            "currentPath": self.request.path,
+            "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
+            "csrfToken": get_token(self.request),
+            "user": {"displayName": _display_name(self.request.user)},
+            "urls": {
+                **_nav_urls(),
+                "childDetail": reverse("core:child", kwargs={"slug": child.slug}),
+            },
+            "childSwitcher": _build_child_switcher(self.request, current_child=child),
+            "strings": {
+                **_list_strings(),
+                "general": _("General"),
+                "height": _("Height"),
+                "weight": _("Weight"),
+                "bmi": _("BMI"),
+                "date": _("Date"),
+                "noData": _("No data recorded yet"),
+                "back": _("Back"),
+                "percentiles": _("Percentiles"),
+                "measurements": _("Measurements"),
+                "cm": _("cm"),
+                "kg": _("kg"),
+            },
+            "childDetail": {
+                "name": str(child),
+                "slug": child.slug,
+                "birthDate": birth_date.isoformat() if birth_date else None,
+                "gender": child.gender,
+            },
+            "heights": heights,
+            "weights": weights,
+            "bmiEntries": bmi_entries,
+            "heightPercentiles": [_serialize_perc(r) for r in h_perc],
+            "weightPercentiles": [_serialize_perc(r) for r in w_perc],
         }
         return context

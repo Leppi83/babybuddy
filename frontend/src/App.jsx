@@ -106,6 +106,11 @@ const ChildProfileTimelinePage = lazy(() =>
     default: module.ChildProfileTimelinePage,
   })),
 );
+const ChildGeneralPage = lazy(() =>
+  import("./pages/ProfileTimelinePages").then((module) => ({
+    default: module.ChildGeneralPage,
+  })),
+);
 
 const THEME_MODE_KEY = "babybuddy.theme.mode";
 
@@ -187,6 +192,9 @@ function RoutedPage({ bootstrap }) {
   }
   if (bootstrap.pageType === "child-profile-timeline") {
     return <ChildProfileTimelinePage bootstrap={bootstrap} />;
+  }
+  if (bootstrap.pageType === "child-general") {
+    return <ChildGeneralPage bootstrap={bootstrap} />;
   }
   return <ChildDashboardPage bootstrap={bootstrap} />;
 }

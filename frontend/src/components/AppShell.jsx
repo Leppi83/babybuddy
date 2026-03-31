@@ -264,6 +264,8 @@ export function AppShell({
       window.location.assign(url);
     } else if (pageType === "child-profile-timeline") {
       window.location.assign(`/children/${slug}/profile-timeline/`);
+    } else if (pageType === "child-general") {
+      window.location.assign(`/children/${slug}/general/`);
     } else if (pageType === "child-detail") {
       window.location.assign(`/children/${slug}/`);
     } else {
@@ -309,6 +311,7 @@ export function AppShell({
           feeding: `/children/${selectedSlug}/topics/feeding/`,
           diaper: `/children/${selectedSlug}/topics/diaper/`,
           pumping: `/children/${selectedSlug}/topics/pumping/`,
+          general: `/children/${selectedSlug}/general/`,
         }
       : null);
 
@@ -322,6 +325,7 @@ export function AppShell({
           { key: topicPages.feeding, label: s.feedingLabel || "Feeding" },
           { key: topicPages.diaper, label: s.diaperLabel || "Diaper" },
           { key: topicPages.pumping, label: s.pumpingLabel || "Pumping" },
+          { key: topicPages.general, label: s.generalLabel || "General" },
         ]
       : [
           {
@@ -533,6 +537,7 @@ export function AppShell({
     },
     insights: { eyebrow: s.overview || "Overview", title: s.insights || "Insights" },
     "child-profile-timeline": { eyebrow: null, title: null },
+    "child-general": { eyebrow: null, title: null },
     "quick-entry": {
       eyebrow: s.quickEntry || "Quick Actions",
       title: bootstrap.currentChild?.name || s.quickEntry || "Quick Entry",
@@ -757,6 +762,7 @@ export function AppShell({
                         { url: topicPages.feeding, label: s.feedingLabel || "Feeding" },
                         { url: topicPages.diaper, label: s.diaperLabel || "Diaper" },
                         { url: topicPages.pumping, label: s.pumpingLabel || "Pumping" },
+                        { url: topicPages.general, label: s.generalLabel || "General" },
                       ].map((t) => (
                         <Button
                           key={t.url}
