@@ -1,280 +1,33 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  Alert,
-  Button,
-  Drawer,
-  Grid,
-  Layout,
-  Menu,
-  Popover,
-  Select,
-  Space,
-  Typography,
-} from "antd";
-import {
-  BellOutlined,
-  BulbOutlined,
-  CloseOutlined,
-  PlusOutlined,
-  HomeOutlined,
-  HistoryOutlined,
-  EllipsisOutlined,
-  DesktopOutlined,
-  EditOutlined,
-  LogoutOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  MoonOutlined,
-  SettingOutlined,
-  SunOutlined,
-  UnorderedListOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
-import {
-  isPushSupported,
-  getPermissionState,
-  getExistingSubscription,
-  subscribeToPush,
-} from "../lib/push-utils";
+import React, { useState } from "react";
+import { 
+  Home, Users, UserPlus, Edit2, History, Settings, LogOut, 
+  Menu, Bell, ChevronDown, Check, Lightbulb 
+} from "lucide-react";
 
-const { Content, Sider } = Layout;
-const { Text } = Typography;
-const { useBreakpoint } = Grid;
-
-/* ── localStorage helpers ──────────────────────────────────────── */
-const CHILDREN_CACHE_KEY = "bb_nav_children";
-const SELECTED_SLUG_KEY = "bb_selected_child";
-const LAST_NAV_KEY = "bb_last_nav_key";
-
-function readChildrenCache() {
-  try {
-    return JSON.parse(localStorage.getItem(CHILDREN_CACHE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-function readSelectedSlug() {
-  try {
-    return localStorage.getItem(SELECTED_SLUG_KEY) || null;
-  } catch {
-    return null;
-  }
-}
-function writeChildrenCache(children) {
-  try {
-    localStorage.setItem(CHILDREN_CACHE_KEY, JSON.stringify(children));
-  } catch {}
-}
-function writeSelectedSlug(slug) {
-  try {
-    localStorage.setItem(SELECTED_SLUG_KEY, slug);
-  } catch {}
-}
-
-/* ── Theme switcher ────────────────────────────────────────────── */
-function ThemeSwitcher({ themeMode, onThemeModeChange, compact = false, strings: ts = {} }) {
-  const modes = [
-    { key: "light", icon: <SunOutlined />, label: ts.lightTheme || "Light theme" },
-    { key: "dark", icon: <MoonOutlined />, label: ts.darkTheme || "Dark theme" },
-    { key: "system", icon: <DesktopOutlined />, label: ts.systemTheme || "System theme" },
-  ];
-  return (
-    <div className={`ant-theme-switcher ${compact ? "is-compact" : ""}`}>
-      {modes.map((mode) => (
-        <Button
-          key={mode.key}
-          type={themeMode === mode.key ? "primary" : "text"}
-          icon={mode.icon}
-          aria-label={mode.label}
-          title={mode.label}
-          onClick={() => onThemeModeChange(mode.key)}
-          className="ant-theme-switcher-btn"
-        />
-      ))}
-    </div>
-  );
-}
-
-/* ── Child selector in sidebar ─────────────────────────────────── */
-function ChildNavSelector({ children, selectedSlug, collapsed, onChildChange }) {
-  if (!children.length) return null;
-
-  function onChange(slug) {
-    writeSelectedSlug(slug);
-    onChildChange(slug);
-  }
-
-  if (collapsed) {
-    const child = children.find((c) => c.slug === selectedSlug);
-    return (
-      <div
-        className="ant-child-selector ant-child-selector--collapsed"
-        title={child?.name || ""}
-        onClick={() => {
-          // On collapse, cycle through children
-          const idx = children.findIndex((c) => c.slug === selectedSlug);
-          const next = children[(idx + 1) % children.length];
-          onChange(next.slug);
-        }}
-      >
-        <UserOutlined style={{ fontSize: 16, opacity: 0.7 }} />
-        <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
-          {child?.name?.split(" ")[0]?.slice(0, 6) ?? "?"}
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="ant-child-selector">
-      <Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6, display: "block" }}>
-        {children.length > 1 ? "Child" : children[0]?.name}
-      </Text>
-      {children.length > 1 ? (
-        <Select
-          value={selectedSlug || undefined}
-          onChange={onChange}
-          options={children.map((c) => ({ value: c.slug, label: c.name }))}
-          style={{ width: "100%" }}
-          size="middle"
-          placeholder="Select child"
-        />
-      ) : (
-        <Text strong style={{ fontSize: 15 }}>
-          {children[0]?.name}
-        </Text>
-      )}
-    </div>
-  );
-}
-
-/* ── Push notification prompt banner ──────────────────────────── */
-const PUSH_DISMISSED_KEY = "bb_push_prompt_dismissed";
-
-function PushPromptBanner({ bootstrap }) {
-  const s = bootstrap.strings;
-  const [visible, setVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!isPushSupported() || !bootstrap.vapidPublicKey) return;
-    if (getPermissionState() !== "default") return;
-    try {
-      if (localStorage.getItem(PUSH_DISMISSED_KEY) === "1") return;
-    } catch {}
-    getExistingSubscription().then((sub) => {
-      if (!sub) setVisible(true);
-    });
-  }, [bootstrap.vapidPublicKey]);
-
-  const handleEnable = useCallback(async () => {
-    setLoading(true);
-    const result = await subscribeToPush(
-      bootstrap.vapidPublicKey,
-      bootstrap.csrfToken,
-      bootstrap.urls.pushSubscribe,
-    );
-    setLoading(false);
-    setVisible(false);
-    if (!result.ok) {
-      try { localStorage.setItem(PUSH_DISMISSED_KEY, "1"); } catch {}
-    }
-  }, [bootstrap]);
-
-  const handleDismiss = useCallback(() => {
-    setVisible(false);
-    try { localStorage.setItem(PUSH_DISMISSED_KEY, "1"); } catch {}
-  }, []);
-
-  if (!visible) return null;
-
-  return (
-    <Alert
-      type="info"
-      showIcon
-      icon={<BellOutlined />}
-      message={s.pushPromptTitle || "Stay in the loop"}
-      description={s.pushPromptBody || "Enable notifications to get timer reminders."}
-      action={
-        <Space direction="vertical" size={4}>
-          <Button size="small" type="primary" loading={loading} onClick={handleEnable}>
-            {s.pushEnable || "Enable"}
-          </Button>
-          <Button size="small" type="text" onClick={handleDismiss}>
-            {s.pushNotNow || "Not now"}
-          </Button>
-        </Space>
-      }
-      closable
-      onClose={handleDismiss}
-    />
-  );
-}
-
-/* ── Main AppShell ─────────────────────────────────────────────── */
-export function AppShell({
-  bootstrap,
-  children,
-  themeMode,
-  effectiveTheme,
-  onThemeModeChange,
-}) {
-  const screens = useBreakpoint();
-  const [mobileOpen, setMobileOpen] = useState(false);
+export function AppShell({ bootstrap, children }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Build nav children: prefer bootstrap.children, fall back to localStorage
-  const navChildren = bootstrap.children?.length
-    ? bootstrap.children
-    : readChildrenCache();
+  const s = bootstrap.strings || {};
+  const urls = bootstrap.urls || {};
+  
+  // Basic Nav Items
+  const navItems = [
+    { icon: <Home size={20} />, label: s.dashboard || "Dashboard", href: urls.dashboard },
+    { icon: <Edit2 size={20} />, label: s.quickEntry || "Quick Entry", href: urls.quickEntry },
+    { icon: <Lightbulb size={20} />, label: s.insights || "Insights", href: "#insights" }, // Simplified for Phase 1
+    { icon: <History size={20} />, label: s.timeline || "Timeline", href: urls.timeline },
+  ];
 
-  // Selected child: prefer bootstrap.currentChild, fall back to localStorage
-  const selectedSlug =
-    bootstrap.currentChild?.slug ||
-    readSelectedSlug() ||
-    navChildren[0]?.slug ||
-    null;
-
-  // Cache to localStorage whenever we have fresh data
-  useEffect(() => {
-    if (bootstrap.children?.length) writeChildrenCache(bootstrap.children);
-    if (bootstrap.currentChild?.slug) writeSelectedSlug(bootstrap.currentChild.slug);
-  }, []);
-
-  function handleChildChange(slug) {
-    const pageType = bootstrap.pageType;
-    const urls = bootstrap.urls;
-    const child = navChildren.find((c) => c.slug === slug);
-    if (pageType === "dashboard-child") {
-      const template = urls.childDashboardTemplate;
-      const url = template
-        ? template.replace("__CHILD_SLUG__", slug)
-        : child?.dashboardUrl;
-      if (url) window.location.assign(url);
-    } else if (pageType === "quick-entry") {
-      window.location.assign(`${urls.quickEntry}?child=${slug}`);
-    } else if (pageType === "topic-detail" && urls.topicTemplate) {
-      const topic = bootstrap.topicPage?.topic || "sleep";
-      const url = urls.topicTemplate
-        .replace("__CHILD_SLUG__", slug)
-        .replace("__TOPIC__", topic);
-      window.location.assign(url);
-    } else if (pageType === "insights" && urls.insightsTemplate && child) {
-      const url = urls.insightsTemplate.replace("__CHILD_ID__", String(child.id));
-      window.location.assign(url);
-    } else if (pageType === "child-profile-timeline") {
-      window.location.assign(`/children/${slug}/profile-timeline/`);
-    } else if (pageType === "child-general") {
-      window.location.assign(`/children/${slug}/general/`);
-    } else if (pageType === "child-detail") {
-      window.location.assign(`/children/${slug}/`);
-    } else {
-      // For non-child-specific pages (timeline, settings, lists, forms)
-      // just update the stored selection; no nav needed.
-    }
+  if (urls.childrenList) {
+    navItems.push({ icon: <Users size={20} />, label: s.children || "Children", href: urls.childrenList });
+  }
+  if (urls.addChild) {
+    navItems.push({ icon: <UserPlus size={20} />, label: s.addChild || "Add Child", href: urls.addChild });
   }
 
-  function handleLogout() {
+  // Handle Logout Form Submission natively
+  const handleLogout = () => {
     const form = document.createElement("form");
     form.method = "POST";
     form.action = bootstrap.urls.logout;
@@ -285,530 +38,140 @@ export function AppShell({
     form.appendChild(csrf);
     document.body.appendChild(form);
     form.submit();
-  }
-
-  const isDesktop = Boolean(screens.md);
-  const isAuthLayout = bootstrap.layout === "auth";
-  const s = bootstrap.strings;
-
-  // Profile Timeline URL: per-child when a child is selected
-  const profileTimelineUrl = selectedSlug
-    ? `/children/${selectedSlug}/profile-timeline/`
-    : bootstrap.urls.timeline;
-
-  // Quick Entry URL: append selected child slug when available
-  const quickEntryUrl = selectedSlug
-    ? `${bootstrap.urls.quickEntry}?child=${selectedSlug}`
-    : bootstrap.urls.quickEntry;
-
-  // Build topic URLs: prefer bootstrap.urls.topicPages (dashboard page);
-  // fall back to constructing from selectedSlug (all other pages).
-  const topicPages =
-    bootstrap.urls.topicPages ||
-    (selectedSlug
-      ? {
-          sleep: `/children/${selectedSlug}/topics/sleep/`,
-          feeding: `/children/${selectedSlug}/topics/feeding/`,
-          diaper: `/children/${selectedSlug}/topics/diaper/`,
-          pumping: `/children/${selectedSlug}/topics/pumping/`,
-          general: `/children/${selectedSlug}/general/`,
-        }
-      : null);
-
-  const insightsMenuItem = {
-    key: "insights-menu",
-    icon: <BulbOutlined />,
-    label: s.insights || "Insights",
-    children: topicPages
-      ? [
-          { key: topicPages.general, label: s.generalLabel || "General" },
-          { key: topicPages.sleep, label: s.sleepLabel || "Sleep" },
-          { key: topicPages.feeding, label: s.feedingLabel || "Feeding" },
-          { key: topicPages.diaper, label: s.diaperLabel || "Diaper" },
-          { key: topicPages.pumping, label: s.pumpingLabel || "Pumping" },
-        ]
-      : [
-          {
-            key: "__no-child__",
-            label: s.selectChildFirst || "Select a child first",
-            disabled: true,
-          },
-        ],
   };
 
-  const navItems = [
-    {
-      key: bootstrap.urls.dashboard,
-      icon: <HomeOutlined />,
-      label: s.dashboard,
-    },
-    {
-      key: quickEntryUrl,
-      icon: <EditOutlined />,
-      label: s.quickEntry || "Quick Entry",
-    },
-    insightsMenuItem,
-    {
-      key: profileTimelineUrl,
-      icon: <HistoryOutlined />,
-      label: s.profileTimeline || s.timeline,
-    },
-    ...(bootstrap.urls.childrenList
-      ? [
-          { type: "divider" },
-          {
-            key: bootstrap.urls.childrenList,
-            icon: <UnorderedListOutlined />,
-            label: s.children || "Children",
-          },
-          ...(bootstrap.urls.addChild
-            ? [
-                {
-                  key: bootstrap.urls.addChild,
-                  icon: <PlusOutlined />,
-                  label: s.addChild || "Add Child",
-                },
-              ]
-            : []),
-        ]
-      : []),
-    { type: "divider" },
-    {
-      key: bootstrap.urls.settings,
-      icon: <SettingOutlined />,
-      label: s.settings,
-    },
-    {
-      key: "__logout__",
-      icon: <LogoutOutlined />,
-      label: s.logout,
-    },
-  ];
-
-  function handleNavClick({ key }) {
-    if (key === "__logout__") {
-      handleLogout();
-      return;
-    }
-    // Dashboard click: go to selected child's dashboard
-    if (key === bootstrap.urls.dashboard) {
-      const child = navChildren.find((c) => c.slug === selectedSlug);
-      const url = child?.dashboardUrl || bootstrap.urls.dashboard;
-      window.location.assign(url);
-      return;
-    }
-    if (key.startsWith("/")) {
-      saveLastNavKey(key);
-      window.location.assign(key);
-    }
-  }
-
-  // Strip query string for path matching so /quick-entry/?child=x matches the nav key
-  const currentPathBase = bootstrap.currentPath.split("?")[0];
-  const keyPathOf = (key) => key?.split?.("?")?.[0] ?? key;
-
-  function readLastNavKey() {
-    try { return localStorage.getItem(LAST_NAV_KEY) || null; } catch { return null; }
-  }
-  function saveLastNavKey(key) {
-    try { localStorage.setItem(LAST_NAV_KEY, key); } catch {}
-  }
-
-  const selectedKey = (() => {
-    if (bootstrap.activeNavKey === null) return null;
-    if (bootstrap.activeNavKey) {
-      saveLastNavKey(bootstrap.activeNavKey);
-      return bootstrap.activeNavKey;
-    }
-    for (const item of navItems) {
-      if (item.children) {
-        for (const child of item.children) {
-          if (
-            child.key !== "__logout__" &&
-            currentPathBase.startsWith(keyPathOf(child.key))
-          ) {
-            saveLastNavKey(child.key);
-            return child.key;
-          }
-        }
-      } else if (
-        item.key !== "__logout__" &&
-        item.key?.startsWith?.("/") &&
-        currentPathBase.startsWith(keyPathOf(item.key))
-      ) {
-        saveLastNavKey(item.key);
-        return item.key;
-      }
-    }
-    // No match — use last known nav key, falling back to dashboard
-    return readLastNavKey() || bootstrap.urls.dashboard;
-  })();
-
-  const childSwitcher = bootstrap.childSwitcher;
-
-  function handleChildSwitch(targetHref) {
-    if (targetHref) window.location.assign(targetHref);
-  }
-
-  const brand = (
-    <div className="ant-shell-brand">
-      <img
-        src="/static/babybuddy/logo/icon-brand.png"
-        alt=""
-        width="36"
-        height="36"
-      />
-      {!collapsed && <span>Baby Buddy</span>}
-    </div>
-  );
-
-  const defaultOpenKeys =
-    bootstrap.pageType === "topic-detail" || bootstrap.pageType === "insights"
-      ? ["insights-menu"]
-      : [];
-
-  const menu = (
-    <Menu
-      mode="inline"
-      selectedKeys={selectedKey ? [selectedKey] : []}
-      defaultOpenKeys={defaultOpenKeys}
-      items={navItems}
-      onClick={handleNavClick}
-      className="ant-shell-menu"
-    />
-  );
-
-  const pageMeta = {
-    "dashboard-home": { eyebrow: null, title: null },
-    "dashboard-child": { eyebrow: null, title: null },
-    "child-detail": {
-      eyebrow: s.timeline,
-      title: bootstrap.childDetail?.name || s.timeline,
-    },
-    settings: { eyebrow: null, title: null },
-    list: {
-      eyebrow: bootstrap.listPage?.kicker || s.list,
-      title: bootstrap.listPage?.title || s.list,
-    },
-    form: {
-      eyebrow: bootstrap.formPage?.kicker || s.form,
-      title: bootstrap.formPage?.title || s.form,
-    },
-    "confirm-delete": {
-      eyebrow: s.dangerZone,
-      title: bootstrap.formPage?.title || s.confirmDelete,
-    },
-    "tag-detail": {
-      eyebrow: s.overview,
-      title: bootstrap.tagDetail?.name || s.overview,
-    },
-    "timer-detail": {
-      eyebrow: s.timeline,
-      title: bootstrap.timerDetail?.name || s.timeline,
-    },
-    timeline: {
-      eyebrow: bootstrap.timelinePage?.kicker || s.timeline,
-      title: bootstrap.timelinePage?.title || s.timeline,
-    },
-    "report-list": { eyebrow: s.overview, title: s.reports },
-    "report-detail": {
-      eyebrow: bootstrap.reportDetail?.category || s.reports,
-      title: bootstrap.reportDetail?.title || s.reports,
-    },
-    welcome: {
-      eyebrow: s.welcome,
-      title: s.welcomeTitle || s.welcome,
-    },
-    message: {
-      eyebrow: bootstrap.messagePage?.kicker || s.overview,
-      title: bootstrap.messagePage?.title || s.overview,
-    },
-    "device-access": { eyebrow: s.settings, title: s.addDevice },
-    "auth-form": {
-      eyebrow: bootstrap.formPage?.kicker || s.welcome,
-      title: bootstrap.formPage?.title || s.login,
-    },
-    "topic-detail": {
-      eyebrow: s.insights || "Insights",
-      title:
-        bootstrap.topicPage?.topic
-          ? s[`${bootstrap.topicPage.topic}Label`] || bootstrap.topicPage.topic
-          : s.insights || "Insights",
-    },
-    insights: { eyebrow: s.overview || "Overview", title: s.insights || "Insights" },
-    "child-profile-timeline": {
-      eyebrow: bootstrap.childDetail?.name || null,
-      title: s.profileTimeline || s.timeline || "Timeline",
-    },
-    "child-general": {
-      eyebrow: bootstrap.childDetail?.name || null,
-      title: s.generalLabel || "General",
-    },
-    "quick-entry": {
-      eyebrow: s.quickEntry || "Quick Actions",
-      title: bootstrap.currentChild?.name || s.quickEntry || "Quick Entry",
-    },
-  }[bootstrap.pageType] || { eyebrow: s.dashboard, title: s.dashboard };
-
-  if (isAuthLayout) {
-    return (
-      <div className="ant-auth-shell">
-        <div className="ant-auth-brand">
-          <img
-            src="/static/babybuddy/logo/icon-brand.png"
-            alt=""
-            width="72"
-            height="72"
-          />
-          <span>Baby Buddy</span>
-        </div>
-        <div className="ant-auth-content">
-          <Space direction="vertical" size={16} style={{ width: "100%" }}>
-            {(bootstrap.messages || []).map((message, index) => (
-              <Alert
-                key={`${message.type}-${index}`}
-                type={message.type || "info"}
-                showIcon
-                message={message.message}
-              />
-            ))}
-            {children}
-          </Space>
-        </div>
-      </div>
-    );
-  }
+  const activePath = typeof window !== 'undefined' ? window.location.pathname : "";
 
   return (
-    <Layout className="ant-shell" data-effective-theme={effectiveTheme}>
-      {isDesktop ? (
-        <Sider
-          width={280}
-          collapsedWidth={88}
-          collapsible
-          collapsed={collapsed}
-          onCollapse={setCollapsed}
-          trigger={null}
-          theme="light"
-          className="ant-shell-sider"
-        >
-          <div className="ant-shell-sider-inner">
-            {brand}
-            <Button
-              className="ant-shell-collapse"
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed((value) => !value)}
-            />
-            <ChildNavSelector
-              children={navChildren}
-              selectedSlug={selectedSlug}
-              collapsed={collapsed}
-              onChildChange={handleChildChange}
-            />
-            {menu}
-            <ThemeSwitcher
-              themeMode={themeMode}
-              onThemeModeChange={onThemeModeChange}
-              compact={collapsed}
-              strings={s}
-            />
-          </div>
-        </Sider>
-      ) : (
-        <Drawer
-          open={mobileOpen}
-          onClose={() => setMobileOpen(false)}
-          placement="bottom"
-          height="auto"
-          title={null}
-          closeIcon={null}
-          styles={{ body: { padding: "20px 20px 12px" } }}
-        >
-          <Space direction="vertical" size={16} style={{ width: "100%" }}>
-            {navChildren.length > 1 && (
-              <Select
-                value={selectedSlug || undefined}
-                onChange={(slug) => {
-                  writeSelectedSlug(slug);
-                  handleChildChange(slug);
-                }}
-                options={navChildren.map((c) => ({ value: c.slug, label: c.name }))}
-                style={{ width: "100%" }}
-                placeholder="Select child"
-              />
-            )}
-            {bootstrap.urls.childrenList && (
-              <Button
-                type="text"
-                icon={<UnorderedListOutlined />}
-                href={bootstrap.urls.childrenList}
-                block
-                style={{ textAlign: "left", justifyContent: "flex-start" }}
-              >
-                {s.children}
-              </Button>
-            )}
-            {bootstrap.urls.addChild && (
-              <Button
-                type="text"
-                icon={<PlusOutlined />}
-                href={bootstrap.urls.addChild}
-                block
-                style={{ textAlign: "left", justifyContent: "flex-start" }}
-              >
-                {s.addChild}
-              </Button>
-            )}
-            <Button
-              type="text"
-              icon={<SettingOutlined />}
-              href={bootstrap.urls.settings}
-              block
-              style={{ textAlign: "left", justifyContent: "flex-start" }}
-            >
-              {s.settings}
-            </Button>
-            <ThemeSwitcher
-              themeMode={themeMode}
-              onThemeModeChange={onThemeModeChange}
-              strings={s}
-            />
-            <Button danger icon={<LogoutOutlined />} onClick={handleLogout} block>
-              {s.logout}
-            </Button>
-          </Space>
-        </Drawer>
-      )}
-      <Layout>
-        {(pageMeta.eyebrow || pageMeta.title) && (
-          <div className="ant-shell-header-band">
-            <div
-              style={{
-                display: "flex",
-                gap: 16,
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                width: "100%",
-                flexWrap: "wrap",
-              }}
-            >
-              <div>
-                {pageMeta.eyebrow && (
-                  <div className="ant-shell-header-band__eyebrow">
-                    {pageMeta.eyebrow}
-                  </div>
-                )}
-                <div className="ant-shell-header-band__title">
-                  {pageMeta.title}
-                </div>
-              </div>
-              {childSwitcher?.options?.length ? (
-                <Space size={8} wrap style={{ paddingTop: 4 }}>
-                  <Text type="secondary">{childSwitcher.label}</Text>
-                  <Select
-                    value={childSwitcher.value}
-                    onChange={(value) =>
-                      handleChildSwitch(
-                        childSwitcher.options.find((item) => item.value === value)?.href,
-                      )
-                    }
-                    options={childSwitcher.options.map((option) => ({
-                      value: option.value,
-                      label: option.label,
-                    }))}
-                    style={{ minWidth: isDesktop ? 220 : "clamp(120px, 40vw, 180px)" }}
-                  />
-                </Space>
-              ) : null}
-            </div>
+    <div className="flex h-screen w-full bg-transparent overflow-hidden">
+      
+      {/* Sidebar - Desktop */}
+      <aside className={`hidden md:flex flex-col m-4 rounded-[28px] overflow-hidden transition-all duration-300 ${collapsed ? 'w-[80px]' : 'w-[260px]'} glass-panel shadow-2xl z-50`}>
+        {/* Brand */}
+        <div className="flex items-center gap-3 p-6 border-b border-white/5 bg-slate-900/40">
+          <a href="/" className="flex items-center gap-3 w-full justify-center">
+            <img src="/static/babybuddy/logo/icon-brand.png" alt="BabyBuddy" className="w-10 h-10 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.8)]" />
+            {!collapsed && <h1 className="text-xl font-bold tracking-tight glowing-text text-sky-50 whitespace-nowrap">BabyBuddy</h1>}
+          </a>
+        </div>
+
+        {/* Child Selector Dropdown Mockup */}
+        {!collapsed && bootstrap.children?.length > 1 && (
+          <div className="px-4 py-4 border-b border-white/5">
+             <span className="text-xs uppercase tracking-wider text-slate-500 font-bold ml-2 mb-2 block block">Child</span>
+             <select 
+               className="w-full bg-slate-900/80 border border-white/10 text-slate-200 rounded-xl px-4 py-2 text-sm font-semibold appearance-none outline-none focus:border-sky-500 focus:shadow-[0_0_10px_rgba(56,189,248,0.3)]"
+               value={bootstrap.currentChild?.slug || ""}
+               onChange={(e) => {
+                 if(e.target.value) {
+                   window.location.assign(`/children/${e.target.value}/`);
+                 }
+               }}
+             >
+               {bootstrap.children.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+             </select>
           </div>
         )}
-        <Content className="ant-shell-content">
-          <Space direction="vertical" size={16} style={{ width: "100%" }}>
-            {(bootstrap.messages || []).map((message, index) => (
-              <Alert
-                key={`${message.type}-${index}`}
-                type={message.type || "info"}
-                showIcon
-                message={message.message}
-              />
-            ))}
-            <PushPromptBanner bootstrap={bootstrap} />
-            {children}
-          </Space>
-        </Content>
-      </Layout>
 
-      {!isDesktop && (
-        <nav className="ant-bottom-nav">
-          {[
-            { key: bootstrap.urls.dashboard, icon: <HomeOutlined />, label: s.dashboard },
-            { key: "__insights__", icon: <BulbOutlined />, label: s.insights || "Insights" },
-            { key: quickEntryUrl, icon: <EditOutlined />, label: s.quickEntry || "Quick Entry" },
-            { key: profileTimelineUrl, icon: <HistoryOutlined />, label: s.profileTimeline || s.timeline },
-            { key: "__more__", icon: <EllipsisOutlined />, label: s.more || "More" },
-          ].map((item) => {
-            const isInsightsActive = topicPages && selectedKey &&
-              Object.values(topicPages).some((url) => selectedKey === url);
-            const isActive = item.key === "__insights__"
-              ? isInsightsActive
-              : item.key !== "__more__" && selectedKey === item.key;
-
-            if (item.key === "__insights__" && topicPages) {
-              return (
-                <Popover
-                  key="__insights__"
-                  trigger="click"
-                  placement="top"
-                  content={
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 140 }}>
-                      {[
-                        { url: topicPages.general, label: s.generalLabel || "General" },
-                        { url: topicPages.sleep, label: s.sleepLabel || "Sleep" },
-                        { url: topicPages.feeding, label: s.feedingLabel || "Feeding" },
-                        { url: topicPages.diaper, label: s.diaperLabel || "Diaper" },
-                        { url: topicPages.pumping, label: s.pumpingLabel || "Pumping" },
-                      ].map((t) => (
-                        <Button
-                          key={t.url}
-                          type="text"
-                          size="small"
-                          block
-                          style={{ textAlign: "left", justifyContent: "flex-start" }}
-                          onClick={() => handleNavClick({ key: t.url })}
-                        >
-                          {t.label}
-                        </Button>
-                      ))}
-                    </div>
-                  }
-                >
-                  <button className={`ant-bottom-nav-item${isActive ? " is-active" : ""}`}>
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                </Popover>
-              );
-            }
+        {/* Nav Menu */}
+        <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto custom-scrollbar">
+          {navItems.map((item, i) => {
+            if (!item.href) return null;
+            // Best effort active state matching
+            const isActive = activePath.startsWith(item.href) && item.href !== "/";
+            const isExactHome = activePath === "/" && item.href === urls.dashboard;
+            const active = isActive || isExactHome;
 
             return (
-              <button
-                key={item.key}
-                className={`ant-bottom-nav-item${isActive ? " is-active" : ""}`}
-                onClick={() =>
-                  item.key === "__more__"
-                    ? setMobileOpen(true)
-                    : handleNavClick({ key: item.key })
-                }
+              <a
+                key={i}
+                href={item.href}
+                className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 ${
+                  active 
+                    ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-[0_4px_20px_-4px_rgba(56,189,248,0.3)]' 
+                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                }`}
+                title={collapsed ? item.label : ""}
               >
-                {item.icon}
-                <span>{item.label}</span>
-              </button>
+                <div className={active ? 'text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]' : ''}>
+                  {item.icon}
+                </div>
+                {!collapsed && <span className="font-semibold text-sm tracking-wide truncate">{item.label}</span>}
+              </a>
             );
           })}
         </nav>
+
+        {/* Footer Actions */}
+        <div className="p-4 border-t border-white/5 space-y-2 pb-6">
+          <a 
+            href={urls.settings}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-colors"
+          >
+            <Settings size={20} />
+            {!collapsed && <span className="font-medium text-sm">Settings</span>}
+          </a>
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-rose-400 hover:bg-rose-500/10 transition-colors"
+          >
+            <LogOut size={20} />
+            {!collapsed && <span className="font-medium text-sm">Logout</span>}
+          </button>
+          <button 
+            onClick={() => setCollapsed(!collapsed)}
+            className="w-full flex items-center justify-center mt-4 p-3 rounded-xl text-slate-500 hover:bg-white/5 hover:text-slate-200 transition-colors"
+          >
+            <Menu size={18} />
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto px-4 py-6 md:p-8 custom-scrollbar relative z-10 transition-all">
+        
+        {/* Messages / Alerts */}
+        {(bootstrap.messages || []).map((msg, idx) => (
+           <div key={idx} className="mb-6 mx-auto w-full max-w-6xl glass-card border flex items-center gap-4 p-4 text-sm font-semibold text-sky-100 border-sky-500/30">
+               <Bell size={18} className="text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
+               <span dangerouslySetInnerHTML={{ __html: msg.message }} />
+           </div>
+        ))}
+
+        {/* Dynamic Page Content */}
+        <div className="flex-1 w-full max-w-6xl mx-auto flex flex-col gap-6 w-full">
+           {children}
+        </div>
+
+      </main>
+
+      {/* Mobile Bottom Navigation Bar (Visible only on very small screens) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 glass-panel border-t border-white/10 z-50 flex items-center justify-around px-2">
+         {navItems.slice(0, 4).map((item, i) => (
+            <a key={i} href={item.href} className="p-3 text-slate-400 hover:text-sky-400 flex flex-col items-center gap-1 transition-colors">
+               <div className={activePath.startsWith(item.href) ? 'text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]' : ''}>{item.icon}</div>
+            </a>
+         ))}
+         <button onClick={() => setMobileMenuOpen(true)} className="p-3 text-slate-400 hover:text-sky-400 flex flex-col items-center gap-1">
+            <Menu size={20} />
+         </button>
+      </nav>
+
+      {/* Mobile Menu Actions Modal */}
+      {mobileMenuOpen && (
+         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] flex flex-col justify-end">
+            <div className="glass-panel w-full rounded-t-[32px] p-6 pb-12 flex flex-col gap-4 border-t border-white/10">
+               <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4" onClick={() => setMobileMenuOpen(false)}></div>
+               <a href={urls.settings} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 text-slate-200">
+                  <Settings size={20} className="text-sky-400" /> Settings
+               </a>
+               <button onClick={handleLogout} className="flex items-center gap-4 p-4 rounded-2xl bg-rose-500/10 text-rose-400">
+                  <LogOut size={20} /> Logout
+               </button>
+            </div>
+         </div>
       )}
-    </Layout>
+
+    </div>
   );
 }

@@ -1,164 +1,63 @@
-// frontend/src/pages/ProfileTimelinePages.jsx
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Button,
-  Card,
-  Popconfirm,
-  Space,
-  Table,
-  Tabs,
-  Tooltip,
-  Typography,
-} from "antd";
-import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  StarOutlined,
-  SmileOutlined,
-  SoundOutlined,
-  TeamOutlined,
-  RocketOutlined,
-} from "@ant-design/icons";
 import dayjs from "dayjs";
-
-const { Text } = Typography;
-
-const STATUS_COLOR = {
-  completed: "#52c41a",
-  due: "#4db6ff",
-  overdue: "#ff4d4f",
-  upcoming: "#888888",
-};
+import { Plus, Edit2, Trash2, Megaphone, Users, Rocket, Smile, Hash, Star } from "lucide-react";
 
 const MILESTONE_ICON = {
-  first_word: <SoundOutlined />,
-  first_turn: <TeamOutlined />,
-  first_walk: <RocketOutlined />,
-  first_smile: <SmileOutlined />,
-  first_tooth: <StarOutlined />,
-  custom: <StarOutlined />,
+  first_word: <Megaphone size={16} />,
+  first_turn: <Users size={16} />,
+  first_walk: <Rocket size={16} />,
+  first_smile: <Smile size={16} />,
+  first_tooth: <Hash size={16} />,
+  custom: <Star size={16} />,
 };
 
 const MILESTONE_COLOR = {
-  first_word: "#69b1ff",
-  first_turn: "#b37feb",
-  first_walk: "#5cdb8b",
-  first_smile: "#ffd666",
-  first_tooth: "#ff7875",
-  custom: "#4db6ff",
+  first_word: "#38bdf8",
+  first_turn: "#818cf8",
+  first_walk: "#34d399",
+  first_smile: "#fbbf24",
+  first_tooth: "#f87171",
+  custom: "#38bdf8",
 };
 
-// ── Age-appropriate silhouette SVGs ──────────────────────────────────────────
-// All drawn in a 32×100 normalized coordinate space, then scaled.
-// Uses only rect/circle/ellipse primitives with overlapping connections to avoid render gaps.
+const STATUS_COLOR = {
+  completed: "#10b981", // Emerald
+  due: "#38bdf8", // Sky
+  overdue: "#f43f5e", // Rose
+  upcoming: "#64748b", // Slate
+};
 
-function SwaddledBaby({ scale, color }) {
-  // 0–6 months: round head + oval swaddle bundle, no visible limbs
-  return (
-    <g transform={`scale(${scale})`}>
-      <ellipse cx={16} cy={14} rx={10} ry={11} fill={color} />
-      {/* neck filler so head blends into bundle */}
-      <rect x={11} y={21} width={10} height={8} fill={color} />
-      <ellipse cx={16} cy={53} rx={12} ry={25} fill={color} />
-    </g>
-  );
-}
-
-function ToddlerMale({ scale, color }) {
-  // 6mo–3y: big round head, chubby torso, stubby arms angled down, short legs
-  return (
-    <g transform={`scale(${scale})`}>
-      <circle cx={16} cy={11} r={10} fill={color} />
-      {/* neck */}
-      <rect x={13} y={19} width={6} height={5} fill={color} />
-      {/* torso — overlaps neck */}
-      <rect x={9} y={22} width={14} height={24} rx={5} fill={color} />
-      {/* arms: pill shapes overlapping torso sides */}
-      <rect x={2} y={24} width={9} height={16} rx={4.5} fill={color} />
-      <rect x={21} y={24} width={9} height={16} rx={4.5} fill={color} />
-      {/* hip connector — bridges torso to legs */}
-      <rect x={9} y={44} width={14} height={7} rx={3} fill={color} />
-      {/* legs */}
-      <rect x={9} y={49} width={6} height={24} rx={3} fill={color} />
-      <rect x={17} y={49} width={6} height={24} rx={3} fill={color} />
-    </g>
-  );
-}
-
-function ToddlerFemale({ scale, color }) {
-  // 6mo–3y female: same structure, wider hip ellipse
-  return (
-    <g transform={`scale(${scale})`}>
-      <circle cx={16} cy={11} r={10} fill={color} />
-      <rect x={13} y={19} width={6} height={5} fill={color} />
-      <rect x={9} y={22} width={14} height={22} rx={5} fill={color} />
-      <rect x={2} y={24} width={9} height={16} rx={4.5} fill={color} />
-      <rect x={21} y={24} width={9} height={16} rx={4.5} fill={color} />
-      {/* wider hips */}
-      <ellipse cx={16} cy={46} rx={9} ry={5} fill={color} />
-      <rect x={8} y={49} width={6} height={24} rx={3} fill={color} />
-      <rect x={18} y={49} width={6} height={24} rx={3} fill={color} />
-    </g>
-  );
-}
-
-function ChildMale({ scale, color }) {
-  // 3y+ male: proportional head, torso, horizontal arms, longer legs
-  return (
-    <g transform={`scale(${scale})`}>
-      <circle cx={16} cy={9} r={9} fill={color} />
-      {/* neck */}
-      <rect x={13} y={16} width={6} height={6} fill={color} />
-      {/* torso */}
-      <rect x={10} y={20} width={12} height={28} rx={4} fill={color} />
-      {/* arms: horizontal pill shapes overlapping torso */}
-      <rect x={0} y={22} width={13} height={8} rx={4} fill={color} />
-      <rect x={19} y={22} width={13} height={8} rx={4} fill={color} />
-      {/* hip connector */}
-      <rect x={10} y={46} width={12} height={6} rx={3} fill={color} />
-      {/* legs */}
-      <rect x={10} y={50} width={5} height={30} rx={2.5} fill={color} />
-      <rect x={17} y={50} width={5} height={30} rx={2.5} fill={color} />
-    </g>
-  );
-}
-
-function ChildFemale({ scale, color }) {
-  // 3y+ female: wider hips, same overall structure
-  return (
-    <g transform={`scale(${scale})`}>
-      <circle cx={16} cy={9} r={9} fill={color} />
-      <rect x={13} y={16} width={6} height={6} fill={color} />
-      <rect x={10} y={20} width={12} height={26} rx={4} fill={color} />
-      <rect x={0} y={22} width={13} height={8} rx={4} fill={color} />
-      <rect x={19} y={22} width={13} height={8} rx={4} fill={color} />
-      {/* wider hips ellipse */}
-      <ellipse cx={16} cy={48} rx={9} ry={6} fill={color} />
-      <rect x={9} y={50} width={5} height={30} rx={2.5} fill={color} />
-      <rect x={18} y={50} width={5} height={30} rx={2.5} fill={color} />
-    </g>
-  );
-}
-
-function ChildSilhouette({ heightPx, color = "rgba(77,182,255,0.35)", ageMonths = 36, gender = "unknown" }) {
+// Reusable SVG Neon Silhouette (Clean Line Art + Geometric Accessories)
+function NeonSilhouette({ heightPx, cx, cy, label, gender = 'female', alpha = 0.8 }) {
   const scale = heightPx / 100;
-  const isFemale = gender === "female";
+  const isFemale = gender === 'female';
+  const color = isFemale ? "#38bdf8" : "#818cf8"; 
+  const shadowColor = isFemale ? "rgba(56,189,248,0.6)" : "rgba(99,102,241,0.6)";
 
-  if (ageMonths < 6) {
-    return <SwaddledBaby scale={scale} color={color} />;
-  } else if (ageMonths < 36) {
-    return isFemale
-      ? <ToddlerFemale scale={scale} color={color} />
-      : <ToddlerMale scale={scale} color={color} />;
-  } else {
-    return isFemale
-      ? <ChildFemale scale={scale} color={color} />
-      : <ChildMale scale={scale} color={color} />;
-  }
+  return (
+    <g transform={`translate(${cx}, ${cy - heightPx})`} style={{ opacity: alpha }}>
+      <text x={0} y={-10} textAnchor="middle" fontSize={11} fontWeight={600} fill={color} className={`drop-shadow-[0_0_4px_${shadowColor}]`}>
+        {label}
+      </text>
+      
+      <g transform={`scale(${scale})`}>
+        <g transform="translate(-16, 0)">
+          {isFemale && (
+             <path d="M16,1 L23,-2 L24,3 Z M16,1 L9,-2 L8,3 Z" stroke={color} strokeWidth={1.5} strokeLinejoin="round" fill="none" className={`drop-shadow-[0_0_8px_${shadowColor}]`} />
+          )}
+
+          <circle cx={16} cy={10} r={8} stroke={color} strokeWidth={1.5} fill={isFemale ? "rgba(56,189,248,0.05)" : "rgba(99,102,241,0.05)"} className={`drop-shadow-[0_0_8px_${shadowColor}]`} />
+          
+          <path
+            d="M20,18 C25,18 28,21 28,26 C28,30 25,32 23,32 C23,38 23,45 23,48 C23,50 21,52 19,52 L17,52 L17,40 L15,40 L15,52 L13,52 C11,52 9,50 9,48 C9,45 9,38 9,32 C7,32 4,30 4,26 C4,21 7,18 12,18 Z"
+            stroke={color} strokeWidth={1.5} strokeLinejoin="round" fill={isFemale ? "rgba(56,189,248,0.05)" : "rgba(99,102,241,0.05)"} className={`drop-shadow-[0_0_8px_${shadowColor}]`}
+          />
+        </g>
+      </g>
+    </g>
+  );
 }
 
-// ── Timeline SVG canvas ───────────────────────────────────────────────────────
 function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, milestones, strings }) {
   const containerRef = useRef(null);
   const [containerW, setContainerW] = useState(800);
@@ -178,19 +77,13 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
   const today = dayjs();
   const endDate = today.add(2, "month");
   const totalDays = endDate.diff(birthDate, "day");
-  const ageMonthsTotal = today.diff(birthDate, "month");
 
-  // Min-width proportional to age shown
   const totalMonths = endDate.diff(birthDate, "month");
   const minWidth = Math.max(600, Math.ceil(totalMonths * 14));
   const svgWidth = Math.max(containerW, minWidth);
 
   const hasHeightData = heightMeasurements.length > 0;
   const silhouetteMaxH = 120;
-  // axisY: vertical position of the timeline axis line
-  // Needs enough space for: exam labels (staggered at examY-20 and examY-33 above examY=axisY-28)
-  // Min needed: axisY - 28 - 33 = axisY - 61 >= 10 → axisY >= 71
-  // When no height data, just reserve space for exam labels + today text
   const axisY = hasHeightData ? silhouetteMaxH + 60 : 80;
   const pad = { left: 48, right: 32, top: 10, bottom: 60 };
   const usableW = svgWidth - pad.left - pad.right;
@@ -205,124 +98,67 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
 
   const todayX = dateToX(today);
 
-  // 6-month ticks with actual date labels
   const sixMonthTicks = [];
   for (let m = 0; m <= totalMonths + 6; m += 6) {
     const td = birthDate.add(m, "month");
     if (td.isAfter(endDate.add(1, "day"))) break;
-    const label =
-      m === 0
-        ? strings.born || "Birth"
-        : `${td.format("DD.MM.YY")} (${m} months)`;
-    sixMonthTicks.push({ x: dateToX(td), label });
+    sixMonthTicks.push({ x: dateToX(td), label: m === 0 ? (strings.born || "Birth") : `${td.format("DD.MM.YY")} (${m}m)` });
   }
 
-  // Silhouette reference height
-  const maxMeasuredCm = heightMeasurements.length
-    ? Math.max(...heightMeasurements.map((h) => h.cm))
-    : 0;
+  const maxMeasuredCm = heightMeasurements.length ? Math.max(...heightMeasurements.map((h) => h.cm)) : 0;
   const refCm = Math.max(maxMeasuredCm, 60);
   const gender = childDetail.gender || "unknown";
 
   return (
-    <div ref={containerRef} style={{ width: "100%", overflowX: "auto" }}>
+    <div ref={containerRef} className="w-full overflow-x-auto custom-scrollbar pb-6 pt-4">
       <svg width={svgWidth} height={svgH} style={{ display: "block", minWidth }}>
-        {/* Main axis */}
-        <line x1={pad.left} y1={axisY} x2={pad.left + usableW} y2={axisY} stroke="#555" strokeWidth={1.5} />
+        
+        <line x1={pad.left} y1={axisY} x2={pad.left + usableW} y2={axisY} stroke="#475569" strokeWidth={2} />
 
-        {/* 6-month ticks + labels */}
         {sixMonthTicks.map((t, i) => (
           <g key={i}>
-            <line x1={t.x} y1={axisY - 8} x2={t.x} y2={axisY + 8} stroke="#888" strokeWidth={1} />
-            <text
-              x={t.x}
-              y={axisY + 22}
-              textAnchor="middle"
-              fontSize={i === 0 ? 11 : 10}
-              fill="#888"
-              transform={i > 0 ? `rotate(-35, ${t.x}, ${axisY + 22})` : undefined}
-            >
+            <line x1={t.x} y1={axisY - 8} x2={t.x} y2={axisY + 8} stroke="#64748b" strokeWidth={1} />
+            <text x={t.x} y={axisY + 22} textAnchor="middle" fontSize={10} fill="#94a3b8" transform={i > 0 ? `rotate(-30, ${t.x}, ${axisY + 22})` : undefined}>
               {t.label}
             </text>
           </g>
         ))}
 
-        {/* Today marker */}
         <g>
-          <line x1={todayX} y1={pad.top} x2={todayX} y2={axisY + 44} stroke="#4db6ff" strokeWidth={1} strokeDasharray="4,3" />
-          <text x={todayX} y={Math.max(axisY - silhouetteMaxH - 6, pad.top + 12)} textAnchor="middle" fontSize={10} fill="#4db6ff">{strings.today || "Today"}</text>
+          <line x1={todayX} y1={pad.top} x2={todayX} y2={axisY + 44} stroke="#38bdf8" strokeWidth={1} strokeDasharray="4,4" className="drop-shadow-[0_0_4px_rgba(56,189,248,0.5)]" />
+          <text x={todayX} y={Math.max(axisY - silhouetteMaxH - 6, pad.top + 12)} textAnchor="middle" fontSize={10} fill="#38bdf8" fontWeight="bold">{strings.today || "Today"}</text>
         </g>
 
-        {/* Silhouettes at each height measurement — bottom-anchored to axis */}
         {heightMeasurements.map((h, i) => {
           const hPx = (h.cm / refCm) * silhouetteMaxH;
-          const scale = hPx / 100;
-          const silW = 32 * scale;
           const cx = dateToX(h.date);
           const alpha = 0.22 + (i / Math.max(heightMeasurements.length - 1, 1)) * 0.58;
-          const silTop = axisY - hPx;
-          const ageAtMeasure = dayjs(h.date).diff(birthDate, "month");
-          return (
-            <Tooltip key={i} title={`${Math.round(h.cm)} cm — ${dayjs(h.date).format("DD.MM.YYYY")}`}>
-              <g style={{ cursor: "default" }}>
-                <g transform={`translate(${cx - silW / 2}, ${silTop})`}>
-                  <ChildSilhouette
-                    heightPx={hPx}
-                    color={`rgba(77,182,255,${alpha.toFixed(2)})`}
-                    ageMonths={ageAtMeasure}
-                    gender={gender}
-                  />
-                </g>
-                <text x={cx} y={silTop - 4} textAnchor="middle" fontSize={9} fill="#4db6ff">
-                  {Math.round(h.cm)} cm
-                </text>
-              </g>
-            </Tooltip>
-          );
+          return <NeonSilhouette key={i} heightPx={hPx} cx={cx} cy={axisY} label={`${Math.round(h.cm)} cm`} gender={gender} alpha={alpha} />;
         })}
 
-        {/* Examination markers (above axis) */}
         {examinationMarkers.map((exam, i) => {
           const midDays = (exam.ageMinDays + exam.ageMaxDays) / 2;
           const ex = pad.left + (Math.min(midDays, totalDays) / totalDays) * usableW;
-          const color = STATUS_COLOR[exam.status] || "#888";
+          const color = STATUS_COLOR[exam.status] || "#64748b";
+          const yOffset = i % 2 === 0 ? examY - 20 : examY - 33;
           return (
-            <g key={i} style={{ cursor: "pointer" }} onClick={() => (window.location.href = exam.url)}>
+            <g key={`exam-${i}`} style={{ cursor: "pointer" }} onClick={() => (window.location.href = exam.url)}>
               <line x1={ex} y1={examY} x2={ex} y2={axisY} stroke={color} strokeWidth={1} strokeDasharray="2,2" />
-              <polygon
-                points={`${ex},${examY - 8} ${ex + 6},${examY} ${ex},${examY + 8} ${ex - 6},${examY}`}
-                fill={color}
-                opacity={0.85}
-              />
-              <title>{exam.code} — {exam.name} ({exam.status})</title>
+              <polygon points={`${ex},${examY - 8} ${ex + 6},${examY} ${ex},${examY + 8} ${ex - 6},${examY}`} fill={color} opacity={0.3} stroke={color} />
+              <text x={ex} y={yOffset} textAnchor="middle" fontSize={9} fill={color} fontWeight="bold">{exam.code}</text>
             </g>
           );
         })}
 
-        {/* Examination code labels (staggered) */}
-        {examinationMarkers.map((exam, i) => {
-          const midDays = (exam.ageMinDays + exam.ageMaxDays) / 2;
-          const ex = pad.left + (Math.min(midDays, totalDays) / totalDays) * usableW;
-          const color = STATUS_COLOR[exam.status] || "#888";
-          const yOffset = i % 2 === 0 ? examY - 20 : examY - 33;
-          return (
-            <text key={i} x={ex} y={yOffset} textAnchor="middle" fontSize={9} fill={color} fontWeight="600">
-              {exam.code}
-            </text>
-          );
-        })}
-
-        {/* Milestone markers (below axis) */}
         {milestones.map((m, i) => {
           const mx = dateToX(m.date);
-          const color = MILESTONE_COLOR[m.type] || "#4db6ff";
+          const color = MILESTONE_COLOR[m.type] || "#38bdf8";
           const yOff = milestoneY + (i % 2) * 20;
           return (
-            <g key={i} style={{ cursor: "pointer" }} onClick={() => (window.location.href = m.editUrl)}>
+            <g key={`ms-${i}`} style={{ cursor: "pointer" }} onClick={() => (window.location.href = m.editUrl)}>
               <line x1={mx} y1={axisY} x2={mx} y2={yOff - 5} stroke={color} strokeWidth={1} strokeDasharray="2,2" />
-              <circle cx={mx} cy={yOff} r={5} fill={color} opacity={0.85} />
-              <text x={mx} y={yOff + 15} textAnchor="middle" fontSize={9} fill={color}>{m.title}</text>
-              <title>{m.title}</title>
+              <circle cx={mx} cy={yOff} r={4} fill={color} className={`drop-shadow-[0_0_6px_${color}]`} />
+              <text x={mx} y={yOff + 14} textAnchor="middle" fontSize={9} fill={color}>{m.title}</text>
             </g>
           );
         })}
@@ -331,7 +167,6 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
 export function ChildProfileTimelinePage({ bootstrap }) {
   const {
     childDetail = {},
@@ -345,9 +180,8 @@ export function ChildProfileTimelinePage({ bootstrap }) {
 
   const [milestones, setMilestones] = useState(initialMilestones);
 
-  const birthDate = childDetail.birthDate ? dayjs(childDetail.birthDate) : null;
-
   async function handleDeleteMilestone(id) {
+    if (!window.confirm(strings.delete || "Delete this milestone?")) return;
     const m = milestones.find((x) => x.id === id);
     if (!m) return;
     await fetch(m.deleteUrl, {
@@ -359,339 +193,53 @@ export function ChildProfileTimelinePage({ bootstrap }) {
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px 12px 80px" }}>
-      {/* Timeline SVG */}
-      <Card
-        size="small"
-        style={{ marginBottom: 16 }}
-        styles={{ body: { padding: "8px 4px" } }}
-      >
-        <TimelineSVG
-          childDetail={childDetail}
-          heightMeasurements={heightMeasurements}
-          examinationMarkers={examinationMarkers}
-          milestones={milestones}
-          strings={strings}
-        />
-      </Card>
+    <div className="flex flex-col gap-6 w-full max-w-[1200px] mx-auto pb-10">
+      
+      <div className="glass-card p-6 border border-white/5">
+        <TimelineSVG childDetail={childDetail} heightMeasurements={heightMeasurements} examinationMarkers={examinationMarkers} milestones={milestones} strings={strings} />
+      </div>
 
-      {/* Milestones list */}
-      <Card
-        size="small"
-        title={strings.milestones || "Milestones"}
-        extra={
-          <Button type="primary" size="small" icon={<PlusOutlined />} href={urls.addMilestone}>
-            {strings.addMilestone || "Add"}
-          </Button>
-        }
-      >
-        {milestones.length === 0 ? (
-          <Text type="secondary">{strings.noData || "No milestones recorded yet."}</Text>
-        ) : (
-          <Space direction="vertical" size={4} style={{ width: "100%" }}>
-            {milestones.map((m) => (
-              <div
-                key={m.id}
-                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0" }}
-              >
-                <Space size={8}>
-                  <span style={{ color: MILESTONE_COLOR[m.type] || "#4db6ff", fontSize: 16 }}>
-                    {MILESTONE_ICON[m.type] || <StarOutlined />}
-                  </span>
-                  <div>
-                    <Text strong style={{ fontSize: 13 }}>{m.title}</Text>
-                    <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
-                      {dayjs(m.date).format("DD.MM.YYYY")}
-                    </Text>
-                  </div>
-                </Space>
-                <Space size={4}>
-                  <Button type="text" size="small" icon={<EditOutlined />} href={m.editUrl} style={{ color: "#4db6ff" }} />
-                  <Popconfirm
-                    title={strings.delete || "Delete this milestone?"}
-                    onConfirm={() => handleDeleteMilestone(m.id)}
-                    okButtonProps={{ danger: true, size: "small" }}
-                    cancelButtonProps={{ size: "small" }}
-                  >
-                    <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-                  </Popconfirm>
-                </Space>
-              </div>
-            ))}
-          </Space>
-        )}
-      </Card>
+      <div className="glass-card p-6 flex flex-col">
+          <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/5">
+            <h3 className="text-xl font-bold tracking-tight text-white">{strings.milestones || "Milestones"}</h3>
+            <a href={urls.addMilestone} className="bg-sky-500/20 border border-sky-500/50 text-sky-400 px-4 py-2 rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(56,189,248,0.2)] hover:bg-sky-500/30 hover:scale-105 transition-all flex items-center gap-2">
+              <Plus size={16} /> {strings.addMilestone || "Add"}
+            </a>
+          </div>
+          
+          <div className="flex flex-col gap-4">
+             {milestones.length === 0 ? (
+               <p className="text-slate-500">{strings.noData || "No milestones recorded yet."}</p>
+             ) : milestones.map((m) => {
+               const IconComponent = MILESTONE_ICON[m.type] || <Star size={16} />;
+               const colorId = MILESTONE_COLOR[m.type] || "#38bdf8";
+
+               return (
+                 <div key={m.id} className="flex justify-between items-center p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
+                    <div className="flex items-center gap-4">
+                       <div style={{ color: colorId }} className={`drop-shadow-[0_0_8px_${colorId}]`}>
+                          {IconComponent}
+                       </div>
+                       <div>
+                         <span className="font-bold text-slate-200">{m.title}</span>
+                         <span className="text-slate-500 text-sm ml-3 text-xs">{dayjs(m.date).format("DD.MM.YYYY")}</span>
+                       </div>
+                    </div>
+                    <div className="flex gap-2">
+                       <a href={m.editUrl} className="text-sky-400 p-2 hover:bg-sky-500/20 rounded-lg transition-colors"><Edit2 size={16} /></a>
+                       <button onClick={() => handleDeleteMilestone(m.id)} className="text-rose-400 p-2 hover:bg-rose-500/20 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                    </div>
+                 </div>
+               );
+             })}
+          </div>
+      </div>
     </div>
   );
 }
 
-// ── General Growth / Percentile Page ────────────────────────────────────────
-
-const PERC_COLORS = {
-  p3:  { stroke: "#666", dash: "4,3", label: "P3" },
-  p15: { stroke: "#4db6ff", dash: "3,2", label: "P15" },
-  p50: { stroke: "#52c41a", dash: null, label: "P50" },
-  p85: { stroke: "#4db6ff", dash: "3,2", label: "P85" },
-  p97: { stroke: "#666", dash: "4,3", label: "P97" },
-};
-
-function PercentileChart({ title, percData, measurements, birthDate, yLabel, color = "#ffd666" }) {
-  const containerRef = useRef(null);
-  const [containerW, setContainerW] = useState(600);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setContainerW(el.clientWidth || 600));
-    ro.observe(el);
-    setContainerW(el.clientWidth || 600);
-    return () => ro.disconnect();
-  }, []);
-
-  if (!percData || percData.length === 0) return null;
-
-  const birth = dayjs(birthDate);
-  const svgW = containerW;
-  const svgH = 260;
-  const pad = { left: 52, right: 20, top: 16, bottom: 44 };
-  const usableW = svgW - pad.left - pad.right;
-  const usableH = svgH - pad.top - pad.bottom;
-
-  // X domain: 0 to max days in percentile data
-  const maxDays = percData[percData.length - 1].days;
-  const maxMonths = Math.ceil(maxDays / 30.44);
-
-  // Y domain: min p3 to max p97
-  const allValues = percData.flatMap((r) => [r.p3, r.p97]);
-  const measValues = measurements.map((m) => m.value);
-  const yMin = Math.floor(Math.min(...allValues, ...measValues) * 0.97);
-  const yMax = Math.ceil(Math.max(...allValues, ...measValues) * 1.02);
-
-  function xScale(days) {
-    return pad.left + (days / maxDays) * usableW;
-  }
-  function yScale(val) {
-    return pad.top + usableH - ((val - yMin) / (yMax - yMin)) * usableH;
-  }
-
-  function polyline(key) {
-    return percData.map((r) => `${xScale(r.days).toFixed(1)},${yScale(r[key]).toFixed(1)}`).join(" ");
-  }
-
-  // X-axis ticks: every 6 months
-  const xTicks = [];
-  for (let m = 0; m <= maxMonths; m += 6) {
-    const days = m * 30.44;
-    if (days > maxDays + 15) break;
-    xTicks.push({ x: xScale(days), label: m === 0 ? "0" : `${m}m` });
-  }
-
-  // Y-axis ticks: ~5 ticks
-  const yStep = Math.ceil((yMax - yMin) / 5 / 5) * 5;
-  const yTicks = [];
-  for (let v = Math.ceil(yMin / yStep) * yStep; v <= yMax; v += yStep) {
-    yTicks.push({ y: yScale(v), label: v });
-  }
-
-  // Shade band between p15 and p85
-  const bandPoints =
-    percData.map((r) => `${xScale(r.days).toFixed(1)},${yScale(r.p85).toFixed(1)}`).join(" ") +
-    " " +
-    [...percData].reverse().map((r) => `${xScale(r.days).toFixed(1)},${yScale(r.p15).toFixed(1)}`).join(" ");
-
-  return (
-    <div ref={containerRef} style={{ width: "100%" }}>
-      <div style={{ marginBottom: 4, fontWeight: 600, fontSize: 13 }}>{title}</div>
-      <svg width={svgW} height={svgH} style={{ display: "block" }}>
-        {/* P15–P85 shaded band */}
-        <polygon points={bandPoints} fill={color} opacity={0.10} />
-
-        {/* Percentile curves */}
-        {["p3", "p15", "p50", "p85", "p97"].map((k) => {
-          const cfg = PERC_COLORS[k];
-          return (
-            <polyline
-              key={k}
-              points={polyline(k)}
-              fill="none"
-              stroke={cfg.stroke}
-              strokeWidth={k === "p50" ? 1.5 : 1}
-              strokeDasharray={cfg.dash || undefined}
-              opacity={0.7}
-            />
-          );
-        })}
-
-        {/* Measurement dots */}
-        {measurements.map((m, i) => {
-          const ageDays = dayjs(m.date).diff(birth, "day");
-          const cx = xScale(ageDays);
-          const cy = yScale(m.value);
-          return (
-            <Tooltip key={i} title={`${m.value} ${yLabel} — ${dayjs(m.date).format("DD.MM.YYYY")}`}>
-              <circle cx={cx} cy={cy} r={4} fill={color} stroke="#fff" strokeWidth={1} style={{ cursor: "default" }} />
-            </Tooltip>
-          );
-        })}
-        {/* Connect measurement dots */}
-        {measurements.length > 1 && (
-          <polyline
-            points={measurements
-              .map((m) => {
-                const ageDays = dayjs(m.date).diff(birth, "day");
-                return `${xScale(ageDays).toFixed(1)},${yScale(m.value).toFixed(1)}`;
-              })
-              .join(" ")}
-            fill="none"
-            stroke={color}
-            strokeWidth={1.5}
-            opacity={0.8}
-          />
-        )}
-
-        {/* X-axis */}
-        <line x1={pad.left} y1={pad.top + usableH} x2={pad.left + usableW} y2={pad.top + usableH} stroke="#555" strokeWidth={1} />
-        {xTicks.map((t, i) => (
-          <g key={i}>
-            <line x1={t.x} y1={pad.top + usableH} x2={t.x} y2={pad.top + usableH + 4} stroke="#666" />
-            <text x={t.x} y={pad.top + usableH + 16} textAnchor="middle" fontSize={10} fill="#888">{t.label}</text>
-          </g>
-        ))}
-
-        {/* Y-axis */}
-        <line x1={pad.left} y1={pad.top} x2={pad.left} y2={pad.top + usableH} stroke="#555" strokeWidth={1} />
-        {yTicks.map((t, i) => (
-          <g key={i}>
-            <line x1={pad.left - 4} y1={t.y} x2={pad.left} y2={t.y} stroke="#666" />
-            <text x={pad.left - 6} y={t.y + 4} textAnchor="end" fontSize={10} fill="#888">{t.label}</text>
-          </g>
-        ))}
-
-        {/* Percentile labels at right edge */}
-        {["p3", "p15", "p50", "p85", "p97"].map((k) => {
-          const last = percData[percData.length - 1];
-          const cfg = PERC_COLORS[k];
-          return (
-            <text key={k} x={pad.left + usableW + 3} y={yScale(last[k]) + 4} fontSize={9} fill={cfg.stroke}>
-              {cfg.label}
-            </text>
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
+// Minimal fallback for General Page during transition
 export function ChildGeneralPage({ bootstrap }) {
-  const {
-    childDetail = {},
-    heights = [],
-    weights = [],
-    bmiEntries = [],
-    heightPercentiles = [],
-    weightPercentiles = [],
-    strings = {},
-    urls = {},
-  } = bootstrap;
-
-  const birthDate = childDetail.birthDate;
-
-  const heightMeas = heights.map((h) => ({ date: h.date, value: h.cm }));
-  const weightMeas = weights.map((w) => ({ date: w.date, value: w.kg }));
-  const bmiMeas = bmiEntries.map((b) => ({ date: b.date, value: b.bmi }));
-
-  const heightColumns = [
-    { title: strings.date || "Date", dataIndex: "date", key: "date", render: (v) => dayjs(v).format("DD.MM.YYYY") },
-    { title: strings.cm || "cm", dataIndex: "cm", key: "cm", render: (v) => v.toFixed(1) },
-  ];
-  const weightColumns = [
-    { title: strings.date || "Date", dataIndex: "date", key: "date", render: (v) => dayjs(v).format("DD.MM.YYYY") },
-    { title: strings.kg || "kg", dataIndex: "kg", key: "kg", render: (v) => v.toFixed(2) },
-  ];
-  const bmiColumns = [
-    { title: strings.date || "Date", dataIndex: "date", key: "date", render: (v) => dayjs(v).format("DD.MM.YYYY") },
-    { title: "BMI", dataIndex: "bmi", key: "bmi" },
-  ];
-
-  const tabItems = [
-    {
-      key: "height",
-      label: strings.height || "Height",
-      children: (
-        <Space direction="vertical" style={{ width: "100%" }} size={16}>
-          {birthDate && heightPercentiles.length > 0 && (
-            <PercentileChart
-              title={`${strings.height || "Height"} (cm) — ${strings.percentiles || "Percentiles"}`}
-              percData={heightPercentiles}
-              measurements={heightMeas}
-              birthDate={birthDate}
-              yLabel="cm"
-              color="#4db6ff"
-            />
-          )}
-          <Table
-            dataSource={heights}
-            columns={heightColumns}
-            rowKey="date"
-            size="small"
-            pagination={false}
-            locale={{ emptyText: strings.noData || "No data" }}
-          />
-        </Space>
-      ),
-    },
-    {
-      key: "weight",
-      label: strings.weight || "Weight",
-      children: (
-        <Space direction="vertical" style={{ width: "100%" }} size={16}>
-          {birthDate && weightPercentiles.length > 0 && (
-            <PercentileChart
-              title={`${strings.weight || "Weight"} (kg) — ${strings.percentiles || "Percentiles"}`}
-              percData={weightPercentiles}
-              measurements={weightMeas}
-              birthDate={birthDate}
-              yLabel="kg"
-              color="#69b1ff"
-            />
-          )}
-          <Table
-            dataSource={weights}
-            columns={weightColumns}
-            rowKey="date"
-            size="small"
-            pagination={false}
-            locale={{ emptyText: strings.noData || "No data" }}
-          />
-        </Space>
-      ),
-    },
-    {
-      key: "bmi",
-      label: "BMI",
-      children: (
-        <Space direction="vertical" style={{ width: "100%" }} size={16}>
-          {bmiEntries.length === 0 ? (
-            <Typography.Text type="secondary">{strings.noData || "No data recorded yet."}</Typography.Text>
-          ) : (
-            <Table
-              dataSource={bmiEntries}
-              columns={bmiColumns}
-              rowKey="date"
-              size="small"
-              pagination={false}
-            />
-          )}
-        </Space>
-      ),
-    },
-  ];
-
-  return (
-    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "16px 12px 80px" }}>
-      <Card size="small">
-        <Tabs items={tabItems} />
-      </Card>
-    </div>
-  );
+  const s = bootstrap.strings || {};
+  return <div className="p-8 text-slate-400 text-center glass-card">Child General Page (Pending Tailwind Port)</div>;
 }
