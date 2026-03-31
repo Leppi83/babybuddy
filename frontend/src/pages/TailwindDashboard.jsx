@@ -1,6 +1,7 @@
 import React from 'react';
 import { Moon, Droplet, Utensils, Activity, MoreHorizontal, Plus, Baby } from 'lucide-react';
 import dayjs from "dayjs";
+import ActivityDial from '../components/ActivityDial';
 
 function StatCard({ title, value, subtitle, icon, color, bg, border, href }) {
   return (
@@ -82,10 +83,24 @@ export function ChildDashboardPage({ bootstrap }) {
               <h3 className="text-xl font-bold tracking-tight text-white">{s.dailySummary || "Daily Summary"}</h3>
               <button className="text-slate-400 hover:text-white"><MoreHorizontal /></button>
            </div>
-           <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/10 rounded-2xl w-full h-full p-10 text-center">
-              <Activity size={48} className="text-sky-500/50 mb-4" />
-              <p className="text-slate-300 font-semibold mb-2">Activity Dial Integration</p>
-              <p className="text-slate-500 text-sm max-w-sm">The complex D3.js activity dial will be ported into this glowing container during Data Expansion.</p>
+           <div className="flex-1 flex flex-col items-center justify-center w-full">
+              <ActivityDial
+                activities={bootstrap.dialActivities || []}
+                bedtime={bootstrap.bedtime}
+                currentStatus={bootstrap.quickStatus?.activeSleepTimer ? `Sleeping ${bootstrap.quickStatus.activeSleepTimer}` : bootstrap.quickStatus?.lastSleep ? `Awake since ${bootstrap.quickStatus.lastSleep}` : ""}
+                insights={bootstrap.insights || []}
+                referenceDate={null}
+                sunriseHour={bootstrap.celestial?.sunriseHour ?? 6}
+                sunsetHour={bootstrap.celestial?.sunsetHour ?? 18}
+                weatherCondition={bootstrap.celestial?.weatherCondition ?? "sunny"}
+                strings={{
+                  sleep: s.sleepLabel || "Sleep",
+                  feed: s.feedingLabel || "Feed",
+                  breast: s.breastfeedingShort || "Breast",
+                  diaper: s.diaperLabel || "Diaper",
+                  pump: s.pumpingShort || "Pump",
+                }}
+              />
            </div>
          </div>
 

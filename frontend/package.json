@@ -11,8 +11,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@ant-design/icons": "^6.1.0",
-    "antd": "^6.3.1",
     "autoprefixer": "^10.4.27",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.19",

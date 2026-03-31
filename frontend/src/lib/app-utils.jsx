@@ -3,21 +3,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import React from "react";
 
 dayjs.extend(customParseFormat);
-import {
-  Avatar,
-  Button,
-  Checkbox,
-  DatePicker,
-  Input,
-  Radio,
-  Select,
-  Space,
-  Tag,
-  TimePicker,
-  Typography,
-} from "antd";
-
-const { Text } = Typography;
+// Ant Design fully removed and replaced with Tailwind CSS native components
 
 export const SECTION_META = {
   quick_entry: { color: "var(--app-primary)" },
@@ -191,34 +177,37 @@ export function extractScriptContent(scriptMarkup) {
 
 export function renderListCell(cell) {
   if (cell == null || cell === "") {
-    return <Text type="secondary">-</Text>;
+    return <span className="text-slate-500">-</span>;
   }
   if (typeof cell === "object" && cell.type === "link") {
-    return <a href={cell.href}>{cell.label}</a>;
+    return <a href={cell.href} className="text-sky-400 hover:text-sky-300 font-medium transition-colors">{cell.label}</a>;
   }
   if (typeof cell === "object" && cell.type === "image") {
-    return <Avatar src={cell.src} shape="circle" size={40} />;
+    return <img src={cell.src} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-slate-700" />;
   }
   if (typeof cell === "object" && cell.type === "status") {
-    return <Tag color={cell.status || "default"}>{cell.label}</Tag>;
+    return <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-slate-800 border border-slate-600 shadow-sm ${cell.color === 'red' ? 'text-rose-400' : 'text-slate-300'}`}>{cell.label}</span>;
   }
   if (typeof cell === "object" && cell.type === "actions") {
     return (
-      <Space wrap>
+      <div className="flex flex-wrap gap-2">
         {(cell.items || []).filter(Boolean).map((item) => (
-          <Button
+          <a
             key={`${item.label}-${item.href}`}
             href={item.href}
-            size="small"
-            danger={Boolean(item.danger)}
+            className={`px-3 py-1.5 text-sm rounded-lg font-semibold transition-colors border ${
+              item.danger
+                ? "bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20"
+                : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white"
+            }`}
           >
             {item.label}
-          </Button>
+          </a>
         ))}
-      </Space>
+      </div>
     );
   }
-  return cell;
+  return <span className="text-slate-200">{cell}</span>;
 }
 
 export function buildInitialFormState(fieldsets) {
@@ -284,10 +273,13 @@ export function formatHiddenValue(fieldType, value) {
   return String(value);
 }
 
-export function AntFieldControl({ field, value, onChange }) {
+const inputClassName = "w-full bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors placeholder:text-slate-500";
+
+export function TailwindFieldControl({ field, value, onChange }) {
   if (field.type === "textarea") {
     return (
-      <Input.TextArea
+      <textarea
+        className={inputClassName}
         rows={5}
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -297,93 +289,81 @@ export function AntFieldControl({ field, value, onChange }) {
 
   if (field.type === "select") {
     return (
-      <Select
-        value={value === "" ? undefined : value}
-        options={field.choices}
-        onChange={(nextValue) => onChange(nextValue ?? "")}
-      />
+      <div className="relative">
+        <select
+          className={`${inputClassName} appearance-none cursor-pointer`}
+          value={value === "" ? undefined : value}
+          onChange={(event) => onChange(event.target.value)}
+        >
+          <option value="" disabled hidden>Select an option...</option>
+          {field.choices.map((choice) => (
+            <option key={`${field.name}-${choice.value}`} value={choice.value}>{choice.label}</option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+        </div>
+      </div>
     );
   }
 
   if (field.type === "radio") {
     return (
-      <Radio.Group
-        value={value === "" ? undefined : value}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        <Space wrap>
-          {field.choices.map((choice) => (
-            <Radio.Button
+      <div className="flex flex-wrap gap-3">
+        {field.choices.map((choice) => {
+          const isSelected = value === choice.value;
+          return (
+            <label
               key={`${field.name}-${choice.value}`}
-              value={choice.value}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer border transition-colors ${
+                isSelected 
+                  ? "bg-sky-500/20 border-sky-500/50 text-sky-400" 
+                  : "bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:border-slate-500"
+              }`}
             >
-              {choice.label}
-            </Radio.Button>
-          ))}
-        </Space>
-      </Radio.Group>
+              <input
+                type="radio"
+                name={field.name}
+                className="hidden"
+                value={choice.value}
+                checked={isSelected}
+                onChange={(event) => onChange(event.target.value)}
+              />
+              <span className="text-sm font-bold">{choice.label}</span>
+            </label>
+          )
+        })}
+      </div>
     );
   }
 
   if (field.type === "checkbox") {
     return (
-      <Checkbox
-        checked={Boolean(value)}
-        onChange={(event) => onChange(event.target.checked)}
-      />
+      <label className="flex items-center gap-3 cursor-pointer group w-fit mt-2">
+        <div className="relative flex items-center justify-center">
+          <input
+            type="checkbox"
+            className="peer appearance-none w-6 h-6 border-2 border-slate-600 rounded bg-slate-900/50 checked:bg-sky-500 checked:border-sky-500 focus:outline-none transition-colors"
+            checked={Boolean(value)}
+            onChange={(event) => onChange(event.target.checked)}
+          />
+          <svg className="absolute w-4 h-4 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <span className="text-slate-300 font-medium group-hover:text-white transition-colors select-none">
+          {field.label || "Enable"}
+        </span>
+      </label>
     );
   }
 
-  if (field.type === "date") {
-    return (
-      <DatePicker
-        style={{ width: "100%" }}
-        format="DD.MM.YYYY"
-        value={parsePickerValue("date", value)}
-        onChange={(nextValue) =>
-          onChange(nextValue ? nextValue.format("YYYY-MM-DD") : "")
-        }
-        inputReadOnly
-      />
-    );
-  }
-
-  if (field.type === "time") {
-    return (
-      <TimePicker
-        style={{ width: "100%" }}
-        value={parsePickerValue("time", value)}
-        onChange={(nextValue) =>
-          onChange(nextValue ? nextValue.format("HH:mm:ss") : "")
-        }
-        inputReadOnly
-      />
-    );
-  }
-
-  if (field.type === "datetime-local") {
-    return (
-      <DatePicker
-        style={{ width: "100%" }}
-        showTime
-        format="DD.MM.YYYY HH:mm"
-        value={parsePickerValue("datetime-local", value)}
-        onChange={(nextValue) =>
-          onChange(nextValue ? nextValue.format("YYYY-MM-DDTHH:mm:ss") : "")
-        }
-        inputReadOnly
-      />
-    );
-  }
-
-  if (field.type === "file") {
-    return <input type="file" name={field.name} className="ant-native-input" />;
-  }
-
+  // Ensure HTML5 date/time inputs are correctly formatted strings for display, fallback to empty string
   return (
-    <Input
+    <input
       type={field.type === "tags" ? "text" : field.type}
-      value={value}
+      className={inputClassName}
+      value={value == null ? "" : value}
       onChange={(event) => onChange(event.target.value)}
     />
   );

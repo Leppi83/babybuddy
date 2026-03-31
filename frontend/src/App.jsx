@@ -7,16 +7,15 @@ const DashboardHomePage = lazy(() => import("./pages/TailwindDashboard").then((m
 const TimelinePage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.TimelinePage })));
 const ChildProfileTimelinePage = lazy(() => import("./pages/ProfileTimelinePages").then((m) => ({ default: m.ChildProfileTimelinePage })));
 
-// Fallbacks for unported pages during the Phase 1 Transition
-const SettingsPage = () => <div className="p-8 text-slate-400">Settings Page (Pending Tailwind Port)</div>;
-const WelcomePage = () => <div className="p-8 text-slate-400">Welcome Page (Pending Tailwind Port)</div>;
-const ListPage = () => <div className="p-8 text-slate-400">List Page (Pending Tailwind Port)</div>;
-const MessagePage = () => <div className="p-8 text-slate-400">Message Page (Pending Tailwind Port)</div>;
-const DeviceAccessPage = () => <div className="p-8 text-slate-400">Device Access (Pending Tailwind Port)</div>;
-const AntFormPage = () => <div className="p-8 text-slate-400">Form Page (Pending Tailwind Port)</div>;
-const ReportListPage = () => <div className="p-8 text-slate-400">Report List (Pending Tailwind Port)</div>;
-const ExaminationListPage = () => <div className="p-8 text-slate-400">Examination List (Pending Tailwind Port)</div>;
-const ExaminationFormPage = () => <div className="p-8 text-slate-400">Examination Form (Pending Tailwind Port)</div>;
+const SettingsPage = lazy(() => import("./pages/TailwindDashboard").then((m) => ({ default: m.SettingsPage || (() => <div className="p-8 text-slate-400">Settings Page (Coming Soon)</div>) })));
+const WelcomePage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.WelcomePage })));
+const ListPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.ListPage })));
+const MessagePage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.MessagePage })));
+const DeviceAccessPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.DeviceAccessPage })));
+const AntFormPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.AntFormPage })));
+const ReportListPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.ReportListPage })));
+const ExaminationListPage = () => <div className="p-8 text-slate-400 text-center italic">Examination List (Migrated to General Form UI)</div>;
+const ExaminationFormPage = lazy(() => import("./pages/GeneralPages").then((m) => ({ default: m.AntFormPage })));
 const ChildDashboardPage = lazy(() => import("./pages/TailwindDashboard").then((m) => ({ default: m.ChildDashboardPage }))); // Kept working since it's the default root
 
 function PageFallback() {
