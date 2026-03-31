@@ -353,29 +353,160 @@ export function TimelinePage({ bootstrap }) {
 }
 
 export function DashboardHomePage({ bootstrap }) {
-  return <div className="p-8 text-sky-400">Overridden by TailwindDashboard.jsx</div>;
+  return null; // Overridden by TailwindDashboard.jsx
 }
 
 export function ChildDetailPage({ bootstrap }) {
-  // Using generic GlassCard approach since custom layout is mostly form/actions
+  const child = bootstrap.childDetail;
   return (
-    <div className="p-8 text-slate-400 text-center italic bg-slate-800/30 rounded-xl border border-slate-700">
-      Child Detail View migrated. Functionality relies on Timeline view natively rendering.
+    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto">
+      <GlassCard>
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          {child.pictureUrl ? (
+            <img src={child.pictureUrl} alt={child.name} className="w-32 h-32 rounded-full border-4 border-sky-500/50 object-cover shadow-[0_0_20px_rgba(56,189,248,0.2)]" />
+          ) : (
+             <div className="w-32 h-32 rounded-full border-4 border-slate-700 bg-slate-800 flex items-center justify-center">
+               <span className="text-4xl text-slate-500">{child.name?.[0]}</span>
+             </div>
+          )}
+          <div className="flex-1 text-center md:text-left">
+            <h2 className="text-4xl font-extrabold text-white mb-2">{child.name}</h2>
+            <div className="text-slate-400 font-medium">Born: <span className="text-slate-200">{child.birthDateLabel}</span> {child.ageLabel && `(${child.ageLabel})`}</div>
+          </div>
+          <div className="flex flex-col gap-3 w-full md:w-auto mt-4 md:mt-0">
+             {child.actions?.dashboard && <Button href={child.actions.dashboard} type="primary">{bootstrap.strings.dashboard}</Button>}
+             {child.actions?.edit && <Button href={child.actions.edit}>{bootstrap.strings.edit}</Button>}
+             {child.actions?.timeline && <Button href={child.actions.timeline}>{bootstrap.strings.timeline}</Button>}
+          </div>
+        </div>
+      </GlassCard>
     </div>
   );
 }
 
 export function TagDetailPage({ bootstrap }) {
-  return <div className="p-8 text-slate-400">Tag Detail (Pending Tailwind Port)</div>;
+  const tag = bootstrap.tagDetail;
+  return (
+    <GlassCard title={tag.name}>
+      <div className="flex flex-wrap gap-4 mt-4">
+         {tag.actions?.edit && <Button href={tag.actions.edit} type="primary">{bootstrap.strings.edit}</Button>}
+         {tag.actions?.delete && <Button href={tag.actions.delete} danger>{bootstrap.strings.delete}</Button>}
+      </div>
+    </GlassCard>
+  );
 }
+
 export function TimerDetailPage({ bootstrap }) {
-  return <div className="p-8 text-slate-400">Timer Detail (Pending Tailwind Port)</div>;
+  const timer = bootstrap.timerDetail;
+  return (
+    <GlassCard title={timer.name || "Timer"}>
+      <div className="text-4xl font-mono text-sky-400 font-extrabold py-8 text-center bg-slate-900/40 rounded-xl border border-slate-700">
+         {timer.durationLabel || "00:00"}
+      </div>
+      <div className="flex flex-wrap gap-4 mt-6">
+         {timer.actions?.edit && <Button href={timer.actions.edit} type="primary">{bootstrap.strings.edit}</Button>}
+         {timer.actions?.delete && <Button href={timer.actions.delete} danger>{bootstrap.strings.delete}</Button>}
+      </div>
+    </GlassCard>
+  );
 }
+
 export function ReportListPage({ bootstrap }) {
-  return <div className="p-8 text-slate-400">Report List (Pending)</div>;
+  const reportList = bootstrap.reportList;
+  const entries = reportList.entries || [];
+  
+  const grouped = entries.reduce((acc, entry) => {
+    const cat = entry.category || bootstrap.strings.reports;
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(entry);
+    return acc;
+  }, {});
+
+  return (
+    <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto">
+      <div className="flex justify-between items-center bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+         <h2 className="text-xl font-bold text-slate-200">{bootstrap.strings.reportSummary}</h2>
+         <div className="flex gap-3">
+           {reportList.actions?.dashboard && <Button href={reportList.actions.dashboard}>{bootstrap.strings.dashboard}</Button>}
+           {reportList.actions?.timeline && <Button href={reportList.actions.timeline}>{bootstrap.strings.timeline}</Button>}
+         </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {Object.entries(grouped).map(([category, items]) => (
+          <GlassCard key={category} title={category}>
+            <div className="flex flex-col gap-2">
+              {items.map(item => (
+                <a key={item.href} href={item.href} className="flex justify-between items-center p-4 bg-slate-900/40 hover:bg-slate-800 rounded-xl border border-slate-700 transition-colors group">
+                  <span className="font-semibold text-slate-300 group-hover:text-white transition-colors">{item.title}</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-sky-500 bg-sky-500/10 px-3 py-1.5 rounded-lg group-hover:bg-sky-500 group-hover:text-white transition-colors">
+                    {bootstrap.strings.open || "Open"}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </GlassCard>
+        ))}
+      </div>
+    </div>
+  );
 }
+
 export function ReportDetailPage({ bootstrap }) {
-  return <div className="p-8 text-slate-400">Report Detail (Pending)</div>;
+  const report = bootstrap.reportDetail;
+  const graphRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function renderGraph() {
+      if (!graphRef.current) return;
+      if (!report.html) {
+        graphRef.current.innerHTML = "";
+        return;
+      }
+      await loadScriptOnce(bootstrap.urls.graphJs);
+      if (cancelled || !graphRef.current) return;
+      
+      graphRef.current.innerHTML = report.html;
+      if (window.Plotly && report.plotlyLocale) {
+        window.Plotly.setPlotConfig({ locale: report.plotlyLocale });
+      }
+      const scriptContent = extractScriptContent(report.js).trim();
+      if (scriptContent) {
+        try { new Function(scriptContent)(); } catch (e) { console.error("Report plot failed:", e); }
+      }
+    }
+    renderGraph();
+    return () => {
+      cancelled = true;
+      if (graphRef.current) graphRef.current.innerHTML = "";
+    };
+  }, [bootstrap.urls.graphJs, report.html, report.js, report.plotlyLocale]);
+
+  return (
+    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto">
+      <div className="flex justify-between items-center bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+         <h2 className="text-xl font-bold text-slate-200">{report.childName}</h2>
+         <div className="flex flex-wrap gap-3">
+           {report.actions?.dashboard && <Button href={report.actions.dashboard}>{bootstrap.strings.dashboard}</Button>}
+           {report.actions?.timeline && <Button href={report.actions.timeline}>{bootstrap.strings.timeline}</Button>}
+           {report.actions?.reports && <Button href={report.actions.reports} type="primary">{bootstrap.strings.reports}</Button>}
+         </div>
+      </div>
+      
+      <GlassCard>
+        {report.html ? (
+           <div className="w-full overflow-x-auto overflow-y-hidden rounded-xl bg-white/5 p-4 border border-white/10" style={{ filter: "invert(0.9) hue-rotate(180deg) brightness(0.95)" }}>
+             <div ref={graphRef} className="w-full min-h-[500px]" />
+           </div>
+        ) : (
+           <div className="py-24 text-center italic text-slate-500 font-medium">
+             {bootstrap.strings.noReportData || "No data available for this report"}
+           </div>
+        )}
+      </GlassCard>
+    </div>
+  );
 }
 export function QuickEntryPage({ bootstrap }) {
   return <QuickEntryCard bootstrap={bootstrap} />;

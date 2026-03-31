@@ -1,7 +1,8 @@
-import React from 'react';
-import { Moon, Droplet, Utensils, Activity, MoreHorizontal, Plus, Baby } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Moon, Droplet, Utensils, Activity, MoreHorizontal, Plus, Baby, Save } from 'lucide-react';
 import dayjs from "dayjs";
 import ActivityDial from '../components/ActivityDial';
+import { createApiClient } from '../lib/app-utils';
 
 function StatCard({ title, value, subtitle, icon, color, bg, border, href }) {
   return (
@@ -167,6 +168,155 @@ export function DashboardHomePage({ bootstrap }) {
            ))}
         </div>
       )}
+    </div>
+  );
+}
+
+const inputClass = "w-full bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-sky-500 transition-colors";
+
+export function SettingsPage({ bootstrap }) {
+  const s = bootstrap.strings || {};
+  const api = useRef(createApiClient(bootstrap.csrfToken));
+  const [form, setForm] = useState({
+    first_name: bootstrap.settings?.profile?.firstName || "",
+    last_name: bootstrap.settings?.profile?.lastName || "",
+    email: bootstrap.settings?.profile?.email || "",
+    language: bootstrap.settings?.preferences?.language || "",
+    timezone: bootstrap.settings?.preferences?.timezone || "",
+    pagination_count: bootstrap.settings?.preferences?.paginationCount || "",
+    dashboard_refresh_rate: bootstrap.settings?.dashboard?.refreshRate || "",
+    dashboard_hide_age: bootstrap.settings?.dashboard?.hideAge || false,
+    dashboard_hide_empty: bootstrap.settings?.dashboard?.hideEmpty || false,
+    llm_provider: bootstrap.settings?.ai?.provider || "none",
+    llm_model: bootstrap.settings?.ai?.model || "",
+    llm_base_url: bootstrap.settings?.ai?.baseUrl || "",
+    llm_api_key: ""
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  const showMessage = (text, isError = false) => {
+    setMessage({ text, isError });
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  async function saveSettings(e) {
+    if (e) e.preventDefault();
+    setSaving(true);
+    const payload = new URLSearchParams();
+    payload.set("action", "autosave_all_settings");
+    Object.keys(form).forEach(key => {
+      if (typeof form[key] === "boolean") {
+        if (form[key]) payload.set(key, "on");
+      } else {
+        payload.set(key, form[key]);
+      }
+    });
+
+    try {
+      const response = await api.current.postForm(bootstrap.urls.self, payload);
+      const data = await response.json();
+      if (data.ok) showMessage(s.saved || "Settings saved successfully");
+      else showMessage(data.error || "Save failed", true);
+    } catch {
+      showMessage("Save failed", true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const updateField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+  const choiceOptions = (key) => bootstrap.settings?.choices?.[key] || [];
+
+  return (
+    <div className="flex flex-col gap-8 pb-10 max-w-4xl mx-auto w-full mt-4">
+      <header className="glass-panel p-8 md:p-10 rounded-[32px] flex justify-between items-center relative overflow-hidden">
+         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4"></div>
+         <div className="z-10">
+           <p className="text-emerald-400 font-semibold tracking-widest text-xs uppercase mb-2">Preferences</p>
+           <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">{s.settings || "Settings"}</h2>
+         </div>
+         <div className="z-10">
+           <button onClick={saveSettings} disabled={saving} className="bg-emerald-500 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:bg-emerald-400 transition-all flex items-center gap-2 disabled:opacity-50">
+             <Save size={16} /> {saving ? "Saving..." : (s.save || "Save")}
+           </button>
+         </div>
+      </header>
+
+      {message && (
+        <div className={`p-4 rounded-xl font-bold border ${message.isError ? "bg-rose-500/10 text-rose-400 border-rose-500/30" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"}`}>
+          {message.text}
+        </div>
+      )}
+
+      <form onSubmit={saveSettings} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="glass-card p-6 md:col-span-2">
+          <h3 className="text-xl font-bold text-white mb-6">Profile</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="text-sm font-bold text-slate-400 mb-2 block">{s.firstName || "First Name"}</label>
+              <input type="text" className={inputClass} value={form.first_name} onChange={e => updateField("first_name", e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-bold text-slate-400 mb-2 block">{s.lastName || "Last Name"}</label>
+              <input type="text" className={inputClass} value={form.last_name} onChange={e => updateField("last_name", e.target.value)} />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-sm font-bold text-slate-400 mb-2 block">{s.email || "Email"}</label>
+              <input type="email" className={inputClass} value={form.email} onChange={e => updateField("email", e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-card p-6">
+          <h3 className="text-xl font-bold text-white mb-6">Preferences</h3>
+          <div className="flex flex-col gap-6">
+            <div>
+              <label className="text-sm font-bold text-slate-400 mb-2 block">{s.language || "Language"}</label>
+              <select className={inputClass} value={form.language} onChange={e => updateField("language", e.target.value)}>
+                {choiceOptions("language").map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-bold text-slate-400 mb-2 block">{s.timezone || "Timezone"}</label>
+              <select className={inputClass} value={form.timezone} onChange={e => updateField("timezone", e.target.value)}>
+                {choiceOptions("timezone").map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-bold text-slate-400 mb-2 block">Pagination Count</label>
+              <input type="number" className={inputClass} value={form.pagination_count} onChange={e => updateField("pagination_count", e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-card p-6">
+          <h3 className="text-xl font-bold text-white mb-6">Dashboard</h3>
+          <div className="flex flex-col gap-6">
+            <div>
+              <label className="text-sm font-bold text-slate-400 mb-2 block">Refresh Rate</label>
+              <select className={inputClass} value={form.dashboard_refresh_rate} onChange={e => updateField("dashboard_refresh_rate", e.target.value)}>
+                {choiceOptions("dashboard_refresh_rate").map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer group mt-2 w-fit">
+              <div className="relative flex items-center justify-center">
+                <input type="checkbox" className="peer appearance-none w-6 h-6 border-2 border-slate-600 rounded bg-slate-900/50 checked:bg-sky-500 checked:border-sky-500 focus:outline-none transition-colors" checked={form.dashboard_hide_age} onChange={e => updateField("dashboard_hide_age", e.target.checked)} />
+                <svg className="absolute w-4 h-4 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+              </div>
+              <span className="text-slate-300 font-medium group-hover:text-white transition-colors select-none">Hide Age</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer group w-fit">
+              <div className="relative flex items-center justify-center">
+                <input type="checkbox" className="peer appearance-none w-6 h-6 border-2 border-slate-600 rounded bg-slate-900/50 checked:bg-sky-500 checked:border-sky-500 focus:outline-none transition-colors" checked={form.dashboard_hide_empty} onChange={e => updateField("dashboard_hide_empty", e.target.checked)} />
+                <svg className="absolute w-4 h-4 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+              </div>
+              <span className="text-slate-300 font-medium group-hover:text-white transition-colors select-none">Hide Empty Sections</span>
+            </label>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }
