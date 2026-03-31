@@ -51,101 +51,92 @@ const MILESTONE_COLOR = {
 
 // ── Age-appropriate silhouette SVGs ──────────────────────────────────────────
 // All drawn in a 32×100 normalized coordinate space, then scaled.
+// Uses only rect/circle/ellipse primitives with overlapping connections to avoid render gaps.
 
 function SwaddledBaby({ scale, color }) {
-  // 0–6 months: round head + cocoon bundle body
+  // 0–6 months: round head + oval swaddle bundle, no visible limbs
   return (
     <g transform={`scale(${scale})`}>
-      {/* Head */}
-      <ellipse cx={16} cy={13} rx={10} ry={11} fill={color} />
-      {/* Swaddle bundle */}
-      <path
-        d="M 6 23 Q 2 36 2 52 Q 2 72 16 75 Q 30 72 30 52 Q 30 36 26 23 Z"
-        fill={color}
-      />
-      {/* Wrap crease lines */}
-      <path d="M 5 40 Q 16 44 27 40" stroke={color} strokeWidth={1.5} fill="none" opacity={0.6} />
-      <path d="M 4 54 Q 16 58 28 54" stroke={color} strokeWidth={1.5} fill="none" opacity={0.6} />
+      <ellipse cx={16} cy={14} rx={10} ry={11} fill={color} />
+      {/* neck filler so head blends into bundle */}
+      <rect x={11} y={21} width={10} height={8} fill={color} />
+      <ellipse cx={16} cy={53} rx={12} ry={25} fill={color} />
     </g>
   );
 }
 
 function ToddlerMale({ scale, color }) {
-  // 6mo–3y male: round head, barrel chest, short arms down, short legs
+  // 6mo–3y: big round head, chubby torso, stubby arms angled down, short legs
   return (
     <g transform={`scale(${scale})`}>
-      {/* Head */}
-      <ellipse cx={16} cy={11} rx={10} ry={11} fill={color} />
-      {/* Body */}
-      <path d="M 10 22 Q 8 24 8 26 L 8 50 L 24 50 L 24 26 Q 24 24 22 22 Z" fill={color} />
-      {/* Left arm */}
-      <path d="M 8 27 L 3 44 L 6 45 L 10 31 Z" fill={color} />
-      {/* Right arm */}
-      <path d="M 24 27 L 29 44 L 26 45 L 22 31 Z" fill={color} />
-      {/* Left leg */}
-      <path d="M 10 50 L 9 82 L 15 82 L 16 62 Z" fill={color} />
-      {/* Right leg */}
-      <path d="M 22 50 L 23 82 L 17 82 L 16 62 Z" fill={color} />
+      <circle cx={16} cy={11} r={10} fill={color} />
+      {/* neck */}
+      <rect x={13} y={19} width={6} height={5} fill={color} />
+      {/* torso — overlaps neck */}
+      <rect x={9} y={22} width={14} height={24} rx={5} fill={color} />
+      {/* arms: pill shapes overlapping torso sides */}
+      <rect x={2} y={24} width={9} height={16} rx={4.5} fill={color} />
+      <rect x={21} y={24} width={9} height={16} rx={4.5} fill={color} />
+      {/* hip connector — bridges torso to legs */}
+      <rect x={9} y={44} width={14} height={7} rx={3} fill={color} />
+      {/* legs */}
+      <rect x={9} y={49} width={6} height={24} rx={3} fill={color} />
+      <rect x={17} y={49} width={6} height={24} rx={3} fill={color} />
     </g>
   );
 }
 
 function ToddlerFemale({ scale, color }) {
-  // 6mo–3y female: same as male but slightly wider hips
+  // 6mo–3y female: same structure, wider hip ellipse
   return (
     <g transform={`scale(${scale})`}>
-      {/* Head */}
-      <ellipse cx={16} cy={11} rx={10} ry={11} fill={color} />
-      {/* Body with wider hips */}
-      <path d="M 10 22 Q 8 24 8 26 L 7 46 Q 7 50 16 51 Q 25 50 25 46 L 24 26 Q 24 24 22 22 Z" fill={color} />
-      {/* Left arm */}
-      <path d="M 8 27 L 3 44 L 6 45 L 10 31 Z" fill={color} />
-      {/* Right arm */}
-      <path d="M 24 27 L 29 44 L 26 45 L 22 31 Z" fill={color} />
-      {/* Left leg */}
-      <path d="M 10 51 L 9 82 L 15 82 L 16 63 Z" fill={color} />
-      {/* Right leg */}
-      <path d="M 22 51 L 23 82 L 17 82 L 16 63 Z" fill={color} />
+      <circle cx={16} cy={11} r={10} fill={color} />
+      <rect x={13} y={19} width={6} height={5} fill={color} />
+      <rect x={9} y={22} width={14} height={22} rx={5} fill={color} />
+      <rect x={2} y={24} width={9} height={16} rx={4.5} fill={color} />
+      <rect x={21} y={24} width={9} height={16} rx={4.5} fill={color} />
+      {/* wider hips */}
+      <ellipse cx={16} cy={46} rx={9} ry={5} fill={color} />
+      <rect x={8} y={49} width={6} height={24} rx={3} fill={color} />
+      <rect x={18} y={49} width={6} height={24} rx={3} fill={color} />
     </g>
   );
 }
 
 function ChildMale({ scale, color }) {
-  // 3y+ male: arms extended horizontally, straight silhouette
+  // 3y+ male: proportional head, torso, horizontal arms, longer legs
   return (
     <g transform={`scale(${scale})`}>
-      {/* Head */}
-      <ellipse cx={16} cy={9} rx={9} ry={9} fill={color} />
-      {/* Body */}
-      <path d="M 12 18 L 11 54 L 21 54 L 20 18 Z" fill={color} />
-      {/* Left arm (horizontal) */}
-      <path d="M 11 24 L 0 34 L 1 39 L 12 30 Z" fill={color} />
-      {/* Right arm (horizontal) */}
-      <path d="M 21 24 L 32 34 L 31 39 L 20 30 Z" fill={color} />
-      {/* Left leg */}
-      <path d="M 12 54 L 10 90 L 15 90 L 16 66 Z" fill={color} />
-      {/* Right leg */}
-      <path d="M 20 54 L 22 90 L 17 90 L 16 66 Z" fill={color} />
+      <circle cx={16} cy={9} r={9} fill={color} />
+      {/* neck */}
+      <rect x={13} y={16} width={6} height={6} fill={color} />
+      {/* torso */}
+      <rect x={10} y={20} width={12} height={28} rx={4} fill={color} />
+      {/* arms: horizontal pill shapes overlapping torso */}
+      <rect x={0} y={22} width={13} height={8} rx={4} fill={color} />
+      <rect x={19} y={22} width={13} height={8} rx={4} fill={color} />
+      {/* hip connector */}
+      <rect x={10} y={46} width={12} height={6} rx={3} fill={color} />
+      {/* legs */}
+      <rect x={10} y={50} width={5} height={30} rx={2.5} fill={color} />
+      <rect x={17} y={50} width={5} height={30} rx={2.5} fill={color} />
     </g>
   );
 }
 
 function ChildFemale({ scale, color }) {
-  // 3y+ female: arms extended, slight waist
+  // 3y+ female: wider hips, same overall structure
   return (
     <g transform={`scale(${scale})`}>
-      {/* Head */}
-      <ellipse cx={16} cy={9} rx={9} ry={9} fill={color} />
-      {/* Body with slight waist */}
-      <path d="M 12 18 Q 11 30 10 38 Q 10 46 10 54 Q 13 58 16 58 Q 19 58 22 54 Q 22 46 22 38 Q 21 30 20 18 Z" fill={color} />
-      {/* Left arm (horizontal) */}
-      <path d="M 10 24 L 0 34 L 1 39 L 11 30 Z" fill={color} />
-      {/* Right arm (horizontal) */}
-      <path d="M 22 24 L 32 34 L 31 39 L 21 30 Z" fill={color} />
-      {/* Left leg */}
-      <path d="M 12 58 L 10 90 L 15 90 L 16 68 Z" fill={color} />
-      {/* Right leg */}
-      <path d="M 20 58 L 22 90 L 17 90 L 16 68 Z" fill={color} />
+      <circle cx={16} cy={9} r={9} fill={color} />
+      <rect x={13} y={16} width={6} height={6} fill={color} />
+      <rect x={10} y={20} width={12} height={26} rx={4} fill={color} />
+      <rect x={0} y={22} width={13} height={8} rx={4} fill={color} />
+      <rect x={19} y={22} width={13} height={8} rx={4} fill={color} />
+      {/* wider hips ellipse */}
+      <ellipse cx={16} cy={48} rx={9} ry={6} fill={color} />
+      <rect x={9} y={50} width={5} height={30} rx={2.5} fill={color} />
+      <rect x={18} y={50} width={5} height={30} rx={2.5} fill={color} />
     </g>
   );
 }
