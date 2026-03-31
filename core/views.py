@@ -2924,7 +2924,7 @@ class ChildProfileTimeline(LoginRequiredMixin, DetailView):
                 "addMilestone": reverse("core:milestone-add") + f"?child={child.slug}",
                 "childDetail": reverse("core:child", kwargs={"slug": child.slug}),
             },
-            "childSwitcher": _build_child_switcher(self.request, current_child=child),
+            "childSwitcher": None,
             "strings": {
                 **_list_strings(),
                 "profileTimeline": _("Timeline"),

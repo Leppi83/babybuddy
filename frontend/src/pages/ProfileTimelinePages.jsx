@@ -3,12 +3,9 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
-  Col,
   Popconfirm,
-  Row,
   Space,
   Table,
-  Tag,
   Tabs,
   Tooltip,
   Typography,
@@ -25,7 +22,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const STATUS_COLOR = {
   completed: "#52c41a",
@@ -225,7 +222,7 @@ function TimelineSVG({ childDetail, heightMeasurements, examinationMarkers, mile
     const label =
       m === 0
         ? strings.born || "Birth"
-        : `${td.format("DD.MM.YY")} (${m}m)`;
+        : `${td.format("DD.MM.YY")} (${m} months)`;
     sixMonthTicks.push({ x: dateToX(td), label });
   }
 
@@ -372,15 +369,6 @@ export function ChildProfileTimelinePage({ bootstrap }) {
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px 12px 80px" }}>
-      {/* Legend */}
-      <Space wrap style={{ marginBottom: 12 }}>
-        {Object.entries(STATUS_COLOR).map(([status, color]) => (
-          <Tag key={status} color={color} style={{ fontSize: 11 }}>
-            {strings[status] || status}
-          </Tag>
-        ))}
-      </Space>
-
       {/* Timeline SVG */}
       <Card
         size="small"
@@ -395,26 +383,6 @@ export function ChildProfileTimelinePage({ bootstrap }) {
           strings={strings}
         />
       </Card>
-
-      {/* Examination markers legend */}
-      {examinationMarkers.length > 0 && (
-        <Card size="small" title={strings.examinations || "Examinations"} style={{ marginBottom: 16 }}>
-          <Row gutter={[8, 4]}>
-            {examinationMarkers.map((exam) => (
-              <Col key={exam.code} xs={12} sm={8} md={6} lg={4}>
-                <a href={exam.url} style={{ textDecoration: "none" }}>
-                  <Tag
-                    color={STATUS_COLOR[exam.status]}
-                    style={{ width: "100%", textAlign: "center", cursor: "pointer" }}
-                  >
-                    {exam.code}
-                  </Tag>
-                </a>
-              </Col>
-            ))}
-          </Row>
-        </Card>
-      )}
 
       {/* Milestones list */}
       <Card
