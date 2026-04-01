@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  Home, Users, UserPlus, Edit2, History, Settings, LogOut,
+  Home, Users, UserPlus, History, Settings, LogOut,
   Menu, Bell, ChevronDown, Lightbulb
 } from "lucide-react";
 
@@ -13,15 +13,15 @@ export function AppShell({ bootstrap, children }) {
   const urls = bootstrap.urls || {};
   const slug = bootstrap.currentChild?.slug;
   const pt = bootstrap.pageType || "";
+  const activePath = bootstrap.currentPath || "";
 
-  // Topic URL helpers — use topicTemplate from bootstrap if available
+  // Topic URL helpers
   function topicHref(topic) {
     if (urls.topicTemplate) return urls.topicTemplate.replace("__CHILD_SLUG__", slug || "").replace("__TOPIC__", topic);
     return slug ? `/children/${slug}/topics/${topic}/` : "#";
   }
 
-  // Profile timeline URL (correct Django pattern: /children/<slug>/profile-timeline/)
-  const profileTimelineUrl = urls.profileTimeline || (slug ? `/children/${slug}/profile-timeline/` : urls.timeline);
+  const profileTimelineUrl = urls.profileTimeline || (slug ? `/children/${slug}/profile-timeline/` : null) || urls.timeline || "#";
 
   const insightLinks = slug ? [
     { label: s.generalLabel || "General", href: urls.childGeneral || `/children/${slug}/general/` },
@@ -31,19 +31,64 @@ export function AppShell({ bootstrap, children }) {
     { label: s.pumpingLabel || "Pumping", href: topicHref("pumping") },
   ] : [];
 
+  // ── Active state helpers ────────────────────────────────────────────────────
+  const isChildrenListActive = pt === "list" && activePath.includes("/children/") && !activePath.includes("/add");
+  const isAddChildActive = urls.addChild ? activePath.startsWith(urls.addChild.replace(/\/$/, "")) : false;
+  const isInsightsActive = ["insights", "topic-detail", "child-general"].includes(pt);
+  const isSettingsActive = pt === "settings";
+
+  function isNavActive(item) {
+    switch (item.key) {
+      case "dashboard":  return pt === "dashboard-child" || pt === "dashboard-home";
+      case "insights":   return isInsightsActive;
+      case "timeline":   return pt === "child-profile-timeline" || pt === "timeline";
+      case "children":   return isChildrenListActive;
+      case "add-child":  return isAddChildActive;
+      default: return false;
+    }
+  }
+
+  // ── Nav item definitions — always the same set ─────────────────────────────
   const navItems = [
-    { icon: <Home size={20} />, label: s.dashboard || "Dashboard", href: urls.dashboard, pageTypes: ["dashboard-child", "dashboard-home"] },
-    { icon: <Lightbulb size={20} />, label: s.insights || "Insights", isMenu: true, children: insightLinks, pageTypes: ["insights", "topic-detail", "child-general"] },
-    { icon: <History size={20} />, label: s.timeline || "Timeline", href: profileTimelineUrl, pageTypes: ["child-profile-timeline", "timeline"] },
-  ].filter(item => item.href || item.isMenu);
+    {
+      key: "dashboard",
+      icon: <Home size={20} />,
+      label: s.dashboard || "Dashboard",
+      href: urls.dashboard || "/dashboard/",
+    },
+    // Insights: only render when a child is in context (topics are child-specific)
+    ...(slug ? [{
+      key: "insights",
+      icon: <Lightbulb size={20} />,
+      label: s.insights || "Insights",
+      isMenu: true,
+      children: insightLinks,
+    }] : []),
+    {
+      key: "timeline",
+      icon: <History size={20} />,
+      label: s.timeline || "Timeline",
+      href: profileTimelineUrl,
+    },
+    {
+      key: "children",
+      icon: <Users size={20} />,
+      label: s.children || "Children",
+      href: urls.childrenList || "/children/",
+    },
+    {
+      key: "add-child",
+      icon: <UserPlus size={20} />,
+      label: s.addChild || "Add Child",
+      href: urls.addChild || "/children/add/",
+    },
+  ];
 
-  if (urls.childrenList) navItems.push({ icon: <Users size={20} />, label: s.children || "Children", href: urls.childrenList, pageTypes: ["list"] });
-  if (urls.addChild) navItems.push({ icon: <UserPlus size={20} />, label: s.addChild || "Add Child", href: urls.addChild, pageTypes: ["form"] });
-
+  // ── Logout ─────────────────────────────────────────────────────────────────
   function handleLogout() {
     const form = document.createElement("form");
     form.method = "POST";
-    form.action = urls.logout;
+    form.action = urls.logout || "/logout/";
     const csrf = document.createElement("input");
     csrf.type = "hidden";
     csrf.name = "csrfmiddlewaretoken";
@@ -53,52 +98,71 @@ export function AppShell({ bootstrap, children }) {
     form.submit();
   }
 
-  function isActive(item) {
-    if (!item) return false;
-    // Use pageType for accurate active state
-    if (item.pageTypes?.includes(pt)) return true;
-    return false;
+  // ── Child selector ─────────────────────────────────────────────────────────
+  function handleChildChange(e) {
+    const newSlug = e.target.value;
+    if (!newSlug) return;
+    if (pt === "child-profile-timeline") { window.location.assign(`/children/${newSlug}/profile-timeline/`); return; }
+    if (pt === "child-general") { window.location.assign(`/children/${newSlug}/general/`); return; }
+    if (pt === "insights" || pt === "topic-detail") {
+      const topic = bootstrap.topicPage?.topic;
+      window.location.assign(topic ? `/children/${newSlug}/insights/${topic}/` : `/children/${newSlug}/general/`);
+      return;
+    }
+    if (pt === "examination-list" || pt === "examination-form") {
+      window.location.assign(`/children/${newSlug}/examinations/`);
+      return;
+    }
+    window.location.assign(`/children/${newSlug}/`);
   }
 
-  function NavLink({ item, i }) {
+  const showChildSelector = (bootstrap.children?.length ?? 0) >= 1;
+
+  // ── Shared link styles ─────────────────────────────────────────────────────
+  const activeClass = "bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-[0_4px_20px_-4px_rgba(56,189,248,0.3)]";
+  const inactiveClass = "text-slate-400 hover:bg-white/5 hover:text-slate-200";
+
+  function NavLink({ item }) {
+    const active = isNavActive(item);
+
     if (item.isMenu) {
-      const anyChildActive = item.pageTypes?.includes(pt) || false;
-      const open = insightsOpen;
       return (
         <div className="flex flex-col">
           <button
             onClick={() => setInsightsOpen(o => !o)}
-            className={`w-full flex justify-between items-center px-4 py-3 rounded-2xl transition-all duration-200 focus:outline-none ${anyChildActive ? "bg-sky-500/20 text-sky-400 border border-sky-500/30" : "text-slate-400 hover:bg-white/5 hover:text-slate-200"}`}
+            className={`w-full flex justify-between items-center px-4 py-3 rounded-2xl transition-all duration-200 focus:outline-none ${active ? activeClass : inactiveClass}`}
             title={collapsed ? item.label : ""}
           >
             <div className="flex items-center gap-4">
-              <div className={anyChildActive ? "text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]" : ""}>{item.icon}</div>
+              <div className={active ? "text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]" : ""}>{item.icon}</div>
               {!collapsed && <span className="font-semibold text-sm tracking-wide truncate">{item.label}</span>}
             </div>
-            {!collapsed && <ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />}
+            {!collapsed && <ChevronDown size={14} className={`transition-transform ${insightsOpen ? "rotate-180" : ""}`} />}
           </button>
-          {!collapsed && open && item.children?.length > 0 && (
+          {!collapsed && insightsOpen && item.children?.length > 0 && (
             <div className="pl-12 pr-4 pt-1 pb-2 space-y-0.5">
-              {item.children.map((child, j) => (
-                <a
-                  key={j}
-                  href={child.href}
-                  className={`block px-4 py-2 rounded-xl text-sm font-medium transition-colors ${activePath.startsWith(child.href) ? "text-sky-400 bg-sky-500/10" : "text-slate-400 hover:text-sky-400 hover:bg-sky-500/10"}`}
-                >
-                  {child.label}
-                </a>
-              ))}
+              {item.children.map((child, j) => {
+                const childActive = activePath.startsWith(child.href);
+                return (
+                  <a
+                    key={j}
+                    href={child.href}
+                    className={`block px-4 py-2 rounded-xl text-sm font-medium transition-colors ${childActive ? "text-sky-400 bg-sky-500/10" : "text-slate-400 hover:text-sky-400 hover:bg-sky-500/10"}`}
+                  >
+                    {child.label}
+                  </a>
+                );
+              })}
             </div>
           )}
         </div>
       );
     }
 
-    const active = isActive(item);
     return (
       <a
         href={item.href}
-        className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 ${active ? "bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-[0_4px_20px_-4px_rgba(56,189,248,0.3)]" : "text-slate-400 hover:bg-white/5 hover:text-slate-200"}`}
+        className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 ${active ? activeClass : inactiveClass}`}
         title={collapsed ? item.label : ""}
       >
         <div className={active ? "text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]" : ""}>{item.icon}</div>
@@ -120,31 +184,18 @@ export function AppShell({ bootstrap, children }) {
           </a>
         </div>
 
-        {/* Child selector */}
-        {!collapsed && bootstrap.children?.length >= 1 && bootstrap.currentChild && (
+        {/* Child selector — shown whenever children exist */}
+        {!collapsed && showChildSelector && (
           <div className="px-4 py-4 border-b border-white/5">
             <span className="text-xs uppercase tracking-wider text-slate-500 font-bold ml-2 mb-2 block">Child</span>
             <select
               className="w-full bg-slate-900/80 border border-white/10 text-slate-200 rounded-xl px-4 py-2 text-sm font-semibold appearance-none outline-none focus:border-sky-500"
               value={bootstrap.currentChild?.slug || ""}
-              onChange={(e) => {
-                const newSlug = e.target.value;
-                if (!newSlug) return;
-                const pt = bootstrap.pageType;
-                if (pt === "child-profile-timeline") { window.location.assign(`/children/${newSlug}/timeline/`); return; }
-                if (pt === "child-general") { window.location.assign(`/children/${newSlug}/general/`); return; }
-                if (pt === "insights" || pt === "topic-detail") {
-                  const topic = bootstrap.topicPage?.topic;
-                  window.location.assign(topic ? `/children/${newSlug}/insights/${topic}/` : `/children/${newSlug}/general/`);
-                  return;
-                }
-                if (pt === "examination-list" || pt === "examination-form") {
-                  window.location.assign(`/children/${newSlug}/examinations/`);
-                  return;
-                }
-                window.location.assign(`/children/${newSlug}/`);
-              }}
+              onChange={handleChildChange}
             >
+              {!bootstrap.currentChild && (
+                <option value="">— Select child —</option>
+              )}
               {bootstrap.children.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
             </select>
           </div>
@@ -152,13 +203,16 @@ export function AppShell({ bootstrap, children }) {
 
         {/* Nav */}
         <nav className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
-          {navItems.map((item, i) => <NavLink key={i} item={item} i={i} />)}
+          {navItems.map((item) => <NavLink key={item.key} item={item} />)}
         </nav>
 
         {/* Footer */}
         <div className="p-4 border-t border-white/5 space-y-1 pb-6">
-          <a href={urls.settings} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-colors">
-            <Settings size={20} />
+          <a
+            href={urls.settings || "/settings/"}
+            className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${isSettingsActive ? activeClass : "text-slate-400 hover:bg-white/5 hover:text-slate-200"}`}
+          >
+            <Settings size={20} className={isSettingsActive ? "text-sky-400" : ""} />
             {!collapsed && <span className="font-medium text-sm">{s.settings || "Settings"}</span>}
           </a>
           <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-rose-400 hover:bg-rose-500/10 transition-colors">
@@ -186,11 +240,18 @@ export function AppShell({ bootstrap, children }) {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 glass-panel border-t border-white/10 z-50 flex items-center justify-around px-2">
-        {navItems.slice(0, 4).map((item, i) => (
-          <a key={i} href={item.isMenu ? (item.children?.[0]?.href || "#") : item.href} className={`p-3 flex flex-col items-center gap-1 transition-colors ${isActive(item) ? "text-sky-400" : "text-slate-400 hover:text-sky-400"}`}>
-            {item.icon}
-          </a>
-        ))}
+        {navItems.slice(0, 4).map((item) => {
+          const active = isNavActive(item);
+          return (
+            <a
+              key={item.key}
+              href={item.isMenu ? (item.children?.[0]?.href || "#") : item.href}
+              className={`p-3 flex flex-col items-center gap-1 transition-colors ${active ? "text-sky-400" : "text-slate-400 hover:text-sky-400"}`}
+            >
+              {item.icon}
+            </a>
+          );
+        })}
         <button onClick={() => setMobileMenuOpen(true)} className="p-3 text-slate-400 hover:text-sky-400">
           <Menu size={20} />
         </button>
@@ -201,8 +262,21 @@ export function AppShell({ bootstrap, children }) {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] flex flex-col justify-end">
           <div className="glass-panel w-full rounded-t-[32px] p-6 pb-12 flex flex-col gap-4 border-t border-white/10">
             <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-2 cursor-pointer" onClick={() => setMobileMenuOpen(false)} />
-            <a href={urls.settings} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 text-slate-200">
-              <Settings size={20} className="text-sky-400" /> {s.settings || "Settings"}
+            {showChildSelector && (
+              <div>
+                <span className="text-xs uppercase tracking-wider text-slate-500 font-bold ml-1 mb-2 block">Child</span>
+                <select
+                  className="w-full bg-slate-900/80 border border-white/10 text-slate-200 rounded-xl px-4 py-3 text-sm font-semibold appearance-none outline-none focus:border-sky-500"
+                  value={bootstrap.currentChild?.slug || ""}
+                  onChange={handleChildChange}
+                >
+                  {!bootstrap.currentChild && <option value="">— Select child —</option>}
+                  {bootstrap.children.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+                </select>
+              </div>
+            )}
+            <a href={urls.settings || "/settings/"} className={`flex items-center gap-4 p-4 rounded-2xl ${isSettingsActive ? "bg-sky-500/10 text-sky-400" : "bg-white/5 text-slate-200"}`}>
+              <Settings size={20} className={isSettingsActive ? "text-sky-400" : "text-sky-400"} /> {s.settings || "Settings"}
             </a>
             <button onClick={handleLogout} className="flex items-center gap-4 p-4 rounded-2xl bg-rose-500/10 text-rose-400">
               <LogOut size={20} /> {s.logout || "Logout"}
