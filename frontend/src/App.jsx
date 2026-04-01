@@ -73,6 +73,19 @@ export function App({ bootstrap }) {
     dayjs.locale(String(bootstrap.locale || "en").startsWith("de") ? "de" : "en");
   }, [bootstrap.locale]);
 
+  // When rendered inside an iframe (e.g. Quick Entry drawer), skip the shell
+  const inIframe = typeof window !== "undefined" && window.self !== window.top;
+
+  if (inIframe) {
+    return (
+      <div className="p-6 min-h-screen" style={{ background: "#0f172a" }}>
+        <Suspense fallback={<PageFallback />}>
+          <RoutedPage bootstrap={bootstrap} />
+        </Suspense>
+      </div>
+    );
+  }
+
   return (
     <React.Fragment>
       <div className="bg-ambient" />

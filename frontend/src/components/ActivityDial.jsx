@@ -635,30 +635,11 @@ export default function ActivityDial({
         role="img"
         aria-label="24-hour activity dial"
       >
-        <defs>
-          {/* Radial fade at arc start (00h, bottom-left ~20%,80%) */}
-          <radialGradient id="dialFadeL" cx="0.20" cy="0.80" r="0.20" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="black" stopOpacity="1" />
-            <stop offset="100%" stopColor="black" stopOpacity="0" />
-          </radialGradient>
-          {/* Radial fade at arc end (24h, bottom-right ~80%,80%) */}
-          <radialGradient id="dialFadeR" cx="0.80" cy="0.80" r="0.20" gradientUnits="objectBoundingBox">
-            <stop offset="0%" stopColor="black" stopOpacity="1" />
-            <stop offset="100%" stopColor="black" stopOpacity="0" />
-          </radialGradient>
-          <mask id="arcFadeMask">
-            <rect x="0" y="0" width={SVG_SIZE} height={SVG_SIZE} fill="white" />
-            <rect x="0" y="0" width={SVG_SIZE} height={SVG_SIZE} fill="url(#dialFadeL)" />
-            <rect x="0" y="0" width={SVG_SIZE} height={SVG_SIZE} fill="url(#dialFadeR)" />
-          </mask>
-        </defs>
         <AtmosphereRing theme={theme} />
         <TickMarks />
-        <g mask="url(#arcFadeMask)">
-          <ActivityTrack />
-          <ActivityArcs arcs={arcs} cx={CX} cy={CY} radius={ACTIVITY_R} strokeWidth={ACTIVITY_STROKE} onHover={setTooltip} />
-          <ActivityDots dots={dots} cx={CX} cy={CY} radius={ACTIVITY_R} onHover={setTooltip} />
-        </g>
+        <ActivityTrack />
+        <ActivityArcs arcs={arcs} cx={CX} cy={CY} radius={ACTIVITY_R} strokeWidth={ACTIVITY_STROKE} onHover={setTooltip} />
+        <ActivityDots dots={dots} cx={CX} cy={CY} radius={ACTIVITY_R} onHover={setTooltip} />
         <HourLabels />
         <CurrentTimeDot now={now} />
         <CenterDisplay now={now} currentStatus={currentStatus} showInsight={showInsight} topInsight={topInsight} onCenterClick={handleCenterClick} />

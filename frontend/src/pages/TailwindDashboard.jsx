@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Moon, Baby, Milk, Activity, Play, MoreHorizontal, Plus, Save } from 'lucide-react';
 import dayjs from "dayjs";
 import ActivityDial from '../components/ActivityDial';
+import { TailwindDrawer } from '../components/TailwindDrawer';
 import { createApiClient } from '../lib/app-utils';
 
 function StatCard({ title, value, subtitle, icon, color, bg, border, href }) {
@@ -58,6 +59,7 @@ export function ChildDashboardPage({ bootstrap }) {
   const child = bootstrap.currentChild || { name: "Child" };
   const slug = child.slug;
   const profileTimelineUrl = slug ? `/children/${slug}/timeline/` : urls.timeline;
+  const [quickEntryOpen, setQuickEntryOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-6 pb-10">
@@ -70,66 +72,89 @@ export function ChildDashboardPage({ bootstrap }) {
           <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">{child.name}&apos;s Dashboard</h2>
         </div>
         <div className="hidden md:flex gap-3 z-10">
-          <a href={urls.quickEntry} className="bg-sky-500 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(56,189,248,0.4)] hover:bg-sky-400 hover:scale-105 transition-all flex items-center gap-2">
+          <button onClick={() => setQuickEntryOpen(true)} className="bg-sky-500 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(56,189,248,0.4)] hover:bg-sky-400 hover:scale-105 transition-all flex items-center gap-2">
             <Plus size={16} /> {s.quickEntry || "Quick Entry"}
-          </a>
+          </button>
         </div>
       </header>
 
-      {/* Daily Summary Dial */}
-      <div className="glass-card overflow-hidden relative flex flex-col max-w-xl mx-auto w-full">
-        <div className="px-6 pt-6 pb-2 z-10">
-          <h3 className="text-xl font-bold tracking-tight text-white">{s.dailySummary || "Daily Summary"}</h3>
+      {/* Dial + Recent Activity side by side */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+
+        {/* Daily Summary Dial — left column */}
+        <div className="glass-card overflow-hidden relative flex flex-col w-full lg:w-auto lg:flex-shrink-0" style={{ maxWidth: 460 }}>
+          {/* Title overlay on top of sky gradient */}
+          <div className="absolute top-5 left-6 z-10 pointer-events-none">
+            <h3 className="text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">{s.dailySummary || "Daily Summary"}</h3>
+          </div>
+          {/* Fade overlays at arc endpoints (bottom-left = 00h, bottom-right = 24h) */}
+          <div className="absolute bottom-0 left-0 w-40 h-40 pointer-events-none z-20 rounded-bl-[24px]"
+            style={{ background: 'radial-gradient(circle at 0% 100%, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.6) 35%, transparent 65%)' }} />
+          <div className="absolute bottom-0 right-0 w-40 h-40 pointer-events-none z-20 rounded-br-[24px]"
+            style={{ background: 'radial-gradient(circle at 100% 100%, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.6) 35%, transparent 65%)' }} />
+          <div className="flex items-center justify-center w-full z-10">
+            <ActivityDial
+              activities={bootstrap.dialActivities || []}
+              bedtime={bootstrap.bedtime}
+              currentStatus={bootstrap.quickStatus?.activeSleepTimer ? `Sleeping ${bootstrap.quickStatus.activeSleepTimer}` : bootstrap.quickStatus?.lastSleep ? `Awake since ${bootstrap.quickStatus.lastSleep}` : ""}
+              insights={bootstrap.insights || []}
+              referenceDate={null}
+              sunriseHour={bootstrap.celestial?.sunriseHour ?? 6}
+              sunsetHour={bootstrap.celestial?.sunsetHour ?? 18}
+              weatherCondition={bootstrap.celestial?.weatherCondition ?? "sunny"}
+              strings={{
+                sleep: s.sleepLabel || "Sleep",
+                feed: s.feedingLabel || "Feed",
+                breast: s.breastfeedingShort || "Breast",
+                diaper: s.diaperLabel || "Diaper",
+                pump: s.pumpingShort || "Pump",
+              }}
+            />
+          </div>
         </div>
-        <div className="flex items-center justify-center w-full z-10">
-          <ActivityDial
-            activities={bootstrap.dialActivities || []}
-            bedtime={bootstrap.bedtime}
-            currentStatus={bootstrap.quickStatus?.activeSleepTimer ? `Sleeping ${bootstrap.quickStatus.activeSleepTimer}` : bootstrap.quickStatus?.lastSleep ? `Awake since ${bootstrap.quickStatus.lastSleep}` : ""}
-            insights={bootstrap.insights || []}
-            referenceDate={null}
-            sunriseHour={bootstrap.celestial?.sunriseHour ?? 6}
-            sunsetHour={bootstrap.celestial?.sunsetHour ?? 18}
-            weatherCondition={bootstrap.celestial?.weatherCondition ?? "sunny"}
-            strings={{
-              sleep: s.sleepLabel || "Sleep",
-              feed: s.feedingLabel || "Feed",
-              breast: s.breastfeedingShort || "Breast",
-              diaper: s.diaperLabel || "Diaper",
-              pump: s.pumpingShort || "Pump",
-            }}
-          />
+
+        {/* Right column: stat cards + recent activity */}
+        <div className="flex flex-col gap-5 flex-1 min-w-0 w-full">
+          {/* Stat Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <StatCard title={s.lastSleep || "Last Sleep"} value="2h 45m" subtitle="Finished at 1:30 PM" icon={<Moon />} color="text-indigo-400" bg="bg-indigo-500/10" border="border-indigo-500/20" />
+            <StatCard title={s.lastFeeding || "Last Feeding"} value="4.5 oz" subtitle="Formula at 4:15 PM" icon={<Milk />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
+            <StatCard title={s.lastDiaper || "Last Diaper"} value="Wet" subtitle="Changed at 3:00 PM" icon={
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 8 Q12 12 21 8 C21 16 16 22 12 22 C8 22 3 16 3 8 Z" />
+                <path d="M6 13 L8 13" /><path d="M18 13 L16 13" />
+              </svg>
+            } color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" />
+            <StatCard title={s.lastPumping || "Last Pumping"} value="—" subtitle="No pumping today" icon={<PumpIcon />} color="text-purple-400" bg="bg-purple-500/10" border="border-purple-500/20" />
+          </div>
+
+          {/* Recent Activity */}
+          <div className="glass-card p-6 flex flex-col flex-1">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-lg font-bold tracking-tight text-white">{s.recentActivity || "Recent Activity"}</h3>
+              {profileTimelineUrl && (
+                <a href={profileTimelineUrl} className="text-sky-400 text-xs font-semibold tracking-wider uppercase hover:text-sky-300">View All</a>
+              )}
+            </div>
+            <div className="relative pl-6 space-y-6 before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
+              <TimelineItem title="Feeding" time="2 hours ago" type="feed" />
+              <TimelineItem title="Sleep" time="4 hours ago" type="sleep" />
+              <TimelineItem title="Diaper" time="5 hours ago" type="diaper" />
+              <TimelineItem title="Pumping" time="6 hours ago" type="activity" />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard title={s.lastSleep || "Last Sleep"} value="2h 45m" subtitle="Finished at 1:30 PM" icon={<Moon />} color="text-indigo-400" bg="bg-indigo-500/10" border="border-indigo-500/20" />
-        <StatCard title={s.lastFeeding || "Last Feeding"} value="4.5 oz" subtitle="Formula at 4:15 PM" icon={<Milk />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
-        <StatCard title={s.lastDiaper || "Last Diaper"} value="Wet" subtitle="Changed at 3:00 PM" icon={
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 8 Q12 12 21 8 C21 16 16 22 12 22 C8 22 3 16 3 8 Z" />
-            <path d="M6 13 L8 13" /><path d="M18 13 L16 13" />
-          </svg>
-        } color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" />
-        <StatCard title={s.lastPumping || "Last Pumping"} value="—" subtitle="No pumping today" icon={<PumpIcon />} color="text-purple-400" bg="bg-purple-500/10" border="border-purple-500/20" />
-      </div>
-
-      {/* Recent Activity */}
-      <div className="glass-card p-6 flex flex-col">
-        <div className="flex justify-between items-center mb-5">
-          <h3 className="text-lg font-bold tracking-tight text-white">{s.recentActivity || "Recent Activity"}</h3>
-          {profileTimelineUrl && (
-            <a href={profileTimelineUrl} className="text-sky-400 text-xs font-semibold tracking-wider uppercase hover:text-sky-300">View All</a>
-          )}
-        </div>
-        <div className="relative pl-6 space-y-6 before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
-          <TimelineItem title="Feeding" time="2 hours ago" type="feed" />
-          <TimelineItem title="Sleep" time="4 hours ago" type="sleep" />
-          <TimelineItem title="Diaper" time="5 hours ago" type="diaper" />
-          <TimelineItem title="Pumping" time="6 hours ago" type="activity" />
-        </div>
-      </div>
+      {/* Quick Entry Drawer */}
+      <TailwindDrawer open={quickEntryOpen} onClose={() => setQuickEntryOpen(false)} title={s.quickEntry || "Quick Entry"}>
+        <iframe
+          src={urls.quickEntry}
+          title="Quick Entry"
+          style={{ width: '100%', height: '100%', minHeight: '80vh', border: 'none' }}
+          data-no-shell="1"
+        />
+      </TailwindDrawer>
     </div>
   );
 }
