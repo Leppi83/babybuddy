@@ -73,6 +73,20 @@ export function App({ bootstrap }) {
     dayjs.locale(String(bootstrap.locale || "en").startsWith("de") ? "de" : "en");
   }, [bootstrap.locale]);
 
+  // Auth pages (login, password reset, etc.) have no nav shell
+  if (bootstrap.pageType === "auth-form") {
+    return (
+      <React.Fragment>
+        <div className="bg-ambient" />
+        <div className="flex min-h-screen w-full items-center justify-center px-4">
+          <Suspense fallback={<PageFallback />}>
+            <RoutedPage bootstrap={bootstrap} />
+          </Suspense>
+        </div>
+      </React.Fragment>
+    );
+  }
+
   return (
     <React.Fragment>
       <div className="bg-ambient" />

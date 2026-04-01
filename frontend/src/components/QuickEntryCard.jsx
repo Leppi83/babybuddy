@@ -200,8 +200,8 @@ export function QuickEntryCard({ bootstrap }) {
 
       <div className="glass-card p-5 relative">
         {selectedSegment === "sleep" && (
-          <div className="flex flex-col sm:flex-row gap-6">
-            <div className="flex-1 flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6">
               <h4 className="text-xl font-bold text-white mb-2">Manual Entry</h4>
               {renderDateTimeRow(sleepEntryStartDate, setSleepEntryStartDate, sleepEntryStartTime, setSleepEntryStartTime, "Start")}
               {renderDateTimeRow(sleepEntryEndDate, setSleepEntryEndDate, sleepEntryEndTime, setSleepEntryEndTime, "End")}
@@ -213,10 +213,10 @@ export function QuickEntryCard({ bootstrap }) {
                 sleep_entry_type: "sleep"
               })}>{s.save}</Button>
             </div>
-            
-            <div className="hidden sm:block w-px bg-slate-800"></div>
-            
-            <div className="flex-1 flex flex-col items-center justify-center p-4 bg-slate-900/40 border border-slate-700 rounded-2xl" data-testid="sleep-timer-card">
+
+            <div className="w-full h-px bg-slate-800"></div>
+
+            <div className="flex flex-col items-center justify-center p-4 bg-slate-900/40 border border-slate-700 rounded-2xl" data-testid="sleep-timer-card">
               <h4 className="text-lg font-bold text-slate-300 mb-2">{s.sleepTimer}</h4>
               <p className="text-xs font-semibold tracking-widest uppercase mb-4 text-slate-500" data-testid="timer-status">
                 {!sleepTimer.running ? "Ready" : sleepTimerPaused ? "Paused" : "Running"}

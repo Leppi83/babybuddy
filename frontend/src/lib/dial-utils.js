@@ -340,6 +340,10 @@ const ARC_TYPES = new Set(["sleep", "feeding", "breastfeeding", "pumping"]);
  * @param {Array} activities
  * @returns {{ arcs: Array, dots: Array }}
  */
+// Angles bounding the hidden 90° bottom gap (135° = 24:00, 225° = 00:00).
+const GAP_END_ANGLE = (ARC_START + ARC_SPAN) % 360; // 135
+const GAP_START_ANGLE = ARC_START;                   // 225
+
 export function classifyActivities(activities) {
   const arcs = [];
   const dots = [];
@@ -356,11 +360,17 @@ export function classifyActivities(activities) {
           angle: timeToFixedAngle(activity.start),
         });
       } else {
-        arcs.push({
-          ...activity,
-          startAngle: timeToFixedAngle(activity.start),
-          endAngle: timeToFixedAngle(activity.end),
-        });
+        const sa = timeToFixedAngle(activity.start);
+        const ea = timeToFixedAngle(activity.end);
+        // An arc that crosses midnight (e.g. 22:00→06:00) has sa < GAP_END_ANGLE
+        // and ea > GAP_START_ANGLE, meaning it would pass through the hidden
+        // bottom gap of the 270° dial.  Split it into two visible segments.
+        if (sa < GAP_END_ANGLE && ea > GAP_START_ANGLE) {
+          arcs.push({ ...activity, startAngle: sa, endAngle: GAP_END_ANGLE });
+          arcs.push({ ...activity, startAngle: GAP_START_ANGLE, endAngle: ea });
+        } else {
+          arcs.push({ ...activity, startAngle: sa, endAngle: ea });
+        }
       }
     } else {
       dots.push({

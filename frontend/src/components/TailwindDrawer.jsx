@@ -21,7 +21,7 @@ export function TailwindDrawer({ open, onClose, title, children }) {
         onClick={onClose}
       />
       {/* Panel */}
-      <div className="absolute right-0 top-0 bottom-0 w-full max-w-xl bg-slate-900 border-l border-sky-500/20 flex flex-col shadow-2xl">
+      <div className="absolute right-0 top-0 bottom-0 w-full max-w-2xl bg-slate-900 border-l border-sky-500/20 flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex-none flex items-center justify-between px-6 py-4 border-b border-white/10">
           <h3 className="text-base font-bold text-slate-100 tracking-tight">{title}</h3>
