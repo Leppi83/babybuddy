@@ -635,11 +635,29 @@ export default function ActivityDial({
         role="img"
         aria-label="24-hour activity dial"
       >
+        <defs>
+          {/* Fade arc track at 00h (bottom-left) and 24h (bottom-right) endpoints */}
+          <linearGradient id="arcFadeLeft" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="black" stopOpacity="1" />
+            <stop offset="100%" stopColor="black" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="arcFadeRight" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="black" stopOpacity="0" />
+            <stop offset="100%" stopColor="black" stopOpacity="1" />
+          </linearGradient>
+          <mask id="arcEndFade">
+            <rect x="0" y="0" width={SVG_SIZE} height={SVG_SIZE} fill="white" />
+            <rect x="0" y="250" width="115" height="130" fill="url(#arcFadeLeft)" />
+            <rect x="265" y="250" width="115" height="130" fill="url(#arcFadeRight)" />
+          </mask>
+        </defs>
         <AtmosphereRing theme={theme} />
         <TickMarks />
-        <ActivityTrack />
-        <ActivityArcs arcs={arcs} cx={CX} cy={CY} radius={ACTIVITY_R} strokeWidth={ACTIVITY_STROKE} onHover={setTooltip} />
-        <ActivityDots dots={dots} cx={CX} cy={CY} radius={ACTIVITY_R} onHover={setTooltip} />
+        <g mask="url(#arcEndFade)">
+          <ActivityTrack />
+          <ActivityArcs arcs={arcs} cx={CX} cy={CY} radius={ACTIVITY_R} strokeWidth={ACTIVITY_STROKE} onHover={setTooltip} />
+          <ActivityDots dots={dots} cx={CX} cy={CY} radius={ACTIVITY_R} onHover={setTooltip} />
+        </g>
         <HourLabels />
         <CurrentTimeDot now={now} />
         <CenterDisplay now={now} currentStatus={currentStatus} showInsight={showInsight} topInsight={topInsight} onCenterClick={handleCenterClick} />

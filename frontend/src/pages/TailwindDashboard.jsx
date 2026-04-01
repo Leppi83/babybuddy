@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Moon, Baby, Milk, Activity, Play, MoreHorizontal, Plus, Save } from 'lucide-react';
+import { Moon, Baby, Milk, Activity, Play, MoreHorizontal, Plus, Save, ChevronLeft, ChevronRight } from 'lucide-react';
 import dayjs from "dayjs";
 import ActivityDial from '../components/ActivityDial';
 import { TailwindDrawer } from '../components/TailwindDrawer';
+import { QuickEntryCard } from '../components/QuickEntryCard';
 import { createApiClient } from '../lib/app-utils';
 
 function StatCard({ title, value, subtitle, icon, color, bg, border, href }) {
@@ -60,6 +61,7 @@ export function ChildDashboardPage({ bootstrap }) {
   const slug = child.slug;
   const profileTimelineUrl = slug ? `/children/${slug}/timeline/` : urls.timeline;
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
+  const [dialDate, setDialDate] = useState(() => dayjs());
 
   return (
     <div className="flex flex-col gap-6 pb-10">
@@ -78,27 +80,42 @@ export function ChildDashboardPage({ bootstrap }) {
         </div>
       </header>
 
-      {/* Dial + Recent Activity side by side */}
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
+      {/* Dial (2/3) + Recent Activity (1/3) — same height */}
+      <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
 
-        {/* Daily Summary Dial — left column */}
-        <div className="glass-card overflow-hidden relative flex flex-col w-full lg:w-auto lg:flex-shrink-0" style={{ maxWidth: 460 }}>
-          {/* Title overlay on top of sky gradient */}
-          <div className="absolute top-5 left-6 z-10 pointer-events-none">
-            <h3 className="text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">{s.dailySummary || "Daily Summary"}</h3>
+        {/* 24h Overview Dial — 2/3 width */}
+        <div className="glass-card overflow-hidden relative flex flex-col lg:w-2/3">
+          {/* Card header with title + date nav */}
+          <div className="flex items-center justify-between px-5 pt-5 pb-1 z-10 relative">
+            <h3 className="text-lg font-bold tracking-tight text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+              {s.overview24h || "24h Overview"}
+            </h3>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setDialDate(d => d.subtract(1, 'day'))}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 transition-colors"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="text-xs font-semibold text-slate-300 min-w-[90px] text-center">
+                {dialDate.isSame(dayjs(), 'day') ? (s.today || 'Today') : dialDate.format('DD MMM YYYY')}
+              </span>
+              <button
+                onClick={() => setDialDate(d => d.add(1, 'day'))}
+                disabled={dialDate.isSame(dayjs(), 'day')}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 transition-colors disabled:opacity-30"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
-          {/* Fade overlays at arc endpoints (bottom-left = 00h, bottom-right = 24h) */}
-          <div className="absolute bottom-0 left-0 w-40 h-40 pointer-events-none z-20 rounded-bl-[24px]"
-            style={{ background: 'radial-gradient(circle at 0% 100%, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.6) 35%, transparent 65%)' }} />
-          <div className="absolute bottom-0 right-0 w-40 h-40 pointer-events-none z-20 rounded-br-[24px]"
-            style={{ background: 'radial-gradient(circle at 100% 100%, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.6) 35%, transparent 65%)' }} />
-          <div className="flex items-center justify-center w-full z-10">
+          <div className="flex items-center justify-center w-full flex-1 z-10">
             <ActivityDial
               activities={bootstrap.dialActivities || []}
               bedtime={bootstrap.bedtime}
               currentStatus={bootstrap.quickStatus?.activeSleepTimer ? `Sleeping ${bootstrap.quickStatus.activeSleepTimer}` : bootstrap.quickStatus?.lastSleep ? `Awake since ${bootstrap.quickStatus.lastSleep}` : ""}
               insights={bootstrap.insights || []}
-              referenceDate={null}
+              referenceDate={dialDate.toDate()}
               sunriseHour={bootstrap.celestial?.sunriseHour ?? 6}
               sunsetHour={bootstrap.celestial?.sunsetHour ?? 18}
               weatherCondition={bootstrap.celestial?.weatherCondition ?? "sunny"}
@@ -113,47 +130,39 @@ export function ChildDashboardPage({ bootstrap }) {
           </div>
         </div>
 
-        {/* Right column: stat cards + recent activity */}
-        <div className="flex flex-col gap-5 flex-1 min-w-0 w-full">
-          {/* Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <StatCard title={s.lastSleep || "Last Sleep"} value="2h 45m" subtitle="Finished at 1:30 PM" icon={<Moon />} color="text-indigo-400" bg="bg-indigo-500/10" border="border-indigo-500/20" />
-            <StatCard title={s.lastFeeding || "Last Feeding"} value="4.5 oz" subtitle="Formula at 4:15 PM" icon={<Milk />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
-            <StatCard title={s.lastDiaper || "Last Diaper"} value="Wet" subtitle="Changed at 3:00 PM" icon={
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 8 Q12 12 21 8 C21 16 16 22 12 22 C8 22 3 16 3 8 Z" />
-                <path d="M6 13 L8 13" /><path d="M18 13 L16 13" />
-              </svg>
-            } color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" />
-            <StatCard title={s.lastPumping || "Last Pumping"} value="—" subtitle="No pumping today" icon={<PumpIcon />} color="text-purple-400" bg="bg-purple-500/10" border="border-purple-500/20" />
+        {/* Recent Activity — 1/3 width */}
+        <div className="glass-card p-6 flex flex-col lg:w-1/3">
+          <div className="flex justify-between items-center mb-5">
+            <h3 className="text-lg font-bold tracking-tight text-white">{s.recentActivity || "Recent Activity"}</h3>
+            {profileTimelineUrl && (
+              <a href={profileTimelineUrl} className="text-sky-400 text-xs font-semibold tracking-wider uppercase hover:text-sky-300">View All</a>
+            )}
           </div>
-
-          {/* Recent Activity */}
-          <div className="glass-card p-6 flex flex-col flex-1">
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-lg font-bold tracking-tight text-white">{s.recentActivity || "Recent Activity"}</h3>
-              {profileTimelineUrl && (
-                <a href={profileTimelineUrl} className="text-sky-400 text-xs font-semibold tracking-wider uppercase hover:text-sky-300">View All</a>
-              )}
-            </div>
-            <div className="relative pl-6 space-y-6 before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
-              <TimelineItem title="Feeding" time="2 hours ago" type="feed" />
-              <TimelineItem title="Sleep" time="4 hours ago" type="sleep" />
-              <TimelineItem title="Diaper" time="5 hours ago" type="diaper" />
-              <TimelineItem title="Pumping" time="6 hours ago" type="activity" />
-            </div>
+          <div className="relative pl-6 space-y-6 before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
+            <TimelineItem title="Feeding" time="2 hours ago" type="feed" />
+            <TimelineItem title="Sleep" time="4 hours ago" type="sleep" />
+            <TimelineItem title="Diaper" time="5 hours ago" type="diaper" />
+            <TimelineItem title="Pumping" time="6 hours ago" type="activity" />
           </div>
         </div>
       </div>
 
-      {/* Quick Entry Drawer */}
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <StatCard title={s.lastSleep || "Last Sleep"} value="2h 45m" subtitle="Finished at 1:30 PM" icon={<Moon />} color="text-indigo-400" bg="bg-indigo-500/10" border="border-indigo-500/20" />
+        <StatCard title={s.lastFeeding || "Last Feeding"} value="4.5 oz" subtitle="Formula at 4:15 PM" icon={<Milk />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
+        <StatCard title={s.lastDiaper || "Last Diaper"} value="Wet" subtitle="Changed at 3:00 PM" icon={
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 8 Q12 12 21 8 C21 16 16 22 12 22 C8 22 3 16 3 8 Z" />
+            <path d="M6 13 L8 13" /><path d="M18 13 L16 13" />
+          </svg>
+        } color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" />
+        <StatCard title={s.lastPumping || "Last Pumping"} value="—" subtitle="No pumping today" icon={<PumpIcon />} color="text-purple-400" bg="bg-purple-500/10" border="border-purple-500/20" />
+      </div>
+
+      {/* Quick Entry Drawer — renders QuickEntryCard directly, no iframe */}
       <TailwindDrawer open={quickEntryOpen} onClose={() => setQuickEntryOpen(false)} title={s.quickEntry || "Quick Entry"}>
-        <iframe
-          src={urls.quickEntry}
-          title="Quick Entry"
-          style={{ width: '100%', height: '100%', minHeight: '80vh', border: 'none' }}
-          data-no-shell="1"
-        />
+        <QuickEntryCard bootstrap={bootstrap} />
       </TailwindDrawer>
     </div>
   );

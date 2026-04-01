@@ -5,10 +5,19 @@
     --background: #020617; /* Deep slate */
     --foreground: #f8fafc;
     --primary: #38bdf8;
+    --app-primary: #38bdf8;
     --primary-glow: rgba(56, 189, 248, 0.4);
     --secondary: #1e293b;
     --border: rgba(255, 255, 255, 0.05);
-    
+
+    /* Activity accent colors */
+    --accent-sleep: #ffd666;
+    --accent-feedings: #69b1ff;
+    --accent-breastfeeding: #ff85c2;
+    --accent-diaper: #ff7875;
+    --accent-pumpings: #b37feb;
+    --accent-tummytime: #5cdb8b;
+
     /* Animation Mesh Origins */
     --color-1: #0ea5e9;
     --color-2: #3b82f6;
