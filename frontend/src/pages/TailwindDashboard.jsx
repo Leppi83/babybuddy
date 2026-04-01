@@ -76,8 +76,8 @@ export function ChildDashboardPage({ bootstrap }) {
         </div>
       </header>
 
-      {/* Daily Summary Dial — full width card */}
-      <div className="glass-card overflow-hidden relative flex flex-col">
+      {/* Daily Summary Dial */}
+      <div className="glass-card overflow-hidden relative flex flex-col max-w-xl mx-auto w-full">
         <div className="px-6 pt-6 pb-2 z-10">
           <h3 className="text-xl font-bold tracking-tight text-white">{s.dailySummary || "Daily Summary"}</h3>
         </div>
