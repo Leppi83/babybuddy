@@ -2975,6 +2975,10 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         child = self.object
         from datetime import date as _date, timedelta
+        from examinations.models import ExaminationType, ExaminationRecord
+        from examinations.status import calculate_examination_statuses
+        from examinations.views import _get_program_for_child
+
         sex = "girl" if child.gender == "female" else "boy"
         birth_date = child.birth_date
         today_date = _date.today()
@@ -3009,26 +3013,14 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
         def _serialize_h_perc(row):
             td = row["age_in_days"]
             days = td.days if hasattr(td, "days") else int(td)
-            return {
-                "days": days,
-                "p3": row["p3_height"],
-                "p15": row["p15_height"],
-                "p50": row["p50_height"],
-                "p85": row["p85_height"],
-                "p97": row["p97_height"],
-            }
+            return {"days": days, "p3": row["p3_height"], "p15": row["p15_height"],
+                    "p50": row["p50_height"], "p85": row["p85_height"], "p97": row["p97_height"]}
 
         def _serialize_w_perc(row):
             td = row["age_in_days"]
             days = td.days if hasattr(td, "days") else int(td)
-            return {
-                "days": days,
-                "p3": row["p3_weight"],
-                "p15": row["p15_weight"],
-                "p50": row["p50_weight"],
-                "p85": row["p85_weight"],
-                "p97": row["p97_weight"],
-            }
+            return {"days": days, "p3": row["p3_weight"], "p15": row["p15_weight"],
+                    "p50": row["p50_weight"], "p85": row["p85_weight"], "p97": row["p97_weight"]}
 
         h_perc = list(
             HeightPercentile.objects.filter(sex=sex)
@@ -3043,6 +3035,43 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
             .values("age_in_days", "p3_weight", "p15_weight", "p50_weight", "p85_weight", "p97_weight")
         )
 
+        # Examination markers (same as ChildProfileTimeline)
+        program = _get_program_for_child(child)
+        exam_markers = []
+        cutoff_days = child_age_days + 60
+        if program:
+            exam_types = list(ExaminationType.objects.filter(program=program).order_by("order"))
+            records = list(ExaminationRecord.objects.filter(child=child))
+            statuses = calculate_examination_statuses(child, exam_types, records)
+            for et in exam_types:
+                if et.age_min_days > cutoff_days:
+                    continue
+                st = statuses.get(et.pk, {})
+                completed_date = st.get("completed_date")
+                exam_markers.append({
+                    "code": et.code,
+                    "name": et.name,
+                    "status": st.get("status", "upcoming"),
+                    "ageMinDays": et.age_min_days,
+                    "ageMaxDays": et.age_max_days,
+                    "completedDate": completed_date.isoformat() if completed_date else None,
+                    "url": reverse("examinations:form", kwargs={"slug": child.slug, "code": et.code}),
+                })
+
+        # Milestones
+        milestones = [
+            {
+                "id": m.pk,
+                "date": m.date.isoformat(),
+                "type": m.milestone_type,
+                "title": str(m),
+                "notes": m.notes or "",
+                "editUrl": reverse("core:milestone-update", kwargs={"pk": m.pk}),
+                "deleteUrl": reverse("core:milestone-delete", kwargs={"pk": m.pk}),
+            }
+            for m in child.milestones.order_by("date")
+        ]
+
         context["ant_bootstrap"] = {
             "pageType": "child-general",
             "currentPath": self.request.path,
@@ -3052,8 +3081,20 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
             "urls": {
                 **_nav_urls(),
                 "childDetail": reverse("core:child", kwargs={"slug": child.slug}),
+                "addMilestone": reverse("core:milestone-add") + f"?child={child.slug}",
+                "profileTimeline": reverse("core:child-profile-timeline", kwargs={"slug": child.slug}),
             },
             "childSwitcher": _build_child_switcher(self.request, current_child=child),
+            "children": [
+                {"slug": c.slug, "name": str(c)}
+                for c in models.Child.objects.order_by("first_name", "last_name")
+            ],
+            "currentChild": {
+                "id": child.id,
+                "slug": child.slug,
+                "name": str(child),
+                "birthDateLabel": birth_date.strftime("%-d %b %Y") if birth_date else "",
+            },
             "strings": {
                 **_list_strings(),
                 "general": _("General"),
@@ -3067,6 +3108,12 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
                 "measurements": _("Measurements"),
                 "cm": _("cm"),
                 "kg": _("kg"),
+                "milestones": _("Milestones"),
+                "addMilestone": _("Add Milestone"),
+                "examinations": _("U-Examinations"),
+                "born": _("Born"),
+                "today": _("Today"),
+                "delete": _("Delete"),
             },
             "childDetail": {
                 "name": str(child),
@@ -3079,5 +3126,8 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
             "bmiEntries": bmi_entries,
             "heightPercentiles": [_serialize_h_perc(r) for r in h_perc],
             "weightPercentiles": [_serialize_w_perc(r) for r in w_perc],
+            "heightMeasurements": heights,
+            "examinationMarkers": exam_markers,
+            "milestones": milestones,
         }
         return context
