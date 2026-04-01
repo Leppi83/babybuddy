@@ -24,22 +24,22 @@ function StatCard({ title, value, subtitle, icon, color, bg, border, href }) {
   );
 }
 
-function TimelineItem({ title, time, type }) {
-  const getBorder = () => {
-    switch(type) {
-      case 'sleep': return 'border-indigo-500/50 shadow-[0_0_10px_rgba(99,102,241,0.5)]';
-      case 'feed': return 'border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.5)]';
-      case 'diaper': return 'border-rose-500/50 shadow-[0_0_10px_rgba(244,63,94,0.5)]';
-      default: return 'border-sky-500/50 shadow-[0_0_10px_rgba(56,189,248,0.5)]';
-    }
-  };
+const ACTIVITY_BORDERS = {
+  sleep: 'border-indigo-500/50 shadow-[0_0_10px_rgba(99,102,241,0.5)]',
+  feed: 'border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.5)]',
+  diaper: 'border-rose-500/50 shadow-[0_0_10px_rgba(244,63,94,0.5)]',
+  pump: 'border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.5)]',
+};
 
+function TimelineItem({ title, timeIso, detail, type }) {
+  const border = ACTIVITY_BORDERS[type] || 'border-sky-500/50 shadow-[0_0_10px_rgba(56,189,248,0.5)]';
+  const timeLabel = timeIso ? dayjs(timeIso).format('HH:mm') : '';
   return (
     <div className="relative flex items-start gap-3">
-      <div className={`flex-shrink-0 mt-0.5 h-5 w-5 rounded-full border-2 ${getBorder()} bg-slate-950`}></div>
+      <div className={`flex-shrink-0 mt-0.5 h-5 w-5 rounded-full border-2 ${border} bg-slate-950`}></div>
       <div>
-         <h4 className="text-sm font-bold text-slate-200">{title}</h4>
-         <p className="text-xs text-slate-500 mt-1">{time}</p>
+        <h4 className="text-sm font-bold text-slate-200">{title}{detail ? <span className="font-normal text-slate-400"> · {detail}</span> : null}</h4>
+        <p className="text-xs text-slate-500 mt-0.5">{timeLabel}</p>
       </div>
     </div>
   );
@@ -54,11 +54,65 @@ function PumpIcon() {
   );
 }
 
+function fmtDuration(sec) {
+  if (!sec) return '—';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function fmtTime(iso) {
+  return iso ? dayjs(iso).format('HH:mm') : '';
+}
+
+function buildSleepCard(card) {
+  if (!card) return { value: '—', subtitle: 'No sleep recorded' };
+  if (card.active) {
+    return { value: 'Active', subtitle: `Started at ${fmtTime(card.startIso)}` };
+  }
+  return {
+    value: fmtDuration(card.durationSec),
+    subtitle: card.endIso ? `Ended at ${fmtTime(card.endIso)}` : `Started at ${fmtTime(card.startIso)}`,
+  };
+}
+
+function buildFeedingCard(card) {
+  if (!card) return { value: '—', subtitle: 'No feeding recorded' };
+  const val = card.amount != null ? `${card.amount} oz` : (card.method || card.type || '—');
+  const at = card.endIso ? fmtTime(card.endIso) : fmtTime(card.startIso);
+  const label = card.method || card.type || '';
+  return { value: val, subtitle: label ? `${label} at ${at}` : `At ${at}` };
+}
+
+function buildDiaperCard(card) {
+  if (!card) return { value: '—', subtitle: 'No diaper recorded' };
+  const types = [];
+  if (card.wet) types.push('Wet');
+  if (card.solid) types.push('Solid');
+  return {
+    value: types.length ? types.join(' + ') : '—',
+    subtitle: `Changed at ${fmtTime(card.timeIso)}`,
+  };
+}
+
+function buildPumpCard(card) {
+  if (!card) return { value: '—', subtitle: 'No pumping recorded' };
+  const val = card.amount != null ? `${card.amount} oz` : fmtDuration(card.durationSec);
+  const at = card.endIso ? fmtTime(card.endIso) : fmtTime(card.startIso);
+  return { value: val, subtitle: `Pumped at ${at}` };
+}
+
 export function ChildDashboardPage({ bootstrap }) {
   const s = bootstrap.strings || {};
   const urls = bootstrap.urls || {};
   const child = bootstrap.currentChild || { name: "Child" };
   const slug = child.slug;
+  const sc = bootstrap.statCards || {};
+  const sleepCard = buildSleepCard(sc.sleep);
+  const feedingCard = buildFeedingCard(sc.feeding);
+  const diaperCard = buildDiaperCard(sc.diaper);
+  const pumpCard = buildPumpCard(sc.pumping);
+  const recentActivity = bootstrap.recentActivity || [];
   const profileTimelineUrl = urls.profileTimeline || (slug ? `/children/${slug}/profile-timeline/` : urls.timeline);
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
   const [dialDate, setDialDate] = useState(() => {
@@ -154,25 +208,26 @@ export function ChildDashboardPage({ bootstrap }) {
             )}
           </div>
           <div className="space-y-5">
-            <TimelineItem title="Feeding" time="2 hours ago" type="feed" />
-            <TimelineItem title="Sleep" time="4 hours ago" type="sleep" />
-            <TimelineItem title="Diaper" time="5 hours ago" type="diaper" />
-            <TimelineItem title="Pumping" time="6 hours ago" type="activity" />
+            {recentActivity.length === 0 ? (
+              <p className="text-slate-500 text-sm">No activity recorded.</p>
+            ) : recentActivity.map((item, i) => (
+              <TimelineItem key={i} title={item.title} timeIso={item.timeIso} detail={item.detail} type={item.type} />
+            ))}
           </div>
         </div>
       </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard title={s.lastSleep || "Last Sleep"} value="2h 45m" subtitle="Finished at 1:30 PM" icon={<Moon />} color="text-indigo-400" bg="bg-indigo-500/10" border="border-indigo-500/20" />
-        <StatCard title={s.lastFeeding || "Last Feeding"} value="4.5 oz" subtitle="Formula at 4:15 PM" icon={<Milk />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
-        <StatCard title={s.lastDiaper || "Last Diaper"} value="Wet" subtitle="Changed at 3:00 PM" icon={
+        <StatCard title={s.lastSleep || "Last Sleep"} value={sleepCard.value} subtitle={sleepCard.subtitle} icon={<Moon />} color="text-indigo-400" bg="bg-indigo-500/10" border="border-indigo-500/20" href={urls.topicPages?.sleep} />
+        <StatCard title={s.lastFeeding || "Last Feeding"} value={feedingCard.value} subtitle={feedingCard.subtitle} icon={<Milk />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" href={urls.topicPages?.feeding} />
+        <StatCard title={s.lastDiaper || "Last Diaper"} value={diaperCard.value} subtitle={diaperCard.subtitle} icon={
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 8 Q12 12 21 8 C21 16 16 22 12 22 C8 22 3 16 3 8 Z" />
             <path d="M6 13 L8 13" /><path d="M18 13 L16 13" />
           </svg>
-        } color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" />
-        <StatCard title={s.lastPumping || "Last Pumping"} value="—" subtitle="No pumping today" icon={<PumpIcon />} color="text-purple-400" bg="bg-purple-500/10" border="border-purple-500/20" />
+        } color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" href={urls.topicPages?.diaper} />
+        <StatCard title={s.lastPumping || "Last Pumping"} value={pumpCard.value} subtitle={pumpCard.subtitle} icon={<PumpIcon />} color="text-purple-400" bg="bg-purple-500/10" border="border-purple-500/20" href={urls.topicPages?.pumping} />
       </div>
 
       {/* Quick Entry Drawer — renders QuickEntryCard directly, no iframe */}

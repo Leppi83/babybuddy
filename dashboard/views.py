@@ -360,6 +360,160 @@ def _build_quick_status(child):
     }
 
 
+def _fmt_duration(seconds):
+    """Format a duration in seconds as 'Xh Ym' or 'Ym'."""
+    if seconds is None:
+        return None
+    h = int(seconds) // 3600
+    m = (int(seconds) % 3600) // 60
+    if h > 0:
+        return f"{h}h {m}m"
+    return f"{m}m"
+
+
+def _build_stat_cards(child):
+    """Build stat card data for the dashboard (raw values; React formats display)."""
+    # Last Sleep
+    last_sleep = Sleep.objects.filter(child=child, end__isnull=False).order_by("-end").first()
+    active_sleep = Sleep.objects.filter(child=child, end__isnull=True).order_by("-start").first()
+    if active_sleep:
+        sleep_card = {
+            "active": True,
+            "startIso": active_sleep.start.isoformat(),
+            "endIso": None,
+            "durationSec": None,
+        }
+    elif last_sleep:
+        sleep_card = {
+            "active": False,
+            "startIso": last_sleep.start.isoformat(),
+            "endIso": last_sleep.end.isoformat(),
+            "durationSec": (
+                int(last_sleep.duration.total_seconds()) if last_sleep.duration else None
+            ),
+        }
+    else:
+        sleep_card = None
+
+    # Last Feeding
+    last_feeding = Feeding.objects.filter(child=child).order_by("-end").first()
+    if last_feeding:
+        feeding_card = {
+            "amount": float(last_feeding.amount) if last_feeding.amount else None,
+            "type": last_feeding.type or "",
+            "method": last_feeding.method or "",
+            "startIso": last_feeding.start.isoformat(),
+            "endIso": last_feeding.end.isoformat() if last_feeding.end else None,
+            "durationSec": (
+                int(last_feeding.duration.total_seconds()) if last_feeding.duration else None
+            ),
+        }
+    else:
+        feeding_card = None
+
+    # Last Diaper
+    last_diaper = DiaperChange.objects.filter(child=child).order_by("-time").first()
+    if last_diaper:
+        diaper_card = {
+            "wet": last_diaper.wet,
+            "solid": last_diaper.solid,
+            "color": last_diaper.color or "",
+            "timeIso": last_diaper.time.isoformat(),
+        }
+    else:
+        diaper_card = None
+
+    # Last Pumping
+    last_pump = Pumping.objects.filter(child=child).order_by("-end").first()
+    if last_pump:
+        pump_card = {
+            "amount": float(last_pump.amount) if last_pump.amount else None,
+            "startIso": last_pump.start.isoformat(),
+            "endIso": last_pump.end.isoformat() if last_pump.end else None,
+            "durationSec": (
+                int(last_pump.duration.total_seconds()) if last_pump.duration else None
+            ),
+        }
+    else:
+        pump_card = None
+
+    return {
+        "sleep": sleep_card,
+        "feeding": feeding_card,
+        "diaper": diaper_card,
+        "pumping": pump_card,
+    }
+
+
+def _build_recent_activity(child, ref_date=None):
+    """Build recent activity items for the dashboard timeline, filtered to ref_date."""
+    if ref_date is None:
+        ref_date = datetime.date.today()
+
+    day_start = timezone.make_aware(
+        datetime.datetime.combine(ref_date, datetime.time.min)
+    )
+    day_end = day_start + datetime.timedelta(days=1)
+
+    events = []
+
+    for s in Sleep.objects.filter(
+        child=child, start__gte=day_start, start__lt=day_end
+    ).order_by("-start")[:5]:
+        events.append(
+            {
+                "type": "sleep",
+                "title": str(_("Sleep")),
+                "timeIso": s.start.isoformat(),
+                "detail": str(_("Nap")) if s.nap else str(_("Night sleep")),
+            }
+        )
+
+    for f in Feeding.objects.filter(
+        child=child, start__gte=day_start, start__lt=day_end
+    ).order_by("-start")[:5]:
+        events.append(
+            {
+                "type": "feed",
+                "title": str(_("Feeding")),
+                "timeIso": f.start.isoformat(),
+                "detail": f.method or f.type or "",
+            }
+        )
+
+    for d in DiaperChange.objects.filter(
+        child=child, time__gte=day_start, time__lt=day_end
+    ).order_by("-time")[:5]:
+        types = []
+        if d.wet:
+            types.append(str(_("Wet")))
+        if d.solid:
+            types.append(str(_("Solid")))
+        events.append(
+            {
+                "type": "diaper",
+                "title": str(_("Diaper")),
+                "timeIso": d.time.isoformat(),
+                "detail": " + ".join(types),
+            }
+        )
+
+    for p in Pumping.objects.filter(
+        child=child, start__gte=day_start, start__lt=day_end
+    ).order_by("-start")[:3]:
+        events.append(
+            {
+                "type": "pump",
+                "title": str(_("Pumping")),
+                "timeIso": p.start.isoformat(),
+                "detail": f"{float(p.amount):.1f}" if p.amount else "",
+            }
+        )
+
+    events.sort(key=lambda e: e["timeIso"], reverse=True)
+    return events[:8]
+
+
 def _build_insights_for_bootstrap(child):
     cache_key = f"insights_{child.id}"
     insights = cache.get(cache_key)
@@ -1437,6 +1591,11 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                 ),
                 "strings": _build_ant_strings(),
                 "quickStatus": _build_quick_status(self.object),
+                "statCards": _build_stat_cards(self.object),
+                "recentActivity": _build_recent_activity(
+                    self.object,
+                    ref_date=_parse_date_param(self.request),
+                ),
                 "insights": _build_insights_for_bootstrap(self.object),
                 "dialActivities": _build_dial_activities(
                     self.object,
