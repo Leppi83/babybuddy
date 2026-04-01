@@ -77,9 +77,10 @@ export function ChildDashboardPage({ bootstrap }) {
       </header>
 
       {/* Daily Summary Dial — full width card */}
-      <div className="glass-card p-6 flex flex-col overflow-hidden relative">
-        <div className="absolute -left-10 -bottom-10 w-96 h-96 rounded-full blur-[100px] bg-sky-500/10 opacity-40 pointer-events-none" />
-        <h3 className="text-xl font-bold tracking-tight text-white mb-4 z-10">{s.dailySummary || "Daily Summary"}</h3>
+      <div className="glass-card overflow-hidden relative flex flex-col">
+        <div className="px-6 pt-6 pb-2 z-10">
+          <h3 className="text-xl font-bold tracking-tight text-white">{s.dailySummary || "Daily Summary"}</h3>
+        </div>
         <div className="flex items-center justify-center w-full z-10">
           <ActivityDial
             activities={bootstrap.dialActivities || []}
