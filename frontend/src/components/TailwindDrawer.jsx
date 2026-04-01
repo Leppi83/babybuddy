@@ -21,9 +21,9 @@ export function TailwindDrawer({ open, onClose, title, children }) {
         onClick={onClose}
       />
       {/* Panel */}
-      <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-slate-900 border-l border-sky-500/20 flex flex-col shadow-2xl">
+      <div className="absolute right-0 top-0 bottom-0 w-full max-w-xl bg-slate-900 border-l border-sky-500/20 flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div className="flex-none flex items-center justify-between px-6 py-4 border-b border-white/10">
           <h3 className="text-base font-bold text-slate-100 tracking-tight">{title}</h3>
           <button
             onClick={onClose}
@@ -32,8 +32,8 @@ export function TailwindDrawer({ open, onClose, title, children }) {
             <X size={16} />
           </button>
         </div>
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        {/* Body — min-h-0 is required for overflow-y-auto to work in a flex child */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5">
           {children}
         </div>
       </div>
