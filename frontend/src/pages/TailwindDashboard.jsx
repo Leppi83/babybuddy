@@ -35,8 +35,8 @@ function TimelineItem({ title, time, type }) {
   };
 
   return (
-    <div className="relative">
-      <div className={`absolute -left-8 bg-[#0f172a] h-5 w-5 rounded-full border-2 ${getBorder()}`}></div>
+    <div className="relative flex items-start gap-3">
+      <div className={`flex-shrink-0 mt-0.5 h-5 w-5 rounded-full border-2 ${getBorder()} bg-slate-950`}></div>
       <div>
          <h4 className="text-sm font-bold text-slate-200">{title}</h4>
          <p className="text-xs text-slate-500 mt-1">{time}</p>
@@ -59,9 +59,24 @@ export function ChildDashboardPage({ bootstrap }) {
   const urls = bootstrap.urls || {};
   const child = bootstrap.currentChild || { name: "Child" };
   const slug = child.slug;
-  const profileTimelineUrl = slug ? `/children/${slug}/timeline/` : urls.timeline;
+  const profileTimelineUrl = urls.profileTimeline || (slug ? `/children/${slug}/profile-timeline/` : urls.timeline);
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
-  const [dialDate, setDialDate] = useState(() => dayjs());
+  const [dialDate, setDialDate] = useState(() => {
+    if (typeof window !== "undefined") {
+      const d = new URLSearchParams(window.location.search).get("date");
+      if (d) return dayjs(d);
+    }
+    return dayjs();
+  });
+
+  function handleDialDateChange(newDate) {
+    if (newDate.isAfter(dayjs(), 'day')) return; // no future dates
+    if (newDate.isSame(dayjs(), 'day')) {
+      window.location.href = window.location.pathname;
+    } else {
+      window.location.href = `${window.location.pathname}?date=${newDate.format('YYYY-MM-DD')}`;
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6 pb-10">
@@ -92,7 +107,7 @@ export function ChildDashboardPage({ bootstrap }) {
             </h3>
             <div className="flex items-center gap-1">
               <button
-                onClick={() => setDialDate(d => d.subtract(1, 'day'))}
+                onClick={() => handleDialDateChange(dialDate.subtract(1, 'day'))}
                 className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 transition-colors"
               >
                 <ChevronLeft size={16} />
@@ -101,7 +116,7 @@ export function ChildDashboardPage({ bootstrap }) {
                 {dialDate.isSame(dayjs(), 'day') ? (s.today || 'Today') : dialDate.format('DD MMM YYYY')}
               </span>
               <button
-                onClick={() => setDialDate(d => d.add(1, 'day'))}
+                onClick={() => handleDialDateChange(dialDate.add(1, 'day'))}
                 disabled={dialDate.isSame(dayjs(), 'day')}
                 className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 transition-colors disabled:opacity-30"
               >
@@ -138,7 +153,7 @@ export function ChildDashboardPage({ bootstrap }) {
               <a href={profileTimelineUrl} className="text-sky-400 text-xs font-semibold tracking-wider uppercase hover:text-sky-300">View All</a>
             )}
           </div>
-          <div className="relative pl-6 space-y-6 before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
+          <div className="space-y-5">
             <TimelineItem title="Feeding" time="2 hours ago" type="feed" />
             <TimelineItem title="Sleep" time="4 hours ago" type="sleep" />
             <TimelineItem title="Diaper" time="5 hours ago" type="diaper" />

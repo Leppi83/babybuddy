@@ -12,33 +12,33 @@ export function AppShell({ bootstrap, children }) {
   const s = bootstrap.strings || {};
   const urls = bootstrap.urls || {};
   const slug = bootstrap.currentChild?.slug;
+  const pt = bootstrap.pageType || "";
 
-  // Topic URL helpers
+  // Topic URL helpers — use topicTemplate from bootstrap if available
   function topicHref(topic) {
     if (urls.topicTemplate) return urls.topicTemplate.replace("__CHILD_SLUG__", slug || "").replace("__TOPIC__", topic);
-    return slug ? `/children/${slug}/insights/${topic}/` : "#";
+    return slug ? `/children/${slug}/topics/${topic}/` : "#";
   }
 
+  // Profile timeline URL (correct Django pattern: /children/<slug>/profile-timeline/)
+  const profileTimelineUrl = urls.profileTimeline || (slug ? `/children/${slug}/profile-timeline/` : urls.timeline);
+
   const insightLinks = slug ? [
-    { label: s.generalLabel || "General", href: `/children/${slug}/general/` },
+    { label: s.generalLabel || "General", href: urls.childGeneral || `/children/${slug}/general/` },
     { label: s.sleepLabel || "Sleep", href: topicHref("sleep") },
     { label: s.feedingLabel || "Feeding", href: topicHref("feeding") },
     { label: s.diaperLabel || "Diaper", href: topicHref("diaper") },
     { label: s.pumpingLabel || "Pumping", href: topicHref("pumping") },
   ] : [];
 
-  // Timeline links to profile timeline (with u-exams + height silhouettes)
-  const profileTimelineUrl = slug ? `/children/${slug}/timeline/` : urls.timeline;
-
   const navItems = [
-    { icon: <Home size={20} />, label: s.dashboard || "Dashboard", href: urls.dashboard },
-    { icon: <Edit2 size={20} />, label: s.quickEntry || "Quick Entry", href: urls.quickEntry },
-    { icon: <Lightbulb size={20} />, label: s.insights || "Insights", isMenu: true, children: insightLinks },
-    { icon: <History size={20} />, label: s.timeline || "Timeline", href: profileTimelineUrl },
+    { icon: <Home size={20} />, label: s.dashboard || "Dashboard", href: urls.dashboard, pageTypes: ["dashboard-child", "dashboard-home"] },
+    { icon: <Lightbulb size={20} />, label: s.insights || "Insights", isMenu: true, children: insightLinks, pageTypes: ["insights", "topic-detail", "child-general"] },
+    { icon: <History size={20} />, label: s.timeline || "Timeline", href: profileTimelineUrl, pageTypes: ["child-profile-timeline", "timeline"] },
   ].filter(item => item.href || item.isMenu);
 
-  if (urls.childrenList) navItems.push({ icon: <Users size={20} />, label: s.children || "Children", href: urls.childrenList });
-  if (urls.addChild) navItems.push({ icon: <UserPlus size={20} />, label: s.addChild || "Add Child", href: urls.addChild });
+  if (urls.childrenList) navItems.push({ icon: <Users size={20} />, label: s.children || "Children", href: urls.childrenList, pageTypes: ["list"] });
+  if (urls.addChild) navItems.push({ icon: <UserPlus size={20} />, label: s.addChild || "Add Child", href: urls.addChild, pageTypes: ["form"] });
 
   function handleLogout() {
     const form = document.createElement("form");
@@ -53,17 +53,16 @@ export function AppShell({ bootstrap, children }) {
     form.submit();
   }
 
-  const activePath = typeof window !== "undefined" ? window.location.pathname : "";
-
-  function isActive(href) {
-    if (!href || href === "#") return false;
-    if (href === urls.dashboard) return activePath === href || activePath === "/";
-    return activePath.startsWith(href);
+  function isActive(item) {
+    if (!item) return false;
+    // Use pageType for accurate active state
+    if (item.pageTypes?.includes(pt)) return true;
+    return false;
   }
 
   function NavLink({ item, i }) {
     if (item.isMenu) {
-      const anyChildActive = (item.children || []).some(c => activePath.startsWith(c.href));
+      const anyChildActive = item.pageTypes?.includes(pt) || false;
       const open = insightsOpen;
       return (
         <div className="flex flex-col">
@@ -95,7 +94,7 @@ export function AppShell({ bootstrap, children }) {
       );
     }
 
-    const active = isActive(item.href);
+    const active = isActive(item);
     return (
       <a
         href={item.href}
@@ -122,7 +121,7 @@ export function AppShell({ bootstrap, children }) {
         </div>
 
         {/* Child selector */}
-        {!collapsed && bootstrap.children?.length > 1 && (
+        {!collapsed && bootstrap.children?.length >= 1 && bootstrap.currentChild && (
           <div className="px-4 py-4 border-b border-white/5">
             <span className="text-xs uppercase tracking-wider text-slate-500 font-bold ml-2 mb-2 block">Child</span>
             <select
@@ -188,7 +187,7 @@ export function AppShell({ bootstrap, children }) {
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 glass-panel border-t border-white/10 z-50 flex items-center justify-around px-2">
         {navItems.slice(0, 4).map((item, i) => (
-          <a key={i} href={item.isMenu ? (item.children?.[0]?.href || "#") : item.href} className={`p-3 flex flex-col items-center gap-1 transition-colors ${isActive(item.isMenu ? item.children?.[0]?.href : item.href) ? "text-sky-400" : "text-slate-400 hover:text-sky-400"}`}>
+          <a key={i} href={item.isMenu ? (item.children?.[0]?.href || "#") : item.href} className={`p-3 flex flex-col items-center gap-1 transition-colors ${isActive(item) ? "text-sky-400" : "text-slate-400 hover:text-sky-400"}`}>
             {item.icon}
           </a>
         ))}

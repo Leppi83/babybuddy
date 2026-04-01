@@ -67,6 +67,17 @@ def _display_name(user):
     return user.get_full_name() or user.username
 
 
+def _parse_date_param(request):
+    """Return a date object from ?date=YYYY-MM-DD, or None."""
+    raw = request.GET.get("date")
+    if raw:
+        try:
+            return datetime.date.fromisoformat(raw)
+        except (ValueError, AttributeError):
+            pass
+    return None
+
+
 def _build_nav_urls(request):
     return {
         "dashboard": reverse("dashboard:dashboard"),
@@ -464,10 +475,24 @@ def _build_celestial_data(user):
     return get_celestial_data(user_settings)
 
 
-def _build_dial_activities(child):
-    """Serialize last 24h of activities for the activity dial."""
-    now = timezone.now()
-    since = now - datetime.timedelta(hours=24)
+def _build_dial_activities(child, ref_date=None):
+    """Serialize activities for the activity dial.
+
+    If ref_date is given, returns activities for that calendar day (midnight-to-midnight
+    local time).  Otherwise returns the last 24 h from now.
+    """
+    if ref_date is not None:
+        try:
+            tz = timezone.get_current_timezone()
+            day_start = datetime.datetime.combine(ref_date, datetime.time.min).replace(tzinfo=tz)
+            day_end = datetime.datetime.combine(ref_date, datetime.time.max).replace(tzinfo=tz)
+            since = day_start
+            now = day_end
+        except Exception:
+            ref_date = None
+    if ref_date is None:
+        now = timezone.now()
+        since = now - datetime.timedelta(hours=24)
     activities = []
 
     for s in Sleep.objects.filter(child=child, start__gte=since).order_by("start"):
@@ -1370,6 +1395,18 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                     **_build_nav_urls(self.request),
                     "layout": reverse("babybuddy:user-settings"),
                     "current": self.request.get_full_path(),
+                    "profileTimeline": reverse(
+                        "core:child-profile-timeline",
+                        kwargs={"slug": self.object.slug},
+                    ),
+                    "childGeneral": reverse(
+                        "core:child-general",
+                        kwargs={"slug": self.object.slug},
+                    ),
+                    "topicTemplate": reverse(
+                        "dashboard:child-topic",
+                        kwargs={"slug": "__CHILD_SLUG__", "topic": "__TOPIC__"},
+                    ),
                     "childDashboardTemplate": reverse(
                         "dashboard:dashboard-child", kwargs={"slug": "__CHILD_SLUG__"}
                     ),
@@ -1401,7 +1438,10 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
                 "strings": _build_ant_strings(),
                 "quickStatus": _build_quick_status(self.object),
                 "insights": _build_insights_for_bootstrap(self.object),
-                "dialActivities": _build_dial_activities(self.object),
+                "dialActivities": _build_dial_activities(
+                    self.object,
+                    ref_date=_parse_date_param(self.request),
+                ),
                 "bedtime": (
                     self.object.usual_bedtime.strftime("%H:%M")
                     if self.object.usual_bedtime
