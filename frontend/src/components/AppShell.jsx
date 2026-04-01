@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {
   Home, Users, UserPlus, Edit2, History, Settings, LogOut,
-  Menu, Bell, ChevronDown, Lightbulb, Activity
+  Menu, Bell, ChevronDown, Lightbulb
 } from "lucide-react";
 
 export function AppShell({ bootstrap, children }) {
@@ -13,38 +13,28 @@ export function AppShell({ bootstrap, children }) {
   const urls = bootstrap.urls || {};
   const slug = bootstrap.currentChild?.slug;
 
-  // Build Insights sub-items: General first, then topics
-  const insightsChildren = slug ? [
-    { label: s.generalLabel || "General", href: `/children/${slug}/general/` },
-    { label: s.sleepLabel || "Sleep", href: urls.insightsTemplate ? urls.insightsTemplate.replace("__CHILD_ID__", bootstrap.currentChild?.id || "").replace("__TOPIC__", "sleep") : `/children/${slug}/insights/sleep/` },
-    { label: s.feedingLabel || "Feeding", href: `/children/${slug}/insights/feeding/` },
-    { label: s.diaperLabel || "Diaper", href: `/children/${slug}/insights/diaper/` },
-    { label: s.pumpingLabel || "Pumping", href: `/children/${slug}/insights/pumping/` },
-  ] : [];
-
-  // Use topicTemplate or insightsTemplate if available
+  // Topic URL helpers
   function topicHref(topic) {
     if (urls.topicTemplate) return urls.topicTemplate.replace("__CHILD_SLUG__", slug || "").replace("__TOPIC__", topic);
     return slug ? `/children/${slug}/insights/${topic}/` : "#";
   }
-  function generalHref() {
-    return slug ? `/children/${slug}/general/` : "#";
-  }
 
   const insightLinks = slug ? [
-    { label: s.generalLabel || "General", href: generalHref() },
+    { label: s.generalLabel || "General", href: `/children/${slug}/general/` },
     { label: s.sleepLabel || "Sleep", href: topicHref("sleep") },
     { label: s.feedingLabel || "Feeding", href: topicHref("feeding") },
     { label: s.diaperLabel || "Diaper", href: topicHref("diaper") },
     { label: s.pumpingLabel || "Pumping", href: topicHref("pumping") },
   ] : [];
 
+  // Timeline links to profile timeline (with u-exams + height silhouettes)
+  const profileTimelineUrl = slug ? `/children/${slug}/timeline/` : urls.timeline;
+
   const navItems = [
     { icon: <Home size={20} />, label: s.dashboard || "Dashboard", href: urls.dashboard },
     { icon: <Edit2 size={20} />, label: s.quickEntry || "Quick Entry", href: urls.quickEntry },
     { icon: <Lightbulb size={20} />, label: s.insights || "Insights", isMenu: true, children: insightLinks },
-    { icon: <History size={20} />, label: s.timeline || "Timeline", href: urls.timeline },
-    { icon: <Activity size={20} />, label: s.reports || "Reports", href: slug ? `/children/${slug}/reports/` : urls.reports },
+    { icon: <History size={20} />, label: s.timeline || "Timeline", href: profileTimelineUrl },
   ].filter(item => item.href || item.isMenu);
 
   if (urls.childrenList) navItems.push({ icon: <Users size={20} />, label: s.children || "Children", href: urls.childrenList });

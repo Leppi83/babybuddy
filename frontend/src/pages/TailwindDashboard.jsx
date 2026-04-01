@@ -43,96 +43,91 @@ function TimelineItem({ title, time, type }) {
   );
 }
 
+function PumpIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M35 25c0-4-6-6-6-6v-5H17v5s-6 2-6 6v19h24z" />
+      <path d="M20 4l-7 6m10 4l-6-7m9 1h9v7l6 5" />
+    </svg>
+  );
+}
+
 export function ChildDashboardPage({ bootstrap }) {
   const s = bootstrap.strings || {};
   const urls = bootstrap.urls || {};
   const child = bootstrap.currentChild || { name: "Child" };
+  const slug = child.slug;
+  const profileTimelineUrl = slug ? `/children/${slug}/timeline/` : urls.timeline;
 
   return (
-    <div className="flex flex-col gap-8 pb-10">
-      
+    <div className="flex flex-col gap-6 pb-10">
+
       {/* Header Band */}
       <header className="glass-panel p-8 md:p-10 rounded-[32px] flex justify-between items-center relative overflow-hidden">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4"></div>
-         <div className="z-10">
-           <p className="text-sky-400 font-semibold tracking-widest text-xs mb-2">
-             {dayjs().format("dddd, MMMM D")}
-           </p>
-           <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">{child.name}&apos;s Dashboard</h2>
-         </div>
-         
-         <div className="hidden md:flex gap-3 z-10">
-           <a href={urls.quickEntry} className="bg-sky-500 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(56,189,248,0.4)] hover:bg-sky-400 hover:scale-105 transition-all flex items-center gap-2">
-             <Plus size={16} /> {s.quickEntry || "Add Entry"}
-           </a>
-         </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4" />
+        <div className="z-10">
+          <p className="text-sky-400 font-semibold tracking-widest text-xs mb-2">{dayjs().format("dddd, MMMM D")}</p>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">{child.name}&apos;s Dashboard</h2>
+        </div>
+        <div className="hidden md:flex gap-3 z-10">
+          <a href={urls.quickEntry} className="bg-sky-500 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(56,189,248,0.4)] hover:bg-sky-400 hover:scale-105 transition-all flex items-center gap-2">
+            <Plus size={16} /> {s.quickEntry || "Quick Entry"}
+          </a>
+        </div>
       </header>
 
-      {/* Hero Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-         <StatCard title={s.lastSleep || "Last Sleep"} value="2h 45m" subtitle="Finished at 1:30 PM" icon={<Moon />} color="text-indigo-400" bg="bg-indigo-500/10" border="border-indigo-500/20" />
-         <StatCard title={s.lastFeeding || "Last Feeding"} value="4.5 oz" subtitle="Formula at 4:15 PM" icon={<Milk />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
-         <StatCard title={s.lastDiaper || "Last Diaper"} value="Wet" subtitle="Changed at 3:00 PM" icon={
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 8 Q12 12 21 8 C21 16 16 22 12 22 C8 22 3 16 3 8 Z" />
-              <path d="M6 13 L8 13" />
-              <path d="M18 13 L16 13" />
-            </svg>
-         } color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" />
-         <StatCard title={s.tummyTime || "Tummy Time"} value="15m" subtitle="Today total: 30m" icon={
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="18" cy="8" r="3" />
-              <path d="M15 10 L10 14 L4 14" />
-              <path d="M10 14 L8 20" />
-              <path d="M12 14 L12 20" />
-            </svg>
-         } color="text-amber-400" bg="bg-amber-500/10" border="border-amber-500/20" />
+      {/* Daily Summary Dial — full width card */}
+      <div className="glass-card p-6 flex flex-col overflow-hidden relative">
+        <div className="absolute -left-10 -bottom-10 w-96 h-96 rounded-full blur-[100px] bg-sky-500/10 opacity-40 pointer-events-none" />
+        <h3 className="text-xl font-bold tracking-tight text-white mb-4 z-10">{s.dailySummary || "Daily Summary"}</h3>
+        <div className="flex items-center justify-center w-full z-10">
+          <ActivityDial
+            activities={bootstrap.dialActivities || []}
+            bedtime={bootstrap.bedtime}
+            currentStatus={bootstrap.quickStatus?.activeSleepTimer ? `Sleeping ${bootstrap.quickStatus.activeSleepTimer}` : bootstrap.quickStatus?.lastSleep ? `Awake since ${bootstrap.quickStatus.lastSleep}` : ""}
+            insights={bootstrap.insights || []}
+            referenceDate={null}
+            sunriseHour={bootstrap.celestial?.sunriseHour ?? 6}
+            sunsetHour={bootstrap.celestial?.sunsetHour ?? 18}
+            weatherCondition={bootstrap.celestial?.weatherCondition ?? "sunny"}
+            strings={{
+              sleep: s.sleepLabel || "Sleep",
+              feed: s.feedingLabel || "Feed",
+              breast: s.breastfeedingShort || "Breast",
+              diaper: s.diaperLabel || "Diaper",
+              pump: s.pumpingShort || "Pump",
+            }}
+          />
+        </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-         {/* Center Activity Dial Mockup Area */}
-         <div className="lg:col-span-2 glass-card p-8 flex flex-col min-h-[500px] overflow-hidden relative group block group hover:bg-white/5 transition-all">
-           <div className="absolute -left-10 -bottom-10 w-96 h-96 rounded-full blur-[100px] bg-sky-500/10 opacity-50 group-hover:opacity-100 transition-opacity"></div>
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full blur-[80px] bg-sky-500/5 opacity-50 group-hover:opacity-100 transition-opacity z-0 pointer-events-none"></div>
-           <div className="flex justify-between items-center mb-6 z-10">
-              <h3 className="text-2xl font-bold tracking-tight text-white">{s.dailySummary || "Daily Summary"}</h3>
-           </div>
-           <div className="flex-1 flex flex-col items-center justify-center w-full">
-              <ActivityDial
-                activities={bootstrap.dialActivities || []}
-                bedtime={bootstrap.bedtime}
-                currentStatus={bootstrap.quickStatus?.activeSleepTimer ? `Sleeping ${bootstrap.quickStatus.activeSleepTimer}` : bootstrap.quickStatus?.lastSleep ? `Awake since ${bootstrap.quickStatus.lastSleep}` : ""}
-                insights={bootstrap.insights || []}
-                referenceDate={null}
-                sunriseHour={bootstrap.celestial?.sunriseHour ?? 6}
-                sunsetHour={bootstrap.celestial?.sunsetHour ?? 18}
-                weatherCondition={bootstrap.celestial?.weatherCondition ?? "sunny"}
-                strings={{
-                  sleep: s.sleepLabel || "Sleep",
-                  feed: s.feedingLabel || "Feed",
-                  breast: s.breastfeedingShort || "Breast",
-                  diaper: s.diaperLabel || "Diaper",
-                  pump: s.pumpingShort || "Pump",
-                }}
-              />
-           </div>
-         </div>
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <StatCard title={s.lastSleep || "Last Sleep"} value="2h 45m" subtitle="Finished at 1:30 PM" icon={<Moon />} color="text-indigo-400" bg="bg-indigo-500/10" border="border-indigo-500/20" />
+        <StatCard title={s.lastFeeding || "Last Feeding"} value="4.5 oz" subtitle="Formula at 4:15 PM" icon={<Milk />} color="text-emerald-400" bg="bg-emerald-500/10" border="border-emerald-500/20" />
+        <StatCard title={s.lastDiaper || "Last Diaper"} value="Wet" subtitle="Changed at 3:00 PM" icon={
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 8 Q12 12 21 8 C21 16 16 22 12 22 C8 22 3 16 3 8 Z" />
+            <path d="M6 13 L8 13" /><path d="M18 13 L16 13" />
+          </svg>
+        } color="text-rose-400" bg="bg-rose-500/10" border="border-rose-500/20" />
+        <StatCard title={s.lastPumping || "Last Pumping"} value="—" subtitle="No pumping today" icon={<PumpIcon />} color="text-purple-400" bg="bg-purple-500/10" border="border-purple-500/20" />
+      </div>
 
-         {/* Recent Activity Timeline Mockup */}
-         <div className="glass-card p-6 flex flex-col">
-           <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold tracking-tight text-white">{s.recentActivity || "Recent Activity"}</h3>
-              {urls.timeline && <a href={urls.timeline} className="text-sky-400 text-xs font-semibold tracking-wider uppercase hover:text-sky-300">View All</a>}
-           </div>
-           
-           <div className="relative pl-6 space-y-8 before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
-              <TimelineItem title="Feeding" time="2 hours ago" type="feed" />
-              <TimelineItem title="Sleep" time="4 hours ago" type="sleep" />
-              <TimelineItem title="Diaper" time="5 hours ago" type="diaper" />
-              <TimelineItem title="Tummy Time" time="6 hours ago" type="activity" />
-           </div>
-         </div>
+      {/* Recent Activity */}
+      <div className="glass-card p-6 flex flex-col">
+        <div className="flex justify-between items-center mb-5">
+          <h3 className="text-lg font-bold tracking-tight text-white">{s.recentActivity || "Recent Activity"}</h3>
+          {profileTimelineUrl && (
+            <a href={profileTimelineUrl} className="text-sky-400 text-xs font-semibold tracking-wider uppercase hover:text-sky-300">View All</a>
+          )}
+        </div>
+        <div className="relative pl-6 space-y-6 before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
+          <TimelineItem title="Feeding" time="2 hours ago" type="feed" />
+          <TimelineItem title="Sleep" time="4 hours ago" type="sleep" />
+          <TimelineItem title="Diaper" time="5 hours ago" type="diaper" />
+          <TimelineItem title="Pumping" time="6 hours ago" type="activity" />
+        </div>
       </div>
     </div>
   );
