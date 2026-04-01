@@ -43,7 +43,7 @@ test.describe("Quick Entry — Page structure", () => {
   });
 
   test("sleep tab shows manual entry and timer side by side", async ({ page }) => {
-    await expect(page.getByText("Start date")).toBeVisible();
+    await expect(page.getByText("Start Date").first()).toBeVisible();
     await expect(page.getByText("Sleep Timer")).toBeVisible();
     await expect(page.getByRole("button", { name: "Start Timer" })).toBeVisible();
   });
@@ -53,7 +53,7 @@ test.describe("Quick Entry — Manual Sleep", () => {
   test("Save button creates a sleep entry", async ({ page }) => {
     const before = dbCount("Sleep");
     await page.getByRole("button", { name: "Save" }).click();
-    await expect(page.locator(".ant-message-notice")).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="entry-message"]')).toBeVisible({ timeout: 5000 });
     expect(dbCount("Sleep")).toBe(before + 1);
   });
 });
@@ -61,8 +61,8 @@ test.describe("Quick Entry — Manual Sleep", () => {
 test.describe("Quick Entry — Diaper", () => {
   test("switching to Diaper tab shows consistency options", async ({ page }) => {
     await page.getByText("Diaper changes").click();
-    await expect(page.getByText("Liquid")).toBeVisible({ timeout: 3000 });
-    await expect(page.getByText("Solid")).toBeVisible();
+    await expect(page.getByText("Liquid").first()).toBeVisible({ timeout: 3000 });
+    await expect(page.getByText("Solid").first()).toBeVisible();
   });
 
   test("Save creates a diaper change entry", async ({ page }) => {
@@ -71,7 +71,7 @@ test.describe("Quick Entry — Diaper", () => {
 
     const before = dbCount("DiaperChange");
     await page.getByRole("button", { name: "Save" }).click();
-    await expect(page.locator(".ant-message-notice")).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="entry-message"]')).toBeVisible({ timeout: 5000 });
     expect(dbCount("DiaperChange")).toBe(before + 1);
   });
 });
@@ -83,7 +83,7 @@ test.describe("Quick Entry — Feeding", () => {
 
     const before = dbCount("Feeding");
     await page.getByRole("button", { name: "Save" }).click();
-    await expect(page.locator(".ant-message-notice")).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="entry-message"]')).toBeVisible({ timeout: 5000 });
     expect(dbCount("Feeding")).toBe(before + 1);
   });
 });

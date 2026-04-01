@@ -8,7 +8,7 @@ import {
   formatElapsedSeconds,
 } from "../lib/app-utils";
 
-function Button({ children, onClick, type = "default", danger = false, size = "default", className = "", loading = false }) {
+function Button({ children, onClick, type = "default", danger = false, size = "default", className = "", loading = false, "data-testid": testId }) {
   let baseClass = "inline-flex items-center justify-center font-bold tracking-wide transition-all rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/50 disabled:opacity-50 disabled:cursor-not-allowed";
   
   if (size === "small") baseClass += " px-3 py-1.5 text-xs";
@@ -24,7 +24,7 @@ function Button({ children, onClick, type = "default", danger = false, size = "d
   }
 
   return (
-    <button onClick={onClick} className={`${baseClass} ${className}`} disabled={loading}>
+    <button onClick={onClick} className={`${baseClass} ${className}`} disabled={loading} data-testid={testId}>
       {loading ? "Loading..." : children}
     </button>
   );
@@ -72,6 +72,7 @@ export function QuickEntryCard({ bootstrap }) {
   };
 
   const [sleepTimer, setSleepTimer] = useState(bootstrap.sleepTimer || {});
+  const [cancelConfirming, setCancelConfirming] = useState(false);
   const [sleepTimerPaused, setSleepTimerPaused] = useState(bootstrap.sleepTimer?.paused ?? false);
   const [sleepTimerResumeMs, setSleepTimerResumeMs] = useState(bootstrap.sleepTimer?.running && !bootstrap.sleepTimer?.paused ? Date.now() : null);
   const [sleepTimerFrozenSeconds, setSleepTimerFrozenSeconds] = useState(bootstrap.sleepTimer?.frozenSeconds ?? 0);
@@ -188,9 +189,9 @@ export function QuickEntryCard({ bootstrap }) {
   ];
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto">
+    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto" data-testid="quick-entry-card">
       {message && (
-        <div className={`p-4 rounded-xl font-bold border ${message.isError ? "bg-rose-500/10 text-rose-400 border-rose-500/30" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"}`}>
+        <div data-testid="entry-message" className={`p-4 rounded-xl font-bold border ${message.isError ? "bg-rose-500/10 text-rose-400 border-rose-500/30" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"}`}>
           {message.text}
         </div>
       )}
@@ -215,19 +216,41 @@ export function QuickEntryCard({ bootstrap }) {
             
             <div className="hidden md:block w-px bg-slate-800"></div>
             
-            <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-900/40 border border-slate-700 rounded-2xl">
-              <h4 className="text-lg font-bold text-slate-300 mb-6">{s.sleepTimer}</h4>
-              <div className="text-5xl font-extrabold font-mono text-sky-400 mb-6 tracking-wider">
+            <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-900/40 border border-slate-700 rounded-2xl" data-testid="sleep-timer-card">
+              <h4 className="text-lg font-bold text-slate-300 mb-2">{s.sleepTimer}</h4>
+              <p className="text-xs font-semibold tracking-widest uppercase mb-4 text-slate-500" data-testid="timer-status">
+                {!sleepTimer.running ? "Ready" : sleepTimerPaused ? "Paused" : "Running"}
+              </p>
+              <div className="text-5xl font-extrabold font-mono text-sky-400 mb-2 tracking-wider" data-testid="timer-display">
                 {formatElapsedSeconds(currentTimerElapsed())}
               </div>
-              <div className="flex flex-col gap-3 w-full">
+              {sleepTimer.running && sleepTimerPaused && (
+                <p className="text-xs text-slate-500 mb-4" data-testid="pause-display">
+                  {s.paused || "Paused"}: {formatElapsedSeconds(Math.floor((Date.now() - (sleepTimerPauseStartMs || Date.now())) / 1000))}
+                </p>
+              )}
+              <div className="flex flex-col gap-3 w-full mt-4">
                 <Button type="primary" size="large" onClick={() => submitSleepTimerAction(!sleepTimer.running ? "start" : sleepTimerPaused ? "resume" : "pause")}>
                   {!sleepTimer.running ? s.startTimer : sleepTimerPaused ? s.resume : s.pause}
                 </Button>
-                {sleepTimer.running && (
+                {sleepTimer.running && !cancelConfirming && (
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <Button onClick={() => submitSleepTimerAction("save")}>{s.saveTimer}</Button>
-                    <Button danger onClick={() => window.confirm(s.cancelTimerConfirm) && submitSleepTimerAction("cancel")}>{s.cancelTimer}</Button>
+                    <Button danger onClick={() => setCancelConfirming(true)}>{s.cancelTimer}</Button>
+                  </div>
+                )}
+                {cancelConfirming && (
+                  <div className="border border-rose-500/30 rounded-xl p-4 bg-rose-500/5" data-testid="cancel-confirm">
+                    <p className="text-sm text-slate-300 font-medium mb-3">{s.cancelTimerTitle || "Cancel timer?"}</p>
+                    <p className="text-xs text-slate-500 mb-4">{s.cancelTimerConfirm}</p>
+                    <div className="flex gap-3">
+                      <Button danger className="flex-1" data-testid="cancel-confirm-ok" onClick={() => { setCancelConfirming(false); submitSleepTimerAction("cancel"); }}>
+                        {s.cancelTimer}
+                      </Button>
+                      <Button className="flex-1" data-testid="cancel-confirm-cancel" onClick={() => setCancelConfirming(false)}>
+                        {s.keep || "Keep"}
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>

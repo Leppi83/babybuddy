@@ -36,5 +36,5 @@ export function childSlug() {
 /** Navigate to Quick Entry for E2E Baby. */
 export async function gotoQuickEntry(page) {
   await page.goto(`/quick-entry/?child=${childSlug()}`);
-  await page.waitForSelector(".ant-sleep-timer-card", { timeout: 8000 });
+  await page.waitForSelector('[data-testid="quick-entry-card"]', { timeout: 8000 });
 }
