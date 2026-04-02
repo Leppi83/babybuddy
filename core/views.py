@@ -105,6 +105,13 @@ def _with_current_querystring(request, url):
     return "{}?{}".format(url, querystring)
 
 
+def _nav_children():
+    return [
+        {"slug": c.slug, "name": str(c)}
+        for c in models.Child.objects.order_by(Lower("first_name"), Lower("last_name"))
+    ]
+
+
 def _build_child_switcher(request, *, current_child):
     if models.Child.objects.count() <= 1:
         return None
@@ -166,6 +173,8 @@ def _build_ant_child_detail_bootstrap(
         "locale": getattr(request, "LANGUAGE_CODE", "en"),
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
+        "children": _nav_children(),
+        "currentChild": {"slug": child.slug, "name": str(child)},
         "urls": {
             **_nav_urls(),
             "self": request.get_full_path(),
@@ -247,6 +256,8 @@ def _build_ant_timeline_bootstrap(
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
         "urls": {**_nav_urls(), "self": request.get_full_path()},
+        "children": _nav_children(),
+        "currentChild": None,
         "strings": {
             **_list_strings(),
             "child": _("Child"),
@@ -286,6 +297,8 @@ def _build_ant_list_bootstrap(
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
         "urls": {**_nav_urls(), "self": request.path},
+        "children": _nav_children(),
+        "currentChild": None,
         "strings": _list_strings(),
         "listPage": {
             "title": title,
@@ -416,6 +429,8 @@ def _build_ant_form_bootstrap(
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
         "urls": {**_nav_urls(), "self": request.path, "cancel": cancel_url},
+        "children": _nav_children(),
+        "currentChild": None,
         "strings": _list_strings(),
         "formPage": {
             "title": title,
@@ -2799,6 +2814,8 @@ class MilestoneList(PermissionRequiredMixin, BabyBuddyPaginatedView, ListView):
             "csrfToken": get_token(self.request),
             "user": {"displayName": _display_name(self.request.user)},
             "urls": {**_nav_urls(), "add": reverse("core:milestone-add")},
+            "children": _nav_children(),
+            "currentChild": None,
             "strings": {**_list_strings(), "pageTitle": str(_("Milestones"))},
             "listPage": {"columns": columns, "rows": rows, "pageTitle": str(_("Milestones"))},
         }
@@ -2924,6 +2941,8 @@ class ChildProfileTimeline(LoginRequiredMixin, DetailView):
                 "addMilestone": reverse("core:milestone-add") + f"?child={child.slug}",
                 "childDetail": reverse("core:child", kwargs={"slug": child.slug}),
             },
+            "children": _nav_children(),
+            "currentChild": {"slug": child.slug, "name": str(child)},
             "childSwitcher": None,
             "strings": {
                 **_list_strings(),

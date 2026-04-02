@@ -107,6 +107,14 @@ class ServiceWorkerView(View):
 
 from core import models as core_models, forms as core_forms
 from core.models import SleepTimer
+from django.db.models.functions import Lower as _Lower
+
+
+def _nav_children():
+    return [
+        {"slug": c.slug, "name": str(c)}
+        for c in core_models.Child.objects.order_by(_Lower("first_name"), _Lower("last_name"))
+    ]
 
 _QUICK_LOG_FORM_MAP = {
     "diaper": {
@@ -403,6 +411,7 @@ def _build_ant_form_bootstrap(
     if request.user.is_authenticated:
         urls = {**_nav_urls(), **urls}
 
+    children = _nav_children() if request.user.is_authenticated else []
     return {
         "layout": layout,
         "pageType": page_type,
@@ -411,6 +420,8 @@ def _build_ant_form_bootstrap(
         "csrfToken": get_token(request),
         "user": user_payload,
         "urls": urls,
+        "children": children,
+        "currentChild": None,
         "strings": _base_strings(),
         "messages": _serialize_messages(request),
         "formPage": {
@@ -443,6 +454,8 @@ def _build_ant_list_bootstrap(
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
         "urls": {**_nav_urls(), "self": request.path},
+        "children": _nav_children(),
+        "currentChild": None,
         "strings": _base_strings(),
         "messages": _serialize_messages(request),
         "listPage": {
@@ -631,6 +644,8 @@ def _build_settings_bootstrap(request, form_user, form_settings):
             "pushSubscribe": reverse("api:push-subscribe"),
             "pushUnsubscribe": reverse("api:push-unsubscribe"),
         },
+        "children": _nav_children(),
+        "currentChild": None,
         "vapidPublicKey": settings.VAPID_PUBLIC_KEY or "",
         "messages": _serialize_messages(request),
         "settings": {

@@ -12,8 +12,8 @@ function Button({ children, onClick, type = "default", danger = false, size = "d
   let baseClass = "inline-flex items-center justify-center font-bold tracking-wide transition-all rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/50 disabled:opacity-50 disabled:cursor-not-allowed";
   
   if (size === "small") baseClass += " px-3 py-1.5 text-xs";
-  else if (size === "large") baseClass += " w-full py-4 text-base mt-2";
-  else baseClass += " px-5 py-2.5 text-sm";
+  else if (size === "large") baseClass += " w-full py-2.5 text-sm mt-1";
+  else baseClass += " px-4 py-2 text-sm";
 
   if (danger) {
     baseClass += " bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white shadow-[0_0_15px_rgba(244,63,94,0.1)]";
@@ -30,7 +30,7 @@ function Button({ children, onClick, type = "default", danger = false, size = "d
   );
 }
 
-const inputClass = "w-full bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-sky-500 transition-colors";
+const inputClass = "w-full bg-slate-900/60 border border-slate-700 rounded-xl px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-sky-500 transition-colors";
 
 function SegmentedControl({ options, value, onChange }) {
   return (
@@ -41,7 +41,7 @@ function SegmentedControl({ options, value, onChange }) {
            <button
              key={opt.value}
              onClick={() => onChange(opt.value)}
-             className={`flex-1 flex items-center justify-center gap-2 whitespace-nowrap px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+             className={`flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                isActive ? "bg-slate-800 text-sky-400 shadow-md border border-slate-700" : "text-slate-400 hover:text-slate-300 hover:bg-slate-800/50"
              }`}
            >
@@ -160,13 +160,13 @@ export function QuickEntryCard({ bootstrap }) {
   }
 
   const renderDateTimeRow = (startD, setStartD, startT, setStartT, labelText) => (
-    <div className="flex flex-col md:flex-row gap-4">
+    <div className="flex flex-row gap-2">
       <div className="flex-1">
-        <label className="text-sm font-bold text-slate-400 mb-1 block">{labelText} Date</label>
+        <label className="text-xs font-semibold text-slate-500 mb-0.5 block">{labelText} Date</label>
         <input type="date" className={inputClass} value={startD.format("YYYY-MM-DD")} onChange={e => setStartD(dayjs(e.target.value))} />
       </div>
       <div className="flex-1">
-        <label className="text-sm font-bold text-slate-400 mb-1 block">{labelText} Time</label>
+        <label className="text-xs font-semibold text-slate-500 mb-0.5 block">{labelText} Time</label>
         <input type="time" className={inputClass} value={startT.format("HH:mm")} onChange={e => setStartT(dayjs(e.target.value, "HH:mm"))} />
       </div>
     </div>
@@ -189,20 +189,20 @@ export function QuickEntryCard({ bootstrap }) {
   ];
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto" data-testid="quick-entry-card">
+    <div className="flex flex-col gap-3 w-full max-w-4xl mx-auto" data-testid="quick-entry-card">
       {message && (
-        <div data-testid="entry-message" className={`p-4 rounded-xl font-bold border ${message.isError ? "bg-rose-500/10 text-rose-400 border-rose-500/30" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"}`}>
+        <div data-testid="entry-message" className={`p-3 rounded-xl font-bold border text-sm ${message.isError ? "bg-rose-500/10 text-rose-400 border-rose-500/30" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"}`}>
           {message.text}
         </div>
       )}
 
       <SegmentedControl options={segments} value={selectedSegment} onChange={setSelectedSegment} />
 
-      <div className="glass-card p-5 relative">
+      <div className="glass-card p-4 relative">
         {selectedSegment === "sleep" && (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-6">
-              <h4 className="text-xl font-bold text-white mb-2">Manual Entry</h4>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
+              <h4 className="text-sm font-bold text-white">Manual Entry</h4>
               {renderDateTimeRow(sleepEntryStartDate, setSleepEntryStartDate, sleepEntryStartTime, setSleepEntryStartTime, "Start")}
               {renderDateTimeRow(sleepEntryEndDate, setSleepEntryEndDate, sleepEntryEndTime, setSleepEntryEndTime, "End")}
               <Button type="primary" loading={submittingSleepEntry} onClick={() => submitEntry("sleep_manual_entry_action", {
@@ -216,20 +216,20 @@ export function QuickEntryCard({ bootstrap }) {
 
             <div className="w-full h-px bg-slate-800"></div>
 
-            <div className="flex flex-col items-center justify-center p-4 bg-slate-900/40 border border-slate-700 rounded-2xl" data-testid="sleep-timer-card">
-              <h4 className="text-lg font-bold text-slate-300 mb-2">{s.sleepTimer}</h4>
-              <p className="text-xs font-semibold tracking-widest uppercase mb-4 text-slate-500" data-testid="timer-status">
+            <div className="flex flex-col items-center justify-center p-3 bg-slate-900/40 border border-slate-700 rounded-2xl" data-testid="sleep-timer-card">
+              <h4 className="text-sm font-bold text-slate-300 mb-1">{s.sleepTimer}</h4>
+              <p className="text-xs font-semibold tracking-widest uppercase mb-2 text-slate-500" data-testid="timer-status">
                 {!sleepTimer.running ? "Ready" : sleepTimerPaused ? "Paused" : "Running"}
               </p>
-              <div className="text-5xl font-extrabold font-mono text-sky-400 mb-2 tracking-wider" data-testid="timer-display">
+              <div className="text-4xl font-extrabold font-mono text-sky-400 mb-1 tracking-wider" data-testid="timer-display">
                 {formatElapsedSeconds(currentTimerElapsed())}
               </div>
               {sleepTimer.running && sleepTimerPaused && (
-                <p className="text-xs text-slate-500 mb-4" data-testid="pause-display">
+                <p className="text-xs text-slate-500 mb-2" data-testid="pause-display">
                   {s.paused || "Paused"}: {formatElapsedSeconds(Math.floor((Date.now() - (sleepTimerPauseStartMs || Date.now())) / 1000))}
                 </p>
               )}
-              <div className="flex flex-col gap-3 w-full mt-4">
+              <div className="flex flex-col gap-2 w-full mt-2">
                 <Button type="primary" size="large" onClick={() => submitSleepTimerAction(!sleepTimer.running ? "start" : sleepTimerPaused ? "resume" : "pause")}>
                   {!sleepTimer.running ? s.startTimer : sleepTimerPaused ? s.resume : s.pause}
                 </Button>
@@ -259,7 +259,7 @@ export function QuickEntryCard({ bootstrap }) {
         )}
 
         {selectedSegment === "diaper" && (
-          <div className="flex flex-col gap-6 max-w-lg mx-auto">
+          <div className="flex flex-col gap-3 max-w-lg mx-auto">
             {renderDateTimeRow(diaperDate, setDiaperDate, diaperTime, setDiaperTime, "")}
             <SegmentedControl options={[ {label: s.liquid, value: "liquid"}, {label: s.solid, value: "solid"} ]} value={diaperConsistency} onChange={setDiaperConsistency} />
             <Button type="primary" size="large" loading={submittingDiaper} onClick={() => submitEntry("diaper_quick_entry_action", {
@@ -269,7 +269,7 @@ export function QuickEntryCard({ bootstrap }) {
         )}
 
         {selectedSegment === "feeding" && (
-          <div className="flex flex-col gap-6 max-w-lg mx-auto">
+          <div className="flex flex-col gap-3 max-w-lg mx-auto">
             {renderDateTimeRow(feedingStartDate, setFeedingStartDate, feedingStartTime, setFeedingStartTime, "")}
             <SegmentedControl options={[ {label: s.solid, value: "solid"}, {label: s.babyFood, value: "baby_food"}, {label: s.breastMilk, value: "breast_milk"} ]} value={feedingType} onChange={setFeedingType} />
             <Button type="primary" size="large" loading={submittingFeeding} onClick={() => submitEntry("feeding_quick_entry_action", {
@@ -279,7 +279,7 @@ export function QuickEntryCard({ bootstrap }) {
         )}
 
         {selectedSegment === "breastfeeding" && (
-          <div className="flex flex-col gap-6 max-w-lg mx-auto">
+          <div className="flex flex-col gap-3 max-w-lg mx-auto">
             {renderDateTimeRow(breastfeedingStartDate, setBreastfeedingStartDate, breastfeedingStartTime, setBreastfeedingStartTime, "Start")}
             {renderDateTimeRow(breastfeedingEndDate, setBreastfeedingEndDate, breastfeedingEndTime, setBreastfeedingEndTime, "End")}
             <SegmentedControl options={[ {label: s.left, value: "left"}, {label: s.right, value: "right"} ]} value={breastfeedingSide} onChange={setBreastfeedingSide} />
@@ -290,12 +290,12 @@ export function QuickEntryCard({ bootstrap }) {
         )}
 
         {selectedSegment === "pumping" && (
-          <div className="flex flex-col gap-6 max-w-lg mx-auto">
+          <div className="flex flex-col gap-3 max-w-lg mx-auto">
             {renderDateTimeRow(pumpingStartDate, setPumpingStartDate, pumpingStartTime, setPumpingStartTime, "Start")}
             {renderDateTimeRow(pumpingEndDate, setPumpingEndDate, pumpingEndTime, setPumpingEndTime, "End")}
             
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-bold text-slate-400">{s.amount}</label>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-slate-500">{s.amount}</label>
               <div className="relative">
                 <input type="number" step="0.1" value={pumpingAmount} onChange={e => setPumpingAmount(e.target.value)} className={inputClass} placeholder="Amount" />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">ml</span>

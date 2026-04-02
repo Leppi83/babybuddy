@@ -6,12 +6,20 @@ from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import PermissionRequiredMixin
 from core import models
+from django.db.models.functions import Lower as _Lower
 
 from . import graphs
 
 
 def _reports_ant_enabled():
     return True
+
+
+def _nav_children():
+    return [
+        {"slug": c.slug, "name": str(c)}
+        for c in models.Child.objects.order_by(_Lower("first_name"), _Lower("last_name"))
+    ]
 
 
 def _display_name(user):
@@ -271,6 +279,8 @@ def _build_ant_report_list_bootstrap(request, *, child):
         "csrfToken": get_token(request),
         "user": {"displayName": _display_name(request.user)},
         "urls": {**_nav_urls(), "self": request.get_full_path()},
+        "children": _nav_children(),
+        "currentChild": {"slug": child.slug, "name": str(child)},
         "childSwitcher": _build_child_switcher(request, current_child=child),
         "strings": _report_strings(),
         "reportList": {
@@ -302,6 +312,8 @@ def _build_ant_report_detail_bootstrap(
             "self": request.get_full_path(),
             "graphJs": "/static/babybuddy/js/graph.js",
         },
+        "children": _nav_children(),
+        "currentChild": {"slug": child.slug, "name": str(child)},
         "childSwitcher": _build_child_switcher(request, current_child=child),
         "strings": _report_strings(),
         "reportDetail": {
