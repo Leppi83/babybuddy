@@ -25,6 +25,7 @@ const TimerDetailPage = lazy(() => import("./pages/GeneralPages").then((m) => ({
 // Profile timeline + General growth
 const ChildProfileTimelinePage = lazy(() => import("./pages/ProfileTimelinePages").then((m) => ({ default: m.ChildProfileTimelinePage })));
 const ChildGeneralPage = lazy(() => import("./pages/ProfileTimelinePages").then((m) => ({ default: m.ChildGeneralPage })));
+const MeasurementsPage = lazy(() => import("./pages/ProfileTimelinePages").then((m) => ({ default: m.MeasurementsPage })));
 
 // Insights + Topics
 const InsightsPage = lazy(() => import("./pages/InsightsPages").then((m) => ({ default: m.InsightsPage })));
@@ -61,6 +62,7 @@ function RoutedPage({ bootstrap }) {
   if (pt === "report-detail") return <ReportDetailPage bootstrap={bootstrap} />;
   if (pt === "child-profile-timeline") return <ChildProfileTimelinePage bootstrap={bootstrap} />;
   if (pt === "child-general") return <ChildGeneralPage bootstrap={bootstrap} />;
+  if (pt === "child-measurements") return <MeasurementsPage bootstrap={bootstrap} />;
   if (pt === "insights") return <InsightsPage bootstrap={bootstrap} />;
   if (pt === "topic-detail") return <TopicPage bootstrap={bootstrap} />;
   if (pt === "examination-list") return <ExaminationListPage bootstrap={bootstrap} />;

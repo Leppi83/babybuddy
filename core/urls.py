@@ -133,4 +133,5 @@ urlpatterns = [
     path("milestones/<int:pk>/delete/", views.MilestoneDelete.as_view(), name="milestone-delete"),
     path("children/<str:slug>/profile-timeline/", views.ChildProfileTimeline.as_view(), name="child-profile-timeline"),
     path("children/<str:slug>/general/", views.ChildGeneralPage.as_view(), name="child-general"),
+    path("children/<str:slug>/measurements/", views.ChildMeasurementsPage.as_view(), name="child-measurements"),
 ]

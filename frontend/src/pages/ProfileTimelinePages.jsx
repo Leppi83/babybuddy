@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
-import { Plus, Edit2, Trash2, Megaphone, Users, Rocket, Smile, Hash, Star } from "lucide-react";
+import { Plus, Edit2, Trash2, Megaphone, Users, Rocket, Smile, Hash, Star, Pencil, ClipboardList, Ruler, ArrowLeft, Scale, TrendingUp } from "lucide-react";
+import { createApiClient } from "../lib/app-utils";
 
 const MILESTONE_ICON = {
   first_word: <Megaphone size={16} />,
@@ -409,12 +410,29 @@ export function ChildGeneralPage({ bootstrap }) {
         <div className="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 text-2xl font-bold flex-shrink-0">
           {childDetail.name?.[0] || "?"}
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-extrabold text-white tracking-tight">{childDetail.name}</h2>
           <p className="text-slate-400 text-sm mt-0.5">
             {birthDate && <span>{s.born || "Born"} {birthDate.format("DD.MM.YYYY")}</span>}
             {ageLabel && <span className="ml-3 text-sky-400 font-semibold">{ageLabel}</span>}
           </p>
+        </div>
+        <div className="flex gap-2 z-10 flex-shrink-0">
+          {urls.measurements && (
+            <a href={urls.measurements} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition-all">
+              <Ruler size={14} /> {s.addMeasurement || "Measurements"}
+            </a>
+          )}
+          {urls.examinations && (
+            <a href={urls.examinations} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold hover:bg-sky-500/20 transition-all">
+              <ClipboardList size={14} /> {s.examinations || "Examinations"}
+            </a>
+          )}
+          {urls.editChild && (
+            <a href={urls.editChild} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-700/50 border border-slate-600/30 text-slate-300 text-xs font-bold hover:bg-slate-600/50 transition-all">
+              <Pencil size={14} /> {s.editChild || "Edit"}
+            </a>
+          )}
         </div>
       </div>
 
@@ -508,6 +526,179 @@ export function ChildGeneralPage({ bootstrap }) {
                 </div>
               );
             })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Measurements Page ────────────────────────────────────────── */
+export function MeasurementsPage({ bootstrap }) {
+  const {
+    childDetail = {},
+    strings: s = {},
+    urls = {},
+    csrfToken = "",
+    measurements: initialMeasurements = [],
+    heightPercentiles = [],
+    weightPercentiles = [],
+  } = bootstrap;
+
+  const api = useRef(createApiClient(csrfToken));
+
+  const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [measurements, setMeasurements] = useState(initialMeasurements);
+
+  const bmi = height && weight
+    ? (parseFloat(weight) / Math.pow(parseFloat(height) / 100, 2)).toFixed(1)
+    : null;
+
+  function showMessage(text, isError = false) {
+    setMessage({ text, isError });
+    setTimeout(() => setMessage(null), 3500);
+  }
+
+  async function handleSave() {
+    if (!height && !weight) { showMessage(s.measurementRequired || "Enter at least height or weight.", true); return; }
+    setSaving(true);
+    try {
+      const payload = new URLSearchParams({ measurement_date: date });
+      if (height) payload.set("height_cm", height);
+      if (weight) payload.set("weight_kg", weight);
+      const res = await api.current.postForm(urls.saveMeasurement, payload);
+      const data = await res.json();
+      if (!data.ok) { showMessage(data.error || s.saveFailed || "Save failed.", true); return; }
+      showMessage(s.measurementSaved || "Measurement saved.");
+      const newEntry = { date, heightCm: height ? parseFloat(height) : null, weightKg: weight ? parseFloat(weight) : null, bmi: bmi ? parseFloat(bmi) : null };
+      setMeasurements(prev => [newEntry, ...prev.filter(m => m.date !== date)].sort((a, b) => b.date.localeCompare(a.date)));
+      setHeight(""); setWeight("");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const inputCls = "w-full bg-slate-900/60 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-sky-500 transition-colors text-sm";
+
+  return (
+    <div className="flex flex-col gap-6 pb-10 w-full max-w-3xl mx-auto">
+
+      {/* Header */}
+      <div className="glass-panel p-6 md:p-8 rounded-[28px] flex items-center gap-4 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        {urls.generalPage && (
+          <a href={urls.generalPage} className="flex-shrink-0 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors z-10">
+            <ArrowLeft size={18} />
+          </a>
+        )}
+        <div className="z-10">
+          <p className="text-emerald-400 font-semibold tracking-widest text-xs mb-1">{childDetail.name}</p>
+          <h2 className="text-3xl font-extrabold text-white tracking-tight">{s.measurements || "Measurements"}</h2>
+        </div>
+      </div>
+
+      {message && (
+        <div className={`p-4 rounded-xl font-bold border text-sm ${message.isError ? "bg-rose-500/10 text-rose-400 border-rose-500/30" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"}`}>
+          {message.text}
+        </div>
+      )}
+
+      {/* Entry form */}
+      <div className="glass-card p-6 flex flex-col gap-4">
+        <h3 className="text-base font-bold text-white tracking-tight">{s.addMeasurement || "Add Measurement"}</h3>
+
+        <div>
+          <label className="text-xs font-semibold text-slate-400 mb-1 block">{s.date || "Date"}</label>
+          <input type="date" className={inputCls} value={date} onChange={e => setDate(e.target.value)} max={dayjs().format("YYYY-MM-DD")} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-semibold text-slate-400 mb-1 block">{s.height || "Height"} (cm)</label>
+            <input type="number" step="0.1" min="0" max="200" className={inputCls} placeholder="e.g. 67.5" value={height} onChange={e => setHeight(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-400 mb-1 block">{s.weight || "Weight"} (kg)</label>
+            <input type="number" step="0.01" min="0" max="200" className={inputCls} placeholder="e.g. 7.2" value={weight} onChange={e => setWeight(e.target.value)} />
+          </div>
+        </div>
+
+        {bmi && (
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+            <TrendingUp size={16} className="text-sky-400 flex-shrink-0" />
+            <span className="text-sm text-sky-300">
+              <span className="font-bold">{s.bmi || "BMI"}:</span> {bmi}
+              {parseFloat(bmi) < 14 ? <span className="ml-2 text-amber-400 text-xs font-semibold">(Underweight)</span>
+               : parseFloat(bmi) > 18 ? <span className="ml-2 text-amber-400 text-xs font-semibold">(Overweight)</span>
+               : <span className="ml-2 text-emerald-400 text-xs font-semibold">(Normal)</span>}
+            </span>
+          </div>
+        )}
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full py-2.5 rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-400 transition-all disabled:opacity-50"
+        >
+          {saving ? (s.saving || "Saving...") : (s.save || "Save")}
+        </button>
+      </div>
+
+      {/* Growth charts */}
+      {measurements.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <GrowthChart
+            title={s.height || "Height"}
+            measurements={measurements.filter(m => m.heightCm != null).map(m => ({ date: m.date, cm: m.heightCm }))}
+            percentiles={heightPercentiles}
+            yLabel="cm"
+            valueKey="cm"
+            color="#38bdf8"
+            birthDate={childDetail.birthDate}
+          />
+          <GrowthChart
+            title={s.weight || "Weight"}
+            measurements={measurements.filter(m => m.weightKg != null).map(m => ({ date: m.date, kg: m.weightKg }))}
+            percentiles={weightPercentiles}
+            yLabel="kg"
+            valueKey="kg"
+            color="#a78bfa"
+            birthDate={childDetail.birthDate}
+          />
+        </div>
+      )}
+
+      {/* History table */}
+      <div className="glass-card p-5">
+        <h3 className="text-base font-bold text-white tracking-tight mb-4">{s.history || "History"}</h3>
+        {measurements.length === 0 ? (
+          <p className="text-slate-500 text-sm py-4">{s.noData || "No measurements recorded yet."}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-slate-500 uppercase tracking-wider border-b border-white/5">
+                  <th className="text-left py-2 pr-4">{s.date || "Date"}</th>
+                  <th className="text-right py-2 px-4">{s.height || "Height"} (cm)</th>
+                  <th className="text-right py-2 px-4">{s.weight || "Weight"} (kg)</th>
+                  <th className="text-right py-2 pl-4">{s.bmi || "BMI"}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {measurements.map((m, i) => (
+                  <tr key={i} className="hover:bg-white/3 transition-colors">
+                    <td className="py-2.5 pr-4 text-slate-300 font-medium">{dayjs(m.date).format("DD.MM.YYYY")}</td>
+                    <td className="py-2.5 px-4 text-right text-sky-400 font-mono">{m.heightCm != null ? m.heightCm.toFixed(1) : "—"}</td>
+                    <td className="py-2.5 px-4 text-right text-purple-400 font-mono">{m.weightKg != null ? m.weightKg.toFixed(2) : "—"}</td>
+                    <td className="py-2.5 pl-4 text-right text-slate-300 font-mono">{m.bmi != null ? m.bmi.toFixed(1) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

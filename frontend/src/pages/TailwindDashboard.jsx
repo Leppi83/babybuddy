@@ -31,15 +31,27 @@ const ACTIVITY_BORDERS = {
   pump: 'border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.5)]',
 };
 
+const ACTIVITY_DOT_COLOR = {
+  sleep: 'bg-indigo-400',
+  feed: 'bg-emerald-400',
+  diaper: 'bg-rose-400',
+  pump: 'bg-purple-400',
+};
+
 function TimelineItem({ title, timeIso, detail, type }) {
   const border = ACTIVITY_BORDERS[type] || 'border-sky-500/50 shadow-[0_0_10px_rgba(56,189,248,0.5)]';
+  const dot = ACTIVITY_DOT_COLOR[type] || 'bg-sky-400';
   const timeLabel = timeIso ? dayjs(timeIso).format('HH:mm') : '';
   return (
     <div className="relative flex items-start gap-3">
-      <div className={`flex-shrink-0 mt-0.5 h-5 w-5 rounded-full border-2 ${border} bg-slate-950`}></div>
-      <div>
-        <h4 className="text-sm font-bold text-slate-200">{title}{detail ? <span className="font-normal text-slate-400"> · {detail}</span> : null}</h4>
-        <p className="text-xs text-slate-500 mt-0.5">{timeLabel}</p>
+      <div className="flex flex-col items-center flex-shrink-0 mt-1">
+        <div className={`h-2.5 w-2.5 rounded-full ${dot} shadow-[0_0_6px_currentColor]`}></div>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline justify-between gap-2">
+          <h4 className="text-sm font-semibold text-slate-200 truncate">{title}{detail ? <span className="font-normal text-slate-400"> · {detail}</span> : null}</h4>
+          <span className="text-xs text-slate-500 font-mono flex-shrink-0">{timeLabel}</span>
+        </div>
       </div>
     </div>
   );
@@ -210,20 +222,30 @@ export function ChildDashboardPage({ bootstrap }) {
           </div>
         </div>
 
-        {/* Recent Activity — 1/3 width */}
+        {/* Day Timeline — 1/3 width, synced to dialDate */}
         <div className="glass-card p-6 flex flex-col lg:w-1/3">
           <div className="flex justify-between items-center mb-5">
-            <h3 className="text-lg font-bold tracking-tight text-white">{s.recentActivity || "Recent Activity"}</h3>
+            <div>
+              <h3 className="text-lg font-bold tracking-tight text-white">{s.dayTimeline || "Day Timeline"}</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {dialDate.isSame(dayjs(), 'day') ? (s.today || 'Today') : dialDate.format('DD MMM YYYY')}
+              </p>
+            </div>
             {profileTimelineUrl && (
               <a href={profileTimelineUrl} className="text-sky-400 text-xs font-semibold tracking-wider uppercase hover:text-sky-300">View All</a>
             )}
           </div>
-          <div className="space-y-5">
+          <div className="relative flex flex-col gap-4">
             {recentActivity.length === 0 ? (
-              <p className="text-slate-500 text-sm">No activity recorded.</p>
-            ) : recentActivity.map((item, i) => (
-              <TimelineItem key={i} title={item.title} timeIso={item.timeIso} detail={item.detail} type={item.type} />
-            ))}
+              <p className="text-slate-500 text-sm">{s.noActivity || "No activity recorded."}</p>
+            ) : (
+              <>
+                <div className="absolute left-[4px] top-2 bottom-2 w-px bg-slate-700/50" />
+                {recentActivity.map((item, i) => (
+                  <TimelineItem key={i} title={item.title} timeIso={item.timeIso} detail={item.detail} type={item.type} />
+                ))}
+              </>
+            )}
           </div>
         </div>
       </div>

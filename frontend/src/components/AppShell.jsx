@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  Home, Users, UserPlus, History, Settings, LogOut,
+  Home, UserPlus, History, Settings, LogOut,
   Menu, Bell, ChevronDown, Lightbulb
 } from "lucide-react";
 
@@ -32,7 +32,6 @@ export function AppShell({ bootstrap, children }) {
   ] : [];
 
   // ── Active state helpers ────────────────────────────────────────────────────
-  const isChildrenListActive = pt === "list" && activePath.includes("/children/") && !activePath.includes("/add");
   const isAddChildActive = urls.addChild ? activePath.startsWith(urls.addChild.replace(/\/$/, "")) : false;
   const isInsightsActive = ["insights", "topic-detail", "child-general"].includes(pt);
   const isSettingsActive = pt === "settings";
@@ -42,7 +41,6 @@ export function AppShell({ bootstrap, children }) {
       case "dashboard":  return pt === "dashboard-child" || pt === "dashboard-home";
       case "insights":   return isInsightsActive;
       case "timeline":   return pt === "child-profile-timeline" || pt === "timeline";
-      case "children":   return isChildrenListActive;
       case "add-child":  return isAddChildActive;
       default: return false;
     }
@@ -69,12 +67,6 @@ export function AppShell({ bootstrap, children }) {
       icon: <History size={20} />,
       label: s.timeline || "Timeline",
       href: profileTimelineUrl,
-    },
-    {
-      key: "children",
-      icon: <Users size={20} />,
-      label: s.children || "Children",
-      href: urls.childrenList || "/children/",
     },
     {
       key: "add-child",

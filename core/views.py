@@ -1341,13 +1341,13 @@ class HeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilte
         return context
 
 
-class HeightAdd(AntFormMixin, CoreAddView):
-    model = models.Height
-    permission_required = ("core.add_height",)
-    form_class = forms.HeightForm
-    success_url = reverse_lazy("core:height-list")
-    ant_title = _("Add Height")
-    ant_kicker = _("Entry Form")
+class HeightAdd(LoginRequiredMixin, View):
+    """Redirect to the combined measurements page for the child."""
+    def get(self, request):
+        slug = request.GET.get("child")
+        if slug:
+            return HttpResponseRedirect(reverse("core:child-measurements", kwargs={"slug": slug}))
+        return HttpResponseRedirect(reverse("core:height-list"))
 
 
 class HeightUpdate(AntFormMixin, CoreUpdateView):
@@ -2558,13 +2558,13 @@ class WeightList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilte
         return context
 
 
-class WeightAdd(AntFormMixin, CoreAddView):
-    model = models.Weight
-    permission_required = ("core.add_weight",)
-    form_class = forms.WeightForm
-    success_url = reverse_lazy("core:weight-list")
-    ant_title = _("Add Weight")
-    ant_kicker = _("Entry Form")
+class WeightAdd(LoginRequiredMixin, View):
+    """Redirect to the combined measurements page for the child."""
+    def get(self, request):
+        slug = request.GET.get("child")
+        if slug:
+            return HttpResponseRedirect(reverse("core:child-measurements", kwargs={"slug": slug}))
+        return HttpResponseRedirect(reverse("core:weight-list"))
 
 
 class WeightUpdate(AntFormMixin, CoreUpdateView):
@@ -3102,6 +3102,9 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
                 "childDetail": reverse("core:child", kwargs={"slug": child.slug}),
                 "addMilestone": reverse("core:milestone-add") + f"?child={child.slug}",
                 "profileTimeline": reverse("core:child-profile-timeline", kwargs={"slug": child.slug}),
+                "editChild": reverse("core:child-update", kwargs={"slug": child.slug}),
+                "examinations": reverse("examinations:list", kwargs={"slug": child.slug}),
+                "measurements": reverse("core:child-measurements", kwargs={"slug": child.slug}),
             },
             "childSwitcher": _build_child_switcher(self.request, current_child=child),
             "children": [
@@ -3133,6 +3136,8 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
                 "born": _("Born"),
                 "today": _("Today"),
                 "delete": _("Delete"),
+                "editChild": _("Edit Child"),
+                "addMeasurement": _("Add Measurement"),
             },
             "childDetail": {
                 "name": str(child),
@@ -3150,3 +3155,164 @@ class ChildGeneralPage(LoginRequiredMixin, DetailView):
             "milestones": milestones,
         }
         return context
+
+
+class ChildMeasurementsPage(LoginRequiredMixin, View):
+    template_name = "babybuddy/ant_app.html"
+
+    def _get_child(self, slug):
+        return models.Child.objects.get(slug=slug)
+
+    def _bootstrap(self, request, child):
+        from datetime import timedelta
+        from core.models import HeightPercentile, WeightPercentile
+
+        sex = "girl" if child.gender == "female" else "boy"
+        birth_date = child.birth_date
+        today_date = __import__("datetime").date.today()
+        child_age_days = (today_date - birth_date).days if birth_date else 0
+        max_days = child_age_days + 120
+
+        # Combine height + weight entries into unified measurement list keyed by date
+        heights_by_date = {
+            h.date.isoformat(): float(h.height)
+            for h in child.height.order_by("date")
+        }
+        weights_by_date = {
+            w.date.isoformat(): float(w.weight)
+            for w in child.weight.order_by("date")
+        }
+        all_dates = sorted(set(heights_by_date) | set(weights_by_date), reverse=True)
+        measurements = []
+        for d in all_dates:
+            h_cm = heights_by_date.get(d)
+            w_kg = weights_by_date.get(d)
+            bmi = None
+            if h_cm and w_kg and h_cm > 0:
+                bmi = round(w_kg / (h_cm / 100) ** 2, 1)
+            measurements.append({"date": d, "heightCm": h_cm, "weightKg": w_kg, "bmi": bmi})
+
+        def _serialize_h_perc(row):
+            td = row["age_in_days"]
+            days = td.days if hasattr(td, "days") else int(td)
+            return {"days": days, "p3": row["p3_height"], "p15": row["p15_height"],
+                    "p50": row["p50_height"], "p85": row["p85_height"], "p97": row["p97_height"]}
+
+        def _serialize_w_perc(row):
+            td = row["age_in_days"]
+            days = td.days if hasattr(td, "days") else int(td)
+            return {"days": days, "p3": row["p3_weight"], "p15": row["p15_weight"],
+                    "p50": row["p50_weight"], "p85": row["p85_weight"], "p97": row["p97_weight"]}
+
+        h_perc = list(
+            HeightPercentile.objects.filter(sex=sex)
+            .filter(age_in_days__lte=timedelta(days=max_days))
+            .order_by("age_in_days")
+            .values("age_in_days", "p3_height", "p15_height", "p50_height", "p85_height", "p97_height")
+        )
+        w_perc = list(
+            WeightPercentile.objects.filter(sex=sex)
+            .filter(age_in_days__lte=timedelta(days=max_days))
+            .order_by("age_in_days")
+            .values("age_in_days", "p3_weight", "p15_weight", "p50_weight", "p85_weight", "p97_weight")
+        )
+
+        return {
+            "pageType": "child-measurements",
+            "currentPath": request.path,
+            "locale": getattr(request, "LANGUAGE_CODE", "en"),
+            "csrfToken": get_token(request),
+            "user": {"displayName": _display_name(request.user)},
+            "urls": {
+                **_nav_urls(),
+                "generalPage": reverse("core:child-general", kwargs={"slug": child.slug}),
+                "saveMeasurement": reverse("core:child-measurements", kwargs={"slug": child.slug}),
+                "childGeneral": reverse("core:child-general", kwargs={"slug": child.slug}),
+            },
+            "childSwitcher": _build_child_switcher(request, current_child=child),
+            "children": [
+                {"slug": c.slug, "name": str(c)}
+                for c in models.Child.objects.order_by("first_name", "last_name")
+            ],
+            "currentChild": {
+                "id": child.id,
+                "slug": child.slug,
+                "name": str(child),
+            },
+            "childDetail": {
+                "name": str(child),
+                "slug": child.slug,
+                "birthDate": birth_date.isoformat() if birth_date else None,
+                "gender": child.gender,
+            },
+            "measurements": measurements,
+            "heightPercentiles": [_serialize_h_perc(r) for r in h_perc],
+            "weightPercentiles": [_serialize_w_perc(r) for r in w_perc],
+            "strings": {
+                **_list_strings(),
+                "measurements": _("Measurements"),
+                "addMeasurement": _("Add Measurement"),
+                "height": _("Height"),
+                "weight": _("Weight"),
+                "bmi": _("BMI"),
+                "date": _("Date"),
+                "history": _("History"),
+                "noData": _("No measurements recorded yet."),
+                "save": _("Save"),
+                "saving": _("Saving..."),
+                "saveFailed": _("Save failed."),
+                "measurementSaved": _("Measurement saved."),
+                "measurementRequired": _("Enter at least height or weight."),
+                "born": _("Born"),
+                "back": _("Back"),
+            },
+        }
+
+    def get(self, request, slug):
+        child = self._get_child(slug)
+        context = {"ant_bootstrap": self._bootstrap(request, child)}
+        return render(request, self.template_name, context)
+
+    def post(self, request, slug):
+        child = self._get_child(slug)
+        date_str = request.POST.get("measurement_date", "")
+        height_str = request.POST.get("height_cm", "").strip()
+        weight_str = request.POST.get("weight_kg", "").strip()
+
+        if not height_str and not weight_str:
+            return JsonResponse({"ok": False, "error": _("Enter at least height or weight.")})
+
+        import datetime as _dt
+        try:
+            entry_date = _dt.date.fromisoformat(date_str)
+        except (ValueError, AttributeError):
+            entry_date = _dt.date.today()
+
+        try:
+            if height_str:
+                h_val = float(height_str)
+                existing_h = child.height.filter(date=entry_date).first()
+                if existing_h:
+                    existing_h.height = h_val
+                    existing_h.full_clean()
+                    existing_h.save()
+                else:
+                    h = models.Height(child=child, height=h_val, date=entry_date)
+                    h.full_clean()
+                    h.save()
+
+            if weight_str:
+                w_val = float(weight_str)
+                existing_w = child.weight.filter(date=entry_date).first()
+                if existing_w:
+                    existing_w.weight = w_val
+                    existing_w.full_clean()
+                    existing_w.save()
+                else:
+                    w = models.Weight(child=child, weight=w_val, date=entry_date)
+                    w.full_clean()
+                    w.save()
+        except (ValueError, ValidationError) as e:
+            return JsonResponse({"ok": False, "error": str(e)})
+
+        return JsonResponse({"ok": True})

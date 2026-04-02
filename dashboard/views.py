@@ -272,6 +272,10 @@ def _build_ant_strings():
         "ageWindow": _("Age window"),
         "doctorOnly": _("Assessed by your doctor"),
         "notes": _("Notes"),
+        "dayTimeline": _("Day Timeline"),
+        "noActivity": _("No activity recorded."),
+        "today": _("Today"),
+        "recentActivity": _("Recent Activity"),
     }
 
 
