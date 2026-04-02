@@ -1150,7 +1150,6 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
         naive_dt = datetime.datetime.combine(entry_date, entry_time)
         return timezone.make_aware(naive_dt, timezone.get_current_timezone())
 
-    @staticmethod
     def _maybe_send_14h_notification(self, timer):
         """Send a push notification if the sleep timer has been running for > 14 hours
         and no notification has been sent yet for this timer session."""
