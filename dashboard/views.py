@@ -649,7 +649,7 @@ def _build_dial_activities(child, ref_date=None):
         since = now - datetime.timedelta(hours=24)
     activities = []
 
-    for s in Sleep.objects.filter(child=child, start__gte=since).order_by("start"):
+    for s in Sleep.objects.filter(child=child, start__gte=since, start__lte=now).order_by("start"):
         end_str = s.end.isoformat() if s.end else None
         end_display = s.end.strftime("%H:%M") if s.end else "ongoing"
         activities.append(
@@ -661,7 +661,7 @@ def _build_dial_activities(child, ref_date=None):
             }
         )
 
-    for f in Feeding.objects.filter(child=child, start__gte=since).order_by("start"):
+    for f in Feeding.objects.filter(child=child, start__gte=since, start__lte=now).order_by("start"):
         method = f.method or ""
         end_str = f.end.isoformat() if f.end else None
         end_display = f.end.strftime("%H:%M") if f.end else "?"
@@ -678,7 +678,7 @@ def _build_dial_activities(child, ref_date=None):
             }
         )
 
-    for p in Pumping.objects.filter(child=child, start__gte=since).order_by("start"):
+    for p in Pumping.objects.filter(child=child, start__gte=since, start__lte=now).order_by("start"):
         amt = f"{p.amount}ml" if p.amount else ""
         end_str = p.end.isoformat() if p.end else None
         end_display = p.end.strftime("%H:%M") if p.end else "?"
@@ -692,7 +692,7 @@ def _build_dial_activities(child, ref_date=None):
             }
         )
 
-    for d in DiaperChange.objects.filter(child=child, time__gte=since).order_by("time"):
+    for d in DiaperChange.objects.filter(child=child, time__gte=since, time__lte=now).order_by("time"):
         types = []
         if d.wet:
             types.append("wet")

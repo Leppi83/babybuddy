@@ -362,10 +362,13 @@ export function classifyActivities(activities) {
       } else {
         const sa = timeToFixedAngle(activity.start);
         const ea = timeToFixedAngle(activity.end);
-        // An arc that crosses midnight (e.g. 22:00→06:00) has sa < GAP_END_ANGLE
-        // and ea > GAP_START_ANGLE, meaning it would pass through the hidden
-        // bottom gap of the 270° dial.  Split it into two visible segments.
-        if (sa < GAP_END_ANGLE && ea > GAP_START_ANGLE) {
+        // Detect midnight-crossing by comparing dial positions (angle order around
+        // the 270° arc, starting from ARC_START=225°).
+        // dp_ea < dp_sa means the arc would cross the hidden bottom gap to reach ea.
+        const dp_sa = (sa - ARC_START + 360) % 360;
+        const dp_ea = (ea - ARC_START + 360) % 360;
+        if (dp_ea < dp_sa) {
+          // Arc crosses midnight — split at the gap endpoints
           arcs.push({ ...activity, startAngle: sa, endAngle: GAP_END_ANGLE });
           arcs.push({ ...activity, startAngle: GAP_START_ANGLE, endAngle: ea });
         } else {
