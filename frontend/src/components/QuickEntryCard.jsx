@@ -53,7 +53,7 @@ function SegmentedControl({ options, value, onChange }) {
   );
 }
 
-export function QuickEntryCard({ bootstrap }) {
+export function QuickEntryCard({ bootstrap, timerState, setTimerState }) {
   const api = useRef(createApiClient(bootstrap.csrfToken));
   const s = bootstrap.strings;
 
@@ -71,12 +71,7 @@ export function QuickEntryCard({ bootstrap }) {
     setTimeout(() => setMessage(null), 3000);
   };
 
-  const [sleepTimer, setSleepTimer] = useState(bootstrap.sleepTimer || {});
   const [cancelConfirming, setCancelConfirming] = useState(false);
-  const [sleepTimerPaused, setSleepTimerPaused] = useState(bootstrap.sleepTimer?.paused ?? false);
-  const [sleepTimerResumeMs, setSleepTimerResumeMs] = useState(bootstrap.sleepTimer?.running && !bootstrap.sleepTimer?.paused ? Date.now() : null);
-  const [sleepTimerFrozenSeconds, setSleepTimerFrozenSeconds] = useState(bootstrap.sleepTimer?.frozenSeconds ?? 0);
-  const [sleepTimerPauseStartMs, setSleepTimerPauseStartMs] = useState(bootstrap.sleepTimer?.paused && bootstrap.sleepTimer?.pauseStartIso ? new Date(bootstrap.sleepTimer.pauseStartIso).getTime() : null);
   const [submittingSleepTimer, setSubmittingSleepTimer] = useState(false);
 
   const [sleepEntryStartDate, setSleepEntryStartDate] = useState(dayjs());
@@ -111,10 +106,12 @@ export function QuickEntryCard({ bootstrap }) {
   const [submittingPumping, setSubmittingPumping] = useState(false);
 
   function currentTimerElapsed() {
-    if (!sleepTimer.running) return 0;
-    if (sleepTimerPaused || !sleepTimerResumeMs) return sleepTimerFrozenSeconds;
-    return sleepTimerFrozenSeconds + Math.floor((currentTime - sleepTimerResumeMs) / 1000);
+    if (!timerState.running) return 0;
+    if (timerState.paused || !timerState.resumeMs) return timerState.frozenSeconds;
+    return timerState.frozenSeconds + Math.floor((currentTime - timerState.resumeMs) / 1000);
   }
+
+  const STOPPED_TIMER = { running: false, paused: false, resumeMs: null, frozenSeconds: 0, pauseStartMs: null, startIso: null };
 
   async function submitSleepTimerAction(action) {
     const payload = new URLSearchParams();
@@ -124,20 +121,19 @@ export function QuickEntryCard({ bootstrap }) {
       const response = await api.current.postForm(bootstrap.urls.current, payload);
       const data = await response.json();
       if (!data.ok) return showMessage(data.error || s.saveFailed, true);
-      
+
       if (action === "start") {
-        setSleepTimer({ running: true, startIso: new Date().toISOString(), elapsedSeconds: 0, paused: false, pauseStartIso: null, frozenSeconds: 0 });
-        setSleepTimerPaused(false); setSleepTimerFrozenSeconds(0); setSleepTimerResumeMs(Date.now()); setSleepTimerPauseStartMs(null);
+        setTimerState({ running: true, paused: false, resumeMs: Date.now(), frozenSeconds: 0, pauseStartMs: null, startIso: new Date().toISOString() });
       } else if (action === "pause") {
-        setSleepTimerFrozenSeconds(currentTimerElapsed());
-        setSleepTimerResumeMs(null); setSleepTimerPaused(true); setSleepTimerPauseStartMs(Date.now());
+        const frozen = currentTimerElapsed();
+        setTimerState(prev => ({ ...prev, frozenSeconds: frozen, resumeMs: null, paused: true, pauseStartMs: Date.now() }));
       } else if (action === "resume") {
-        setSleepTimerResumeMs(Date.now()); setSleepTimerPaused(false); setSleepTimerPauseStartMs(null);
+        setTimerState(prev => ({ ...prev, resumeMs: Date.now(), paused: false, pauseStartMs: null }));
       } else if (action === "save" || action === "stop") {
-        setSleepTimer({ running: false }); setSleepTimerPaused(false); setSleepTimerFrozenSeconds(0); setSleepTimerResumeMs(null); setSleepTimerPauseStartMs(null);
+        setTimerState(STOPPED_TIMER);
         showMessage(s.sleepEntrySaved);
       } else if (action === "cancel") {
-        setSleepTimer({ running: false }); setSleepTimerPaused(false); setSleepTimerFrozenSeconds(0); setSleepTimerResumeMs(null); setSleepTimerPauseStartMs(null);
+        setTimerState(STOPPED_TIMER);
       }
     } finally {
       setSubmittingSleepTimer(false);
@@ -219,21 +215,21 @@ export function QuickEntryCard({ bootstrap }) {
             <div className="flex flex-col items-center justify-center p-3 bg-slate-900/40 border border-slate-700 rounded-2xl" data-testid="sleep-timer-card">
               <h4 className="text-sm font-bold text-slate-300 mb-1">{s.sleepTimer}</h4>
               <p className="text-xs font-semibold tracking-widest uppercase mb-2 text-slate-500" data-testid="timer-status">
-                {!sleepTimer.running ? "Ready" : sleepTimerPaused ? "Paused" : "Running"}
+                {!timerState.running ? "Ready" : timerState.paused ? "Paused" : "Running"}
               </p>
               <div className="text-4xl font-extrabold font-mono text-sky-400 mb-1 tracking-wider" data-testid="timer-display">
                 {formatElapsedSeconds(currentTimerElapsed())}
               </div>
-              {sleepTimer.running && sleepTimerPaused && (
+              {timerState.running && timerState.paused && (
                 <p className="text-xs text-slate-500 mb-2" data-testid="pause-display">
-                  {s.paused || "Paused"}: {formatElapsedSeconds(Math.floor((Date.now() - (sleepTimerPauseStartMs || Date.now())) / 1000))}
+                  {s.paused || "Paused"}: {formatElapsedSeconds(Math.floor((Date.now() - (timerState.pauseStartMs || Date.now())) / 1000))}
                 </p>
               )}
               <div className="flex flex-col gap-2 w-full mt-2">
-                <Button type="primary" size="large" onClick={() => submitSleepTimerAction(!sleepTimer.running ? "start" : sleepTimerPaused ? "resume" : "pause")}>
-                  {!sleepTimer.running ? s.startTimer : sleepTimerPaused ? s.resume : s.pause}
+                <Button type="primary" size="large" onClick={() => submitSleepTimerAction(!timerState.running ? "start" : timerState.paused ? "resume" : "pause")}>
+                  {!timerState.running ? s.startTimer : timerState.paused ? s.resume : s.pause}
                 </Button>
-                {sleepTimer.running && !cancelConfirming && (
+                {timerState.running && !cancelConfirming && (
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <Button onClick={() => submitSleepTimerAction("save")}>{s.saveTimer}</Button>
                     <Button danger onClick={() => setCancelConfirming(true)}>{s.cancelTimer}</Button>

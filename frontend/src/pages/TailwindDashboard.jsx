@@ -115,6 +115,17 @@ export function ChildDashboardPage({ bootstrap }) {
   const recentActivity = bootstrap.recentActivity || [];
   const profileTimelineUrl = urls.profileTimeline || (slug ? `/children/${slug}/profile-timeline/` : urls.timeline);
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
+  const [timerState, setTimerState] = useState(() => {
+    const t = bootstrap.sleepTimer || {};
+    return {
+      running: t.running ?? false,
+      paused: t.paused ?? false,
+      resumeMs: t.running && !t.paused ? Date.now() : null,
+      frozenSeconds: t.frozenSeconds ?? 0,
+      pauseStartMs: t.paused && t.pauseStartIso ? new Date(t.pauseStartIso).getTime() : null,
+      startIso: t.startIso ?? null,
+    };
+  });
   const [dialDate, setDialDate] = useState(() => {
     if (typeof window !== "undefined") {
       const d = new URLSearchParams(window.location.search).get("date");
@@ -232,7 +243,7 @@ export function ChildDashboardPage({ bootstrap }) {
 
       {/* Quick Entry Drawer — renders QuickEntryCard directly, no iframe */}
       <TailwindDrawer open={quickEntryOpen} onClose={() => setQuickEntryOpen(false)} title={s.quickEntry || "Quick Entry"}>
-        <QuickEntryCard bootstrap={bootstrap} />
+        <QuickEntryCard bootstrap={bootstrap} timerState={timerState} setTimerState={setTimerState} />
       </TailwindDrawer>
     </div>
   );
