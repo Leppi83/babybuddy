@@ -11,7 +11,7 @@ from django.views.generic.base import TemplateView, View
 
 from babybuddy.mixins import LoginRequiredMixin
 from core.models import Child
-from core.views import _nav_urls, _list_strings, _build_child_switcher, _display_name
+from core.views import _nav_urls, _list_strings, _build_child_switcher, _display_name, _nav_children
 from examinations.models import (
     ExaminationProgram,
     ExaminationType,
@@ -104,11 +104,21 @@ class ExaminationListView(LoginRequiredMixin, TemplateView):
             "locale": getattr(self.request, "LANGUAGE_CODE", "en"),
             "csrfToken": get_token(self.request),
             "user": {"displayName": _display_name(self.request.user)},
-            "urls": {**_nav_urls(), "addChild": reverse("core:child-add")},
+            "urls": {
+                **_nav_urls(),
+                "addChild": reverse("core:child-add"),
+                "childGeneral": reverse("core:child-general", kwargs={"slug": child.slug}),
+                "topicTemplate": reverse(
+                    "dashboard:child-topic",
+                    kwargs={"slug": child.slug, "topic": "sleep"},
+                ).replace("/sleep/", "/__TOPIC__/").replace(child.slug, "__CHILD_SLUG__"),
+            },
             "strings": {**_list_strings(), **_exam_strings()},
             "childSwitcher": _build_child_switcher(
                 self.request, current_child=child
             ),
+            "children": _nav_children(),
+            "currentChild": {"id": child.id, "slug": child.slug, "name": str(child)},
             "childDetail": {"name": str(child), "slug": child.slug},
             "examinations": examinations,
             "messages": [],
@@ -179,6 +189,8 @@ class ExaminationFormView(LoginRequiredMixin, TemplateView):
             "childSwitcher": _build_child_switcher(
                 self.request, current_child=child
             ),
+            "children": _nav_children(),
+            "currentChild": {"id": child.id, "slug": child.slug, "name": str(child)},
             "childDetail": {"name": str(child), "slug": child.slug},
             "examinationType": {
                 "code": exam_type.code,

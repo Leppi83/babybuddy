@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Check, Clock, AlertCircle, Stethoscope } from "lucide-react";
+import { Check, Clock, AlertCircle, Stethoscope, ArrowLeft } from "lucide-react";
 import dayjs from "dayjs";
 
 const STATUS_COLOR = {
@@ -71,7 +71,7 @@ function ExamRow({ exam, strings: s, onToggle }) {
 }
 
 export function ExaminationListPage({ bootstrap }) {
-  const { examinations = [], strings: s = {}, childDetail = {}, csrfToken = "" } = bootstrap;
+  const { examinations = [], strings: s = {}, childDetail = {}, csrfToken = "", urls = {} } = bootstrap;
   const [examList, setExamList] = useState(examinations);
 
   function handleToggle(code, toggleUrl) {
@@ -96,9 +96,16 @@ export function ExaminationListPage({ bootstrap }) {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-2xl">
-      <div>
-        <h2 className="text-2xl font-extrabold text-white">{s.examinations || "Examinations"}</h2>
-        {childDetail.name && <p className="text-slate-400 mt-1">{childDetail.name}</p>}
+      <div className="flex items-center gap-4">
+        {urls.childGeneral && (
+          <a href={urls.childGeneral} className="flex-shrink-0 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+            <ArrowLeft size={18} />
+          </a>
+        )}
+        <div>
+          <h2 className="text-2xl font-extrabold text-white">{s.examinations || "Examinations"}</h2>
+          {childDetail.name && <p className="text-slate-400 mt-1">{childDetail.name}</p>}
+        </div>
       </div>
       {orderedGroups.map(group => (
         <div key={group.key} className="flex flex-col gap-3">

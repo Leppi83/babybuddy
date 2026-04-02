@@ -7,7 +7,8 @@ from django.db.models import Count
 from django.db.models.functions import Lower
 from django import forms as django_forms
 from django.forms import Form
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import render
 from django.middleware.csrf import get_token
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
@@ -3164,12 +3165,13 @@ class ChildMeasurementsPage(LoginRequiredMixin, View):
         return models.Child.objects.get(slug=slug)
 
     def _bootstrap(self, request, child):
+        import datetime as _dt
         from datetime import timedelta
         from core.models import HeightPercentile, WeightPercentile
 
         sex = "girl" if child.gender == "female" else "boy"
         birth_date = child.birth_date
-        today_date = __import__("datetime").date.today()
+        today_date = _dt.date.today()
         child_age_days = (today_date - birth_date).days if birth_date else 0
         max_days = child_age_days + 120
 
