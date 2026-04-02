@@ -23,6 +23,7 @@ from django.views.generic.detail import DetailView
 from django.views.decorators.csrf import csrf_exempt
 
 from django.core.cache import cache
+from django.db.models import Q
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from babybuddy.push import send_push_notification
@@ -629,87 +630,133 @@ def _build_celestial_data(user):
     return get_celestial_data(user_settings)
 
 
-def _build_dial_activities(child, ref_date=None):
-    """Serialize activities for the activity dial.
+def _local_iso(dt):
+    """Serialize an aware datetime as a LOCAL naive ISO string (no TZ suffix).
 
-    If ref_date is given, returns activities for that calendar day (midnight-to-midnight
-    local time).  Otherwise returns the last 24 h from now.
+    Browsers parse "YYYY-MM-DDTHH:mm:ss" (no timezone) as local time, so
+    ``new Date(str).getHours()`` always returns the correct local hour for
+    dial positioning regardless of the browser's timezone setting.
     """
-    if ref_date is not None:
-        try:
-            tz = timezone.get_current_timezone()
-            day_start = datetime.datetime.combine(ref_date, datetime.time.min).replace(tzinfo=tz)
-            day_end = datetime.datetime.combine(ref_date, datetime.time.max).replace(tzinfo=tz)
-            since = day_start
-            now = day_end
-        except Exception:
-            ref_date = None
+    return timezone.localtime(dt).strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def _build_dial_activities(child, ref_date=None):
+    """Serialize activities for the activity dial for a given calendar day.
+
+    Activities that span midnight are clipped to the day boundary so each
+    day's dial only shows the portion that falls within that calendar day.
+    Serialized as local-time naive strings so the browser always positions
+    arcs at the correct clock hour.
+    """
+    tz = timezone.get_current_timezone()
     if ref_date is None:
-        now = timezone.now()
-        since = now - datetime.timedelta(hours=24)
+        ref_date = datetime.date.today()
+
+    day_start = datetime.datetime.combine(ref_date, datetime.time.min).replace(tzinfo=tz)
+    day_end = datetime.datetime.combine(ref_date, datetime.time.max).replace(tzinfo=tz)
+    is_today = (ref_date == datetime.date.today())
+
     activities = []
 
-    for s in Sleep.objects.filter(child=child, start__gte=since, start__lte=now).order_by("start"):
-        end_str = s.end.isoformat() if s.end else None
-        end_display = s.end.strftime("%H:%M") if s.end else "ongoing"
-        activities.append(
-            {
-                "type": "sleep",
-                "start": s.start.isoformat(),
-                "end": end_str,
-                "tooltip": f"Sleep: {s.start.strftime('%H:%M')}\u2013{end_display}",
-            }
-        )
+    # Overlap query: activity overlaps the calendar day window.
+    # start < day_end AND (end > day_start OR end IS NULL)
+    for s in Sleep.objects.filter(
+        child=child,
+        start__lt=day_end,
+    ).filter(
+        Q(end__gt=day_start) | Q(end__isnull=True)
+    ).order_by("start"):
+        clipped_start = max(s.start, day_start)
+        if s.end:
+            clipped_end = min(s.end, day_end)
+            end_str = _local_iso(clipped_end)
+            end_display = timezone.localtime(clipped_end).strftime("%H:%M")
+        elif is_today:
+            end_str = None  # ongoing — frontend will use current time
+            end_display = "ongoing"
+        else:
+            end_str = _local_iso(day_end)
+            end_display = "00:00"
+        start_display = timezone.localtime(clipped_start).strftime("%H:%M")
+        activities.append({
+            "type": "sleep",
+            "start": _local_iso(clipped_start),
+            "end": end_str,
+            "tooltip": f"Sleep: {start_display}\u2013{end_display}",
+        })
 
-    for f in Feeding.objects.filter(child=child, start__gte=since, start__lte=now).order_by("start"):
+    for f in Feeding.objects.filter(
+        child=child,
+        start__lt=day_end,
+    ).filter(
+        Q(end__gt=day_start) | Q(end__isnull=True)
+    ).order_by("start"):
         method = f.method or ""
-        end_str = f.end.isoformat() if f.end else None
-        end_display = f.end.strftime("%H:%M") if f.end else "?"
+        clipped_start = max(f.start, day_start)
+        if f.end:
+            clipped_end = min(f.end, day_end)
+            end_str = _local_iso(clipped_end)
+            end_display = timezone.localtime(clipped_end).strftime("%H:%M")
+        else:
+            end_str = None
+            end_display = "?"
         is_breast = "breast" in method.lower()
         activity_type = "breastfeeding" if is_breast else "feeding"
         label = "Breast" if is_breast else "Feed"
-        activities.append(
-            {
-                "type": activity_type,
-                "start": f.start.isoformat(),
-                "end": end_str,
-                "details": method,
-                "tooltip": f"{label}: {f.start.strftime('%H:%M')}\u2013{end_display} ({method})",
-            }
-        )
+        start_display = timezone.localtime(clipped_start).strftime("%H:%M")
+        activities.append({
+            "type": activity_type,
+            "start": _local_iso(clipped_start),
+            "end": end_str,
+            "details": method,
+            "tooltip": f"{label}: {start_display}\u2013{end_display} ({method})",
+        })
 
-    for p in Pumping.objects.filter(child=child, start__gte=since, start__lte=now).order_by("start"):
+    for p in Pumping.objects.filter(
+        child=child,
+        start__lt=day_end,
+    ).filter(
+        Q(end__gt=day_start) | Q(end__isnull=True)
+    ).order_by("start"):
         amt = f"{p.amount}ml" if p.amount else ""
-        end_str = p.end.isoformat() if p.end else None
-        end_display = p.end.strftime("%H:%M") if p.end else "?"
-        activities.append(
-            {
-                "type": "pumping",
-                "start": p.start.isoformat(),
-                "end": end_str,
-                "details": amt,
-                "tooltip": f"Pump: {p.start.strftime('%H:%M')}\u2013{end_display} {amt}".strip(),
-            }
-        )
+        clipped_start = max(p.start, day_start)
+        if p.end:
+            clipped_end = min(p.end, day_end)
+            end_str = _local_iso(clipped_end)
+            end_display = timezone.localtime(clipped_end).strftime("%H:%M")
+        else:
+            end_str = None
+            end_display = "?"
+        start_display = timezone.localtime(clipped_start).strftime("%H:%M")
+        activities.append({
+            "type": "pumping",
+            "start": _local_iso(clipped_start),
+            "end": end_str,
+            "details": amt,
+            "tooltip": f"Pump: {start_display}\u2013{end_display} {amt}".strip(),
+        })
 
-    for d in DiaperChange.objects.filter(child=child, time__gte=since, time__lte=now).order_by("time"):
+    for d in DiaperChange.objects.filter(
+        child=child,
+        time__gte=day_start,
+        time__lte=day_end,
+    ).order_by("time"):
         types = []
         if d.wet:
             types.append("wet")
         if d.solid:
             types.append("solid")
-        activities.append(
-            {
-                "type": "diaper",
-                "time": d.time.isoformat(),
-                "details": " + ".join(types) if types else "",
-                "tooltip": (
-                    f"Diaper: {d.time.strftime('%H:%M')} ({', '.join(types)})"
-                    if types
-                    else f"Diaper: {d.time.strftime('%H:%M')}"
-                ),
-            }
-        )
+        local_time = timezone.localtime(d.time)
+        activities.append({
+            "type": "diaper",
+            "time": _local_iso(d.time),
+            "details": " + ".join(types) if types else "",
+            "tooltip": (
+                f"Diaper: {local_time.strftime('%H:%M')} ({', '.join(types)})"
+                if types
+                else f"Diaper: {local_time.strftime('%H:%M')}"
+            ),
+        })
 
     return activities
 
